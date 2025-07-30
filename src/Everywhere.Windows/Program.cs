@@ -17,9 +17,7 @@ using Everywhere.Windows.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.KernelMemory;
 using Microsoft.KernelMemory.AI;
-using Microsoft.KernelMemory.Configuration;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.TextGeneration;
 using ShadUI;
@@ -40,8 +38,9 @@ public static class Program
                 .AddSingleton<IRuntimeConstantProvider, RuntimeConstantProvider>()
                 .AddSingleton<IVisualElementContext, Win32VisualElementContext>()
                 .AddSingleton<IHotkeyListener, Win32HotkeyListener>()
-                .AddSingleton<IWindowHelper, Win32WindowHelper>()
-                .AddKeyedSingleton<IConfiguration>(nameof(Settings),
+                .AddSingleton<INativeHelper, Win32NativeHelper>()
+                .AddKeyedSingleton<IConfiguration>(
+                    nameof(Settings),
                     (xx, _) =>
                     {
                         IConfiguration configuration;
@@ -80,14 +79,17 @@ public static class Program
                 .AddTransient<IStorageProvider>(_ =>
                     Application.Current.As<App>()?.TopLevel.StorageProvider ??
                     throw new InvalidOperationException("StorageProvider is not available."))
+                .AddTransient<ILauncher>(_ =>
+                    Application.Current.As<App>()?.TopLevel.Launcher ??
+                    throw new InvalidOperationException("Launcher is not available."))
 
                 #endregion
 
                 #region View & ViewModel
 
                 .AddSingleton<VisualTreeDebugger>()
-                .AddSingleton<AssistantFloatingWindowViewModel>()
-                .AddSingleton<AssistantFloatingWindow>()
+                .AddSingleton<ChatFloatingWindowViewModel>()
+                .AddSingleton<ChatFloatingWindow>()
                 .AddSingleton<SettingsPageViewModel>()
                 .AddSingleton<IMainViewPage, SettingsPage>()
                 .AddSingleton<MainViewModel>()
@@ -121,29 +123,29 @@ public static class Program
                 .AddSingleton<ChatContextManager>()
                 .AddSingleton<IChatContextManager>(xx => xx.GetRequiredService<ChatContextManager>())
                 .AddSingleton<IChatService, ChatService>()
-                .AddSingleton<IKernelMemory>(xx => new KernelMemoryBuilder()
-                    .Configure(builder =>
-                    {
-                        var baseFolder = Path.Combine(
-                            Path.GetDirectoryName(Environment.ProcessPath) ?? Environment.CurrentDirectory,
-                            "Assets",
-                            "text2vec-chinese-base");
-                        var generator = new Text2VecTextEmbeddingGenerator(
-                            Path.Combine(baseFolder, "tokenizer.json"),
-                            Path.Combine(baseFolder, "model.onnx"));
-                        builder.AddSingleton<ITextEmbeddingGenerator>(generator);
-                        builder.AddSingleton<ITextEmbeddingBatchGenerator>(generator);
-                        builder.AddIngestionEmbeddingGenerator(generator);
-                        builder.Services.AddSingleton<ITextGenerator>(_ => xx.GetRequiredService<ITextGenerator>());
-                        builder.AddSingleton(
-                            new TextPartitioningOptions
-                            {
-                                MaxTokensPerParagraph = generator.MaxTokens,
-                                OverlappingTokens = generator.MaxTokens / 20
-                            });
-                    })
-                    .Configure(builder => builder.Services.AddLogging(l => l.AddSimpleConsole()))
-                    .Build<MemoryServerless>())
+                // .AddSingleton<IKernelMemory>(xx => new KernelMemoryBuilder()
+                //     .Configure(builder =>
+                //     {
+                //         var baseFolder = Path.Combine(
+                //             Path.GetDirectoryName(Environment.ProcessPath) ?? Environment.CurrentDirectory,
+                //             "Assets",
+                //             "text2vec-chinese-base");
+                //         var generator = new Text2VecTextEmbeddingGenerator(
+                //             Path.Combine(baseFolder, "tokenizer.json"),
+                //             Path.Combine(baseFolder, "model.onnx"));
+                //         builder.AddSingleton<ITextEmbeddingGenerator>(generator);
+                //         builder.AddSingleton<ITextEmbeddingBatchGenerator>(generator);
+                //         builder.AddIngestionEmbeddingGenerator(generator);
+                //         builder.Services.AddSingleton<ITextGenerator>(_ => xx.GetRequiredService<ITextGenerator>());
+                //         builder.AddSingleton(
+                //             new TextPartitioningOptions
+                //             {
+                //                 MaxTokensPerParagraph = generator.MaxTokens,
+                //                 OverlappingTokens = generator.MaxTokens / 20
+                //             });
+                //     })
+                //     .Configure(builder => builder.Services.AddLogging(l => l.AddSimpleConsole()))
+                //     .Build<MemoryServerless>())
 
             #endregion
 
@@ -166,7 +168,16 @@ public static class Program
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            Console.WriteLine(formatter(state, exception));
+            switch (logLevel)
+            {
+                case LogLevel.Error:
+                case LogLevel.Critical:
+                    Console.Error.WriteLine(formatter(state, exception));
+                    break;
+                default:
+                    Console.WriteLine(formatter(state, exception));
+                    break;
+            }
         }
     }
 }

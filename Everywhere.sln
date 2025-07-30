@@ -18,6 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitmodules = .gitmodules
 		Settings.XamlStyler = Settings.XamlStyler
+		tools\build_vcproj.ps1 = tools\build_vcproj.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3rd", "3rd", "{53D93485-1520-4753-81CE-DA1CFF334372}"
@@ -27,7 +28,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "3rd", "3rd", "{53D93485-152
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Everywhere.Windows.TextService", "src\Everywhere.Windows.TextService\Everywhere.Windows.TextService.vcxproj", "{D5F1DA2F-CE8F-4F35-A2C2-6DC5378211DF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Everywhere.I18N.Generator", "src\Everywhere.I18N.Generator\Everywhere.I18N.Generator.csproj", "{A68C1BEB-0FC2-4A47-BFEB-E96BB14A9913}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Everywhere.I18N.SourceGenerator", "src\Everywhere.I18N.SourceGenerator\Everywhere.I18N.SourceGenerator.csproj", "{A68C1BEB-0FC2-4A47-BFEB-E96BB14A9913}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WritableJsonConfiguration", "3rd\WritableJsonConfiguration\src\WritableJsonConfiguration\WritableJsonConfiguration.csproj", "{85AE2A7B-E780-4741-9BE5-FB22F37D7E21}"
 EndProject
@@ -53,7 +54,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagePack.Analyzers.CodeF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagePack.SourceGenerator", "3rd\MessagePack-CSharp\src\MessagePack.SourceGenerator\MessagePack.SourceGenerator.csproj", "{A6322E31-87FA-4B4A-B51A-6E4565DEF08F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Everywhere.Markdown", "src\Everywhere.Markdown\Everywhere.Markdown.csproj", "{134DFB28-2A88-40A4-80EE-1839473D2FB1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LiveMarkdown.Avalonia", "3rd\LiveMarkdown.Avalonia\src\LiveMarkdown.Avalonia\LiveMarkdown.Avalonia.csproj", "{CF44F63A-B985-4140-A8CE-C79FB41DEE80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -117,10 +118,10 @@ Global
 		{A6322E31-87FA-4B4A-B51A-6E4565DEF08F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6322E31-87FA-4B4A-B51A-6E4565DEF08F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6322E31-87FA-4B4A-B51A-6E4565DEF08F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{134DFB28-2A88-40A4-80EE-1839473D2FB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{134DFB28-2A88-40A4-80EE-1839473D2FB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{134DFB28-2A88-40A4-80EE-1839473D2FB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{134DFB28-2A88-40A4-80EE-1839473D2FB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF44F63A-B985-4140-A8CE-C79FB41DEE80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF44F63A-B985-4140-A8CE-C79FB41DEE80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF44F63A-B985-4140-A8CE-C79FB41DEE80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF44F63A-B985-4140-A8CE-C79FB41DEE80}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -139,5 +140,6 @@ Global
 		{FDC6E8E4-1B6C-461F-A22B-4C4140BB0B51} = {5BB51AE6-908C-4D20-BB3A-4815E9BC5D19}
 		{05A31A6F-3B54-4557-B7E1-88EDD2CAB76E} = {5BB51AE6-908C-4D20-BB3A-4815E9BC5D19}
 		{A6322E31-87FA-4B4A-B51A-6E4565DEF08F} = {5BB51AE6-908C-4D20-BB3A-4815E9BC5D19}
+		{CF44F63A-B985-4140-A8CE-C79FB41DEE80} = {53D93485-1520-4753-81CE-DA1CFF334372}
 	EndGlobalSection
 EndGlobal

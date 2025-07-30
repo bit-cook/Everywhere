@@ -3,8 +3,8 @@ using System.Text.Json.Serialization;
 using Avalonia.Controls.Documents;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Everywhere.Markdown;
 using Everywhere.Serialization;
+using LiveMarkdown.Avalonia;
 using Lucide.Avalonia;
 using MessagePack;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -50,6 +50,10 @@ public partial class AssistantChatMessage : ChatMessage
         get => MarkdownBuilder.ToString();
         init => MarkdownBuilder.Append(value);
     }
+
+    [Key(1)]
+    [ObservableProperty]
+    public partial DynamicResourceKeyBase? ErrorMessageKey { get; set; }
 
     public AssistantChatMessage()
     {
@@ -112,6 +116,10 @@ public partial class ActionChatMessage : ChatMessage
     /// </summary>
     [Key(3)]
     public string? Content { get; set; }
+
+    [Key(4)]
+    [ObservableProperty]
+    public partial DynamicResourceKeyBase? ErrorMessageKey { get; set; }
 
     [SerializationConstructor]
     private ActionChatMessage() { }

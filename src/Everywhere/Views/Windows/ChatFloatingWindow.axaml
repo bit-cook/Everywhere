@@ -1,14 +1,13 @@
 ﻿<v:ReactiveWindow
-  x:Class="Everywhere.Views.AssistantFloatingWindow" xmlns="https://github.com/avaloniaui"
+  x:Class="Everywhere.Views.ChatFloatingWindow" xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:be="clr-namespace:Everywhere.Behaviors"
   xmlns:i="clr-namespace:Everywhere.Interfaces" xmlns:m="clr-namespace:Everywhere.Models"
-  xmlns:markdown="clr-namespace:Everywhere.Markdown;assembly=Everywhere.Markdown" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
-  xmlns:system="clr-namespace:System;assembly=System.Runtime" xmlns:themes="clr-namespace:ShadUI.Themes;assembly=ShadUI"
-  xmlns:v="clr-namespace:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters"
-  xmlns:vm="clr-namespace:Everywhere.ViewModels" x:DataType="vm:AssistantFloatingWindowViewModel"
-  x:TypeArguments="vm:AssistantFloatingWindowViewModel" Background="Transparent"
-  CanResize="False"
-  IsOpened="{Binding IsOpened, Mode=TwoWay}"
+  xmlns:markdown="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
+  xmlns:themes="clr-namespace:ShadUI.Themes;assembly=ShadUI" xmlns:v="clr-namespace:Everywhere.Views"
+  xmlns:vc="clr-namespace:Everywhere.ValueConverters" xmlns:vm="clr-namespace:Everywhere.ViewModels"
+  x:DataType="vm:ChatFloatingWindowViewModel" x:TypeArguments="vm:ChatFloatingWindowViewModel"
+  Background="Transparent" CanResize="False"
+  IsOpened="{Binding IsOpened, Mode=OneWayToSource}"
   RequestedThemeVariant="{x:Static themes:ThemeVariants.Acrylic}"
   ShowActivated="True" ShowInTaskbar="False"
   SizeToContent="WidthAndHeight" SystemDecorations="None"
@@ -18,45 +17,11 @@
 
   <Grid
     x:Name="RootGrid" RowDefinitions="*,Auto">
-    <Grid.Resources>
-      <vc:PlacementToCornerRadiusConverter x:Key="PlacementToCornerRadiusConverter"/>
-    </Grid.Resources>
-
     <Border
       x:Name="BackgroundBorder" Grid.Row="0"
       Grid.RowSpan="2"
       BorderBrush="{DynamicResource AcrylicBorderBrush}"
-      BorderThickness="1"
-      Classes.IsExpanded="{Binding IsExpanded}">
-      <Border.CornerRadius>
-        <MultiBinding Converter="{StaticResource PlacementToCornerRadiusConverter}">
-          <Binding>
-            <Binding.Source>
-              <system:Double>4</system:Double>
-            </Binding.Source>
-          </Binding>
-          <Binding>
-            <Binding.Source>
-              <CornerRadius>12,18</CornerRadius>
-            </Binding.Source>
-          </Binding>
-          <Binding Path="$self.Bounds.Width"/>
-          <Binding Path="$parent[v:AssistantFloatingWindow].Placement"/>
-          <Binding Path="IsExpanded"/>
-        </MultiBinding>
-      </Border.CornerRadius>
-
-      <Border.Transitions>
-        <Transitions>
-          <CornerRadiusTransition
-            Easing="SineEaseInOut" Property="CornerRadius"
-            Duration="0:0:0.2"/>
-          <DoubleTransition
-            Easing="SineEaseInOut" Property="Opacity"
-            Duration="0:0:0.2"/>
-        </Transitions>
-      </Border.Transitions>
-    </Border>
+      BorderThickness="1" CornerRadius="16,16,20,20"/>
 
     <ExperimentalAcrylicBorder
       x:Name="ExperimentalAcrylicBorder" Grid.Row="0"
@@ -64,8 +29,8 @@
       CornerRadius="{Binding CornerRadius, ElementName=BackgroundBorder}">
       <ExperimentalAcrylicBorder.Material>
         <ExperimentalAcrylicMaterial
-          MaterialOpacity="0.4" TintColor="Black"
-          TintOpacity="0.2"/>
+          MaterialOpacity="0.6" TintColor="Black"
+          TintOpacity="0.4"/>
       </ExperimentalAcrylicBorder.Material>
     </ExperimentalAcrylicBorder>
 
@@ -73,24 +38,14 @@
       Grid.Row="0" Margin="8"
       Background="Transparent" LastChildFill="True"
       PointerPressed="HandleTitleBarPointerPressed">
-      <ToggleButton
-        DockPanel.Dock="Left" MinHeight="32"
-        Padding="0"
-        IsChecked="{Binding IsExpanded, Mode=TwoWay}">
-        <ToggleButton.Template>
-          <ControlTemplate TargetType="ToggleButton">
-            <Viewbox
-              Width="36" Height="36"
-              Margin="0,0,0,-4">
-              <ContentPresenter Content="{StaticResource AssistantAvatar}"/>
-            </Viewbox>
-          </ControlTemplate>
-        </ToggleButton.Template>
-      </ToggleButton>
+      <Viewbox
+        DockPanel.Dock="Left" Width="36"
+        Height="36" Margin="0,0,0,-4">
+        <ContentPresenter Content="{StaticResource AssistantAvatar}"/>
+      </Viewbox>
 
       <StackPanel
         DockPanel.Dock="Right" VerticalAlignment="Center"
-        IsVisible="{Binding IsExpanded}"
         Orientation="Horizontal" Spacing="4">
         <StackPanel.Styles>
           <Style Selector=":is(Button).TitleBar">
@@ -100,7 +55,7 @@
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="Background" Value="Transparent"/>
 
-            <Style Selector="^:pointerover.Close /template/ Border#RootBorder">
+            <Style Selector="^.Close /template/ Border#HoverBackground">
               <Setter Property="Background" Value="#C42B1C"/>
             </Style>
 
@@ -123,7 +78,7 @@
         <Button
           x:Name="HistoryToggleButton" Classes="Ghost TitleBar"
           Command="{Binding ChatContextManager.UpdateHistory}"
-          ToolTip.Tip="{DynamicResource AssistantFloatingWindow_History_ToolTip}">
+          ToolTip.Tip="{I18N {x:Static LocaleKey.ChatFloatingWindow_History_ToolTip}}">
           <Button.Flyout>
             <Flyout ShowMode="Transient">
               <ScrollViewer
@@ -144,10 +99,10 @@
                           Padding="0" Background="Transparent"
                           BorderThickness="0"
                           ItemsSource="{Binding Contexts}"
-                          SelectedItem="{Binding $parent[v:AssistantFloatingWindow].((vm:AssistantFloatingWindowViewModel)DataContext).ChatContextManager.Current, FallbackValue={x:Null}}">
+                          SelectedItem="{Binding $parent[v:ChatFloatingWindow].((vm:ChatFloatingWindowViewModel)DataContext).ChatContextManager.Current, FallbackValue={x:Null}}">
                           <ListBox.DataTemplates>
                             <DataTemplate DataType="m:ChatContext">
-                              <TextBlock Text="{Binding Metadata.Topic, TargetNullValue={StaticResource ChatContext_Metadata_Title_Default}}"/>
+                              <TextBlock Text="{Binding Metadata.Topic, TargetNullValue={I18N {x:Static LocaleKey.ChatContext_Metadata_Title_Default}}}"/>
                             </DataTemplate>
                           </ListBox.DataTemplates>
                         </ListBox>
@@ -165,14 +120,14 @@
         <Button
           Classes="Ghost TitleBar" Margin="0,0,4,0"
           Command="{Binding ChatContextManager.CreateNewCommand}"
-          ToolTip.Tip="{DynamicResource AssistantFloatingWindow_CreateNew_ToolTip}">
+          ToolTip.Tip="{I18N {x:Static LocaleKey.ChatFloatingWindow_CreateNew_ToolTip}}">
           <LucideIcon Kind="Plus"/>
         </Button>
 
         <Button
           Classes="Ghost TitleBar Close"
           Command="{Binding CloseCommand}"
-          ToolTip.Tip="{DynamicResource AssistantFloatingWindow_Close_ToolTip}">
+          ToolTip.Tip="{I18N {x:Static LocaleKey.ChatFloatingWindow_Close_ToolTip}}">
           <LucideIcon Kind="X"/>
         </Button>
       </StackPanel>
@@ -180,13 +135,10 @@
       <TextBlock
         Classes="Large" Margin="8,0,0,0"
         VerticalAlignment="Center" IsHitTestVisible="False"
-        IsVisible="{Binding IsExpanded}"
         Text="{Binding Title^, FallbackValue={x:Null}}"/>
     </DockPanel>
 
-    <Panel
-      Grid.Row="1"
-      IsVisible="{Binding IsExpanded}">
+    <Panel Grid.Row="1">
       <Panel.Styles>
         <Style Selector="shadui|Loading">
           <Setter Property="Foreground" Value="{DynamicResource SukiLowText}"/>
@@ -205,8 +157,16 @@
           <Panel>
             <ItemsControl
               Margin="0,0,0,8"
-              IsVisible="{Binding !!$self.ItemCount}"
               ItemsSource="{Binding QuickActions}">
+              <ItemsControl.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                  <Binding Path="!!$self.ItemCount"/>
+                  <Binding
+                    Converter="{x:Static vc:NumberConverters.NotGreaterThanOne}"
+                    Path="ChatContextManager.ChatMessageNodes.Count"/>
+                </MultiBinding>
+              </ItemsControl.IsVisible>
+
               <ItemsControl.DataTemplates>
                 <DataTemplate DataType="m:DynamicNamedCommand">
                   <Button
@@ -294,13 +254,14 @@
                   <Setter Property="Template">
                     <ControlTemplate>
                       <ButtonSpinner
-                        Name="PART_Spinner" HorizontalContentAlignment="Stretch"
-                        VerticalContentAlignment="Stretch">
+                        Name="PART_Spinner" HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center">
                         <Panel>
+                          <!--  TextBox is useless but necessary for NumericUpDown  -->
                           <TextBox
                             x:Name="PART_TextBox" IsVisible="False"/>
                           <TextBlock
-                            Margin="0,0,0,1" FontSize="12"
+                            Margin="0,2,0,0" FontSize="12"
                             Foreground="{TemplateBinding Foreground}"
                             TextAlignment="Center" TextWrapping="NoWrap">
                             <Run Text="{Binding Value, StringFormat={}{0:F0}, RelativeSource={RelativeSource TemplatedParent}}"/>
@@ -354,10 +315,25 @@
                         <StackPanel
                           Classes="ChatMessage Assistant" Background="Transparent"
                           Orientation="Vertical" Spacing="4">
-                          <markdown:MarkdownRenderer MarkdownBuilder="{Binding MarkdownBuilder}"/>
+                          <markdown:MarkdownRenderer
+                            InlineHyperlinkCommand="{Binding $parent[v:ChatFloatingWindow].LaunchInlineHyperlinkCommand}"
+                            MarkdownBuilder="{Binding MarkdownBuilder}"/>
+
+                          <Border
+                            Padding="8,4" HorizontalAlignment="Left"
+                            Background="{DynamicResource ErrorColor20}"
+                            CornerRadius="4"
+                            IsVisible="{Binding !!ErrorMessageKey}">
+                            <TextBlock
+                              Text="{Binding ErrorMessageKey^, FallbackValue={x:Null}}"
+                              TextWrapping="Wrap"/>
+                          </Border>
+
                           <shadui:Skeleton
-                            Width="200" Height="20"
+                            Width="12" Height="12"
                             HorizontalAlignment="Left"
+                            Background="{DynamicResource PrimaryColor}"
+                            CornerRadius="8"
                             IsVisible="{Binding IsBusy}"/>
 
                           <StackPanel
@@ -373,16 +349,16 @@
 
                             <Button
                               Classes="Ghost"
-                              Command="{Binding $parent[v:AssistantFloatingWindow].ViewModel.RetryCommand}"
+                              Command="{Binding $parent[v:ChatFloatingWindow].ViewModel.RetryCommand}"
                               CommandParameter="{Binding $parent[ContentControl].DataContext}"
-                              ToolTip.Tip="{DynamicResource AssistantFloatingWindow_ChatMessage_Assistant_Regenerate}">
+                              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatFloatingWindow_ChatMessage_Assistant_Regenerate}}">
                               <LucideIcon Kind="RefreshCcw"/>
                             </Button>
                             <Button
                               Classes="Ghost"
-                              Command="{Binding $parent[v:AssistantFloatingWindow].ViewModel.CopyCommand}"
+                              Command="{Binding $parent[v:ChatFloatingWindow].ViewModel.CopyCommand}"
                               CommandParameter="{Binding}"
-                              ToolTip.Tip="{DynamicResource AssistantFloatingWindow_ChatMessage_Assistant_Copy}">
+                              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatFloatingWindow_ChatMessage_Assistant_Copy}}">
                               <LucideIcon Kind="Copy"/>
                             </Button>
                           </StackPanel>
@@ -407,12 +383,25 @@
                               </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
 
-                            <ItemsControl.ItemTemplate>
+                            <ItemsControl.DataTemplates>
+                              <DataTemplate DataType="m:ChatImageAttachment">
+                                <Border
+                                  ClipToBounds="True" CornerRadius="4">
+                                  <Image
+                                    MaxWidth="64" MaxHeight="64"
+                                    Source="{Binding Image}">
+                                    <ToolTip.Tip>
+                                      <Image Source="{Binding Image}"/>
+                                    </ToolTip.Tip>
+                                  </Image>
+                                </Border>
+                              </DataTemplate>
+
                               <DataTemplate DataType="m:ChatAttachment">
                                 <Border
                                   Height="24"
                                   Background="{DynamicResource CardBackgroundColor}"
-                                  CornerRadius="12">
+                                  CornerRadius="4">
                                   <StackPanel
                                     Margin="6,0" Orientation="Horizontal"
                                     Spacing="4">
@@ -426,7 +415,7 @@
                                   </StackPanel>
                                 </Border>
                               </DataTemplate>
-                            </ItemsControl.ItemTemplate>
+                            </ItemsControl.DataTemplates>
                           </ItemsControl>
 
                           <!--  TODO: Edit operations  -->
@@ -508,8 +497,25 @@
                                 <LucideIcon
                                   VerticalAlignment="Center"
                                   Foreground="{DynamicResource SuccessColor}"
-                                  IsVisible="{Binding !IsBusy}"
-                                  Kind="Check" Size="14"/>
+                                  Kind="Check" Size="14">
+                                  <LucideIcon.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                      <Binding Path="!IsBusy"/>
+                                      <Binding Path="!ErrorMessageKey"/>
+                                    </MultiBinding>
+                                  </LucideIcon.IsVisible>
+                                </LucideIcon>
+                                <LucideIcon
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource ErrorColor}"
+                                  Kind="X" Size="14">
+                                  <LucideIcon.IsVisible>
+                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                                      <Binding Path="!IsBusy"/>
+                                      <Binding Path="!!ErrorMessageKey"/>
+                                    </MultiBinding>
+                                  </LucideIcon.IsVisible>
+                                </LucideIcon>
                               </StackPanel>
                             </Expander.Header>
 
@@ -533,7 +539,6 @@
             AcceptsReturn="True"
             CancelCommand="{Binding CancelCommand}"
             ChatAttachmentItemsSource="{Binding ChatAttachments}"
-            ChatCommandItemsSource="{Binding ChatCommands}"
             Command="{Binding SendMessageCommand}"
             IsImageEnabled="{Binding Settings.Internal.IsImageEnabled, Mode=TwoWay}"
             IsImageSupported="{Binding Settings.Model.IsImageSupported}"
@@ -548,43 +553,48 @@
               <MenuItem
                 Command="{Binding AddElementCommand}"
                 CommandParameter="{x:Static i:PickElementMode.Screen}"
-                Header="{DynamicResource AssistantFloatingWindow_AssistantInputBox_AddAttachmentMenuItems_AddScreen}">
+                Header="{I18N {x:Static LocaleKey.ChatFloatingWindow_ChatInputBox_AddAttachmentMenuItems_AddScreen}}">
                 <MenuItem.Icon>
                   <LucideIcon
+                    Width="18" Height="18"
                     Kind="Monitor" Size="18"/>
                 </MenuItem.Icon>
               </MenuItem>
               <MenuItem
                 Command="{Binding AddElementCommand}"
                 CommandParameter="{x:Static i:PickElementMode.Window}"
-                Header="{DynamicResource AssistantFloatingWindow_AssistantInputBox_AddAttachmentMenuItems_AddWindow}">
+                Header="{I18N {x:Static LocaleKey.ChatFloatingWindow_ChatInputBox_AddAttachmentMenuItems_AddWindow}}">
                 <MenuItem.Icon>
                   <LucideIcon
+                    Width="18" Height="18"
                     Kind="AppWindow" Size="18"/>
                 </MenuItem.Icon>
               </MenuItem>
               <MenuItem
                 Command="{Binding AddElementCommand}"
                 CommandParameter="{x:Static i:PickElementMode.Element}"
-                Header="{DynamicResource AssistantFloatingWindow_AssistantInputBox_AddAttachmentMenuItems_AddElement}">
+                Header="{I18N {x:Static LocaleKey.ChatFloatingWindow_ChatInputBox_AddAttachmentMenuItems_AddElement}}">
                 <MenuItem.Icon>
                   <LucideIcon
+                    Width="18" Height="18"
                     Kind="SquareMousePointer" Size="18"/>
                 </MenuItem.Icon>
               </MenuItem>
               <MenuItem
                 Command="{Binding AddClipboardCommand}"
-                Header="{DynamicResource AssistantFloatingWindow_AssistantInputBox_AddAttachmentMenuItems_AddClipboard}">
+                Header="{I18N {x:Static LocaleKey.ChatFloatingWindow_ChatInputBox_AddAttachmentMenuItems_AddClipboard}}">
                 <MenuItem.Icon>
                   <LucideIcon
+                    Width="18" Height="18"
                     Kind="ClipboardPaste" Size="18"/>
                 </MenuItem.Icon>
               </MenuItem>
               <MenuItem
                 Command="{Binding AddFileCommand}"
-                Header="{DynamicResource AssistantFloatingWindow_AssistantInputBox_AddAttachmentMenuItems_AddFile}">
+                Header="{I18N {x:Static LocaleKey.ChatFloatingWindow_ChatInputBox_AddAttachmentMenuItems_AddFile}}">
                 <MenuItem.Icon>
                   <LucideIcon
+                    Width="18" Height="18"
                     Kind="File" Size="18"/>
                 </MenuItem.Icon>
               </MenuItem>

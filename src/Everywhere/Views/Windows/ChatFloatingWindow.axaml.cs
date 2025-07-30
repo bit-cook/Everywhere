@@ -1,22 +1,27 @@
-﻿using Avalonia.Controls;
+﻿using System.ComponentModel;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Input;
+using LiveMarkdown.Avalonia;
 
 namespace Everywhere.Views;
 
-public partial class AssistantFloatingWindow : ReactiveWindow<AssistantFloatingWindowViewModel>
+public partial class ChatFloatingWindow : ReactiveWindow<ChatFloatingWindowViewModel>
 {
-    public static readonly StyledProperty<bool> IsOpenedProperty =
-        AvaloniaProperty.Register<AssistantFloatingWindow, bool>(nameof(IsOpened));
+    public static readonly DirectProperty<ChatFloatingWindow, bool> IsOpenedProperty =
+        AvaloniaProperty.RegisterDirect<ChatFloatingWindow, bool>(nameof(IsOpened), o => o.IsOpened);
 
     public bool IsOpened
     {
-        get => GetValue(IsOpenedProperty);
-        set => SetValue(IsOpenedProperty, value);
+        get;
+        private set => SetAndRaise(IsOpenedProperty, ref field, value);
     }
 
     public static readonly StyledProperty<PixelRect> TargetBoundingRectProperty =
-        AvaloniaProperty.Register<AssistantFloatingWindow, PixelRect>(nameof(TargetBoundingRect));
+        AvaloniaProperty.Register<ChatFloatingWindow, PixelRect>(nameof(TargetBoundingRect));
 
     public PixelRect TargetBoundingRect
     {
@@ -25,7 +30,7 @@ public partial class AssistantFloatingWindow : ReactiveWindow<AssistantFloatingW
     }
 
     public static readonly StyledProperty<PlacementMode> PlacementProperty =
-        AvaloniaProperty.Register<AssistantFloatingWindow, PlacementMode>(nameof(Placement));
+        AvaloniaProperty.Register<ChatFloatingWindow, PlacementMode>(nameof(Placement));
 
     public PlacementMode Placement
     {
@@ -33,34 +38,58 @@ public partial class AssistantFloatingWindow : ReactiveWindow<AssistantFloatingW
         set => SetValue(PlacementProperty, value);
     }
 
-    private readonly IWindowHelper windowHelper;
+    private readonly INativeHelper nativeHelper;
+    private readonly ILauncher launcher;
 
-    public AssistantFloatingWindow(IWindowHelper windowHelper)
+    public ChatFloatingWindow(INativeHelper nativeHelper, ILauncher launcher)
     {
-        this.windowHelper = windowHelper;
+        this.nativeHelper = nativeHelper;
+        this.launcher = launcher;
 
         InitializeComponent();
-        // windowHelper.SetWindowNoFocus(this);
+        // nativeHelper.SetWindowNoFocus(this);
 
+        ViewModel.PropertyChanged += HandleViewModelPropertyChanged;
         BackgroundBorder.PropertyChanged += HandleBackgroundBorderPropertyChanged;
+        ChatInputBox.PastingFromClipboard += HandlePastingFromClipboard;
+    }
+
+    private void HandleViewModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName != nameof(ViewModel.IsOpened)) return;
+
+        IsOpened = ViewModel.IsOpened;
+        if (IsOpened)
+        {
+            Show();
+            Topmost = false;
+            Topmost = true;
+        }
+        else
+        {
+            Hide();
+        }
     }
 
     private void HandleBackgroundBorderPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
         if (e.Property != Border.CornerRadiusProperty || e.NewValue is not CornerRadius cornerRadius) return;
-        windowHelper.SetWindowCornerRadius(this, cornerRadius);
+        nativeHelper.SetWindowCornerRadius(this, cornerRadius);
     }
 
     protected override void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
 
-        windowHelper.SetWindowCornerRadius(this, BackgroundBorder.CornerRadius);
         CalculatePositionAndPlacement();
 
         // Make the window topmost
         Topmost = false;
         Topmost = true;
+
+        Dispatcher.UIThread.InvokeAsync(
+            () => nativeHelper.SetWindowCornerRadius(this, BackgroundBorder.CornerRadius),
+            DispatcherPriority.Loaded);
 
         ChatInputBox.Focus();
     }
@@ -69,16 +98,14 @@ public partial class AssistantFloatingWindow : ReactiveWindow<AssistantFloatingW
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == IsOpenedProperty)
-        {
-            if (change.NewValue is true) Show();
-            else Hide();
-        }
-        else if (change.Property == IsVisibleProperty)
+        if (change.Property == IsVisibleProperty)
         {
             IsOpened = change.NewValue is true;
         }
-        else if (change.Property == TargetBoundingRectProperty) CalculatePositionAndPlacement();
+        else if (change.Property == TargetBoundingRectProperty)
+        {
+            CalculatePositionAndPlacement();
+        }
     }
 
     protected override void OnSizeChanged(SizeChangedEventArgs e)
@@ -183,5 +210,24 @@ public partial class AssistantFloatingWindow : ReactiveWindow<AssistantFloatingW
     private void HandleTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         BeginMoveDrag(e);
+    }
+
+    /// <summary>
+    /// TODO: Avalonia says they will support this in 12.0
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void HandlePastingFromClipboard(object? sender, RoutedEventArgs e)
+    {
+        if (!ViewModel.AddClipboardCommand.CanExecute(null)) return;
+
+        ViewModel.AddClipboardCommand.Execute(null);
+    }
+
+    [RelayCommand]
+    private Task LaunchInlineHyperlink(InlineHyperlinkClickedEventArgs e)
+    {
+        // currently we only support http(s) links for safety reasons
+        return e.HRef is not { Scheme: "http" or "https" } uri ? Task.CompletedTask : launcher.LaunchUriAsync(uri);
     }
 }

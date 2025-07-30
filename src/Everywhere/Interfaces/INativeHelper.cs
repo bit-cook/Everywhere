@@ -1,8 +1,9 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Media.Imaging;
 
 namespace Everywhere.Interfaces;
 
-public interface IWindowHelper
+public interface INativeHelper
 {
     /// <summary>
     /// Make the window cannot be focused by the system.
@@ -17,4 +18,10 @@ public interface IWindowHelper
     void SetWindowCornerRadius(Window window, CornerRadius cornerRadius);
 
     void HideWindowWithoutAnimation(Window window);
+
+    /// <summary>
+    /// Get the bitmap from the clipboard. This method is asynchronous and may return null if the clipboard does not contain a bitmap.
+    /// </summary>
+    /// <returns></returns>
+    Task<WriteableBitmap?> GetClipboardBitmapAsync();
 }

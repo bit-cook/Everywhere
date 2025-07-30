@@ -1,13 +1,18 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Attributes;
-using Everywhere.I18N;
 using Everywhere.Utils;
-using MessagePack;
 
 namespace Everywhere.Models;
+
+/// <summary>
+/// This attribute is used to mark properties that should not be serialized or displayed in the UI.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field)]
+public class HiddenSettingsAttribute : Attribute;
 
 public class SettingsBase : TrackableObject<SettingsBase>
 {
@@ -30,7 +35,7 @@ public class Settings
 
     public ModelSettings Model { get; init; } = new();
 
-    [IgnoreMember]
+    [HiddenSettings]
     public InternalSettings Internal { get; init; } = new();
 }
 
@@ -39,7 +44,7 @@ public partial class CommonSettings() : SettingsBase("Common")
     [SettingsSelectionItem(ItemsSource = nameof(LanguageSource))]
     public string Language
     {
-        get => LocaleManager.CurrentLocale ?? CultureInfo.CurrentUICulture.Name;
+        get => LocaleManager.CurrentLocale ?? CultureInfo.CurrentUICulture.Parent.Name.ToLower();
         set
         {
             if (LocaleManager.CurrentLocale == value) return;
@@ -61,10 +66,7 @@ public partial class CommonSettings() : SettingsBase("Common")
 public partial class BehaviorSettings() : SettingsBase("Behavior")
 {
     [ObservableProperty]
-    public partial KeyboardHotkey AssistantHotkey { get; set; }
-
-    [ObservableProperty]
-    public partial bool ShowAssistantFloatingWindowWhenInput { get; set; }
+    public partial KeyboardHotkey AssistantHotkey { get; set; } = new(Key.E, KeyModifiers.Control | KeyModifiers.Shift);
 }
 
 public partial class ModelSettings() : SettingsBase("Model")
@@ -93,6 +95,7 @@ public partial class ModelSettings() : SettingsBase("Model")
     public partial bool IsImageSupported { get; set; }
 
     [ObservableProperty]
+    [HiddenSettings]
     public partial bool IsToolCallSupported { get; set; }
 
     [ObservableProperty]
@@ -116,6 +119,7 @@ public partial class ModelSettings() : SettingsBase("Model")
     public partial string WebSearchEndpoint { get; set; } = string.Empty;
 }
 
+[HiddenSettings]
 public partial class InternalSettings() : SettingsBase("Internal")
 {
     [ObservableProperty]
@@ -128,4 +132,7 @@ public partial class InternalSettings() : SettingsBase("Internal")
     public partial bool IsWebSearchEnabled { get; set; }
 
     public int MaxChatAttachmentCount { get; set; } = 10;
+
+    [ObservableProperty]
+    public partial bool IsMainViewSidebarExpanded { get; set; }
 }

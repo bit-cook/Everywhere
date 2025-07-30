@@ -4,7 +4,6 @@ using Avalonia.Threading;
 using Everywhere.Attributes;
 using Everywhere.Models;
 using Everywhere.Utils;
-using MessagePack;
 using ShadUI;
 using ZLinq;
 
@@ -22,7 +21,7 @@ public class SettingsPageViewModel : ReactiveViewModelBase
         Groups = typeof(Settings)
             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
             .AsValueEnumerable()
-            .Where(p => p.GetCustomAttribute<IgnoreMemberAttribute>() is null)
+            .Where(p => p.GetCustomAttribute<HiddenSettingsAttribute>() is null)
             .Where(p => p.PropertyType.IsAssignableTo(typeof(SettingsBase)))
             .Select(p =>
             {
@@ -33,7 +32,7 @@ public class SettingsPageViewModel : ReactiveViewModelBase
                         .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                         .AsValueEnumerable()
                         .Where(pp => pp is { CanRead: true, CanWrite: true })
-                        .Where(pp => pp.GetCustomAttribute<IgnoreMemberAttribute>() is null)
+                        .Where(pp => pp.GetCustomAttribute<HiddenSettingsAttribute>() is null)
                         .Select(pp =>
                         {
                             var name = $"{p.Name}_{pp.Name}";
@@ -177,13 +176,16 @@ public class SettingsPageViewModel : ReactiveViewModelBase
                         .ToImmutableArray());
             }).ToImmutableArray();
 
-        TrackableObject<SettingsBase>.AddPropertyChangedEventHandler(
-            (_, _) => debounceHelper.Execute(() => Dispatcher.UIThread.Invoke(() => ToastManager
-                .CreateToast(new DynamicResourceKey("SettingsPage_Saved_Toast_Title").ToString() ?? "")
+        TrackableObject<SettingsBase>.AddPropertyChangedEventHandler((s, _) =>
+        {
+            if (s.GetType().GetCustomAttribute<HiddenSettingsAttribute>() is not null) return;
+            debounceHelper.Execute(() => Dispatcher.UIThread.Invoke(() => ToastManager
+                .CreateToast(DynamicResourceKey.Resolve(LocaleKey.SettingsPage_Saved_Toast_Title) ?? "")
                 .OnBottomRight()
                 .DismissOnClick()
                 .WithDelay(1)
-                .ShowSuccess())));
+                .ShowSuccess()));
+        });
     }
 
     private class SettingsValueProxy<T> : IValueProxy<T>, INotifyPropertyChanged

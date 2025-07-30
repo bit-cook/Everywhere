@@ -63,7 +63,7 @@ public class ChatService(
         var analyzingContextMessage = new ActionChatMessage(
             new AuthorRole("action"),
             LucideIconKind.TextSearch,
-            "ActionChatMessage_Header_AnalyzingContext")
+            LocaleKey.ActionChatMessage_Header_AnalyzingContext)
         {
             IsBusy = true
         };
@@ -100,50 +100,50 @@ public class ChatService(
         AssistantChatMessage assistantChatMessage,
         CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        // todo: maybe I need to move this builder to a better place (using DI)
-        var modelSettings = settings.Model;
-        var builder = Kernel.CreateBuilder();
-        builder.Services.AddSingleton<IChatCompletionService>(kernelMixin);
-        builder.Services.AddSingleton<ITextGenerationService>(kernelMixin);
-
-        if (modelSettings.IsWebSearchSupported && settings.Internal.IsWebSearchEnabled)
-        {
-            var webSearchApiKey = modelSettings.WebSearchApiKey;
-            Uri.TryCreate(modelSettings.WebSearchEndpoint, UriKind.Absolute, out var webSearchEndPoint);
-            builder.Plugins.AddFromObject(
-                new WebSearchEnginePlugin(
-                    modelSettings.WebSearchProvider switch
-                    {
-                        // TODO: "google" => new GoogleConnector(webSearchApiKey, webSearchEndPoint),
-                        "brave" => new BraveConnector(webSearchApiKey, webSearchEndPoint),
-                        "bocha" => new BoChaConnector(webSearchApiKey, webSearchEndPoint),
-                        _ => new BingConnector(webSearchApiKey, webSearchEndPoint)
-                    }),
-                "web_search");
-        }
-
-        var kernel = builder.Build();
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var openAIPromptExecutionSettings = new OpenAIPromptExecutionSettings
-        {
-            Temperature = modelSettings.Temperature,
-            TopP = modelSettings.TopP,
-            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: false)
-        };
-        var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
-
-        var chatHistory = new ChatHistory(
-            chatContext
-                .Select(n => n.Message)
-                .Where(m => !Equals(m, assistantChatMessage)) // exclude the current assistant message
-                .Where(m => m.Role.Label is "system" or "assistant" or "user" or "tool")
-                .Select(m => new ChatMessageContent(m.Role, m.ToString())));
-
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // todo: maybe I need to move this builder to a better place (using DI)
+            var modelSettings = settings.Model;
+            var builder = Kernel.CreateBuilder();
+            builder.Services.AddSingleton<IChatCompletionService>(kernelMixin);
+            builder.Services.AddSingleton<ITextGenerationService>(kernelMixin);
+
+            if (modelSettings.IsWebSearchSupported && settings.Internal.IsWebSearchEnabled)
+            {
+                var webSearchApiKey = modelSettings.WebSearchApiKey;
+                Uri.TryCreate(modelSettings.WebSearchEndpoint, UriKind.Absolute, out var webSearchEndPoint);
+                builder.Plugins.AddFromObject(
+                    new WebSearchEnginePlugin(
+                        modelSettings.WebSearchProvider switch
+                        {
+                            // TODO: "google" => new GoogleConnector(webSearchApiKey, webSearchEndPoint),
+                            "brave" => new BraveConnector(webSearchApiKey, webSearchEndPoint),
+                            "bocha" => new BoChaConnector(webSearchApiKey, webSearchEndPoint),
+                            _ => new BingConnector(webSearchApiKey, webSearchEndPoint)
+                        }),
+                    "web_search");
+            }
+
+            var kernel = builder.Build();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var openAIPromptExecutionSettings = new OpenAIPromptExecutionSettings
+            {
+                Temperature = modelSettings.Temperature,
+                TopP = modelSettings.TopP,
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: false)
+            };
+            var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+
+            var chatHistory = new ChatHistory(
+                chatContext
+                    .Select(n => n.Message)
+                    .Where(m => !Equals(m, assistantChatMessage)) // exclude the current assistant message
+                    .Where(m => m.Role.Label is "system" or "assistant" or "user" or "tool")
+                    .Select(CreateChatMessageContent));
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -188,7 +188,7 @@ public class ChatService(
                         "web_search" => new ActionChatMessage(
                             AuthorRole.Tool,
                             LucideIconKind.Globe,
-                            "ActionChatMessage_Header_WebSearching"),
+                            LocaleKey.ActionChatMessage_Header_WebSearching),
                         _ => throw new NotImplementedException()
                     };
                     actionChatMessage.IsBusy = true;
@@ -204,7 +204,7 @@ public class ChatService(
                     catch (Exception ex)
                     {
                         chatHistory.Add(new FunctionResultContent(functionCall, $"Error: {ex.Message}").ToChatMessage());
-                        // actionChatMessage.InlineCollection.Add($"Failed: {ex.Message}");
+                        actionChatMessage.ErrorMessageKey = ex.GetFriendlyMessage();
                     }
                     finally
                     {
@@ -212,26 +212,69 @@ public class ChatService(
                     }
                 }
             }
+
+            if (chatContext.Metadata.Topic.IsNullOrEmpty() &&
+                chatHistory.Any(c => c.Role == AuthorRole.User) &&
+                chatHistory.Any(c => c.Role == AuthorRole.Assistant) &&
+                chatHistory.First(c => c.Role == AuthorRole.User).Content is { Length: > 0 } userMessage &&
+                chatHistory.First(c => c.Role == AuthorRole.Assistant).Content is { Length: > 0 } assistantMessage)
+            {
+                // If the chat history only contains one user message and one assistant message,
+                // we can generate a title for the chat context.
+                GenerateTitleAsync(
+                    chatCompletionService,
+                    userMessage,
+                    assistantMessage,
+                    chatContext.Metadata,
+                    cancellationToken).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
+            }
+        }
+        catch (Exception e)
+        {
+            assistantChatMessage.ErrorMessageKey = e.GetFriendlyMessage();
         }
         finally
         {
             assistantChatMessage.IsBusy = false;
         }
 
-        if (chatContext.Metadata.Topic.IsNullOrEmpty() &&
-            chatHistory.Any(c => c.Role == AuthorRole.User) &&
-            chatHistory.Any(c => c.Role == AuthorRole.Assistant) &&
-            chatHistory.First(c => c.Role == AuthorRole.User).Content is { Length: > 0 } userMessage &&
-            chatHistory.First(c => c.Role == AuthorRole.Assistant).Content is { Length: > 0 } assistantMessage)
+        ChatMessageContent CreateChatMessageContent(ChatMessage chatMessage)
         {
-            // If the chat history only contains one user message and one assistant message,
-            // we can generate a title for the chat context.
-            GenerateTitleAsync(
-                chatCompletionService,
-                userMessage,
-                assistantMessage,
-                chatContext.Metadata,
-                cancellationToken).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
+            ChatMessageContent? content;
+            switch (chatMessage)
+            {
+                case UserChatMessage user:
+                {
+                    content = new ChatMessageContent(chatMessage.Role, user.UserPrompt);
+
+                    if (user.Attachments.OfType<ChatImageAttachment>().ToArray() is not { Length: > 0 } imageAttachments) break;
+                    foreach (var imageAttachment in imageAttachments)
+                    {
+                        using var ms = new MemoryStream();
+                        imageAttachment.Image.Save(ms, 100);
+                        ms.Position = 0;
+                        content.Items.Add(new ImageContent(ms.ToArray(), "image/png"));
+                    }
+
+                    break;
+                }
+                case AssistantChatMessage assistant:
+                {
+                    content = new ChatMessageContent(chatMessage.Role, assistant.MarkdownBuilder.ToString());
+                    break;
+                }
+                case SystemChatMessage system:
+                {
+                    content = new ChatMessageContent(chatMessage.Role, system.SystemPrompt);
+                    break;
+                }
+                default:
+                {
+                    content = new ChatMessageContent(chatMessage.Role, chatMessage.ToString());
+                    break;
+                }
+            }
+            return content;
         }
     }
 
@@ -246,12 +289,14 @@ public class ChatService(
         {
             new ChatMessageContent(
                 AuthorRole.System,
-                Prompts.RenderPrompt(Prompts.SummarizeChatPrompt, new Dictionary<string, Func<string>>
-                {
-                    { "UserMessage", () => userMessage },
-                    { "AssistantMessage", () => assistantMessage },
-                    { "SystemLanguage", () => settings.Common.Language }
-                })),
+                Prompts.RenderPrompt(
+                    Prompts.SummarizeChatPrompt,
+                    new Dictionary<string, Func<string>>
+                    {
+                        { "UserMessage", () => userMessage },
+                        { "AssistantMessage", () => assistantMessage },
+                        { "SystemLanguage", () => settings.Common.Language }
+                    })),
         };
         var openAIPromptExecutionSettings = new OpenAIPromptExecutionSettings
         {

@@ -32,7 +32,7 @@
       <Setter Property="IsVisible" Value="False"/>
     </Style>
 
-    <Setter Property="Watermark" Value="{DynamicResource AssistantInputBox_Watermark}"/>
+    <Setter Property="Watermark" Value="{I18N {x:Static LocaleKey.ChatInputBox_Watermark}}"/>
     <Setter Property="FontSize" Value="14"/>
     <Setter Property="Padding" Value="6"/>
     <Setter Property="SelectionBrush" Value="{DynamicResource PrimaryColor}"/>
@@ -45,7 +45,7 @@
           RowSpacing="4">
           <Panel
             Grid.Row="0" Grid.Column="0"
-            Grid.ColumnSpan="2" Margin="6,4,6,0"
+            Grid.ColumnSpan="2" Margin="2,0"
             Background="Transparent" Cursor="IBeam">
             <TextBlock
               FontSize="{TemplateBinding FontSize}"
@@ -54,11 +54,10 @@
               Text="{TemplateBinding Watermark}"
               TextAlignment="{TemplateBinding TextAlignment}"
               TextWrapping="{TemplateBinding TextWrapping}"/>
-            <v:ChatInputTextPresenter
+            <TextPresenter
               x:Name="PART_TextPresenter"
               CaretBrush="{TemplateBinding CaretBrush}"
               CaretIndex="{TemplateBinding CaretIndex}"
-              SelectedChatCommand="{Binding $parent[v:ChatInputBox].SelectedChatCommand}"
               SelectionBrush="{TemplateBinding SelectionBrush}"
               SelectionEnd="{TemplateBinding SelectionEnd}"
               SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
@@ -69,28 +68,6 @@
               TextBlock.Foreground="{TemplateBinding Foreground}"
               TextWrapping="{TemplateBinding TextWrapping}"/>
           </Panel>
-
-          <Popup
-            Grid.Row="0" Grid.Column="0"
-            IsOpen="{Binding IsChatCommandFlyoutOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-            Placement="TopEdgeAlignedLeft" PlacementTarget="PART_TextPresenter">
-            <ListBox
-              Background="{DynamicResource CardBackgroundColor}"
-              CornerRadius="6" Grid.IsSharedSizeScope="True"
-              ItemsSource="{TemplateBinding ChatCommandItemsSource}"
-              SelectedItem="{Binding SelectedChatCommand, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
-              <ListBox.DataTemplates>
-                <DataTemplate DataType="m:ChatCommand">
-                  <TextBlock>
-                    <Run
-                      FontWeight="Black"
-                      Text="{Binding Command}"/>
-                    <Run Text="{Binding DescriptionKey^, FallbackValue={x:Null}}"/>
-                  </TextBlock>
-                </DataTemplate>
-              </ListBox.DataTemplates>
-            </ListBox>
-          </Popup>
 
           <ScrollViewer
             Grid.Row="1" Grid.Column="0"
@@ -111,12 +88,42 @@
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
 
-              <ItemsControl.ItemTemplate>
+              <ItemsControl.DataTemplates>
+                <DataTemplate DataType="m:ChatImageAttachment">
+                  <Border
+                    Height="24"
+                    Background="{DynamicResource CardBackgroundColor}"
+                    CornerRadius="4">
+                    <ToolTip.Tip>
+                      <Image Source="{Binding Image}"/>
+                    </ToolTip.Tip>
+
+                    <StackPanel
+                      Margin="6,0,4,0" Orientation="Horizontal"
+                      Spacing="4">
+                      <Image
+                        Margin="0,4" VerticalAlignment="Center"
+                        Source="{Binding Image}"/>
+                      <Button
+                        Padding="1" VerticalAlignment="Center"
+                        Background="Transparent" BorderThickness="0"
+                        Command="{Binding $parent[v:ChatInputBox].RemoveAttachmentCommand}"
+                        CommandParameter="{Binding}"
+                        Focusable="False"
+                        ToolTip.Tip="{I18N {x:Static LocaleKey.ChatAttachment_RemoveButton_ToolTip}}">
+                        <LucideIcon
+                          Foreground="{DynamicResource MutedColor}"
+                          Kind="X" Size="12"/>
+                      </Button>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+
                 <DataTemplate DataType="m:ChatAttachment">
                   <Border
                     Height="24"
                     Background="{DynamicResource CardBackgroundColor}"
-                    CornerRadius="12">
+                    CornerRadius="4">
                     <StackPanel
                       Margin="6,0,4,0" Orientation="Horizontal"
                       Spacing="4">
@@ -131,7 +138,9 @@
                         Padding="1" VerticalAlignment="Center"
                         Background="Transparent" BorderThickness="0"
                         Command="{Binding $parent[v:ChatInputBox].RemoveAttachmentCommand}"
-                        CommandParameter="{Binding}">
+                        CommandParameter="{Binding}"
+                        Focusable="False"
+                        ToolTip.Tip="{I18N {x:Static LocaleKey.ChatAttachment_RemoveButton_ToolTip}}">
                         <LucideIcon
                           Foreground="{DynamicResource MutedColor}"
                           Kind="X" Size="12"/>
@@ -139,22 +148,22 @@
                     </StackPanel>
                   </Border>
                 </DataTemplate>
-              </ItemsControl.ItemTemplate>
+              </ItemsControl.DataTemplates>
             </ItemsControl>
           </ScrollViewer>
 
           <StackPanel
             Grid.Row="2" Grid.Column="0"
             Orientation="Horizontal" Spacing="4">
-            <Menu>
+            <Menu Focusable="False">
               <MenuItem
                 Classes="Outline Rounded" shadui:MenuItemAssist.PopupPlacement="TopEdgeAlignedLeft"
                 shadui:MenuItemAssist.PopupVerticalOffset="-4"
                 ItemsSource="{TemplateBinding AddChatAttachmentMenuItems}"
-                ToolTip.Tip="{DynamicResource AssistantInputBox_AddAttachmentButton_ToolTip}">
+                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputBox_AddAttachmentButton_ToolTip}}">
                 <shadui:MenuItemAssist.Label>
                   <TextBlock>
-                    <Run Text="{DynamicResource AssistantInputBox_AddAttachmentMenuItem_Header}"/>
+                    <Run Text="{I18N {x:Static LocaleKey.ChatInputBox_AddAttachmentMenuItem_Header}}"/>
                     <Run Text=" ("/>
                     <Run Text="{Binding $parent[v:ChatInputBox].ChatAttachmentItemsSource.Count, FallbackValue=0}"/>
                     <Run Text="/"/>
@@ -166,47 +175,47 @@
                 <MenuItem.Header>
                   <LucideIcon
                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Kind="Plus" Size="18"/>
+                    Kind="Paperclip" Size="18"/>
                 </MenuItem.Header>
               </MenuItem>
             </Menu>
 
             <ToggleButton
-              Classes="Outline Rounded"
+              Classes="Outline Rounded" Focusable="False"
               IsChecked="{Binding IsImageEnabled, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
               IsVisible="{TemplateBinding IsImageSupported}"
-              ToolTip.Tip="{DynamicResource AssistantInputBox_ImageButton_ToolTip}">
+              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputBox_ImageButton_ToolTip}}">
               <StackPanel
                 Orientation="Horizontal" Spacing="2">
                 <LucideIcon
                   Kind="Image" Size="16"/>
-                <TextBlock Text="{DynamicResource AssistantInputBox_ImageButton_Text}"/>
+                <TextBlock Text="{I18N {x:Static LocaleKey.ChatInputBox_ImageButton_Text}}"/>
               </StackPanel>
             </ToggleButton>
 
             <ToggleButton
-              Classes="Outline Rounded"
+              Classes="Outline Rounded" Focusable="False"
               IsChecked="{Binding IsWebSearchEnabled, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
               IsVisible="{TemplateBinding IsWebSearchSupported}"
-              ToolTip.Tip="{DynamicResource AssistantInputBox_WebSearchButton_ToolTip}">
+              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputBox_WebSearchButton_ToolTip}}">
               <StackPanel
                 Orientation="Horizontal" Spacing="2">
                 <LucideIcon
                   Kind="Globe" Size="16"/>
-                <TextBlock Text="{DynamicResource AssistantInputBox_WebSearchButton_Text}"/>
+                <TextBlock Text="{I18N {x:Static LocaleKey.ChatInputBox_WebSearchButton_Text}}"/>
               </StackPanel>
             </ToggleButton>
 
             <ToggleButton
-              Classes="Outline Rounded"
+              Classes="Outline Rounded" Focusable="False"
               IsChecked="{Binding IsToolCallEnabled, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
               IsVisible="{TemplateBinding IsToolCallSupported}"
-              ToolTip.Tip="{DynamicResource AssistantInputBox_ToolCallButton_ToolTip}">
+              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputBox_ToolCallButton_ToolTip}}">
               <StackPanel
                 Orientation="Horizontal" Spacing="2">
                 <LucideIcon
                   Kind="Hammer" Size="16"/>
-                <TextBlock Text="{DynamicResource AssistantInputBox_ToolCallButton_Text}"/>
+                <TextBlock Text="{I18N {x:Static LocaleKey.ChatInputBox_ToolCallButton_Text}}"/>
               </StackPanel>
             </ToggleButton>
           </StackPanel>
@@ -218,7 +227,7 @@
             <Button
               x:Name="PART_SendButton" Classes="Primary Rounded"
               IsVisible="{Binding !IsVisible, ElementName=PART_CancelButton}"
-              ToolTip.Tip="{DynamicResource AssistantInputBox_SendButton_ToolTip}">
+              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputBox_SendButton_ToolTip}}">
               <Button.IsEnabled>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding
@@ -239,7 +248,8 @@
             <Button
               x:Name="PART_CancelButton" Classes="Primary Rounded"
               Command="{TemplateBinding CancelCommand}"
-              ToolTip.Tip="{DynamicResource AssistantInputBox_CancelButton_ToolTip}">
+              Focusable="False"
+              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputBox_CancelButton_ToolTip}}">
               <Border
                 Width="12" Height="12"
                 Background="{DynamicResource ForegroundColor}"

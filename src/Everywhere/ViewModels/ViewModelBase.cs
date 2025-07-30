@@ -1,22 +1,29 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Input.Platform;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Everywhere.Utils;
 using ShadUI;
 
 namespace Everywhere.ViewModels;
 
 public abstract class ReactiveViewModelBase : ObservableValidator
 {
-    protected internal DialogManager DialogManager { get; } = ServiceLocator.Resolve<DialogManager>();
-    protected internal ToastManager ToastManager { get; } = ServiceLocator.Resolve<ToastManager>();
+    protected static DialogManager DialogManager { get; } = ServiceLocator.Resolve<DialogManager>();
+    protected static ToastManager ToastManager { get; } = ServiceLocator.Resolve<ToastManager>();
 
-    protected void DialogExceptionHandler(Exception exception, string? message = null, [CallerMemberName] object? source = null) =>
-        DialogManager.CreateDialog(message ?? "Error", exception.GetFriendlyMessage());
+    protected static AnonymousExceptionHandler DialogExceptionHandler => new((exception, message, source) =>
+        DialogManager.CreateDialog($"[{source}] {message ?? "Error"}", exception.GetFriendlyMessage().ToString() ?? "Unknown error"));
 
-    protected void ToastExceptionHandler(Exception exception, string? message = null, [CallerMemberName] object? source = null) =>
-        ToastManager.CreateToast(message ?? "Error")
-            .WithContent(exception.GetFriendlyMessage())
+    protected static AnonymousExceptionHandler ToastExceptionHandler => new((exception, message, source) =>
+        ToastManager.CreateToast($"[{source}] {message ?? "Error"}")
+            .WithContent(exception.GetFriendlyMessage().ToTextBlock())
             .DismissOnClick()
-            .ShowError();
+            .ShowError());
+
+    protected IClipboard Clipboard { get; private set; } = ServiceLocator.Resolve<IClipboard>();
+
+    protected IStorageProvider StorageProvider { get; private set; } = ServiceLocator.Resolve<IStorageProvider>();
 
     protected internal virtual Task ViewLoaded(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -26,29 +33,26 @@ public abstract class ReactiveViewModelBase : ObservableValidator
 
     private void HandleLifetimeException(string stage, Exception e)
     {
-        if (LifetimeExceptionHandler is not { } lifetimeExceptionHandler)
-        {
-            ToastManager.CreateToast($"Lifetime Exception: [{stage}]")
-                .WithContent(e.GetFriendlyMessage())
-                .DismissOnClick()
-                .ShowError();
-        }
-        else
-        {
-            lifetimeExceptionHandler.HandleException(e, stage);
-        }
+        var handler = LifetimeExceptionHandler ?? DialogExceptionHandler;
+        handler.HandleException(e, $"Lifetime Exception: [{stage}]");
     }
 
     public void Bind(Control target)
     {
-        CancellationTokenSource? cancellationTokenSource = null;
-
         target.DataContext = this;
+
+        var topLevel = TopLevel.GetTopLevel(target);
+        if (topLevel is not null)
+        {
+            if (topLevel.Clipboard is { } clipboard) Clipboard = clipboard;
+            StorageProvider = topLevel.StorageProvider;
+        }
+
+        var cancellationTokenSource = new ReusableCancellationTokenSource();
         target.Loaded += async (_, _) =>
         {
             try
             {
-                cancellationTokenSource = new CancellationTokenSource();
                 await ViewLoaded(cancellationTokenSource.Token);
             }
             catch (Exception e)
@@ -61,13 +65,8 @@ public abstract class ReactiveViewModelBase : ObservableValidator
         {
             try
             {
+                cancellationTokenSource.Cancel();
                 await ViewUnloaded();
-
-                if (cancellationTokenSource != null)
-                {
-                    await cancellationTokenSource.CancelAsync();
-                    cancellationTokenSource.Dispose();
-                }
             }
             catch (Exception e)
             {
@@ -87,6 +86,7 @@ public enum ExecutionFlags
 public abstract partial class BusyViewModelBase : ReactiveViewModelBase
 {
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotBusy))]
     public partial bool IsBusy { get; private set; }
 
     public bool IsNotBusy => !IsBusy;

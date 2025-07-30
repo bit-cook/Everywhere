@@ -6,10 +6,13 @@ using Windows.UI.Composition.Desktop;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dwm;
+using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Accessibility;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using Everywhere.Interfaces;
 using Everywhere.Windows.Interop;
@@ -18,7 +21,7 @@ using Visual = Windows.UI.Composition.Visual;
 
 namespace Everywhere.Windows.Services;
 
-public class Win32WindowHelper : IWindowHelper
+public class Win32NativeHelper : INativeHelper
 {
     // ReSharper disable InconsistentNaming
     // ReSharper disable IdentifierTypo
@@ -121,29 +124,25 @@ public class Win32WindowHelper : IWindowHelper
 
     public void SetWindowHitTestInvisible(Window window)
     {
-        window.Loaded += delegate
+        Win32Properties.AddWindowStylesCallback(window, WindowStylesCallback);
+        static (uint style, uint exStyle) WindowStylesCallback(uint style, uint exStyle)
         {
-            Win32Properties.AddWindowStylesCallback(window, WindowStylesCallback);
+            return (style, exStyle |
+                (uint)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW |
+                (uint)WINDOW_EX_STYLE.WS_EX_LAYERED |
+                (uint)WINDOW_EX_STYLE.WS_EX_TRANSPARENT);
+        }
 
-            static (uint style, uint exStyle) WindowStylesCallback(uint style, uint exStyle)
-            {
-                return (style, exStyle |
-                    (uint)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW |
-                    (uint)WINDOW_EX_STYLE.WS_EX_LAYERED |
-                    (uint)WINDOW_EX_STYLE.WS_EX_TRANSPARENT);
-            }
-
-            if (window.TryGetPlatformHandle() is not { } handle) return;
-            var hWnd = (HWND)handle.Handle;
-            PInvoke.SetWindowLong(
-                hWnd,
-                WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
-                PInvoke.GetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE) |
-                (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW |
-                (int)WINDOW_EX_STYLE.WS_EX_LAYERED |
-                (int)WINDOW_EX_STYLE.WS_EX_TRANSPARENT);
-            PInvoke.SetLayeredWindowAttributes(hWnd, new COLORREF(), 255, LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA);
-        };
+        if (window.TryGetPlatformHandle() is not { } handle) return;
+        var hWnd = (HWND)handle.Handle;
+        PInvoke.SetWindowLong(
+            hWnd,
+            WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
+            PInvoke.GetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE) |
+            (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW |
+            (int)WINDOW_EX_STYLE.WS_EX_LAYERED |
+            (int)WINDOW_EX_STYLE.WS_EX_TRANSPARENT);
+        PInvoke.SetLayeredWindowAttributes(hWnd, new COLORREF(), 255, LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA);
     }
 
     private readonly Dictionary<nint, CompositionContext> compositionContexts = [];
@@ -164,11 +163,11 @@ public class Win32WindowHelper : IWindowHelper
         {
             // we will need lots of hacks, let's go
             if (window.PlatformImpl?.GetType().GetField("_glSurface", BindingFlags.Instance | BindingFlags.NonPublic) is not { } glSurfaceField) return;
-            if (glSurfaceField.GetValue(window.PlatformImpl) is not { } glSurface) return;
+            if (glSurfaceField.GetValue(window.PlatformImpl) is not { } glSurface) return; // Avalonia.Win32.WinRT.Composition.WinUiCompositedWindowSurface
             if (glSurface.GetType().GetField("_window", BindingFlags.Instance | BindingFlags.NonPublic) is not { } windowField) return;
             if (windowField.GetValue(glSurface) is not { } compositedWindow) return; // Avalonia.Win32.WinRT.Composition.WinUiCompositedWindow
-            if (compositedWindow.GetType().GetField("_shared", BindingFlags.Instance | BindingFlags.NonPublic) is not { } sharedField) return;
-            if (sharedField.GetValue(compositedWindow) is not { } shared) return; // Avalonia.Win32.WinRT.Composition.WinUiCompositionShared
+            if (glSurface.GetType().GetField("_shared", BindingFlags.Instance | BindingFlags.NonPublic) is not { } sharedField) return;
+            if (sharedField.GetValue(glSurface) is not { } shared) return; // Avalonia.Win32.WinRT.Composition.WinUiCompositionShared
             if (shared.GetType().GetProperty("Compositor", BindingFlags.Instance | BindingFlags.Public) is not { } compositorProperty) return;
             if (compositorProperty.GetValue(shared) is not MicroComProxyBase avaloniaCompositor) return; // Avalonia.Win32.WinRT.ICompositor
             if (compositedWindow.GetType().GetField("_target", BindingFlags.Instance | BindingFlags.NonPublic) is not { } targetField) return;
@@ -178,15 +177,10 @@ public class Win32WindowHelper : IWindowHelper
             var target = DesktopWindowTarget.FromAbi(avaloniaTarget.NativePointer);
             compositionContexts[hWnd] = compositionContext = new CompositionContext(compositor, rootVisual = target.Root);
 
-            // var previousDesktopScaling = window.DesktopScaling;
-            // window.PositionChanged += delegate
-            // {
-            //     if (previousDesktopScaling.IsCloseTo(window.DesktopScaling)) return;
-            //
-            //     previousDesktopScaling = window.DesktopScaling;
-            //     Debug.WriteLine(previousDesktopScaling);
-            //     SetWindowCornerRadiusInternal();
-            // };
+            window.ScalingChanged += delegate
+            {
+                SetWindowCornerRadiusInternal();
+            };
 
             window.SizeChanged += delegate
             {
@@ -208,6 +202,8 @@ public class Win32WindowHelper : IWindowHelper
 
         void SetWindowCornerRadiusInternal()
         {
+            // todo: HitTest region is not updated
+
             var bounds = window.Bounds;
             var scale = window.DesktopScaling;
             var width = (float)(bounds.Width * scale);
@@ -227,13 +223,17 @@ public class Win32WindowHelper : IWindowHelper
             }
             else
             {
+                var topRight = (float)Math.Min(cornerRadius.TopRight * scale, cornerRadiusLimit);
+                var bottomRight = (float)Math.Min(cornerRadius.BottomRight * scale, cornerRadiusLimit);
+                var bottomLeft = (float)Math.Min(cornerRadius.BottomLeft * scale, cornerRadiusLimit);
+
                 CreateComplexRoundedRectangleCompositionPath(
                     width,
                     height,
                     topLeft,
-                    (float)Math.Min(cornerRadius.TopRight * scale, cornerRadiusLimit),
-                    (float)Math.Min(cornerRadius.BottomRight * scale, cornerRadiusLimit),
-                    (float)Math.Min(cornerRadius.BottomLeft * scale, cornerRadiusLimit),
+                    topRight,
+                    bottomRight,
+                    bottomLeft,
                     out var pathGeometryPtr).ThrowOnFailure();
                 var pathGeometry = CompositionPath.FromAbi(pathGeometryPtr);
                 using var compositionGeometry = compositor.CreatePathGeometry(pathGeometry);
@@ -265,6 +265,60 @@ public class Win32WindowHelper : IWindowHelper
                 (uint)sizeof(BOOL));
         }
     }
+
+    private readonly Lock clipboardLock = new();
+
+    public unsafe Task<WriteableBitmap?> GetClipboardBitmapAsync() => Task.Run(() =>
+    {
+        using var _ = clipboardLock.EnterScope();
+
+        if (!PInvoke.OpenClipboard(HWND.Null)) return null;
+
+        var hDc = PInvoke.GetDC(HWND.Null);
+        try
+        {
+            using var hBitmap = PInvoke.GetClipboardData_SafeHandle(2); // CF_BITMAP
+            if (hBitmap.IsInvalid) return null;
+
+            var bmp = new BITMAP();
+            PInvoke.GetObject(hBitmap, sizeof(BITMAP), &bmp);
+            var width = bmp.bmWidth;
+            var height = bmp.bmHeight;
+            if (width <= 0 || height <= 0) return null;
+
+            var bitmap = new WriteableBitmap(
+                new PixelSize(width, height),
+                new Avalonia.Vector(96, 96),
+                PixelFormat.Bgra8888,
+                AlphaFormat.Unpremul);
+            using var buffer = bitmap.Lock();
+
+            var bmi = new BITMAPINFO();
+            bmi.bmiHeader.biSize = (uint)sizeof(BITMAPINFOHEADER);
+            bmi.bmiHeader.biWidth = width;
+            bmi.bmiHeader.biHeight = -height; // 负值表示自顶向下
+            bmi.bmiHeader.biPlanes = 1;
+            bmi.bmiHeader.biBitCount = 32;
+            bmi.bmiHeader.biCompression = (int)BI_COMPRESSION.BI_RGB;
+
+            PInvoke.GetDIBits(
+                hDc,
+                hBitmap,
+                0U,
+                (uint)height,
+                buffer.Address.ToPointer(),
+                &bmi,
+                DIB_USAGE.DIB_RGB_COLORS
+            );
+
+            return bitmap;
+        }
+        finally
+        {
+            if (hDc != HDC.Null) PInvoke.ReleaseDC(HWND.Null, hDc);
+            PInvoke.CloseClipboard();
+        }
+    });
 
     private record CompositionContext(Compositor Compositor, Visual RootVisual)
     {

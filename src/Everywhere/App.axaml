@@ -4,14 +4,13 @@
 
   <Application.Styles>
     <shadui:ShadTheme/>
-    <StyleInclude Source="avares://Everywhere.Markdown/MarkdownRenderer.axaml"/>
+    <StyleInclude Source="avares://LiveMarkdown.Avalonia/Styles.axaml"/>
   </Application.Styles>
 
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://Everywhere/Assets/Resources.axaml"/>
-        <ResourceInclude Source="avares://Everywhere/I18N/Key.axaml"/>
         <ResourceInclude Source="avares://Everywhere/Views/Controls/ChatInputBox.axaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
@@ -26,14 +25,14 @@
           <NativeMenu>
             <NativeMenuItem
               Click="HandleOpenMainWindowMenuItemClicked"
-              Header="{DynamicResource Application_TrayIcon_Menu_OpenMainWindow}"/>
+              Header="{I18N {x:Static LocaleKey.Application_TrayIcon_Menu_OpenMainWindow}}"/>
             <NativeMenuItem
               Click="HandleOpenDebugWindowMenuItemClicked"
-              Header="{DynamicResource Application_TrayIcon_Menu_OpenDebugWindow}"/>
+              Header="{I18N {x:Static LocaleKey.Application_TrayIcon_Menu_OpenDebugWindow}}"/>
             <NativeMenuItemSeparator/>
             <NativeMenuItem
               Click="HandleExitMenuItemClicked"
-              Header="{DynamicResource Application_TrayIcon_Menu_Exit}"/>
+              Header="{I18N {x:Static LocaleKey.Application_TrayIcon_Menu_Exit}}"/>
           </NativeMenu>
         </TrayIcon.Menu>
       </TrayIcon>
