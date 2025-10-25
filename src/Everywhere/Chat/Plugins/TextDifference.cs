@@ -4,6 +4,7 @@ using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MessagePack;
 using ObservableCollections;
+using ZLinq;
 
 namespace Everywhere.Chat.Plugins;
 
@@ -135,12 +136,12 @@ public partial class TextDifference : ObservableObject
             field = value;
             if (field != null) field.CollectionChanged += HandleChangesCollectionChanged;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(Acceptance));
+            NotifyChangesPropertiesChanged();
         }
     } = [];
 
     /// <summary>
-    /// Indicates whether any changes are accepted (true), all rejected (false), or some pending (null).
+    /// Indicates whether any changes are accepted (true), all discarded (false), or some pending (null).
     /// </summary>
     public bool? Acceptance
     {
@@ -153,11 +154,16 @@ public partial class TextDifference : ObservableObject
                 if (change.Accepted.Value) acceptance = true;
             }
 
-            _acceptanceTcs?.TrySetResult(acceptance);
-
             return acceptance;
         }
     }
+
+    public int TotalChangesCount => Changes.Count;
+
+    /// <summary>
+    /// Count of changes that are not pending (i.e., Accepted is true or false).
+    /// </summary>
+    public int NotPendingChangesCount => Changes.Count(c => c.Accepted.HasValue);
 
     private TaskCompletionSource<bool>? _acceptanceTcs;
 
@@ -185,7 +191,14 @@ public partial class TextDifference : ObservableObject
 
     private void HandleChangePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(TextChange.Accepted)) OnPropertyChanged(nameof(Acceptance));
+        if (e.PropertyName == nameof(TextChange.Accepted)) NotifyChangesPropertiesChanged();
+    }
+
+    private void NotifyChangesPropertiesChanged()
+    {
+        OnPropertyChanged(nameof(Acceptance));
+        OnPropertyChanged(nameof(TotalChangesCount));
+        OnPropertyChanged(nameof(NotPendingChangesCount));
     }
 
     public void Add(params TextChange[] changes)
@@ -195,7 +208,7 @@ public partial class TextDifference : ObservableObject
 
     public void AcceptAll() => SetAll(true);
 
-    public void RejectAll() => SetAll(false);
+    public void DiscardAll() => SetAll(false);
 
     /// <summary>
     /// Wait until at least one change is accepted or all are rejected.
@@ -207,6 +220,14 @@ public partial class TextDifference : ObservableObject
         _acceptanceTcs ??= new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         cancellationToken.Register(() => _acceptanceTcs?.TrySetCanceled());
         return _acceptanceTcs.Task;
+    }
+
+    internal void TrySetAcceptanceResult()
+    {
+        var acceptance = Acceptance;
+        if (!acceptance.HasValue) return;
+        _acceptanceTcs?.TrySetResult(acceptance.Value);
+        _acceptanceTcs = null;
     }
 
     /// <summary>
@@ -323,7 +344,7 @@ public static class TextDifferenceRenderer
             }
 
             sb.AppendLine(
-                $"id={ch.Id[..6]} kind={ch.Kind} accepted={ch.Accepted?.ToString().ToLowerInvariant() ?? "null"} span={ch.Range.Start}:{ch.Range.Length}");
+                $"id={ch.Id[..6]} kind={ch.Kind} accepted={ch.Accepted?.ToString() ?? "False"} span={ch.Range.Start}:{ch.Range.Length}");
             sb.AppendLine("before<<<");
             sb.Append(ch.GetOriginalSlice(original));
             sb.AppendLine();
@@ -354,16 +375,18 @@ public static class TextDifferenceRenderer
         return (line, col);
     }
 
-    public static int CountLines(string s)
-    {
-        if (s.Length == 0) return 0;
-        return 1 + s.Count(t => t == '\n');
-    }
+    public static int CountLines(string? s) =>
+        s.IsNullOrEmpty() ? 0 : TakeLines(s, -1).AsValueEnumerable().Where(l => l.Length > 0).Count();
 
     private static IEnumerable<string> TakeLines(string s, int maxLines)
     {
-        var lines = s.Replace("\r\n", "\n").Split('\n');
-        return maxLines <= 0 ? lines : lines.Take(maxLines);
+        using var reader = new StringReader(s);
+        while (maxLines-- != 0) // use != to allow -1 (unlimited)
+        {
+            var line = reader.ReadLine();
+            if (line is null) yield break;
+            yield return line;
+        }
     }
 }
 

@@ -1,4 +1,13 @@
-﻿namespace Everywhere.Chat.Plugins;
+﻿using Everywhere.Chat.Permissions;
+
+namespace Everywhere.Chat.Plugins;
+
+public record ChatPluginConsentRequest(
+    TaskCompletionSource<ConsentDecision> Promise,
+    DynamicResourceKeyBase HeaderKey,
+    ChatPluginDisplayBlock? Content,
+    CancellationToken CancellationToken
+);
 
 /// <summary>
 /// Allows chat plugins to interact with the user interface.
@@ -19,7 +28,7 @@ public interface IChatPluginUserInterface
     Task<bool> RequestConsentAsync(
         string id,
         DynamicResourceKeyBase headerKey,
-        object? content = null,
+        ChatPluginDisplayBlock? content = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

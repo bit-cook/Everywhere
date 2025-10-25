@@ -29,21 +29,13 @@ public partial class TextDifferenceSummaryView : TemplatedControl
     public int AddedLineCount =>
         TextDifference?.Changes
             .AsValueEnumerable()
-            .Where(change => change.Kind == TextChangeKind.Insert)
-            .Sum(change => TextDifferenceRenderer.CountLines(change.NewText ?? string.Empty)) +
-        TextDifference?.Changes
-            .AsValueEnumerable()
-            .Where(change => change.Kind == TextChangeKind.Replace)
+            .Where(change => change.Kind is TextChangeKind.Insert or TextChangeKind.Replace)
             .Sum(change => TextDifferenceRenderer.CountLines(change.NewText ?? string.Empty)) ?? 0;
 
     public int RemovedLineCount =>
         TextDifference?.Changes
             .AsValueEnumerable()
-            .Where(change => change.Kind == TextChangeKind.Delete)
-            .Sum(change => TextDifferenceRenderer.CountLines(change.GetOriginalSlice(OriginalText ?? string.Empty))) +
-        TextDifference?.Changes
-            .AsValueEnumerable()
-            .Where(change => change.Kind == TextChangeKind.Replace)
+            .Where(change => change.Kind is TextChangeKind.Delete or TextChangeKind.Replace)
             .Sum(change => TextDifferenceRenderer.CountLines(change.GetOriginalSlice(OriginalText ?? string.Empty))) ?? 0;
 
     [RelayCommand]
@@ -74,8 +66,28 @@ public partial class TextDifferenceSummaryView : TemplatedControl
                 ShowLineNumbers = true
             }
         };
+        window.Closed += delegate
+        {
+            textDifference.TrySetAcceptanceResult();
+        };
 
         if (TopLevel.GetTopLevel(this) is Window owner) window.ShowDialog(owner);
         else window.Show();
+    }
+
+    [RelayCommand]
+    private void AcceptAll()
+    {
+        if (TextDifference is not { } textDifference) return;
+        textDifference.AcceptAll();
+        textDifference.TrySetAcceptanceResult();
+    }
+
+    [RelayCommand]
+    private void DiscardAll()
+    {
+        if (TextDifference is not { } textDifference) return;
+        textDifference.DiscardAll();
+        textDifference.TrySetAcceptanceResult();
     }
 }

@@ -196,7 +196,7 @@ public class JsonDynamicResourceKey : Dictionary<string, string>, IObservable<ob
     public IDisposable Subscribe(IObserver<object?> observer)
     {
         LocaleManager.LocaleChanged += HandleLocaleChanged;
-        PostValue(LocaleManager.CurrentLocale ?? "default");
+        PostValue(LocaleManager.CurrentLocale);
 
         return new AnonymousDisposable(() =>
         {
@@ -230,11 +230,4 @@ public class JsonDynamicResourceKey : Dictionary<string, string>, IObservable<ob
 public class DynamicResourceKeyAttribute(string key) : Attribute
 {
     public string Key { get; } = key;
-}
-
-public static class DynamicResourceKeyExtension
-{
-    public static string I18N(this string key) => DynamicResourceKey.Resolve(key);
-
-    public static string I18N(this string key, params DynamicResourceKeyBase[] args) => new FormattedDynamicResourceKey(key, args).ToString();
 }
