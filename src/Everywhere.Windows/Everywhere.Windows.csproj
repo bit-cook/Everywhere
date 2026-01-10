@@ -32,6 +32,7 @@
     <ProjectReference Include="..\..\3rd\EverythingNetCore\EverythingNet\EverythingNet.csproj"/>
     <ProjectReference Include="..\Everywhere.Core\Everywhere.Core.csproj"/>
     <ProjectReference Include="..\Everywhere.Windows.PowerShell\Everywhere.Windows.PowerShell.csproj"/>
+    <ProjectReference Include="..\Everywhere.Windows.UacLauncher\Everywhere.Windows.UacLauncher.csproj" />
   </ItemGroup>
 
   <ItemGroup>
