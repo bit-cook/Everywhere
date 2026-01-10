@@ -1,12 +1,12 @@
 ﻿using System.Web;
 using MessagePack;
 
-namespace Everywhere.Online;
+namespace Everywhere.Cloud;
 
 /// <summary>
 /// Standard HTTP payload structure for API responses.
 /// </summary>
-public partial class HttpPayload
+public class HttpPayload
 {
     /// <summary>
     /// Status code indicating success or type of error.
@@ -45,13 +45,23 @@ public partial class HttpPayload
             {{nameof(Timestamp)}}: "{{Timestamp}}"
           }
           """;
+
+    public static HttpPayload Success { get; } = new();
+
+    public static HttpPayload FromErrorMessage(string error, int code = 0) => new()
+    {
+        Code    = code,
+        Message = error,
+    };
+
+    public static HttpPayload FromException(Exception e, int code = 0) => FromErrorMessage(e.Message, code);
 }
 
 /// <summary>
 /// Generic HTTP payload structure for API responses containing data of type T.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public partial class HttpPayload<T> : HttpPayload
+public class HttpPayload<T> : HttpPayload
 {
     [Key("data")]
     public T? Data { get; set; }
@@ -83,4 +93,12 @@ public partial class HttpPayload<T> : HttpPayload
         EnsureSuccessStatusCode();
         return Data ?? throw new HttpRequestException(Message ?? $"{nameof(Data)} is null");
     }
+
+    public new static HttpPayload<T> FromErrorMessage(string error, int code = 0) => new()
+    {
+        Code    = code,
+        Message = error,
+    };
+
+    public new static HttpPayload<T> FromException(Exception e, int code = 0) => FromErrorMessage(e.Message, code);
 }
