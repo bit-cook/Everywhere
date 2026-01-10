@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using Everywhere.Configuration;
 
 namespace Everywhere.AI;
 
@@ -53,7 +52,6 @@ public record ModelDefinitionTemplate
     /// This indicates the best (powerful but economical) model in the provider.
     /// </summary>
     [JsonIgnore]
-    [HiddenSettingsItem]
     public bool IsDefault { get; set; }
 
     public virtual bool Equals(ModelDefinitionTemplate? other) => Id == other?.Id;

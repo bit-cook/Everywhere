@@ -1,12 +1,12 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:ai="clr-namespace:Everywhere.AI" xmlns:c="clr-namespace:Everywhere.Configuration"
+  xmlns:aai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions" xmlns:c="clr-namespace:Everywhere.Configuration"
   xmlns:common="clr-namespace:Everywhere.Common" xmlns:interop="clr-namespace:Everywhere.Interop"
   xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:plugins="clr-namespace:Everywhere.Chat.Plugins"
   xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="clr-namespace:Everywhere.Views">
   <DataTemplate
-    x:Key="{x:Type ai:ModelProviderTemplate}"
-    x:DataType="ai:ModelProviderTemplate">
+    x:Key="{x:Type aai:ModelProviderTemplate}"
+    x:DataType="aai:ModelProviderTemplate">
     <StackPanel
       Orientation="Horizontal" Spacing="8">
       <shadui:ThemeToggleBlock>
@@ -37,8 +37,8 @@
   </DataTemplate>
 
   <DataTemplate
-    x:Key="{x:Type ai:ModelDefinitionTemplate}"
-    x:DataType="ai:ModelDefinitionTemplate">
+    x:Key="{x:Type aai:ModelDefinitionTemplate}"
+    x:DataType="aai:ModelDefinitionTemplate">
     <TextBlock Text="{Binding DisplayName, FallbackValue={x:Null}}"/>
   </DataTemplate>
 

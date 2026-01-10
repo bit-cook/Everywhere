@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reflection;
 using DynamicData;
-using Everywhere.AI;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Initialization;
@@ -24,6 +23,7 @@ public class ChatPluginManager : IChatPluginManager
 
     public ReadOnlyObservableCollection<McpChatPlugin> McpPlugins { get; }
 
+    private readonly IRuntimeConstantProvider _runtimeConstantProvider;
     private readonly IWatchdogManager _watchdogManager;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILoggerFactory _loggerFactory;
@@ -32,16 +32,18 @@ public class ChatPluginManager : IChatPluginManager
     private readonly CompositeDisposable _disposables = new();
     private readonly SourceList<BuiltInChatPlugin> _builtInPluginsSource = new();
     private readonly SourceList<McpChatPlugin> _mcpPluginsSource = new();
-    private readonly ConcurrentDictionary<Guid, RunningMcpClient> _runningMcpClients = [];
+    private readonly ConcurrentDictionary<Guid, McpClient> _runningMcpClients = [];
 
     public ChatPluginManager(
         IEnumerable<BuiltInChatPlugin> builtInPlugins,
+        IRuntimeConstantProvider runtimeConstantProvider,
         IWatchdogManager watchdogManager,
         IHttpClientFactory httpClientFactory,
         ILoggerFactory loggerFactory,
         Settings settings)
     {
         _builtInPluginsSource.AddRange(builtInPlugins);
+        _runtimeConstantProvider = runtimeConstantProvider;
         _watchdogManager = watchdogManager;
         _httpClientFactory = httpClientFactory;
         _loggerFactory = loggerFactory;
@@ -165,7 +167,7 @@ public class ChatPluginManager : IChatPluginManager
     {
         if (_runningMcpClients.TryRemove(mcpChatPlugin.Id, out var runningClient))
         {
-            await runningClient.Client.DisposeAsync();
+            await runningClient.DisposeAsync();
             mcpChatPlugin.IsRunning = false;
         }
     }
@@ -207,7 +209,7 @@ public class ChatPluginManager : IChatPluginManager
                         .Select(x => x.Value)
                         .Where(x => !x.IsNullOrWhiteSpace())
                         .ToList(),
-                    WorkingDirectory = stdio.WorkingDirectory,
+                    WorkingDirectory = EnsureWorkingDirectory(stdio.WorkingDirectory),
                     EnvironmentVariables = stdio.EnvironmentVariables
                         .AsValueEnumerable()
                         .Where(kv => !kv.Key.IsNullOrWhiteSpace())
@@ -242,7 +244,7 @@ public class ChatPluginManager : IChatPluginManager
             cancellationToken);
 
         // Store the running client.
-        _runningMcpClients[mcpChatPlugin.Id] = new RunningMcpClient(mcpChatPlugin, client);
+        _runningMcpClients[mcpChatPlugin.Id] = client;
         mcpChatPlugin.IsRunning = true;
 
         var processId = -1;
@@ -289,6 +291,16 @@ public class ChatPluginManager : IChatPluginManager
                 .EnumerateToolsAsync(cancellationToken: cancellationToken)
                 .Select(t => new McpChatFunction(t))
                 .ToListAsync(cancellationToken));
+
+        string EnsureWorkingDirectory(string? workingDirectory)
+        {
+            if (Directory.Exists(workingDirectory)) return workingDirectory;
+
+            // If not exists, fall back to Everywhere\cache\plugins\mcp\<plugin-id>
+            var fallbackDir = _runtimeConstantProvider.EnsureWritableDataFolderPath(
+                Path.Combine("plugins", "mcp", mcpChatPlugin.Id.ToString("N")));
+            return fallbackDir;
+        }
     }
 
     public async Task<IChatPluginScope> CreateScopeAsync(CancellationToken cancellationToken)
@@ -360,13 +372,6 @@ public class ChatPluginManager : IChatPluginManager
             return false;
         }
     }
-
-    /// <summary>
-    /// Represents a running MCP client along with its configuration and process ID.
-    /// </summary>
-    /// <param name="Plugin"></param>
-    /// <param name="Client"></param>
-    private readonly record struct RunningMcpClient(McpChatPlugin Plugin, McpClient Client);
 
     private class ChatPluginSnapshot : ChatPlugin
     {
