@@ -1,4 +1,5 @@
-﻿using Everywhere.Interop;
+﻿using Avalonia.Threading;
+using Everywhere.Interop;
 
 namespace Everywhere.Windows.Interop;
 
@@ -14,11 +15,14 @@ public partial class VisualElementContext
     {
         private static ScreenSelectionMode _previousMode = ScreenSelectionMode.Element;
 
-        public static Task<IVisualElement?> PickAsync(IWindowHelper windowHelper, ScreenSelectionMode? initialMode)
+        public static async Task<IVisualElement?> PickAsync(IWindowHelper windowHelper, ScreenSelectionMode? initialMode)
         {
+            // Give time to hide other windows
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+
             var window = new PickerSession(windowHelper, initialMode ?? _previousMode);
             window.Show();
-            return window._pickingPromise.Task;
+            return await window._pickingPromise.Task;
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 using Windows.Win32;
 using Avalonia;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using Everywhere.Interop;
 using Everywhere.Utilities;
 using Point = System.Drawing.Point;
@@ -13,12 +14,14 @@ public partial class VisualElementContext
     {
         private static ScreenSelectionMode _previousMode = ScreenSelectionMode.Element;
 
-        public static Task<Bitmap?> ScreenshotAsync(IWindowHelper windowHelper, ScreenSelectionMode? initialMode)
+        public static async Task<Bitmap?> ScreenshotAsync(IWindowHelper windowHelper, ScreenSelectionMode? initialMode)
         {
-            // Start with Screen mode by default, or maybe Free?
+            // Give time to hide other windows
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+
             var window = new ScreenshotSession(windowHelper, initialMode ?? _previousMode);
             window.Show();
-            return window._pickingPromise.Task;
+            return await window._pickingPromise.Task;
         }
 
         private readonly TaskCompletionSource<Bitmap?> _pickingPromise = new();
