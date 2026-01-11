@@ -1,3 +1,13 @@
+## [v0.5.10](https://github.com/DearVa/Everywhere/releases/tag/v0.5.10) - 2026-01-12
+
+### 🐛 Bug Fixes
+- (Critical) Fixed an issue where Everywhere cannot get details/contents of UI elements.
+- (Windows) Fixed an issue where API keys cannot be configured when startup as administrator.
+
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.9...v0.5.10
+
+
+
 ## [v0.5.9](https://github.com/DearVa/Everywhere/releases/tag/v0.5.9) - 2026-01-10
 
 ### 🐛 Bug Fixes
