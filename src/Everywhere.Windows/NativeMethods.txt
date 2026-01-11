@@ -85,3 +85,5 @@ SIZE
 
 CommandLineToArgv
 LocalFree
+
+LoadUserProfile

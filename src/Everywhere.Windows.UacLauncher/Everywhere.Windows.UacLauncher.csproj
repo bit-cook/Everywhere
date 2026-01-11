@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <SelfContained>true</SelfContained>
-    <AssemblyName>UACLauncher</AssemblyName>
-  </PropertyGroup>
-
-</Project>

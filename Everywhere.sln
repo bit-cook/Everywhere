@@ -117,8 +117,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Connectors.Google", "3rd\se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plugins.Web", "3rd\semantic-kernel-patch\Plugins.Web\Plugins.Web.csproj", "{521A03C8-BB0D-43AF-92DF-FAD510B91C24}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Everywhere.Windows.UacLauncher", "src\Everywhere.Windows.UacLauncher\Everywhere.Windows.UacLauncher.csproj", "{7E1DD9DC-3F47-40ED-A14B-E680C39D2553}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -217,10 +215,6 @@ Global
 		{521A03C8-BB0D-43AF-92DF-FAD510B91C24}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{521A03C8-BB0D-43AF-92DF-FAD510B91C24}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{521A03C8-BB0D-43AF-92DF-FAD510B91C24}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7E1DD9DC-3F47-40ED-A14B-E680C39D2553}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7E1DD9DC-3F47-40ED-A14B-E680C39D2553}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7E1DD9DC-3F47-40ED-A14B-E680C39D2553}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7E1DD9DC-3F47-40ED-A14B-E680C39D2553}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
