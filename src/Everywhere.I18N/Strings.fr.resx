@@ -1441,7 +1441,7 @@ Molette de défilement ou touches numériques pour changer de mode de sélection
     <data name="Common_None" xml:space="preserve">
         <value>Aucun</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_ChatCompletions" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAI" xml:space="preserve">
         <value>OpenAI (Chat Completions)</value>
     </data>
     <data name="ModelProviderSchema_Anthropic" xml:space="preserve">
@@ -1672,7 +1672,7 @@ Molette de défilement ou touches numériques pour changer de mode de sélection
     <data name="DebugFeaturesControl_CreateDumpToast_Content" xml:space="preserve">
         <value>Veuillez patienter pendant que le vidage est en cours de création. Everywhere sera non réactif pendant ce temps.</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_Responses" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAIResponses" xml:space="preserve">
         <value>OpenAI (Responses API)</value>
     </data>
     <data name="MacOS_PermissionHelper_PleaseGrantAccessibilityPermission" xml:space="preserve">

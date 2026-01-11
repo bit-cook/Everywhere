@@ -1441,7 +1441,7 @@ Rueda de desplazamiento o teclas numéricas para cambiar modos de selección</va
     <data name="Common_None" xml:space="preserve">
         <value>Ninguno</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_ChatCompletions" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAI" xml:space="preserve">
         <value>OpenAI (Chat Completions)</value>
     </data>
     <data name="ModelProviderSchema_Anthropic" xml:space="preserve">
@@ -1672,7 +1672,7 @@ Rueda de desplazamiento o teclas numéricas para cambiar modos de selección</va
     <data name="DebugFeaturesControl_CreateDumpToast_Content" xml:space="preserve">
         <value>Por favor, espera mientras se crea el volcado. Everywhere no responderá durante este tiempo.</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_Responses" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAIResponses" xml:space="preserve">
         <value>OpenAI (Responses API)</value>
     </data>
     <data name="MacOS_PermissionHelper_PleaseGrantAccessibilityPermission" xml:space="preserve">

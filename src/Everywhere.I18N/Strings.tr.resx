@@ -1438,7 +1438,7 @@ Seçim modlarını değiştirmek için kaydırma tekerleğini veya sayı tuşlar
     <data name="Common_None" xml:space="preserve">
         <value>Yok</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_ChatCompletions" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAI" xml:space="preserve">
         <value>OpenAI (Chat Completions)</value>
     </data>
     <data name="ModelProviderSchema_Anthropic" xml:space="preserve">
@@ -1669,7 +1669,7 @@ Seçim modlarını değiştirmek için kaydırma tekerleğini veya sayı tuşlar
     <data name="DebugFeaturesControl_CreateDumpToast_Content" xml:space="preserve">
         <value>Döküm oluşturulurken lütfen bekleyin. Bu süre zarfında Everywhere yanıt vermeyecek.</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_Responses" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAIResponses" xml:space="preserve">
         <value>OpenAI (Responses API)</value>
     </data>
     <data name="MacOS_PermissionHelper_PleaseGrantAccessibilityPermission" xml:space="preserve">

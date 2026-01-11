@@ -1438,7 +1438,7 @@ Scrollrad oder Zifferntasten zum Wechseln der Auswahlmodi</value>
     <data name="Common_None" xml:space="preserve">
         <value>Keines</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_ChatCompletions" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAI" xml:space="preserve">
         <value>OpenAI (Chat Completions)</value>
     </data>
     <data name="ModelProviderSchema_Anthropic" xml:space="preserve">
@@ -1669,7 +1669,7 @@ Scrollrad oder Zifferntasten zum Wechseln der Auswahlmodi</value>
     <data name="DebugFeaturesControl_CreateDumpToast_Content" xml:space="preserve">
         <value>Bitte warten, während der Dump erstellt wird. Everywhere wird in dieser Zeit nicht reagieren.</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_Responses" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAIResponses" xml:space="preserve">
         <value>OpenAI (Responses API)</value>
     </data>
     <data name="MacOS_PermissionHelper_PleaseGrantAccessibilityPermission" xml:space="preserve">

@@ -1441,7 +1441,7 @@
     <data name="Common_None" xml:space="preserve">
         <value>Нет</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_ChatCompletions" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAI" xml:space="preserve">
         <value>OpenAI (Chat Completions)</value>
     </data>
     <data name="ModelProviderSchema_Anthropic" xml:space="preserve">
@@ -1672,7 +1672,7 @@
     <data name="DebugFeaturesControl_CreateDumpToast_Content" xml:space="preserve">
         <value>Пожалуйста, подождите, пока создается дамп. В это время Everywhere будет неотзывчивым.</value>
     </data>
-    <data name="ModelProviderSchema_OpenAI_Responses" xml:space="preserve">
+    <data name="ModelProviderSchema_OpenAIResponses" xml:space="preserve">
         <value>OpenAI (Responses API)</value>
     </data>
     <data name="MacOS_PermissionHelper_PleaseGrantAccessibilityPermission" xml:space="preserve">
