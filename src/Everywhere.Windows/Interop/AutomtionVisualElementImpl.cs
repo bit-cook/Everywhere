@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Windows;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
@@ -9,13 +8,13 @@ using Windows.Win32.UI.WindowsAndMessaging;
 using Avalonia;
 using Avalonia.Input;
 using Avalonia.Media.Imaging;
-using Avalonia.Threading;
 using Everywhere.Extensions;
 using Everywhere.Interop;
 using Everywhere.Windows.Extensions;
+using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
-using IDataObject = System.Windows.IDataObject;
+using FlaUI.Core.Identifiers;
 
 namespace Everywhere.Windows.Interop;
 
@@ -23,6 +22,9 @@ public partial class VisualElementContext
 {
     private class AutomationVisualElementImpl(AutomationElement element) : IVisualElement
     {
+        private static readonly TextAttributeId IsSelectionActivePropertyId =
+            TextAttributeId.Register(AutomationType.UIA3, 30034, "IsSelectionActive");
+
         public string Id { get; } = string.Join('.', element.Properties.RuntimeId.ValueOrDefault ?? []);
 
         public IVisualElement? Parent
@@ -354,108 +356,81 @@ public partial class VisualElementContext
                 // 1) Prefer UIA TextPattern selection text
                 if (_element.TryGetTextPattern() is { } textPattern)
                 {
-                    var ranges = textPattern.GetSelection();
-                    if (ranges is { Length: > 0 })
-                    {
-                        var selected = string.Join(null, ranges.Select(r => r.GetText(-1)));
-                        if (!string.IsNullOrEmpty(selected))
-                            return selected;
-                    }
-                }
-
-                // 2) Fallback to SelectionItemPattern (if selected, return element's text)
-                if (_element.TryGetSelectionItemPattern() is { } selectionItemPattern)
-                {
-                    if (selectionItemPattern.IsSelected.ValueOrDefault)
-                    {
-                        var v = GetText();
-                        if (!string.IsNullOrEmpty(v))
-                            return v;
-                    }
-                }
-
-                // TODO: Following method takes no effect QAQ
-                // 3) Last resort: send WM_COPY to the focused child window of target thread, then wait for clipboard update
-                if (!TryGetWindow(_element, out var topLevel) || topLevel == 0)
-                    return null;
-
-                var hTop = (HWND)topLevel;
-
-                // Resolve the real focused child HWND in the target GUI thread
-                var target = hTop;
-                var targetTid = PInvoke.GetWindowThreadProcessId(hTop);
-                var currentTid = PInvoke.GetCurrentThreadId();
-                var attached = false;
-                try
-                {
-                    attached = PInvoke.AttachThreadInput(currentTid, targetTid, true);
-                    var hFocus = PInvoke.GetFocus();
-                    if (hFocus != HWND.Null)
-                        target = hFocus;
-                }
-                finally
-                {
-                    if (attached)
-                        _ = PInvoke.AttachThreadInput(currentTid, targetTid, false);
-                }
-
-                // Read clipboard text (best effort)
-                string? result = null;
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    // Backup current clipboard (best effort, avoid user-visible side effects)
-                    IDataObject? backup = null;
                     try
                     {
-                        // backup = Clipboard.GetDataObject();
-                    }
-                    catch
-                    {
-                        /* ignore */
-                    }
-
-                    // Arm the clipboard listener before sending WM_COPY to avoid race
-                    var listener = ClipboardListener.Shared;
-                    listener.BeginWait();
-
-                    // Ask target control to copy selection without simulating Ctrl+C
-                    PInvoke.SendMessage(target, (uint)WINDOW_MESSAGE.WM_COPY, 0, 0);
-
-                    // Wait for WM_CLIPBOARDUPDATE (timeout ~50ms)
-                    if (!listener.WaitNextUpdate(50)) return;
-
-                    try
-                    {
-                        if (Clipboard.ContainsText())
+                        var ranges = textPattern.GetSelection();
+                        if (ranges is { Length: > 0 })
                         {
-                            result = Clipboard.GetText();
+                            var selected = string.Join(null, ranges.Select(r => r.GetText(-1)));
+                            if (!string.IsNullOrEmpty(selected))
+                                return selected;
                         }
                     }
                     catch
                     {
-                        /* ignore */
+                        // Ignore errors in getting selection, try other methods
                     }
 
-                    // Restore clipboard
-                    if (backup != null)
+                    try
                     {
-                        try
+                        var documentRange = textPattern.DocumentRange;
+                        if (documentRange?.GetAttributeValue(IsSelectionActivePropertyId) is true)
                         {
-                            Clipboard.SetDataObject(backup, true);
-                        }
-                        catch
-                        {
-                            /* ignore */
+                            var selected = documentRange.GetText(-1);
+                            if (!string.IsNullOrEmpty(selected))
+                                return selected;
                         }
                     }
-                });
+                    catch
+                    {
+                        // Ignore errors in accessing document range, try other methods
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors in TextPattern, try other methods
+            }
 
-                return string.IsNullOrEmpty(result) ? null : result;
+            // 3) Fallback to LegacyIAccessible selection text
+            try
+            {
+                if (_element.TryGetLegacyIAccessiblePattern() is { Selection: { IsSupported: true, ValueOrDefault: { Length: > 0 } selection } })
+                {
+                    // UIA maps accSelection to an array of AutomationElements.
+                    // This corresponds to VT_DISPATCH (single object) or VT_ARRAY (multiple objects) in MSAA.
+                    // Reference.cc Logic:
+                    // - VT_DISPATCH: Try accName, then accValue.
+                    // - VT_ARRAY: Try accValue of the first element.
+                    // We combine these strategies: Check Name/Value of the first element.
+
+                    var selectedItem = selection[0];
+                    var itemLegacy = selectedItem.TryGetLegacyIAccessiblePattern();
+
+                    if (itemLegacy != null)
+                    {
+                        // Try accName
+                        if (itemLegacy.Name.IsSupported && !string.IsNullOrEmpty(itemLegacy.Name.ValueOrDefault))
+                            return itemLegacy.Name.ValueOrDefault;
+                        
+                        // Try accValue
+                        if (itemLegacy.Value.IsSupported && !string.IsNullOrEmpty(itemLegacy.Value.ValueOrDefault))
+                            return itemLegacy.Value.ValueOrDefault;
+                    }
+                    else
+                    {
+                        // Fallback if pattern unavailable
+                        if (!string.IsNullOrEmpty(selectedItem.Name))
+                            return selectedItem.Name;
+                    }
+                }
             }
             catch
             {
                 return null;
             }
+
+            return null;
         }
 
         // BUG: For a minimized window, the captured image is buggy (but child elements are fine).

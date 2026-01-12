@@ -60,7 +60,7 @@ public class ChatWindowInitializer(
                 nint? hWnd;
                 try
                 {
-                    element = visualElementContext.KeyboardFocusedElement ??
+                    element = visualElementContext.FocusedElement ??
                         visualElementContext.ElementFromPointer()?
                             .GetAncestors(true)
                             .LastOrDefault();

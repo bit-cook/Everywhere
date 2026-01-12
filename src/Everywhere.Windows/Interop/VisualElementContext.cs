@@ -25,7 +25,7 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
     private static readonly UIA3Automation Automation = new();
     private static readonly ITreeWalker TreeWalker = Automation.TreeWalkerFactory.GetContentViewWalker();
 
-    public IVisualElement? KeyboardFocusedElement => TryCreateVisualElement(Automation.FocusedElement);
+    public IVisualElement? FocusedElement => TryCreateVisualElement(Automation.FocusedElement);
 
     public IVisualElement? ElementFromPoint(PixelPoint point, ScreenSelectionMode mode = ScreenSelectionMode.Element)
     {
