@@ -243,7 +243,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
     /// </summary>
     [JsonIgnore]
     [HiddenSettingsItem]
-    private static readonly ModelProviderTemplate[] ModelProviderTemplates = [
+    private static ModelProviderTemplate[] ModelProviderTemplates { get; } = [
         new()
         {
             Id = "openai",
