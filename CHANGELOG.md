@@ -1,3 +1,12 @@
+## [v0.5.11](https://github.com/DearVa/Everywhere/releases/tag/v0.5.11) - 2026-01-12
+
+### 🐛 Bug Fixes
+- Model provider combobox is empty in preset mode (#254)
+
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.10...v0.5.11
+
+
+
 ## [v0.5.10](https://github.com/DearVa/Everywhere/releases/tag/v0.5.10) - 2026-01-12
 
 ### 🐛 Bug Fixes
