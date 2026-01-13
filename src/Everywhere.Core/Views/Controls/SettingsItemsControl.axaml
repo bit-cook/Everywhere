@@ -197,11 +197,20 @@
 
               <StackPanel
                 VerticalAlignment="Center" Spacing="4">
-                <TextBlock
-                  IsHitTestVisible="False"
-                  IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                  Text="{Binding HeaderKey^, FallbackValue={x:Null}}"
-                  TextWrapping="Wrap"/>
+                <StackPanel
+                  Orientation="Horizontal" Spacing="6">
+                  <TextBlock
+                    VerticalAlignment="Center" IsHitTestVisible="False"
+                    IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                    Text="{Binding HeaderKey^, FallbackValue={x:Null}}"
+                    TextWrapping="Wrap"/>
+                  <shadui:Badge
+                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                    Background="{DynamicResource WarningColor}"
+                    Content="{I18N {x:Static LocaleKey.SettingsItemsControl_ExperimentalBadge_Content}}"
+                    IsVisible="{Binding IsExperimental}"
+                    ToolTip.Tip="{I18N {x:Static LocaleKey.SettingsItemsControl_ExperimentalBadge_ToolTip}}"/>
+                </StackPanel>
                 <TextBlock
                   Classes="Muted Small" IsHitTestVisible="False"
                   IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"

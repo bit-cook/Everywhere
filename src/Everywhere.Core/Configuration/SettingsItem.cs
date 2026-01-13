@@ -20,7 +20,7 @@ public abstract class SettingsItem : AvaloniaObject, INotifyDataErrorInfo
 
     public Classes Classes { get; } = [];
 
-    public object? StyleKey { get; set; }
+    public bool IsExperimental { get; set; }
 
     public static readonly StyledProperty<object?> ValueProperty =
         AvaloniaProperty.Register<SettingsItem, object?>(nameof(Value), enableDataValidation: true);

@@ -369,6 +369,11 @@ public static class FileUtilities
         return KnownFileTypes.TryGetValue(mimeType, out var cat) && cat == category;
     }
 
+    public static FileTypeCategory GetCategory(string mimeType)
+    {
+        return KnownFileTypes.GetValueOrDefault(mimeType, FileTypeCategory.Binary);
+    }
+
     public static IEnumerable<string> GetMimeTypesByCategory(FileTypeCategory category)
     {
         return KnownMimeTypes

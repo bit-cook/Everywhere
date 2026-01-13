@@ -43,10 +43,7 @@ public enum ScreenSelectionMode
 public readonly record struct TextSelectionData(
     string? Text,
     IVisualElement? Element
-)
-{
-    public bool IsEmpty => string.IsNullOrEmpty(Text);
-}
+);
 
 /// <summary>
 /// Represents a context for visual elements, providing methods to interact with them.

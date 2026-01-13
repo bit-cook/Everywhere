@@ -68,9 +68,9 @@ public partial class VisualElementContext
             }
         }
 
-        public int ProcessId => 0;
+        public int ProcessId => -1;
 
-        public nint NativeWindowHandle => 0;
+        public nint NativeWindowHandle => -1;
 
         private readonly HMONITOR _hMonitor = hMonitor;
 

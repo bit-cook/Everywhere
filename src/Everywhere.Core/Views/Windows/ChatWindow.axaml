@@ -673,7 +673,7 @@
                                 <Binding Path="$parent[v:ChatWindow].ViewModel.EditingUserMessageNode"/>
                               </MultiBinding>
                             </Classes.Editing>
-                            <SelectableTextBlock Inlines="{Binding Inlines}"/>
+                            <SelectableTextBlock Text="{Binding Content}"/>
                           </Border>
 
                           <ItemsControl ItemsSource="{Binding Attachments}">
@@ -742,10 +742,11 @@
                                       Kind="{Binding Icon}"
                                       Size="14"/>
                                     <TextBlock
-                                      VerticalAlignment="Center"
+                                      MaxWidth="160" VerticalAlignment="Center"
                                       FontSize="{DynamicResource FontSizeS}"
                                       Text="{Binding HeaderKey^}"
-                                      TextTrimming="{x:Static TextTrimming.PrefixCharacterEllipsis}"/>
+                                      TextTrimming="{x:Static TextTrimming.PrefixCharacterEllipsis}"
+                                      TextWrapping="NoWrap"/>
                                   </DockPanel>
                                 </Border>
                               </DataTemplate>

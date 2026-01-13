@@ -375,17 +375,14 @@ partial class VisualElementContext
                     TryGetSelectionTextFromElement();
 
                     // 2. Fallback to Clipboard (Priority 3)
-                    if (string.IsNullOrEmpty(text))
+                    if (string.IsNullOrEmpty(text) && ShouldProcessViaClipboard(uiaControlType, processName))
                     {
-                        if (!ShouldProcessViaClipboard(uiaControlType, processName)) return;
-
                         text = await GetTextViaClipboardAsync(processName);
                     }
 
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        SelectionDetected?.Invoke(new TextSelectionData(text, visualElement));
-                    }
+                    // Trigger event whatever we got
+                    // A null or empty text indicates selection was canceled or failed
+                    SelectionDetected?.Invoke(new TextSelectionData(text, visualElement));
 
                     void TryGetSelectionTextFromElement()
                     {
@@ -404,7 +401,6 @@ partial class VisualElementContext
                         uiaControlType = element.ControlType;
                         visualElement = new AutomationVisualElementImpl(element);
                         text = visualElement.GetSelectionText();
-                        Console.WriteLine($"Text selection detected via UI Automation element: {text}");
                     }
                 }
                 catch (Exception ex)

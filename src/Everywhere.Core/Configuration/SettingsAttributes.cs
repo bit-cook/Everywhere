@@ -32,6 +32,11 @@ public class SettingsItemAttribute : Attribute
     /// Sets custom classes to apply to the settings item in the UI.
     /// </summary>
     public string[]? Classes { get; set; }
+
+    /// <summary>
+    /// Marks this settings item as experimental.
+    /// </summary>
+    public bool IsExperimental { get; set; }
 }
 
 [AttributeUsage(AttributeTargets.Property)]

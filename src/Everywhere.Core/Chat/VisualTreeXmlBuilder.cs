@@ -2,12 +2,12 @@
 // #define DEBUG_VISUAL_TREE_BUILDER
 #endif
 
+using System.Diagnostics;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using Everywhere.Interop;
 using ZLinq;
-
 #if DEBUG_VISUAL_TREE_BUILDER
 using System.Diagnostics;
 using Everywhere.Chat.Debugging;
@@ -40,6 +40,106 @@ public partial class VisualTreeXmlBuilder(
     VisualTreeDetailLevel detailLevel
 )
 {
+    private static readonly ActivitySource ActivitySource = new(typeof(VisualTreeXmlBuilder).FullName.NotNull());
+
+    /// <summary>
+    /// Builds the XML representation of the visual tree for the given attachments as core elements.
+    /// It groups the visual elements from the attachments and constructs the XML using a weighted priority traversal algorithm.
+    /// </summary>
+    /// <param name="attachments"></param>
+    /// <param name="approximateTokenLimit"></param>
+    /// <param name="startingId"></param>
+    /// <param name="detailLevel"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public static IReadOnlyDictionary<int, IVisualElement> BuildPopulateXml(
+        IReadOnlyList<ChatVisualElementAttachment> attachments,
+        int approximateTokenLimit,
+        int startingId,
+        VisualTreeDetailLevel detailLevel,
+        CancellationToken cancellationToken)
+    {
+        using var builderActivity = ActivitySource.StartActivity();
+
+        var result = new Dictionary<int, IVisualElement>();
+        var validAttachments = attachments
+            .AsValueEnumerable()
+            .Select(x => (Attachment: x, Element: x.Element?.Target))
+            .Where(t => t.Element is not null)
+            .ToList();
+
+        if (validAttachments.Count == 0)
+        {
+            return result;
+        }
+
+        // 1. Group core elements by their root element. Key is tuple (ProcessId, NativeWindowHandle of the ancestor TopLevel)
+        var groups = validAttachments
+            .AsValueEnumerable()
+            .GroupBy(x =>
+            {
+                var current = x.Element!;
+                while (current is { Type: not VisualElementType.Screen and not VisualElementType.TopLevel, Parent: { } parent })
+                {
+                    current = parent;
+                }
+
+                return (x.Element!.ProcessId, current.NativeWindowHandle);
+            })
+            .ToArray();
+
+        var totalElements = validAttachments.Count;
+        var totalBuiltElements = 0;
+
+        foreach (var group in groups.AsValueEnumerable())
+        {
+            var groupElements = group.AsValueEnumerable().Select(x => x.Element!).ToList();
+            var groupCount = groupElements.Count;
+
+            // 2. Build XML for each root group
+            // Allocate token limit relative to the number of elements in the group
+            var groupTokenLimit = (int)((long)approximateTokenLimit * groupCount / totalElements);
+
+            var xmlBuilder = new VisualTreeXmlBuilder(
+                groupElements,
+                groupTokenLimit,
+                startingId,
+                detailLevel);
+
+            var xml = xmlBuilder.BuildXml(cancellationToken);
+
+            // 3. for attachments in the same group
+            // First attachment gets the full XML, others got null.
+            var isFirst = true;
+            foreach (var (attachment, _) in group.AsValueEnumerable())
+            {
+                if (isFirst)
+                {
+                    attachment.Xml = xml;
+                    isFirst = false;
+                }
+                else
+                {
+                    attachment.Xml = null;
+                }
+            }
+
+            foreach (var kvp in xmlBuilder.BuiltVisualElements.AsValueEnumerable())
+            {
+                result[kvp.Key] = kvp.Value;
+            }
+
+            startingId += xmlBuilder.BuiltVisualElements.Count;
+            totalBuiltElements += xmlBuilder.BuiltVisualElements.Count;
+        }
+
+        builderActivity?.SetTag("xml.detail_level", detailLevel);
+        builderActivity?.SetTag("xml.length_limit", approximateTokenLimit);
+        builderActivity?.SetTag("xml.built_visual_elements.count", totalBuiltElements);
+
+        return result;
+    }
+
     /// <summary>
     /// Traversal distance metrics for prioritization.
     /// Global: distance from core elements, Local: distance from the originating node.
@@ -248,7 +348,8 @@ public partial class VisualTreeXmlBuilder(
         IReadOnlyList<string> contentLines,
         int selfTokenCount,
         int contentTokenCount,
-        bool isSelfInformative
+        bool isSelfInformative,
+        bool isCoreElement
     )
     {
         public IVisualElement Element { get; } = element;
@@ -286,6 +387,11 @@ public partial class VisualTreeXmlBuilder(
         /// If true, <see cref="IsVisible"/> is always true.
         /// </summary>
         public bool IsSelfInformative { get; } = isSelfInformative;
+
+        /// <summary>
+        /// Indicates whether this element is a core element.
+        /// </summary>
+        public bool IsCoreElement { get; } = isCoreElement;
 
         /// <summary>
         /// The number of children that have informative content (either self-informative or have informative descendants).
@@ -493,7 +599,7 @@ public partial class VisualTreeXmlBuilder(
         // --- Calculate Token Costs ---
         // Base cost: indentation (approx 2), start tag (<Type), id attribute ( id="..."), end tag (</Type>)
         // We approximate this as 8 tokens.
-        var selfTokenCount = 8;
+        var selfTokenCount = ShouldIncludeId(detailLevel, element.Type) ? 8 : 6;
 
         // Add cost for bounds attributes if applicable (x, y, width, height)
         if (ShouldIncludeBounds(detailLevel, element.Type))
@@ -519,7 +625,8 @@ public partial class VisualTreeXmlBuilder(
             contentLines,
             selfTokenCount,
             contentTokenCount,
-            isSelfInformative);
+            isSelfInformative,
+            node.Direction == TraverseDirection.Core);
 
         // --- Update Token Count and Propagate ---
 
@@ -588,31 +695,35 @@ public partial class VisualTreeXmlBuilder(
                     TraverseDirection.Core,
                     node.Enumerator);
 
-                TryEnqueueTraversalNode(
-                    priorityQueue,
-                    node,
-                    1,
-                    TraverseDirection.Parent,
-                    node.Element.GetAncestors().GetEnumerator());
+                // Only enqueue parent and siblings if not top-level
+                if (elementType != VisualElementType.TopLevel)
+                {
+                    TryEnqueueTraversalNode(
+                        priorityQueue,
+                        node,
+                        1,
+                        TraverseDirection.Parent,
+                        node.Element.GetAncestors().GetEnumerator());
 
-                var siblingAccessor = node.Element.SiblingAccessor;
+                    var siblingAccessor = node.Element.SiblingAccessor;
 
-                // Get two enumerators together, prohibited to dispose one before the other, causing resource reallocation.
-                var previousSiblingEnumerator = siblingAccessor.BackwardEnumerator;
-                var nextSiblingEnumerator = siblingAccessor.ForwardEnumerator;
+                    // Get two enumerators together, prohibited to dispose one before the other, causing resource reallocation.
+                    var previousSiblingEnumerator = siblingAccessor.BackwardEnumerator;
+                    var nextSiblingEnumerator = siblingAccessor.ForwardEnumerator;
 
-                TryEnqueueTraversalNode(
-                    priorityQueue,
-                    node,
-                    1,
-                    TraverseDirection.PreviousSibling,
-                    previousSiblingEnumerator);
-                TryEnqueueTraversalNode(
-                    priorityQueue,
-                    node,
-                    1,
-                    TraverseDirection.NextSibling,
-                    nextSiblingEnumerator);
+                    TryEnqueueTraversalNode(
+                        priorityQueue,
+                        node,
+                        1,
+                        TraverseDirection.PreviousSibling,
+                        previousSiblingEnumerator);
+                    TryEnqueueTraversalNode(
+                        priorityQueue,
+                        node,
+                        1,
+                        TraverseDirection.NextSibling,
+                        nextSiblingEnumerator);
+                }
 
                 TryEnqueueTraversalNode(
                     priorityQueue,
@@ -747,13 +858,22 @@ public partial class VisualTreeXmlBuilder(
             // Start tag
             _xmlBuilder.Append(indent).Append('<').Append(elementType);
 
-            // Add ID
+            // Add ID if needed
             var id = BuiltVisualElements.Count + startingId;
             BuiltVisualElements[id] = element;
-            _xmlBuilder.Append(" id=\"").Append(id).Append('"');
+            if (ShouldIncludeId(detailLevel, elementType))
+            {
+                _xmlBuilder.Append(" id=\"").Append(id).Append('"');
+            }
 
-            var shouldIncludeBounds = ShouldIncludeBounds(detailLevel, elementType);
-            if (shouldIncludeBounds)
+            // Add coreElement attribute if applicable
+            if (xmlElement.IsCoreElement)
+            {
+                _xmlBuilder.Append(" coreElement=\"true\"");
+            }
+
+            // Add bounds if needed
+            if (ShouldIncludeBounds(detailLevel, elementType))
             {
                 // for containers, include the element's size
                 var bounds = element.BoundingRectangle;
@@ -764,6 +884,31 @@ public partial class VisualTreeXmlBuilder(
                     .Append(" size=\"")
                     .Append(bounds.Width).Append('x').Append(bounds.Height)
                     .Append('"');
+            }
+
+            // For top-level elements, add pid, process name and WindowHandle attributes
+            if (xmlElement.Element.Type == VisualElementType.TopLevel)
+            {
+                var processId = xmlElement.Element.ProcessId;
+                if (processId > 0)
+                {
+                    _xmlBuilder.Append(" pid=\"").Append(processId).Append('"');
+                    try
+                    {
+                        using var process = Process.GetProcessById(processId);
+                        _xmlBuilder.Append(" processName=\"").Append(SecurityElement.Escape(process.ProcessName)).Append('"');
+                    }
+                    catch
+                    {
+                        // Ignore if process not found
+                    }
+                }
+
+                var windowHandle = xmlElement.Element.NativeWindowHandle;
+                if (windowHandle > 0)
+                {
+                    _xmlBuilder.Append(" windowHandle=\"0x").Append(windowHandle.ToString("X")).Append('"');
+                }
             }
 
             if (xmlElement.Description != null)
@@ -821,6 +966,25 @@ public partial class VisualTreeXmlBuilder(
         }
     }
 
+    private static bool ShouldIncludeId(VisualTreeDetailLevel detailLevel, VisualElementType type) => detailLevel switch
+    {
+        VisualTreeDetailLevel.Detailed => true,
+        VisualTreeDetailLevel.Compact => type is not VisualElementType.Label,
+        VisualTreeDetailLevel.Minimal when type is
+            VisualElementType.TextEdit or
+            VisualElementType.Button or
+            VisualElementType.CheckBox or
+            VisualElementType.ListView or
+            VisualElementType.TreeView or
+            VisualElementType.DataGrid or
+            VisualElementType.TabControl or
+            VisualElementType.Table or
+            VisualElementType.Document or
+            VisualElementType.TopLevel or
+            VisualElementType.Screen => true,
+        _ => false
+    };
+
     private static bool ShouldIncludeBounds(VisualTreeDetailLevel detailLevel, VisualElementType type) => detailLevel switch
     {
         VisualTreeDetailLevel.Detailed => true,
@@ -828,6 +992,11 @@ public partial class VisualTreeXmlBuilder(
             VisualElementType.TextEdit or
             VisualElementType.Button or
             VisualElementType.CheckBox or
+            VisualElementType.ListView or
+            VisualElementType.TreeView or
+            VisualElementType.DataGrid or
+            VisualElementType.TabControl or
+            VisualElementType.Table or
             VisualElementType.Document or
             VisualElementType.TopLevel or
             VisualElementType.Screen => true,
@@ -844,7 +1013,7 @@ public partial class VisualTreeXmlBuilder(
             return text;
 
         var approximateLength = text.Length * maxLength / tokenCount;
-        return text[..Math.Max(0, approximateLength - 1)] + "...";
+        return text[..Math.Max(0, approximateLength - 2)] + "...omitted";
     }
 
     /// <summary>

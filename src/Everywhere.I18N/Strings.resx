@@ -2009,4 +2009,16 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>Screenshot</value>
     </data>
+    <data name="SettingsItemsControl_ExperimentalBadge_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="SettingsItemsControl_ExperimentalBadge_ToolTip" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Description" xml:space="preserve">
+        <value />
+    </data>
 </root>

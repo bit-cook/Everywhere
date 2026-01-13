@@ -282,10 +282,11 @@
                           Size="{DynamicResource FontSizeS}"/>
                       </Button>
                       <TextBlock
-                        VerticalAlignment="Center"
+                        MaxWidth="160" VerticalAlignment="Center"
                         FontSize="{DynamicResource FontSizeS}"
                         Text="{Binding HeaderKey^}"
-                        TextTrimming="{x:Static TextTrimming.PrefixCharacterEllipsis}"/>
+                        TextTrimming="{x:Static TextTrimming.PrefixCharacterEllipsis}"
+                        TextWrapping="NoWrap"/>
                     </DockPanel>
                   </Border>
                 </DataTemplate>

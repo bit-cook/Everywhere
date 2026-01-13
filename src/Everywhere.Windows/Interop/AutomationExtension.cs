@@ -19,7 +19,7 @@ public static class AutomationExtension
             {
                 if (element.FrameworkAutomationElement is not UIA3FrameworkAutomationElement uia3Element) return null;
                 var result = uia3Element.NativeElement.GetCurrentPattern(pattern.Id);
-                return transformer(uia3Element, (TNativePattern)result);
+                return result is null ? null : transformer(uia3Element, (TNativePattern)result);
             }
             catch
             {
