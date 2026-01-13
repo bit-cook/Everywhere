@@ -29,8 +29,8 @@ public partial class VisualElementContext
         private readonly PixelRect _allScreenBounds;
 
         private bool _isRightButtonPressed;
-        private LowLevelMouseHook? _mouseHook;
-        private LowLevelKeyboardHook? _keyboardHook;
+        private IDisposable? _mouseHookSubscription;
+        private IDisposable? _keyboardHookSubscription;
 
         protected ScreenSelectionSession(IWindowHelper windowHelper, IReadOnlyList<ScreenSelectionMode> allowedModes, ScreenSelectionMode initialMode)
         {
@@ -99,7 +99,7 @@ public partial class VisualElementContext
             ToolTipWindow.Show(this);
 
             // Install a low-level mouse hook to listen for right button down events
-            _mouseHook ??= new LowLevelMouseHook((msg, ref hookStruct, ref blockNext) =>
+            _mouseHookSubscription ??= LowLevelHook.CreateMouseHook((msg, ref hookStruct, ref blockNext) =>
             {
                 switch (msg)
                 {
@@ -147,7 +147,7 @@ public partial class VisualElementContext
                 }
             });
 
-            _keyboardHook ??= new LowLevelKeyboardHook((msg, ref hookStruct, ref blockNext) =>
+            _keyboardHookSubscription ??= LowLevelHook.CreateKeyboardHook((msg, ref hookStruct, ref blockNext) =>
             {
                 // Block all key events
                 blockNext = true;
@@ -220,8 +220,8 @@ public partial class VisualElementContext
 
         protected override unsafe void OnClosed(EventArgs e)
         {
-            _mouseHook?.Dispose();
-            _keyboardHook?.Dispose();
+            _mouseHookSubscription?.Dispose();
+            _keyboardHookSubscription?.Dispose();
 
             // right button down event (from SendInput) is not blocked and triggered OnPointerPressed
             // so currently system thinks right button is still pressed

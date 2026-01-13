@@ -78,7 +78,7 @@ partial class VisualElementContext
     /// </summary>
     private sealed class TextSelectionDetector : IDisposable
     {
-        private readonly LowLevelMouseHook _mouseHook;
+        private readonly IDisposable _mouseHookSubscription;
         private readonly DebounceExecutor<HWND, ThreadingTimerImpl> _debounceExecutor;
         private readonly Lock _lock = new();
 
@@ -176,7 +176,7 @@ partial class VisualElementContext
 
         public TextSelectionDetector()
         {
-            _mouseHook = new LowLevelMouseHook(MouseHookCallback);
+            _mouseHookSubscription = LowLevelHook.CreateMouseHook(MouseHookCallback);
             _debounceExecutor = new DebounceExecutor<HWND, ThreadingTimerImpl>(
                 () => _currentCandidateHwnd,
                 BeginDetect,
@@ -913,7 +913,7 @@ partial class VisualElementContext
 
         public void Dispose()
         {
-            _mouseHook.Dispose();
+            _mouseHookSubscription.Dispose();
             _debounceExecutor.Dispose();
         }
     }
