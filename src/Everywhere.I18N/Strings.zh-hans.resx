@@ -2001,12 +2001,6 @@
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>屏幕截图</value>
     </data>
-    <data name="ExperimentalBadge_Content" xml:space="preserve">
-        <value>实验性</value>
-    </data>
-    <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
-        <value>本设置为实验性功能，可能会导致意外的错误和结果</value>
-    </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value>自动添加划词</value>
     </data>
@@ -2018,5 +2012,11 @@
     </data>
     <data name="BuiltInChatPlugin_VisualContext_ListWindows_Description" xml:space="preserve">
         <value>列出所有屏幕上的所有窗口。</value>
+    </data>
+    <data name="ExperimentalBadge_Content" xml:space="preserve">
+        <value>实验性</value>
+    </data>
+    <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
+        <value>此项为实验性功能，可能会导致意外的错误和结果</value>
     </data>
 </root>

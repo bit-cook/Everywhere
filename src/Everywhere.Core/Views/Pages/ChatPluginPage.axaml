@@ -338,7 +338,8 @@
 
                             <StackPanel
                               Grid.Row="0" Grid.Column="1"
-                              Margin="0,-4,0,0" Orientation="Horizontal">
+                              Margin="0,-4,0,0" Orientation="Horizontal"
+                              Spacing="6">
                               <TextBlock
                                 Classes="p" VerticalAlignment="Center"
                                 Text="{Binding HeaderKey^}"

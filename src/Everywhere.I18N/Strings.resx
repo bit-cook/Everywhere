@@ -2000,12 +2000,6 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>Screenshot</value>
     </data>
-    <data name="ExperimentalBadge_Content" xml:space="preserve">
-        <value />
-    </data>
-    <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
-        <value />
-    </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value />
     </data>
@@ -2016,6 +2010,12 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>List Windows</value>
     </data>
     <data name="BuiltInChatPlugin_VisualContext_ListWindows_Description" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ExperimentalBadge_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value />
     </data>
 </root>
