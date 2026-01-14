@@ -692,11 +692,11 @@
     <data name="ChatPluginPage_TabItem_Functions_Header" xml:space="preserve">
         <value>功能</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_Header" xml:space="preserve">
-        <value>视觉树</value>
+    <data name="BuiltInChatPlugin_VisualContext_Header" xml:space="preserve">
+        <value>视觉上下文</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_Description" xml:space="preserve">
-        <value>提供屏幕内 UI 元素的感知和操作能力。</value>
+    <data name="BuiltInChatPlugin_VisualContext_Description" xml:space="preserve">
+        <value>提供感知和操作屏幕内容的能力。</value>
     </data>
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>访问 GitHub</value>
@@ -1255,14 +1255,11 @@
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ScriptConsent_Header" xml:space="preserve">
         <value>即将执行下列 PowerShell 脚本</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Header" xml:space="preserve">
         <value>UI 元素截图</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Header" xml:space="preserve">
-        <value>全屏截图</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Header" xml:space="preserve">
-        <value>操作 UI 元素</value>
+    <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Header" xml:space="preserve">
+        <value>自动化操作</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_Everything_SearchFiles_Header" xml:space="preserve">
         <value>使用 Everything 搜索文件</value>
@@ -1384,17 +1381,11 @@
     <data name="BuiltInChatPlugin_FileSystem_EnsureFileSystemInfo_PathNotExist_ErrorMessage" xml:space="preserve">
         <value>指定的路径不存在。</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Description" xml:space="preserve">
         <value>捕获界面元素的截图。</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Description" xml:space="preserve">
-        <value>捕获整个屏幕的截图。</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Description" xml:space="preserve">
-        <value>执行一组界面自动化操作，如点击、输入或发送快捷键。</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
-        <value>没有可用于截图的屏幕。</value>
+    <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Description" xml:space="preserve">
+        <value>执行一组自动化操作，如点击、输入或发送快捷键。</value>
     </data>
     <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">
         <value>进行网络搜索。</value>
@@ -2010,10 +2001,10 @@
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>屏幕截图</value>
     </data>
-    <data name="SettingsItemsControl_ExperimentalBadge_Content" xml:space="preserve">
+    <data name="ExperimentalBadge_Content" xml:space="preserve">
         <value>实验性</value>
     </data>
-    <data name="SettingsItemsControl_ExperimentalBadge_ToolTip" xml:space="preserve">
+    <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value>本设置为实验性功能，可能会导致意外的错误和结果</value>
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
@@ -2021,5 +2012,11 @@
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Description" xml:space="preserve">
         <value>启用后，划词文本将自动被添加为附件</value>
+    </data>
+    <data name="BuiltInChatPlugin_VisualContext_ListWindows_Header" xml:space="preserve">
+        <value>列出窗口</value>
+    </data>
+    <data name="BuiltInChatPlugin_VisualContext_ListWindows_Description" xml:space="preserve">
+        <value>列出所有屏幕上的所有窗口。</value>
     </data>
 </root>

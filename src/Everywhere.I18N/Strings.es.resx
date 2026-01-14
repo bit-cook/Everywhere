@@ -692,12 +692,6 @@
     <data name="ChatPluginPage_TabItem_Functions_Header" xml:space="preserve">
         <value>Funciones</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_Header" xml:space="preserve">
-        <value>Árbol Visual</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_Description" xml:space="preserve">
-        <value>Proporciona la capacidad de percibir y manipular elementos de la interfaz en la pantalla.</value>
-    </data>
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>Ver en GitHub</value>
     </data>
@@ -1254,14 +1248,11 @@ Se pueden usar marcadores de posición en la palabra clave, que están contenido
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ScriptConsent_Header" xml:space="preserve">
         <value>El siguiente script de PowerShell será ejecutado</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Header" xml:space="preserve">
         <value>Capturar Elemento de UI</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Header" xml:space="preserve">
         <value>Capturar Pantalla Completa</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Header" xml:space="preserve">
-        <value>Operar elementos de UI</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_Everything_SearchFiles_Header" xml:space="preserve">
         <value>Buscar Archivos con Everything</value>
@@ -1383,16 +1374,13 @@ Se pueden usar marcadores de posición en la palabra clave, que están contenido
     <data name="BuiltInChatPlugin_FileSystem_EnsureFileSystemInfo_PathNotExist_ErrorMessage" xml:space="preserve">
         <value>La ruta especificada no existe.</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Description" xml:space="preserve">
         <value>Captura una captura de pantalla de un elemento visual.</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Description" xml:space="preserve">
         <value>Captura una captura de pantalla de toda la pantalla.</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Description" xml:space="preserve">
-        <value>Ejecuta un conjunto de acciones de automatización de UI como hacer clic, escribir o enviar atajos.</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
         <value>No hay pantalla disponible para capturar.</value>
     </data>
     <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">

@@ -77,7 +77,7 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
     public override DynamicResourceKeyBase HeaderKey => base.HeaderKey;
 
     [IgnoreMember]
-    public override LucideIconKind Icon => LucideIconKind.TextInitial;
+    public override LucideIconKind Icon => LucideIconKind.TextCursorInput;
 
     [Key(0)]
     public string Text { get; }
@@ -109,7 +109,7 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
         }
 
         const int MaxLength = 30;
-        const string Ellipsis = "...";
+        const string MiddlePart = " ";
 
         var resultLength = text.Length <= MaxLength ? text.Length : MaxLength;
 
@@ -125,8 +125,8 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
             }
             else
             {
-                var prefixLength = (MaxLength - Ellipsis.Length) / 2;
-                var suffixLength = MaxLength - Ellipsis.Length - prefixLength;
+                var prefixLength = (MaxLength - MiddlePart.Length) / 2;
+                var suffixLength = MaxLength - MiddlePart.Length - prefixLength;
 
                 for (var i = 0; i < prefixLength; i++)
                 {
@@ -134,10 +134,10 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
                     span[i] = c is '\r' or '\n' or '\t' ? ' ' : c;
                 }
 
-                Ellipsis.AsSpan().CopyTo(span.Slice(prefixLength, Ellipsis.Length));
+                MiddlePart.AsSpan().CopyTo(span.Slice(prefixLength, MiddlePart.Length));
 
                 var suffixStart = state.Length - suffixLength;
-                var destStart = prefixLength + Ellipsis.Length;
+                var destStart = prefixLength + MiddlePart.Length;
 
                 for (var i = 0; i < suffixLength; i++)
                 {

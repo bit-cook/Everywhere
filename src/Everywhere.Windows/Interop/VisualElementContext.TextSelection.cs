@@ -609,12 +609,10 @@ partial class VisualElementContext
                 // 5. Restore Clipboard
                 if (backupFormat != 0 && backupData != null)
                 {
-                    Console.WriteLine("Restoring clipboard data by restoring backup.");
                     SetClipboardData(backupFormat, backupData);
                 }
                 else
                 {
-                    Console.WriteLine("Restoring clipboard data by clearing clipboard.");
                     // If we didn't have recognized data, clear the clipboard to remove the "Selected Text"
                     if (PInvoke.OpenClipboard(default))
                     {
@@ -743,7 +741,6 @@ partial class VisualElementContext
                     fixed (INPUT* pInputs = inputArr)
                     {
                         PInvoke.SendInput((uint)inputArr.Length, pInputs, Marshal.SizeOf<INPUT>());
-                        Console.WriteLine($"Sent {type} via SendInput.");
                     }
                 }
             }

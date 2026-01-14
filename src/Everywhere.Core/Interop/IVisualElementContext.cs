@@ -1,5 +1,4 @@
-﻿using System.Reactive;
-using Avalonia.Media.Imaging;
+﻿using Avalonia.Media.Imaging;
 
 namespace Everywhere.Interop;
 
@@ -59,6 +58,11 @@ public interface IVisualElementContext : IObservable<TextSelectionData>
     /// Get the currently focused element.
     /// </summary>
     IVisualElement? FocusedElement { get; }
+
+    /// <summary>
+    /// Get all screens available in the system.
+    /// </summary>
+    IEnumerable<IVisualElement> Screens { get; }
 
     /// <summary>
     /// Get the element at the specified point.

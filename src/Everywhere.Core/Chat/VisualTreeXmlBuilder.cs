@@ -66,6 +66,7 @@ public partial class VisualTreeXmlBuilder(
             .AsValueEnumerable()
             .Select(x => (Attachment: x, Element: x.Element?.Target))
             .Where(t => t.Element is not null)
+            .Select(t => (t.Attachment, Element: t.Element!))
             .ToList();
 
         if (validAttachments.Count == 0)
@@ -78,13 +79,13 @@ public partial class VisualTreeXmlBuilder(
             .AsValueEnumerable()
             .GroupBy(x =>
             {
-                var current = x.Element!;
+                var current = x.Element;
                 while (current is { Type: not VisualElementType.Screen and not VisualElementType.TopLevel, Parent: { } parent })
                 {
                     current = parent;
                 }
 
-                return (x.Element!.ProcessId, current.NativeWindowHandle);
+                return (x.Element.ProcessId, current.NativeWindowHandle);
             })
             .ToArray();
 
@@ -93,7 +94,7 @@ public partial class VisualTreeXmlBuilder(
 
         foreach (var group in groups.AsValueEnumerable())
         {
-            var groupElements = group.AsValueEnumerable().Select(x => x.Element!).ToList();
+            var groupElements = group.AsValueEnumerable().Select(x => x.Element).ToList();
             var groupCount = groupElements.Count;
 
             // 2. Build XML for each root group
@@ -402,8 +403,6 @@ public partial class VisualTreeXmlBuilder(
         /// Indicates whether this element has any informative descendants.
         /// </summary>
         public bool HasInformativeDescendants { get; set; }
-
-        // Self-informative elements are always active (rendered).
     }
 
     /// <summary>
@@ -475,12 +474,18 @@ public partial class VisualTreeXmlBuilder(
             return;
         }
 
-        var node = new TraversalNode(enumerator.Current, previous?.Element, distance, direction, direction switch
-        {
-            TraverseDirection.PreviousSibling => previous?.SiblingIndex - 1 ?? 0,
-            TraverseDirection.NextSibling => previous?.SiblingIndex + 1 ?? 0,
-            _ => 0
-        }, enumerator);
+        var node = new TraversalNode(
+            enumerator.Current,
+            previous?.Element,
+            distance,
+            direction,
+            direction switch
+            {
+                TraverseDirection.PreviousSibling => previous?.SiblingIndex - 1 ?? 0,
+                TraverseDirection.NextSibling => previous?.SiblingIndex + 1 ?? 0,
+                _ => 0
+            },
+            enumerator);
         var score = node.GetScore();
         priorityQueue.Enqueue(node, score);
 
@@ -829,6 +834,38 @@ public partial class VisualTreeXmlBuilder(
         _xmlBuilder = new StringBuilder();
         foreach (var rootElement in visualElements.Values.AsValueEnumerable().Where(e => e.Parent is null))
         {
+            if (rootElement.Element.Type is not VisualElementType.TopLevel and not VisualElementType.Screen)
+            {
+                // Append a synthetic root for non-top-level elements
+                var topLevelOrScreenElement = rootElement.Element.Parent;
+                while (topLevelOrScreenElement is { Type: not VisualElementType.TopLevel and not VisualElementType.Screen, Parent: { } parent })
+                {
+                    topLevelOrScreenElement = parent;
+                }
+
+                if (topLevelOrScreenElement is not null)
+                {
+                    // Create a synthetic root element and build its XML
+                    var actualRootElement = new XmlVisualElement(
+                        topLevelOrScreenElement,
+                        null,
+                        0,
+                        null,
+                        [
+                            "<!-- Child elements omitted for brevity -->"
+                        ],
+                        8,
+                        0,
+                        true,
+                        false)
+                    {
+                        Children = { rootElement }
+                    };
+                    InternalBuildXml(actualRootElement, 0);
+                    continue;
+                }
+            }
+
             InternalBuildXml(rootElement, 0);
         }
 
@@ -907,7 +944,7 @@ public partial class VisualTreeXmlBuilder(
                 var windowHandle = xmlElement.Element.NativeWindowHandle;
                 if (windowHandle > 0)
                 {
-                    _xmlBuilder.Append(" windowHandle=\"0x").Append(windowHandle.ToString("X")).Append('"');
+                    _xmlBuilder.Append(" handle=\"0x").Append(windowHandle.ToString("X")).Append('"');
                 }
             }
 

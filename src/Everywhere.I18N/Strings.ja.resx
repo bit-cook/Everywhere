@@ -692,12 +692,6 @@
     <data name="ChatPluginPage_TabItem_Functions_Header" xml:space="preserve">
         <value>機能</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_Header" xml:space="preserve">
-        <value>ビジュアルツリー</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_Description" xml:space="preserve">
-        <value>画面上のUI要素を認識し操作する機能を提供します。</value>
-    </data>
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>GitHubで見る</value>
     </data>
@@ -1254,14 +1248,11 @@
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ScriptConsent_Header" xml:space="preserve">
         <value>次のPowerShellスクリプトが実行されます</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Header" xml:space="preserve">
         <value>UI要素をキャプチャ</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Header" xml:space="preserve">
         <value>全画面をキャプチャ</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Header" xml:space="preserve">
-        <value>UI要素を操作</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_Everything_SearchFiles_Header" xml:space="preserve">
         <value>Everythingでファイルを検索</value>
@@ -1383,16 +1374,13 @@
     <data name="BuiltInChatPlugin_FileSystem_EnsureFileSystemInfo_PathNotExist_ErrorMessage" xml:space="preserve">
         <value>指定されたパスは存在しません。</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Description" xml:space="preserve">
         <value>ビジュアル要素のスクリーンショットをキャプチャします。</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Description" xml:space="preserve">
         <value>画面全体のスクリーンショットをキャプチャします。</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Description" xml:space="preserve">
-        <value>クリック、入力、ショートカット送信などのUI自動化アクションのセットを実行します。</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
         <value>キャプチャするための画面が利用できません。</value>
     </data>
     <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">

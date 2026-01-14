@@ -15,6 +15,7 @@ using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
 using FlaUI.Core.Identifiers;
+using Serilog;
 
 namespace Everywhere.Windows.Interop;
 
@@ -205,18 +206,6 @@ public partial class VisualElementContext
             }
         }
 
-        private void EnsureFocusable()
-        {
-            try
-            {
-                _element.Focus();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Failed to focus element before sending shortcut.", ex);
-            }
-        }
-
         public void Invoke()
         {
             try
@@ -226,19 +215,43 @@ public partial class VisualElementContext
                     invokePattern.Invoke();
                     return;
                 }
+            }
+            catch (Exception ex)
+            {
+                // ignore
+                LogError(ex, "InvokePattern");
+            }
 
+            try
+            {
                 if (_element.TryGetTogglePattern() is { } togglePattern)
                 {
                     togglePattern.Toggle();
                     return;
                 }
+            }
+            catch (Exception ex)
+            {
+                // ignore
+                LogError(ex, "TogglePattern");
+            }
 
+            try
+            {
                 if (_element.TryGetSelectionItemPattern() is { } selectionItemPattern)
                 {
                     selectionItemPattern.Select();
                     return;
                 }
+            }
+            catch (Exception ex)
+            {
+                // ignore
+                LogError(ex, "SelectionItemPattern");
+            }
 
+            try
+            {
                 if (_element.TryGetExpandCollapsePattern() is { } expandCollapsePattern)
                 {
                     var state = expandCollapsePattern.ExpandCollapseState.ValueOrDefault;
@@ -253,22 +266,108 @@ public partial class VisualElementContext
 
                     return;
                 }
+            }
+            catch (Exception ex)
+            {
+                // ignore
+                LogError(ex, "ExpandCollapsePattern");
+            }
 
+            try
+            {
                 if (_element.TryGetLegacyIAccessiblePattern() is { } legacyPattern)
                 {
                     legacyPattern.DoDefaultAction();
                 }
             }
-            catch (COMException ex)
+            catch (Exception ex)
             {
-                throw new InvalidOperationException("Failed to invoke the element through UI Automation.", ex);
-            }
-            catch (Exception ex) when (IsAutomationException(ex))
-            {
-                throw new InvalidOperationException("Failed to invoke the element through UI Automation.", ex);
+                // ignore
+                LogError(ex, "LegacyIAccessiblePattern");
             }
 
-            throw new NotSupportedException("The target element does not expose an invoke-capable automation pattern.");
+            // Last try, get clickable point and Send mouse click
+            if (!_element.TryGetClickablePoint(out var point))
+            {
+                throw new InvalidOperationException("The target element does not support invocation.");
+            }
+
+            // Ensure the point is within screen bounds
+            var screenLeft = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_XVIRTUALSCREEN);
+            var screenTop = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_YVIRTUALSCREEN);
+            var screenWidth = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXVIRTUALSCREEN);
+            var screenHeight = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYVIRTUALSCREEN);
+            if (point.X < screenLeft || point.X >= screenLeft + screenWidth ||
+                point.Y < screenTop || point.Y >= screenTop + screenHeight)
+            {
+                throw new InvalidOperationException("The clickable point of the target element is outside of the screen bounds.");
+            }
+
+            if (TryGetAncestorWithNativeWindowHandle(_element, out var hWnd) is not { } windowElement)
+            {
+                throw new InvalidOperationException("The target element does not belong to a valid window.");
+            }
+
+            var rootHwnd = PInvoke.GetAncestor((HWND)hWnd, GET_ANCESTOR_FLAGS.GA_ROOTOWNER);
+            if (rootHwnd != 0) PInvoke.SetForegroundWindow(rootHwnd);
+
+            windowElement.FocusNative();
+
+            // Ensure window is foreground
+            var windowFromPoint = PInvoke.WindowFromPoint(point);
+            if (windowFromPoint == 0 || PInvoke.GetAncestor(windowFromPoint, GET_ANCESTOR_FLAGS.GA_ROOTOWNER) != rootHwnd)
+            {
+                throw new InvalidOperationException("Failed to bring the target element's window to the foreground.");
+            }
+
+            // Send mouse click to the point
+            PInvoke.SendInput(
+            [
+                new INPUT
+                {
+                    Anonymous =
+                    {
+                        mi =
+                        {
+                            dx = point.X * 65535 / PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN),
+                            dy = point.Y * 65535 / PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN),
+                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
+                        }
+                    },
+                    type = INPUT_TYPE.INPUT_MOUSE,
+                },
+                new INPUT
+                {
+                    Anonymous =
+                    {
+                        mi =
+                        {
+                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTDOWN,
+                        }
+                    },
+                    type = INPUT_TYPE.INPUT_MOUSE,
+                }
+            ], Marshal.SizeOf<INPUT>());
+
+            // A short delay to ensure the click is done before sending mouse up
+            Thread.Sleep(30);
+            PInvoke.SendInput(
+            [
+                new INPUT
+                {
+                    Anonymous =
+                    {
+                        mi =
+                        {
+                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTUP,
+                        }
+                    },
+                    type = INPUT_TYPE.INPUT_MOUSE,
+                }
+            ], Marshal.SizeOf<INPUT>());
+
+            void LogError(Exception ex, string action) =>
+                Log.ForContext<AutomationVisualElementImpl>().Information(ex, "Failed to perform {Action} on element {Type}", action, Type);
         }
 
         public void SetText(string text)
@@ -300,7 +399,15 @@ public partial class VisualElementContext
 
         public void SendShortcut(KeyboardShortcut shortcut)
         {
-            EnsureFocusable();
+            if (TryGetAncestorWithNativeWindowHandle(_element, out var hWnd) is not { } windowElement)
+            {
+                throw new InvalidOperationException("The target element does not belong to a valid window.");
+            }
+
+            var rootHwnd = PInvoke.GetAncestor((HWND)hWnd, GET_ANCESTOR_FLAGS.GA_ROOTOWNER);
+            if (rootHwnd != 0) PInvoke.SetForegroundWindow(rootHwnd);
+
+            windowElement.FocusNative();
 
             // Use PInvoke.SendInput to send the shortcut to the focused element.
             var inputs = new List<INPUT>();
@@ -412,7 +519,7 @@ public partial class VisualElementContext
                         // Try accName
                         if (itemLegacy.Name.IsSupported && !string.IsNullOrEmpty(itemLegacy.Name.ValueOrDefault))
                             return itemLegacy.Name.ValueOrDefault;
-                        
+
                         // Try accValue
                         if (itemLegacy.Value.IsSupported && !string.IsNullOrEmpty(itemLegacy.Value.ValueOrDefault))
                             return itemLegacy.Value.ValueOrDefault;
@@ -440,7 +547,7 @@ public partial class VisualElementContext
             if (rect.Width <= 0 || rect.Height <= 0)
                 throw new InvalidOperationException("Cannot capture an element with zero width or height.");
 
-            if (!TryGetWindow(_element, out var hWnd) ||
+            if (TryGetAncestorWithNativeWindowHandle(_element, out var hWnd) is null ||
                 (hWnd = PInvoke.GetAncestor((HWND)hWnd, GET_ANCESTOR_FLAGS.GA_ROOTOWNER)) == 0)
                 throw new InvalidOperationException("Cannot capture an element without a valid window handle.");
 
@@ -459,20 +566,26 @@ public partial class VisualElementContext
 
         #region Interop
 
-        private static bool TryGetWindow(AutomationElement? element, out nint hWnd)
+        /// <summary>
+        ///     Attempts to find the nearest ancestor element that has a native window handle (HWND).
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="hWnd"></param>
+        /// <returns></returns>
+        private static AutomationElement? TryGetAncestorWithNativeWindowHandle(AutomationElement? element, out nint hWnd)
         {
             while (element != null)
             {
-                if (element.FrameworkAutomationElement.NativeWindowHandle.TryGetValue(out hWnd))
+                if (element.FrameworkAutomationElement.NativeWindowHandle.TryGetValue(out hWnd) && hWnd != 0)
                 {
-                    return true;
+                    return element;
                 }
 
                 element = TreeWalker.GetParent(element);
             }
 
             hWnd = 0;
-            return false;
+            return null;
         }
 
         /// <summary>

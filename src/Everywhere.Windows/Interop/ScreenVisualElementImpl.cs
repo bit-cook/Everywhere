@@ -9,6 +9,24 @@ namespace Everywhere.Windows.Interop;
 
 public partial class VisualElementContext
 {
+    public unsafe IEnumerable<IVisualElement> Screens
+    {
+        get
+        {
+            var monitors = new List<HMONITOR>();
+            PInvoke.EnumDisplayMonitors(
+                HDC.Null,
+                null,
+                (hMonitor, _, _, _) =>
+                {
+                    monitors.Add(hMonitor);
+                    return true;
+                },
+                0);
+            return monitors.Select(hMonitor => new ScreenVisualElementImpl(hMonitor));
+        }
+    }
+
     private unsafe class ScreenVisualElementImpl(HMONITOR hMonitor) : IVisualElement
     {
         public string Id => $"Screen:{_hMonitor}";
@@ -100,7 +118,7 @@ public partial class VisualElementContext
             {
                 if (_monitors is not null) return;
 
-                _monitors = (List<HMONITOR>)[];
+                _monitors = [];
                 PInvoke.EnumDisplayMonitors(
                     HDC.Null,
                     null,

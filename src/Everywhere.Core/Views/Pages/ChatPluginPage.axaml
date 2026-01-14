@@ -336,11 +336,21 @@
                               Kind="{Binding Icon}"
                               Size="22"/>
 
-                            <TextBlock
-                              Classes="p" Grid.Row="0"
-                              Grid.Column="1" Margin="0,-4,0,0"
-                              Text="{Binding HeaderKey^}"
-                              TextWrapping="Wrap"/>
+                            <StackPanel
+                              Grid.Row="0" Grid.Column="1"
+                              Margin="0,-4,0,0" Orientation="Horizontal">
+                              <TextBlock
+                                Classes="p" VerticalAlignment="Center"
+                                Text="{Binding HeaderKey^}"
+                                TextWrapping="Wrap"/>
+                              <shadui:Badge
+                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Background="{DynamicResource WarningColor}"
+                                Content="{I18N {x:Static LocaleKey.ExperimentalBadge_Content}}"
+                                IsVisible="{Binding IsExperimental}"
+                                ToolTip.Tip="{I18N {x:Static LocaleKey.ExperimentalBadge_ToolTip}}"/>
+                            </StackPanel>
+
                             <TextBlock
                               Classes="Muted" Grid.Row="1"
                               Grid.Column="1" Margin="0,0,0,4"
