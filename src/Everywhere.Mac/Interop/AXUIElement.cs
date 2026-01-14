@@ -222,7 +222,12 @@ public partial class AXUIElement : NSObject, IVisualElement
         throw new NotImplementedException();
     }
 
-    public string? GetSelectionText() => GetAttribute<NSString>(AXAttributeConstants.SelectedText);
+    /// <summary>
+    /// Get the selected text of the visual element.
+    /// In case of numeric input fields that return NSNumber, it will be converted to string.
+    /// </summary>
+    /// <returns></returns>
+    public string? GetSelectionText() => GetAttribute<NSObject>(AXAttributeConstants.SelectedText)?.ToString();
 
     public Task<Bitmap> CaptureAsync(CancellationToken cancellationToken)
     {
@@ -278,6 +283,12 @@ public partial class AXUIElement : NSObject, IVisualElement
 
         // after this, we can safely dispose data
         return Task.FromResult(new Bitmap(data.AsStream()));
+    }
+
+    public bool SetAttribute(NSString attributeName, NSObject value)
+    {
+        var error = SetAttributeValue(Handle, attributeName.Handle, value.Handle);
+        return error == AXError.Success;
     }
 
     public override bool Equals(object? obj)

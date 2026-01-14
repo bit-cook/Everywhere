@@ -7,15 +7,18 @@ using ImageIO;
 
 namespace Everywhere.Mac.Interop;
 
-public partial class VisualElementContext
+partial class VisualElementContext
 {
     private sealed class ScreenshotSession : ScreenSelectionSession
     {
+        private static ScreenSelectionMode _previousMode = ScreenSelectionMode.Element;
+
         public static async Task<Bitmap?> ScreenshotAsync(IWindowHelper windowHelper, ScreenSelectionMode? initialMode)
         {
             // Give time to hide other windows
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
-            var window = new ScreenshotSession(windowHelper, initialMode ?? ScreenSelectionMode.Element);
+
+            var window = new ScreenshotSession(windowHelper, initialMode ?? _previousMode);
             window.Show();
             return await window._pickingPromise.Task;
         }
@@ -65,6 +68,7 @@ public partial class VisualElementContext
 
         protected override void OnClosed(EventArgs e)
         {
+            _previousMode = CurrentMode;
             _disposables.Dispose();
             _pickingPromise.TrySetResult(_resultBitmap);
             base.OnClosed(e);

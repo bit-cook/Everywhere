@@ -9,7 +9,9 @@ namespace Everywhere.Mac.Interop;
 
 public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualElementContext
 {
-    public IVisualElement? KeyboardFocusedElement => AXUIElement.SystemWide.ElementByAttributeValue(AXAttributeConstants.FocusedUIElement);
+    public IVisualElement? FocusedElement => AXUIElement.SystemWide.ElementByAttributeValue(AXAttributeConstants.FocusedUIElement);
+
+    public IEnumerable<IVisualElement> Screens => NSScreen.Screens.Select(screen => new NSScreenVisualElement(screen));
 
     IVisualElement? IVisualElementContext.ElementFromPoint(PixelPoint point, ScreenSelectionMode mode) => ElementFromPoint(point, mode);
 
@@ -66,7 +68,7 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
 
     public Task<IVisualElement?> PickElementAsync(ScreenSelectionMode? initialMode)
     {
-        return PickerSession.PickAsync(windowHelper, initialMode ?? ScreenSelectionMode.Element);
+        return PickerSession.PickAsync(windowHelper, initialMode);
     }
 
     public Task<Bitmap?> ScreenshotAsync(ScreenSelectionMode? initialMode)

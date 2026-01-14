@@ -78,6 +78,8 @@ partial class VisualElementContext
     /// </summary>
     private sealed class TextSelectionDetector : IDisposable
     {
+        public event Action<TextSelectionData>? SelectionDetected;
+
         private readonly IDisposable _mouseHookSubscription;
         private readonly DebounceExecutor<HWND, ThreadingTimerImpl> _debounceExecutor;
         private readonly Lock _lock = new();
@@ -171,8 +173,6 @@ partial class VisualElementContext
             CtrlInsert,
             CtrlC
         }
-
-        public event Action<TextSelectionData>? SelectionDetected;
 
         public TextSelectionDetector()
         {
