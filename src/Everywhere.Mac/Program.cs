@@ -88,8 +88,8 @@ public static class Program
         );
 
         NSApplication.CheckForIllegalCrossThreadCalls = false;
+        NSApplication.SharedApplication.Delegate = new AppDelegate();
         NSApplication.Init();
-        NSApplication.SharedApplication.ActivationPolicy = NSApplicationActivationPolicy.Accessory;
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, ShutdownMode.OnExplicitShutdown);
     }
 
@@ -179,7 +179,7 @@ public static class Program
     private static void InitializeHarmony()
     {
         // Apply Harmony patches
-        var harmony = new Harmony("io.everywhere.mac.patches");
+        var harmony = new Harmony("com.sylinko.everywhere.mac.patches");
 
         harmony.PatchAll(typeof(ControlAutomationPeerPatches).Assembly);
 
@@ -189,23 +189,6 @@ public static class Program
         var execMethod = AccessTools.Method(bclLauncherType, "Exec");
         harmony.Patch(execMethod, new HarmonyMethod(BclLauncherExecPatch));
     }
-
-    private static AppBuilder BuildAvaloniaApp() =>
-        AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-            .With(
-                new AvaloniaNativePlatformOptions
-                {
-                    AppSandboxEnabled = false
-                })
-            .With(
-                new MacOSPlatformOptions
-                {
-                    ShowInDock = false
-                })
-            .WithInterFont()
-            .LogToTrace();
-
 
     /// <summary>
     /// ControlAutomationPeer.CreatePeerForElement can be only called on UI Thread,
@@ -257,4 +240,22 @@ public static class Program
         __result = true;
         return false;
     }
+
+    private static AppBuilder BuildAvaloniaApp() =>
+        AppBuilder.Configure<App>()
+            .UsePlatformDetect()
+            .With(
+                new AvaloniaNativePlatformOptions
+                {
+                    AppSandboxEnabled = false
+                })
+            .With(
+                new MacOSPlatformOptions
+                {
+                    // These settings are important for showing chat window over other fullscreen apps
+                    ShowInDock = false,
+                    DisableAvaloniaAppDelegate = true
+                })
+            .WithInterFont()
+            .LogToTrace();
 }

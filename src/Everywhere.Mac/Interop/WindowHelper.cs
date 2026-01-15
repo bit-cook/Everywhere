@@ -1,4 +1,7 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Interactivity;
 using Everywhere.Interop;
 using Everywhere.Views;
 using ObjCRuntime;
@@ -7,6 +10,66 @@ namespace Everywhere.Mac.Interop;
 
 public class WindowHelper : IWindowHelper
 {
+    private int OpenedWindowCount
+    {
+        get;
+        set
+        {
+            value = Math.Max(0, value);
+            if (value == field) return;
+
+            // changing activation policy
+            if (field == 0)
+            {
+                // first window opened
+                using var pool = new NSAutoreleasePool();
+                NSApplication.SharedApplication.ActivationPolicy = NSApplicationActivationPolicy.Regular;
+            }
+            else if (value == 0)
+            {
+                // last window closed
+                using var pool = new NSAutoreleasePool();
+                NSApplication.SharedApplication.ActivationPolicy = NSApplicationActivationPolicy.Accessory;
+            }
+
+            field = value;
+        }
+    }
+
+    private bool IsChatWindowCloaked
+    {
+        set
+        {
+            if (value == field) return;
+            field = value;
+            if (value) OpenedWindowCount--;
+            else OpenedWindowCount++;
+        }
+    }
+
+    public WindowHelper()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            OpenedWindowCount = desktop.Windows.Count;
+        }
+
+        Window.WindowOpenedEvent.AddClassHandler<Window>(HandleWindowOpened, handledEventsToo: true);
+        Window.WindowClosedEvent.AddClassHandler<Window>(HandleWindowClosed, handledEventsToo: true);
+    }
+
+    private void HandleWindowOpened(Window window, RoutedEventArgs args)
+    {
+        if (window is ChatWindow) return;
+        OpenedWindowCount++;
+    }
+
+    private void HandleWindowClosed(Window window, RoutedEventArgs args)
+    {
+        if (window is ChatWindow) return;
+        OpenedWindowCount--;
+    }
+
     /// <summary>
     /// Sets whether the window can become the key window (i.e., receive keyboard focus).
     /// </summary>
@@ -72,13 +135,17 @@ public class WindowHelper : IWindowHelper
                 ~(NSWindowCollectionBehavior.FullScreenPrimary |
                     NSWindowCollectionBehavior.Managed);
             nativeWindow.Level = NSWindowLevel.MainMenu;
+
+            // Chat window will not be closed, so hide/show is treated as close/open for counting purposes.
+            IsChatWindowCloaked = cloaked;
         }
 
         if (cloaked)
         {
             // Hide the window and ensure it's not in the window cycle (Cmd+Tab).
             nativeWindow.CollectionBehavior |= NSWindowCollectionBehavior.IgnoresCycle;
-            
+
+            // Animate the hiding to avoid flicker
             NSAnimationContext.BeginGrouping();
             NSAnimationContext.CurrentContext.Duration = 0;
             window.Hide();
