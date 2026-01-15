@@ -1,10 +1,6 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Avalonia;
-using Avalonia.Automation.Peers;
+﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Platform.Storage;
-using Avalonia.Threading;
+using Avalonia.Controls.Primitives;
 using Everywhere.AI;
 using Everywhere.Chat;
 using Everywhere.Chat.Plugins;
@@ -18,9 +14,11 @@ using Everywhere.Mac.Chat.Plugin;
 using Everywhere.Mac.Common;
 using Everywhere.Mac.Configuration;
 using Everywhere.Mac.Interop;
+using Everywhere.Mac.Patches;
 using HarmonyLib;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ObjCRuntime;
 using Serilog;
 using Serilog.Extensions.Logging;
 
@@ -32,8 +30,9 @@ public static class Program
     public static void Main(string[] args)
     {
         NativeMessageBox.MacOSMessageBoxHandler = MessageBoxHandler;
-        InitializeHarmony();
         Entrance.Initialize();
+        InitializeHarmony();
+        FixPopupInFullscreen();
 
         ServiceLocator.Build(x => x
 
@@ -180,65 +179,30 @@ public static class Program
     {
         // Apply Harmony patches
         var harmony = new Harmony("com.sylinko.everywhere.mac.patches");
-
-        harmony.PatchAll(typeof(ControlAutomationPeerPatches).Assembly);
-
-#pragma warning disable IL2026 // This is safe because Avalonia is a known dependency
-        var bclLauncherType = typeof(ILauncher).Assembly.GetType("Avalonia.Platform.Storage.FileIO.BclLauncher");
-#pragma warning restore IL2026
-        var execMethod = AccessTools.Method(bclLauncherType, "Exec");
-        harmony.Patch(execMethod, new HarmonyMethod(BclLauncherExecPatch));
+        ControlAutomationPeerPatch.Patch(harmony);
+        BclLauncherExecPatch.Patch(harmony);
     }
 
-    /// <summary>
-    /// ControlAutomationPeer.CreatePeerForElement can be only called on UI Thread,
-    /// causing crashing when invoking ChatWindow on MainWindow.
-    /// We use Lib.Harmony to patch it
-    /// </summary>
-    [HarmonyPatch(typeof(ControlAutomationPeer), nameof(ControlAutomationPeer.CreatePeerForElement))]
-    private static class ControlAutomationPeerPatches
+    private static void FixPopupInFullscreen()
     {
-        [HarmonyReversePatch]
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        // ReSharper disable once MemberCanBePrivate.Local
-        // ReSharper disable once UnusedParameter.Local
-        public static AutomationPeer CreatePeerForElementOriginal(Control element) => throw new NotSupportedException("stub");
+        // On macOS, popups may not appear correctly over fullscreen windows.
+        // This method applies necessary fixes to ensure popups are displayed properly.
 
-        [HarmonyPrefix]
-        // ReSharper disable once UnusedMember.Local
-        // ReSharper disable once InconsistentNaming
-        public static bool Prefix(Control element, ref AutomationPeer __result)
+        Control.SizeChangedEvent.AddClassHandler<PopupRoot>((popupRoot, _) =>
         {
-            if (Dispatcher.UIThread.CheckAccess())
-            {
-                return true;
-            }
+            if (popupRoot.TryGetPlatformHandle()?.Handle is not { } handle || handle == 0) return;
+            if (Runtime.GetNSObject(handle) is not NSWindow nsWindow) return;
 
-            __result = Dispatcher.UIThread.Invoke(() => CreatePeerForElementOriginal(element));
-            return false; // Skip original method
-        }
-    }
-
-    /// <summary>
-    /// The implementation of BclLauncher.Exec for macOS does not work well when urlOrFile contains spaces or special characters.
-    /// This patch fixes the issue by properly escaping the urlOrFile before passing it to the system command.
-    /// </summary>
-    /// <param name="urlOrFile"></param>
-    /// <param name="__result"></param>
-    /// <returns></returns>
-    // ReSharper disable once InconsistentNaming
-    // ReSharper disable once RedundantAssignment
-    private static bool BclLauncherExecPatch(ref string urlOrFile, ref bool __result)
-    {
-        using var process = Process.Start(
-            new ProcessStartInfo
-            {
-                FileName = "open",
-                ArgumentList = { urlOrFile }, // Use ArgumentList to avoid issues with spaces/special characters
-                CreateNoWindow = true,
-            });
-        __result = true;
-        return false;
+            nsWindow.CollectionBehavior |=
+                NSWindowCollectionBehavior.CanJoinAllSpaces |
+                NSWindowCollectionBehavior.FullScreenAuxiliary |
+                NSWindowCollectionBehavior.FullScreenDisallowsTiling |
+                NSWindowCollectionBehavior.Auxiliary;
+            nsWindow.CollectionBehavior &=
+                ~(NSWindowCollectionBehavior.FullScreenPrimary |
+                    NSWindowCollectionBehavior.Managed);
+            nsWindow.Level = NSWindowLevel.PopUpMenu;
+        });
     }
 
     private static AppBuilder BuildAvaloniaApp() =>
