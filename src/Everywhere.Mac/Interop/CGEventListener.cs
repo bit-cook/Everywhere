@@ -88,7 +88,7 @@ public class CGEventListener
             return cgEventRef;
         }
 
-        using var cgEvent = CoreFoundationInterop.CGEventFromHandle(cgEventRef);
+        using var cgEvent = CGInterop.CGEventFromHandle(cgEventRef);
         EventReceived?.Invoke(type, cgEvent, ref cgEventRef);
         return cgEventRef;
     }

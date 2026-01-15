@@ -350,13 +350,10 @@ internal abstract partial class ScreenSelectionSession : ScreenSelectionTranspar
         ToolTipWindow.ToolTip.SizeInfo = $"{rect.Width} x {rect.Height}";
     }
 
-    [LibraryImport("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")]
-    private static partial nint CGWindowListCopyWindowInfo(CGWindowListOption option, uint relativeToWindow);
-
     private static void GetWindowOwnerPidsAtLocation(CGPoint point, uint relativeToWindow, List<int> pids)
     {
         var currentPid = Environment.ProcessId;
-        var pArray = CGWindowListCopyWindowInfo(CGWindowListOption.OnScreenBelowWindow, relativeToWindow);
+        var pArray = CGInterop.CGWindowListCopyWindowInfo(CGWindowListOption.OnScreenBelowWindow, relativeToWindow);
         if (pArray == 0) return;
 
         try
@@ -396,7 +393,7 @@ internal abstract partial class ScreenSelectionSession : ScreenSelectionTranspar
         }
         finally
         {
-            CoreFoundationInterop.CFRelease(pArray);
+            CFInterop.CFRelease(pArray);
         }
     }
 }

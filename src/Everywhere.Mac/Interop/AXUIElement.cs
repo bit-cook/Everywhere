@@ -13,7 +13,7 @@ namespace Everywhere.Mac.Interop;
 /// </summary>
 public partial class AXUIElement : NSObject, IVisualElement
 {
-    public string Id => $"{ProcessId}.{NativeWindowHandle}.{CoreFoundationInterop.CFHash(Handle)}";
+    public string Id => $"{ProcessId}.{NativeWindowHandle}.{CFInterop.CFHash(Handle)}";
 
     public IVisualElement? Parent => field ??= GetAttributeAsElement(AXAttributeConstants.Parent);
 
@@ -23,12 +23,12 @@ public partial class AXUIElement : NSObject, IVisualElement
     {
         get
         {
-            var children = GetAttribute<NSArray>(AXAttributeConstants.Children);
+            using var children = GetAttribute<NSArray>(AXAttributeConstants.Children);
             if (children is null) yield break;
 
             for (nuint i = 0; i < children.Count; i++)
             {
-                if (children.GetItem<AXUIElement>(i) is { } child)
+                if (FromCopyArray(children, i) is { } child)
                 {
                     yield return child;
                 }
@@ -188,6 +188,21 @@ public partial class AXUIElement : NSObject, IVisualElement
         AXUIElementSetMessagingTimeout(SystemWide.Handle.Handle, 1f);
     }
 
+    /// <summary>
+    /// Create AXUIElement from NSArray at given index.
+    /// </summary>
+    /// <param name="array"></param>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    private static AXUIElement? FromCopyArray(NSArray array, nuint index)
+    {
+        var pValue = array.ValueAt(index);
+        if (pValue.Handle == 0) return null;
+
+        CFInterop.CFRetain(pValue);
+        return new AXUIElement(pValue.Handle);
+    }
+
     private AXUIElement(NativeHandle handle) : base(handle, true)
     {
         var axRole = GetAttribute<NSString>(AXAttributeConstants.Role);
@@ -298,7 +313,7 @@ public partial class AXUIElement : NSObject, IVisualElement
 
     public override int GetHashCode()
     {
-        return CoreFoundationInterop.CFHash(Handle).GetHashCode();
+        return CFInterop.CFHash(Handle).GetHashCode();
     }
 
     #region Helpers
@@ -306,7 +321,7 @@ public partial class AXUIElement : NSObject, IVisualElement
     private T? GetAttribute<T>(NSString attributeName) where T : NSObject
     {
         var error = CopyAttributeValue(Handle, attributeName.Handle, out var value);
-        return error == AXError.Success ? Runtime.GetNSObject<T>(value) : null;
+        return error == AXError.Success && value != 0 ? Runtime.GetNSObject<T>(value, owns: true) : null;
     }
 
     private AXUIElement? GetAttributeAsElement(NSString attributeName)
@@ -412,7 +427,7 @@ public partial class AXUIElement : NSObject, IVisualElement
             var count = (nint)siblings.Count;
             for (var i = _index + 1; i < count; i++)
             {
-                if (siblings.GetItem<AXUIElement>((nuint)i) is { } sibling)
+                if (FromCopyArray(siblings, (nuint)i) is { } sibling)
                 {
                     yield return sibling;
                 }
@@ -425,7 +440,7 @@ public partial class AXUIElement : NSObject, IVisualElement
 
             for (var i = _index - 1; i >= 0; i--)
             {
-                if (siblings.GetItem<AXUIElement>((nuint)i) is { } sibling)
+                if (FromCopyArray(siblings, (nuint)i) is { } sibling)
                 {
                     yield return sibling;
                 }
