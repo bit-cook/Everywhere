@@ -92,6 +92,17 @@ public class WindowHelper : IWindowHelper
 
         // This is the direct equivalent of WS_EX_TRANSPARENT on Windows.
         nativeWindow.IgnoresMouseEvents = !visible;
+
+        // Special handling to ensure it remains interactive in full screen mode.
+        nativeWindow.CollectionBehavior |=
+            NSWindowCollectionBehavior.CanJoinAllSpaces |
+            NSWindowCollectionBehavior.FullScreenAuxiliary |
+            NSWindowCollectionBehavior.FullScreenDisallowsTiling |
+            NSWindowCollectionBehavior.Auxiliary;
+        nativeWindow.CollectionBehavior &=
+            ~(NSWindowCollectionBehavior.FullScreenPrimary |
+                NSWindowCollectionBehavior.Managed);
+        nativeWindow.Level = NSWindowLevel.ScreenSaver;
     }
 
     /// <summary>
