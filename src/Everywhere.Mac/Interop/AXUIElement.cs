@@ -251,10 +251,12 @@ public partial class AXUIElement : NSObject, IVisualElement
         var windowId = NativeWindowHandle;
 
         // we use CGSHWCaptureWindowList because it can screenshot minimized windows, which CGWindowListCreateImage can't
+        // Use BestResolution to get physical pixel size (matches BackingScaleFactor). 
+        // NominalResolution returns 1x logical pixels which causes scaling mismatches when cropping with scale factor.
         using var cgImage = SkyLightInterop.HardwareCaptureWindowList(
             [(uint)windowId],
             SkyLightInterop.CGSWindowCaptureOptions.IgnoreGlobalCLipShape |
-            SkyLightInterop.CGSWindowCaptureOptions.NominalResolution |
+            SkyLightInterop.CGSWindowCaptureOptions.BestResolution |
             SkyLightInterop.CGSWindowCaptureOptions.FullSize);
 
         if (cgImage is null)
@@ -274,10 +276,48 @@ public partial class AXUIElement : NSObject, IVisualElement
         {
             var screen = NSScreen.Screens.FirstOrDefault(s => s.Frame.IntersectsWith(rect));
             var scale = screen?.BackingScaleFactor ?? 1.0;
+
+            var targetWidth = rect.Width * scale;
+            var targetHeight = rect.Height * scale;
+
+            // cgImage captures the window content starting at (0,0) in Window Local Coordinates.
+            // rect contains Screen Coordinates (including Dock/Menu bar offsets).
+            // To crop correctly, we must transform rect to Window-Relative coordinates.
+            double windowX = 0;
+            double windowY = 0;
+
+            // Try to find the parent window to get its screen position.
+            var windowRef = GetAttributeAsElement(AXAttributeConstants.Window);
+            if (windowRef != null)
+            {
+                var wRect = windowRef.BoundingRectangle;
+                windowX = wRect.X;
+                windowY = wRect.Y;
+            }
+            else if (Role == AXRoleAttribute.AXWindow)
+            {
+                // Fallback: if we are the window itself
+                windowX = rect.X;
+                windowY = rect.Y;
+            }
+
+            // Check if captured image approximately matches target size (allowing for rounding/shadows).
+            // If it matches, we assume full window capture and start at 0,0.
+            bool isFullWindow = cgImage.Width >= targetWidth - 2 && cgImage.Width <= targetWidth + 100;
+
+            // If full window, offset is 0. 
+            // If partial (element inside window), offset is (ElementScreenPos - WindowScreenPos).
+            var cropX = isFullWindow ? 0 : (rect.X - windowX) * scale;
+            var cropY = isFullWindow ? 0 : (rect.Y - windowY) * scale;
+
+            // Clamp invalid values
+            if (cropX < 0) cropX = 0;
+            if (cropY < 0) cropY = 0;
+
             using var croppedImage = cgImage.WithImageInRect(
                 new CGRect(
-                    rect.X * scale,
-                    rect.Y * scale,
+                    cropX,
+                    cropY,
                     rect.Width * scale,
                     rect.Height * scale));
 
