@@ -167,6 +167,9 @@ public partial class NativeHelper : INativeHelper
                     });
             });
 
+        using var pool = new NSAutoreleasePool();
+        NSApplication.SharedApplication.RequestUserAttention(NSRequestUserAttentionType.InformationalRequest);
+
         return tcs.Task;
     }
 
@@ -186,99 +189,6 @@ public partial class NativeHelper : INativeHelper
         {
             NSWorkspace.SharedWorkspace.SelectFile(fullPath, directoryPath);
         }
-    }
-
-    /// <summary>
-    /// Parses a command line string into arguments, following POSIX shell quoting rules.
-    /// Handles single quotes ('...'), double quotes ("..."), and backslash escapes (\).
-    /// </summary>
-    public string[] ParseArguments(string? commandLine)
-    {
-        if (string.IsNullOrWhiteSpace(commandLine))
-        {
-            return [];
-        }
-
-        var args = new List<string>();
-        var currentArg = new System.Text.StringBuilder();
-        var inDoubleQuotes = false;
-        var inSingleQuotes = false;
-        var escaped = false;
-        var hasStartedArg = false;
-
-        foreach (var c in commandLine)
-        {
-            if (escaped)
-            {
-                currentArg.Append(c);
-                escaped = false;
-                hasStartedArg = true;
-                continue;
-            }
-
-            if (inSingleQuotes)
-            {
-                if (c == '\'')
-                {
-                    inSingleQuotes = false;
-                }
-                else
-                {
-                    currentArg.Append(c);
-                }
-                continue;
-            }
-
-            if (c == '\\')
-            {
-                escaped = true;
-                continue;
-            }
-
-            if (inDoubleQuotes)
-            {
-                if (c == '"')
-                {
-                    inDoubleQuotes = false;
-                }
-                else
-                {
-                    currentArg.Append(c);
-                }
-                continue;
-            }
-
-            switch (c)
-            {
-                case '\'':
-                    inSingleQuotes = true;
-                    hasStartedArg = true;
-                    break;
-                case '"':
-                    inDoubleQuotes = true;
-                    hasStartedArg = true;
-                    break;
-                case var _ when char.IsWhiteSpace(c):
-                    if (hasStartedArg)
-                    {
-                        args.Add(currentArg.ToString());
-                        currentArg.Clear();
-                        hasStartedArg = false;
-                    }
-                    break;
-                default:
-                    currentArg.Append(c);
-                    hasStartedArg = true;
-                    break;
-            }
-        }
-
-        if (hasStartedArg)
-        {
-            args.Add(currentArg.ToString());
-        }
-
-        return args.ToArray();
     }
 
     // Helper for the IsAdministrator check.

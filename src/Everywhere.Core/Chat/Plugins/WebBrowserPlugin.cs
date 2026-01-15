@@ -88,10 +88,7 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
 
                     if (that._browserProcess is { HasExited: false })
                     {
-                        that._watchdogManager.UnregisterProcessAsync(that._browserProcess.Id);
-
-                        // Kill existing browser process if any
-                        that._browserProcess.Kill();
+                        that._watchdogManager.UnregisterProcessAsync(that._browserProcess.Id); // Kill if running
                         that._browserProcess = null;
                     }
                 }
@@ -250,9 +247,8 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
         {
             // Kill existing browser process if any
             var processId = _browserProcess.Id;
-            _browserProcess.Kill();
             _browserProcess = null;
-            await _watchdogManager.UnregisterProcessAsync(processId);
+            await _watchdogManager.UnregisterProcessAsync(processId); // Kill if running
         }
 
         // First try to launch previously launched browser

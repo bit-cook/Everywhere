@@ -29,7 +29,7 @@
     <UseHardenedRuntime>false</UseHardenedRuntime>
     <CodesignDependsOn>$(CodesignDependsOn);ClearQuarantineAttribute</CodesignDependsOn>
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
-    <CodesignKey Condition="'$(CodesignKey)' == ''">-</CodesignKey> <!-- Ad-hoc signing by default -->
+    <CodesignKey Condition="'$(CodesignKey)' == ''">EverywhereDev</CodesignKey>
     <CodesignExtraArgs>--deep</CodesignExtraArgs>
   </PropertyGroup>
 
