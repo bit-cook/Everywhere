@@ -49,8 +49,16 @@ jobs:
         CERT_PATH=$RUNNER_TEMP/certificate.p12
         echo "$P12_BASE64" | base64 --decode -o $CERT_PATH
 
-        # Import the certificate
+        # Download Apple Worldwide Developer Relations Certification Authority
+        curl -fLo $RUNNER_TEMP/AppleRootCA-G2.cer https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
+        curl -fLo $RUNNER_TEMP/AppleRootCA-G3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
+        curl -fLo $RUNNER_TEMP/DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+
+        # Import the P12 and the Intermediate Certificate
         security import $CERT_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+        security import $RUNNER_TEMP/AppleRootCA-G2.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild
+        security import $RUNNER_TEMP/AppleRootCA-G3.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild
+        security import $RUNNER_TEMP/DeveloperIDG2CA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild
         security list-keychain -d user -s $KEYCHAIN_PATH
 
     - name: Replace Version inside Info.plist
