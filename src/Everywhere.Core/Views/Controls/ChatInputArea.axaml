@@ -1,8 +1,8 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:ai="clr-namespace:Everywhere.AI" xmlns:be="clr-namespace:Everywhere.Behaviors"
-  xmlns:chat="clr-namespace:Everywhere.Chat" xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
-  xmlns:v="clr-namespace:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters">
+  xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI" xmlns:v="clr-namespace:Everywhere.Views"
+  xmlns:vc="clr-namespace:Everywhere.ValueConverters">
 
   <DataTemplate
     x:Key="{x:Type ai:CustomAssistant}"
@@ -182,150 +182,10 @@
               <be:AutoScrollBehavior/>
             </Interaction.Behaviors>
 
-            <ItemsControl
+            <v:ChatAttachmentItemsControl
               x:Name="PART_ChatAttachmentItemsControl"
-              ItemsSource="{TemplateBinding ChatAttachmentItemsSource}">
-              <ItemsControl.Styles>
-                <Style Selector="Border.FocusedElement">
-                  <Setter Property="BorderBrush" Value="{DynamicResource PrimaryColor}"/>
-                  <Setter Property="BorderThickness" Value="1"/>
-                  <Setter Property="Padding" Value="2,2"/>
-                </Style>
-              </ItemsControl.Styles>
-
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel
-                    ItemSpacing="6" LineSpacing="4"/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-
-              <ItemsControl.DataTemplates>
-                <DataTemplate DataType="chat:ChatFileAttachment">
-                  <Border
-                    Background="{DynamicResource CardBackgroundColor}"
-                    BorderBrush="{DynamicResource BorderColor}"
-                    BorderThickness="1" CornerRadius="4">
-
-                    <DockPanel
-                      Margin="6,0,4,0" HorizontalSpacing="4"
-                      LastChildFill="True">
-                      <Button
-                        DockPanel.Dock="Right" Padding="1"
-                        VerticalAlignment="Center" Background="Transparent"
-                        BorderThickness="0"
-                        Command="{Binding $parent[v:ChatInputArea].RemoveAttachmentCommand}"
-                        CommandParameter="{Binding}"
-                        Focusable="False"
-                        ToolTip.Tip="{I18N {x:Static LocaleKey.ChatAttachment_RemoveButton_ToolTip}}">
-                        <LucideIcon
-                          Foreground="{DynamicResource MutedColor}"
-                          Kind="X"
-                          Size="{DynamicResource FontSizeS}"/>
-                      </Button>
-
-                      <Image
-                        MaxWidth="24" MaxHeight="24"
-                        Margin="0,4" VerticalAlignment="Center"
-                        IsVisible="{Binding IsImage}"
-                        Source="{Binding Image}"
-                        ToolTip.Placement="Top">
-                        <ToolTip.Tip>
-                          <Image
-                            MaxWidth="600" MaxHeight="600"
-                            Source="{Binding Image}"/>
-                        </ToolTip.Tip>
-                      </Image>
-
-                      <DockPanel
-                        HorizontalSpacing="4"
-                        IsVisible="{Binding !IsImage}"
-                        ToolTip.Tip="{Binding FilePath}">
-                        <LucideIcon
-                          DockPanel.Dock="Left" VerticalAlignment="Center"
-                          Kind="{Binding Icon}"
-                          Size="{DynamicResource FontSizeM}"/>
-                        <TextBlock
-                          VerticalAlignment="Center"
-                          FontSize="{DynamicResource FontSizeS}"
-                          Text="{Binding HeaderKey^}"
-                          TextTrimming="{x:Static TextTrimming.PrefixCharacterEllipsis}"/>
-                      </DockPanel>
-                    </DockPanel>
-                  </Border>
-                </DataTemplate>
-
-                <DataTemplate DataType="chat:ChatVisualElementAttachment">
-                  <Border
-                    Background="{DynamicResource CardBackgroundColor}"
-                    BorderBrush="{DynamicResource BorderColor}"
-                    BorderThickness="1"
-                    Classes.FocusedElement="{Binding IsFocusedElement}"
-                    CornerRadius="4">
-                    <DockPanel
-                      Margin="6,0,4,0" HorizontalSpacing="4">
-                      <LucideIcon
-                        DockPanel.Dock="Left" VerticalAlignment="Center"
-                        Kind="{Binding Icon}"
-                        Size="{DynamicResource FontSizeM}"/>
-                      <Button
-                        DockPanel.Dock="Right" Padding="1"
-                        VerticalAlignment="Center" Background="Transparent"
-                        BorderThickness="0"
-                        Command="{Binding $parent[v:ChatInputArea].RemoveAttachmentCommand}"
-                        CommandParameter="{Binding}"
-                        Focusable="False"
-                        ToolTip.Tip="{I18N {x:Static LocaleKey.ChatAttachment_RemoveButton_ToolTip}}">
-                        <LucideIcon
-                          Foreground="{DynamicResource MutedColor}"
-                          Kind="X"
-                          Size="{DynamicResource FontSizeS}"/>
-                      </Button>
-                      <TextBlock
-                        MaxWidth="160" VerticalAlignment="Center"
-                        FontSize="{DynamicResource FontSizeS}"
-                        Text="{Binding HeaderKey^}"
-                        TextTrimming="{x:Static TextTrimming.PrefixCharacterEllipsis}"
-                        TextWrapping="NoWrap"/>
-                    </DockPanel>
-                  </Border>
-                </DataTemplate>
-
-                <DataTemplate DataType="chat:ChatAttachment">
-                  <Border
-                    Background="{DynamicResource CardBackgroundColor}"
-                    BorderBrush="{DynamicResource BorderColor}"
-                    BorderThickness="1" CornerRadius="4">
-                    <DockPanel
-                      Margin="6,0,4,0" HorizontalSpacing="4"
-                      LastChildFill="True">
-                      <LucideIcon
-                        DockPanel.Dock="Left" VerticalAlignment="Center"
-                        Kind="{Binding Icon}"
-                        Size="{DynamicResource FontSizeM}"/>
-                      <Button
-                        DockPanel.Dock="Right" Padding="1"
-                        VerticalAlignment="Center" Background="Transparent"
-                        BorderThickness="0"
-                        Command="{Binding $parent[v:ChatInputArea].RemoveAttachmentCommand}"
-                        CommandParameter="{Binding}"
-                        Focusable="False"
-                        ToolTip.Tip="{I18N {x:Static LocaleKey.ChatAttachment_RemoveButton_ToolTip}}">
-                        <LucideIcon
-                          Foreground="{DynamicResource MutedColor}"
-                          Kind="X"
-                          Size="{DynamicResource FontSizeS}"/>
-                      </Button>
-                      <TextBlock
-                        VerticalAlignment="Center"
-                        FontSize="{DynamicResource FontSizeS}"
-                        Text="{Binding HeaderKey^}"
-                        TextTrimming="{x:Static TextTrimming.PrefixCharacterEllipsis}"/>
-                    </DockPanel>
-                  </Border>
-                </DataTemplate>
-              </ItemsControl.DataTemplates>
-            </ItemsControl>
+              ItemsSource="{TemplateBinding ChatAttachmentItemsSource}"
+              RemoveCommand="{TemplateBinding RemoveAttachmentCommand}"/>
           </ScrollViewer>
 
           <StackPanel

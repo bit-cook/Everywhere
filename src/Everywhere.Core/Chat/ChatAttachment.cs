@@ -21,6 +21,12 @@ public abstract partial class ChatAttachment(DynamicResourceKeyBase headerKey) :
 
     [Key(0)]
     public virtual DynamicResourceKeyBase HeaderKey => headerKey;
+
+    /// <summary>
+    /// Indicates whether the attachment is presently focused in the UI.
+    /// </summary>
+    [IgnoreMember]
+    public bool IsPrimary { get; set; }
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
@@ -40,13 +46,6 @@ public partial class ChatVisualElementAttachment : ChatAttachment
     /// </summary>
     [IgnoreMember]
     public ResilientReference<IVisualElement>? Element { get; }
-
-    /// <summary>
-    /// Indicates whether the visual element is currently focused.
-    /// This will change with focus and display with primary color in the UI.
-    /// </summary>
-    [IgnoreMember]
-    public bool IsFocusedElement { get; set; }
 
     /// <summary>
     /// Indicates whether the visual element is valid.
@@ -86,6 +85,7 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
     private ChatTextSelectionAttachment(string text) : base(CreateHeaderKey(text), LucideIconKind.TextSelect)
     {
         Text = text;
+        IsPrimary = true;
     }
 
     public ChatTextSelectionAttachment(string text, IVisualElement? element) : base(
@@ -94,6 +94,7 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
         element)
     {
         Text = text;
+        IsPrimary = true;
     }
 
     /// <summary>

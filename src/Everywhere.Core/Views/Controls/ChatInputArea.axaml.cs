@@ -15,7 +15,7 @@ using Everywhere.Utilities;
 namespace Everywhere.Views;
 
 [TemplatePart("PART_SendButton", typeof(Button), IsRequired = true)]
-[TemplatePart("PART_ChatAttachmentItemsControl", typeof(ItemsControl), IsRequired = true)]
+[TemplatePart("PART_ChatAttachmentItemsControl", typeof(ChatAttachmentItemsControl), IsRequired = true)]
 [TemplatePart("PART_AssistantSelectionMenuItem", typeof(MenuItem))]
 public partial class ChatInputArea : TextBox
 {
@@ -197,7 +197,7 @@ public partial class ChatInputArea : TextBox
             },
             handledEventsToo: true);
 
-        var chatAttachmentItemsControl = e.NameScope.Find<ItemsControl>("PART_ChatAttachmentItemsControl").NotNull();
+        var chatAttachmentItemsControl = e.NameScope.Find<ChatAttachmentItemsControl>("PART_ChatAttachmentItemsControl").NotNull();
         _chatAttachmentItemsControlPointerMovedSubscription = chatAttachmentItemsControl.AddDisposableHandler(
             PointerMovedEvent,
             (_, args) =>

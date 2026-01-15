@@ -261,7 +261,7 @@ public sealed partial class ChatWindowViewModel :
             {
                 _chatAttachmentsSource.Edit(list =>
                 {
-                    if (list is [ChatVisualElementAttachment { IsFocusedElement: true }, ..])
+                    if (list is [ChatVisualElementAttachment { IsPrimary: true }, ..])
                     {
                         list.RemoveAt(0);
                     }
@@ -278,13 +278,13 @@ public sealed partial class ChatWindowViewModel :
             {
                 _chatAttachmentsSource.Edit(list =>
                 {
-                    if (list is [ChatVisualElementAttachment { IsFocusedElement: true }, ..])
+                    if (list is [ChatVisualElementAttachment { IsPrimary: true }, ..])
                     {
-                        list[0] = attachment.With(a => a.IsFocusedElement = true);
+                        list[0] = attachment.With(a => a.IsPrimary = true);
                     }
                     else
                     {
-                        list.Insert(0, attachment.With(a => a.IsFocusedElement = true));
+                        list.Insert(0, attachment.With(a => a.IsPrimary = true));
                     }
                 });
             }
@@ -501,7 +501,7 @@ public sealed partial class ChatWindowViewModel :
             element.Type switch
             {
                 VisualElementType.Label => LucideIconKind.Type,
-                VisualElementType.TextEdit => LucideIconKind.TextCursorInput,
+                VisualElementType.TextEdit => LucideIconKind.TextInitial,
                 VisualElementType.Document => LucideIconKind.FileText,
                 VisualElementType.Image => LucideIconKind.Image,
                 VisualElementType.CheckBox => LucideIconKind.SquareCheck,
