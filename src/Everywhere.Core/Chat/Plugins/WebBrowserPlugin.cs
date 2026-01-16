@@ -198,8 +198,9 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
     /// </remarks>
     [KernelFunction("web_search")]
     [Description(
-        "Perform a web search and return the results as a json array of web pages. " +
-        "You can use the results to answer user questions with up-to-date information.")] // TODO: index (chat scope)
+        "Searches the public web for real-time information. Returns a JSON array of web pages. " +
+        "STRICTLY confined to internet content; DO NOT use to search local files or personal data. " +
+        "Results may be inaccurate.")]
     [DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_WebSearch_Header, LocaleKey.BuiltInChatPlugin_WebBrowser_WebSearch_Description)]
     private async Task<string> WebSearchAsync(
         [FromKernelServices] IChatPluginUserInterface userInterface,
