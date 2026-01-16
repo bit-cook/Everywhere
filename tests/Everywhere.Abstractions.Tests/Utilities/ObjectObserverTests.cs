@@ -14,6 +14,7 @@ public partial class ObjectObserverTests
         public partial string? Name { get; set; }
 
         [ObservableProperty]
+        // ReSharper disable once UnusedMember.Local
         public partial int Value { get; set; }
 
         [ObservableProperty]
