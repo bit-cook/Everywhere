@@ -278,14 +278,8 @@ public sealed partial class ChatWindowViewModel :
             {
                 _chatAttachmentsSource.Edit(list =>
                 {
-                    if (list is [ChatVisualElementAttachment { IsPrimary: true }, ..])
-                    {
-                        list[0] = attachment.With(a => a.IsPrimary = true);
-                    }
-                    else
-                    {
-                        list.Insert(0, attachment.With(a => a.IsPrimary = true));
-                    }
+                    list.RemoveWhere(a => a is ChatVisualElementAttachment { IsPrimary: true });
+                    list.Insert(0, attachment.With(a => a.IsPrimary = true));
                 });
             }
         }
