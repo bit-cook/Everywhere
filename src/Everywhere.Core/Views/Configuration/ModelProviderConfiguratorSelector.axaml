@@ -25,7 +25,9 @@
 
             <ListBox.ItemTemplate>
               <DataTemplate DataType="v:ModelProviderConfiguratorSelector+ConfiguratorModel">
-                <Border Background="{Binding Background}">
+                <Border
+                  Padding="4,0,0,4"
+                  Background="{Binding Background}">
                   <StackPanel
                     Orientation="Vertical" Spacing="4">
                     <TextBlock

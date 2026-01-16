@@ -164,7 +164,7 @@
 
           <Expander.Header>
             <DockPanel
-              HorizontalSpacing="32" VerticalSpacing="4">
+              HorizontalSpacing="32" VerticalSpacing="8">
               <DockPanel.Styles>
                 <Style Selector="ContentControl.right">
                   <Setter Property="DockPanel.Dock" Value="Right"/>

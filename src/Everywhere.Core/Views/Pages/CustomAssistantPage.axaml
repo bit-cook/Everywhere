@@ -35,7 +35,7 @@
         <ListBox.DataTemplates>
           <DataTemplate DataType="ai:CustomAssistant">
             <DockPanel
-              HorizontalSpacing="12" LastChildFill="True">
+              HorizontalSpacing="10" LastChildFill="True">
               <v:IconPresenter
                 DockPanel.Dock="Left" Width="40"
                 Height="40"
@@ -53,7 +53,7 @@
                   ToolTip.Tip="{Binding $self.Text}"/>
 
                 <TextBlock
-                  Classes="Muted"
+                  Classes="Muted" Margin="0,0,0,4"
                   IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                   MaxLines="2"
                   Text="{Binding Description}"

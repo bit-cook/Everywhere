@@ -29,13 +29,13 @@
       <Setter Property="ItemTemplate">
         <DataTemplate DataType="p:ChatPlugin">
           <DockPanel>
-            <CheckBox
-              DockPanel.Dock="Right" Margin="8,0,0,0"
+            <ToggleSwitch
+              DockPanel.Dock="Right" Margin="8,0,4,0"
               IsChecked="{Binding IsEnabled}"/>
 
             <Grid ColumnDefinitions="Auto,*,Auto">
               <LucideIcon
-                Grid.Column="0" Margin="0,0,12,0"
+                Grid.Column="0" Margin="0,0,10,0"
                 Kind="{Binding Icon}"/>
               <StackPanel Grid.Column="1">
                 <TextBlock
@@ -43,7 +43,8 @@
                   Text="{Binding HeaderKey^}"
                   TextTrimming="CharacterEllipsis"/>
                 <TextBlock
-                  Classes="Muted" IsHitTestVisible="False"
+                  Classes="Muted" Margin="0,0,0,4"
+                  IsHitTestVisible="False"
                   IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                   MaxLines="2"
                   Text="{Binding DescriptionKey^}"
@@ -363,7 +364,7 @@
                               Grid.Column="1" Margin="0,0,0,4"
                               ItemsSource="{Binding Permissions, Converter={x:Static vc:ChatFunctionPermissionsConverters.ToList}}"/>
 
-                            <CheckBox
+                            <ToggleSwitch
                               Grid.Row="0" Grid.RowSpan="3"
                               Grid.Column="2" Margin="16,0"
                               IsChecked="{Binding IsEnabled}"/>

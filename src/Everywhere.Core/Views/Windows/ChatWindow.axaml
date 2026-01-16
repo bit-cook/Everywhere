@@ -1097,6 +1097,7 @@
                   <ListBox.Styles>
                     <Style Selector="ListBoxItem">
                       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                      <Setter Property="Padding" Value="10,2"/>
                     </Style>
                     <Style Selector="LucideIcon">
                       <Setter Property="Size" Value="{DynamicResource FontSizeM}"/>
