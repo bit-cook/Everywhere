@@ -6,9 +6,9 @@ using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Avalonia;
 using Avalonia.Input;
-using Avalonia.Threading;
 using DynamicData;
 using Everywhere.Interop;
+using Everywhere.Utilities;
 using Everywhere.Views;
 using Point = System.Drawing.Point;
 
@@ -23,7 +23,7 @@ public partial class VisualElementContext
         protected ScreenSelectionToolTipWindow ToolTipWindow { get; }
 
         protected ScreenSelectionMode CurrentMode { get; private set; }
-        protected IVisualElement? SelectedElement { get; private set; }
+        protected IVisualElement? PickingElement { get; private set; }
 
         private readonly IReadOnlyList<ScreenSelectionMode> _allowedModes;
         private readonly PixelRect _allScreenBounds;
@@ -99,129 +99,123 @@ public partial class VisualElementContext
             ToolTipWindow.Show(this);
 
             // Install a low-level mouse hook to listen for right button down events
-            _mouseHookSubscription ??= LowLevelHook.CreateMouseHook((msg, ref hookStruct, ref blockNext) =>
-            {
-                switch (msg)
-                {
-                    // Close the window and cancel selection on right button up (Exit the picking mode)
-                    case WINDOW_MESSAGE.WM_RBUTTONUP:
-                    {
-                        blockNext = true;
-                        OnCanceled();
-                        Dispatcher.UIThread.Post(Close, DispatcherPriority.Default);
-                        break;
-                    }
-                    case WINDOW_MESSAGE.WM_LBUTTONUP:
-                    {
-                        blockNext = true;
-                        if (OnLeftButtonUp())
-                        {
-                            Dispatcher.UIThread.Post(Close, DispatcherPriority.Default);
-                        }
-                        break;
-                    }
-                    case WINDOW_MESSAGE.WM_LBUTTONDOWN:
-                    {
-                        blockNext = true;
-                        OnLeftButtonDown();
-                        break;
-                    }
-                    // Use scroll wheel to change pick mode
-                    case WINDOW_MESSAGE.WM_MOUSEWHEEL:
-                    {
-                        blockNext = true;
-                        OnMouseWheel((int)hookStruct.mouseData >> 16);
-                        break;
-                    }
-                    case WINDOW_MESSAGE.WM_MOUSEMOVE:
-                    {
-                        // Update drag if necessary
-                        OnNativeMouseMove();
-                        break;
-                    }
-                    default:
-                    {
-                        blockNext = true; // block all other mouse events
-                        break;
-                    }
-                }
-            });
-
-            _keyboardHookSubscription ??= LowLevelHook.CreateKeyboardHook((msg, ref hookStruct, ref blockNext) =>
-            {
-                // Block all key events
-                blockNext = true;
-
-                var isKeyDown = msg is WINDOW_MESSAGE.WM_KEYDOWN or WINDOW_MESSAGE.WM_SYSKEYDOWN;
-                if (!isKeyDown) return;
-
-                OnKeyDown((VIRTUAL_KEY)hookStruct.vkCode);
-            });
+            _mouseHookSubscription ??= LowLevelHook.CreateMouseHook(HandleMouseHook, false);
+            _keyboardHookSubscription ??= LowLevelHook.CreateKeyboardHook(HandleKeyboardHook, false);
 
             // Pick the element under the cursor immediately
-            HandlePointerMoved();
+            PickCursorElement();
         }
 
-        private void OnMouseWheel(int delta)
+        private void HandleMouseHook(WINDOW_MESSAGE msg, ref MSLLHOOKSTRUCT hookStruct, ref bool blockNext)
         {
-            var newIndex = _allowedModes.IndexOf(CurrentMode) + (delta > 0 ? -1 : 1);
-            newIndex = Math.Clamp(newIndex, 0, _allowedModes.Count - 1);
-            CurrentMode = _allowedModes[newIndex];
-            HandlePickModeChanged();
+            switch (msg)
+            {
+                // Close the window and cancel selection on right button up (Exit the picking mode)
+                case WINDOW_MESSAGE.WM_RBUTTONUP:
+                {
+                    blockNext = true;
+                    Cancel();
+                    break;
+                }
+                case WINDOW_MESSAGE.WM_LBUTTONUP:
+                {
+                    blockNext = true;
+                    if (OnLeftButtonUp())
+                    {
+                        Close();
+                    }
+                    break;
+                }
+                case WINDOW_MESSAGE.WM_LBUTTONDOWN:
+                {
+                    blockNext = true;
+                    OnLeftButtonDown();
+                    break;
+                }
+                // Use scroll wheel to change pick mode
+                case WINDOW_MESSAGE.WM_MOUSEWHEEL:
+                {
+                    blockNext = true;
+                    OnMouseWheel((int)hookStruct.mouseData >> 16);
+                    break;
+                }
+                case WINDOW_MESSAGE.WM_MOUSEMOVE:
+                {
+                    // Update drag if necessary
+                    SetToolTipWindowPosition(hookStruct.pt);
+                    PickElement(hookStruct.pt);
+                    break;
+                }
+                default:
+                {
+                    blockNext = true; // block all other mouse events
+                    break;
+                }
+            }
         }
 
-        private void OnKeyDown(VIRTUAL_KEY key)
+        private void HandleKeyboardHook(WINDOW_MESSAGE msg, ref KBDLLHOOKSTRUCT hookStruct, ref bool blockNext)
         {
-            switch (key)
+            // Block all key events
+            blockNext = true;
+
+            var isKeyDown = msg is WINDOW_MESSAGE.WM_KEYDOWN or WINDOW_MESSAGE.WM_SYSKEYDOWN;
+            if (!isKeyDown) return;
+
+            switch ((VIRTUAL_KEY)hookStruct.vkCode)
             {
                 case VIRTUAL_KEY.VK_ESCAPE:
                 {
-                    OnCanceled();
-                    Dispatcher.UIThread.Post(Close, DispatcherPriority.Default);
+                    Cancel();
                     break;
                 }
                 case VIRTUAL_KEY.VK_NUMPAD1 or VIRTUAL_KEY.VK_1 or VIRTUAL_KEY.VK_F1:
                 {
                     CurrentMode = ScreenSelectionMode.Screen;
-                    HandlePickModeChanged();
+                    HandleModeChanged();
                     break;
                 }
                 case VIRTUAL_KEY.VK_NUMPAD2 or VIRTUAL_KEY.VK_2 or VIRTUAL_KEY.VK_F2:
                 {
                     CurrentMode = ScreenSelectionMode.Window;
-                    HandlePickModeChanged();
+                    HandleModeChanged();
                     break;
                 }
                 case VIRTUAL_KEY.VK_NUMPAD3 or VIRTUAL_KEY.VK_3 or VIRTUAL_KEY.VK_F3:
                 {
                     CurrentMode = ScreenSelectionMode.Element;
-                    HandlePickModeChanged();
+                    HandleModeChanged();
                     break;
                 }
                 // Add shortcut for Free mode? F4?
                 case VIRTUAL_KEY.VK_NUMPAD4 or VIRTUAL_KEY.VK_4 or VIRTUAL_KEY.VK_F4:
                 {
                     CurrentMode = ScreenSelectionMode.Free;
-                    HandlePickModeChanged();
+                    HandleModeChanged();
                     break;
                 }
             }
         }
 
-        protected override void OnPointerMoved(PointerEventArgs e)
+        private void OnMouseWheel(int delta)
         {
-            HandlePointerMoved();
+            var newIndex = _allowedModes.IndexOf(CurrentMode) + (delta > 0 ? -1 : 1);
+            if (newIndex < 0) newIndex = _allowedModes.Count - 1;
+            else if (newIndex >= _allowedModes.Count) newIndex = 0;
+            CurrentMode = _allowedModes[newIndex];
+            HandleModeChanged();
         }
 
-        protected override void OnPointerReleased(PointerReleasedEventArgs e)
+        private void HandleModeChanged()
         {
-            Close();
+            ToolTipWindow.ToolTip.Mode = CurrentMode;
+            PickCursorElement();
         }
 
         protected override unsafe void OnClosed(EventArgs e)
         {
-            _mouseHookSubscription?.Dispose();
-            _keyboardHookSubscription?.Dispose();
+            DisposeCollector.DisposeToDefault(ref _mouseHookSubscription);
+            DisposeCollector.DisposeToDefault(ref _keyboardHookSubscription);
 
             // right button down event (from SendInput) is not blocked and triggered OnPointerPressed
             // so currently system thinks right button is still pressed
@@ -244,31 +238,91 @@ public partial class VisualElementContext
                 sizeof(INPUT));
         }
 
-        private void HandlePickModeChanged()
+        private void PickCursorElement()
         {
-            HandlePointerMoved();
-            Dispatcher.UIThread.Post(
-                () => ToolTipWindow.ToolTip.Mode = CurrentMode,
-                DispatcherPriority.Background);
+            if (!PInvoke.GetCursorPos(out var cursorPos)) return;
+
+            PickElement(cursorPos);
         }
 
-        private void HandlePointerMoved()
+        private void Cancel()
         {
-            if (!PInvoke.GetCursorPos(out var point)) return;
-
-            OnMove(point);
-            SetToolTipWindowPosition(new PixelPoint(point.X, point.Y));
+            OnCanceled();
+            Close();
         }
 
-        private void OnNativeMouseMove()
+        protected virtual void OnCanceled()
         {
-            HandlePointerMoved();
+            PickingElement = null;
         }
 
-        private void SetToolTipWindowPosition(PixelPoint pointerPoint)
+        /// <summary>
+        /// Picks the element under the cursor based on the current selection mode.
+        /// </summary>
+        /// <param name="cursorPos"></param>
+        protected virtual void PickElement(Point cursorPos)
+        {
+            var maskRect = default(PixelRect);
+            switch (CurrentMode)
+            {
+                case ScreenSelectionMode.Screen:
+                {
+                    var pixelPoint = new PixelPoint(cursorPos.X, cursorPos.Y);
+                    var screen = Screens.All.FirstOrDefault(s => s.Bounds.Contains(pixelPoint));
+                    if (screen == null) break;
+
+                    var hMonitor = PInvoke.MonitorFromPoint(cursorPos, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+                    if (hMonitor == HMONITOR.Null) break;
+
+                    PickingElement = new ScreenVisualElementImpl(hMonitor);
+                    maskRect = screen.Bounds;
+                    break;
+                }
+                case ScreenSelectionMode.Window:
+                {
+                    var selectedHWnd = PInvoke.WindowFromPoint(cursorPos);
+                    if (selectedHWnd == HWND.Null) break;
+
+                    var rootHWnd = PInvoke.GetAncestor(selectedHWnd, GET_ANCESTOR_FLAGS.GA_ROOTOWNER);
+                    if (rootHWnd == HWND.Null) break;
+
+                    PickingElement = TryCreateVisualElement(() => Automation.FromHandle(rootHWnd));
+                    if (PickingElement == null) break;
+
+                    maskRect = PickingElement.BoundingRectangle;
+                    break;
+                }
+                case ScreenSelectionMode.Element:
+                {
+                    // BUG: sometimes this only picks the window, not the element under the cursor (e.g. QQ)
+                    PickingElement = TryCreateVisualElement(() => Automation.FromPoint(cursorPos));
+                    if (PickingElement == null) break;
+
+                    maskRect = PickingElement.BoundingRectangle;
+                    break;
+                }
+            }
+
+            foreach (var maskWindow in MaskWindows) maskWindow.SetMask(maskRect);
+            ToolTipWindow.ToolTip.Element = PickingElement;
+        }
+
+        /// <summary>
+        /// Called when Left Button Down.
+        /// </summary>
+        protected virtual void OnLeftButtonDown() { }
+
+        /// <summary>
+        /// Called when Left Button Up.
+        /// Returns true if the picker should close.
+        /// </summary>
+        protected virtual bool OnLeftButtonUp() => true;
+
+        private void SetToolTipWindowPosition(Point cursorPos)
         {
             const int margin = 16;
 
+            var pointerPoint = new PixelPoint(cursorPos.X, cursorPos.Y);
             var screen = Screens.All.FirstOrDefault(s => s.Bounds.Contains(pointerPoint));
             if (screen == null) return;
 
@@ -292,68 +346,5 @@ public partial class VisualElementContext
 
             ToolTipWindow.Position = new PixelPoint((int)x, (int)y);
         }
-
-        protected virtual void OnCanceled()
-        {
-            SelectedElement = null;
-        }
-
-        protected virtual void OnMove(Point point)
-        {
-            var maskRect = new PixelRect();
-            var pixelPoint = new PixelPoint(point.X, point.Y);
-            switch (CurrentMode)
-            {
-                case ScreenSelectionMode.Screen:
-                {
-                    var screen = Screens.All.FirstOrDefault(s => s.Bounds.Contains(pixelPoint));
-                    if (screen == null) break;
-
-                    var hMonitor = PInvoke.MonitorFromPoint(point, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
-                    if (hMonitor == HMONITOR.Null) break;
-
-                    SelectedElement = new ScreenVisualElementImpl(hMonitor);
-                    maskRect = screen.Bounds;
-                    break;
-                }
-                case ScreenSelectionMode.Window:
-                {
-                    var selectedHWnd = PInvoke.WindowFromPoint(point);
-                    if (selectedHWnd == HWND.Null) break;
-
-                    var rootHWnd = PInvoke.GetAncestor(selectedHWnd, GET_ANCESTOR_FLAGS.GA_ROOTOWNER);
-                    if (rootHWnd == HWND.Null) break;
-
-                    SelectedElement = TryCreateVisualElement(() => Automation.FromHandle(rootHWnd));
-                    if (SelectedElement == null) break;
-
-                    maskRect = SelectedElement.BoundingRectangle;
-                    break;
-                }
-                case ScreenSelectionMode.Element:
-                {
-                    // BUG: sometimes this only picks the window, not the element under the cursor (e.g. QQ)
-                    SelectedElement = TryCreateVisualElement(() => Automation.FromPoint(point));
-                    if (SelectedElement == null) break;
-
-                    maskRect = SelectedElement.BoundingRectangle;
-                    break;
-                }
-            }
-
-            foreach (var maskWindow in MaskWindows) maskWindow.SetMask(maskRect);
-            ToolTipWindow.ToolTip.Element = SelectedElement;
-        }
-
-        /// <summary>
-        /// Called when Left Button Down.
-        /// </summary>
-        protected virtual void OnLeftButtonDown() { }
-
-        /// <summary>
-        /// Called when Left Button Up.
-        /// Returns true if the picker should close.
-        /// </summary>
-        protected virtual bool OnLeftButtonUp() => true;
     }
 }

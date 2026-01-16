@@ -486,7 +486,7 @@ public sealed partial class ChatWindowViewModel :
     {
         DynamicResourceKey headerKey;
         var elementTypeKey = new DynamicResourceKey($"VisualElementType_{element.Type}");
-        if (element.ProcessId != 0)
+        if (element.ProcessId > 0)
         {
             using var process = Process.GetProcessById(element.ProcessId);
             headerKey = new FormattedDynamicResourceKey("{0} - {1}", new DirectResourceKey(process.ProcessName), elementTypeKey);
