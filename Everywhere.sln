@@ -119,6 +119,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plugins.Web", "3rd\semantic
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Everywhere.Cloud", "src\Everywhere.Cloud\Everywhere.Cloud.csproj", "{6D8E926D-4F87-42E0-ADBB-A5B2BEA8E1CF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Everywhere.Abstractions.Tests", "tests\Everywhere.Abstractions.Tests\Everywhere.Abstractions.Tests.csproj", "{9561A317-E9E5-4B18-9A3B-17D9BE54592A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -221,6 +223,10 @@ Global
 		{6D8E926D-4F87-42E0-ADBB-A5B2BEA8E1CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6D8E926D-4F87-42E0-ADBB-A5B2BEA8E1CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6D8E926D-4F87-42E0-ADBB-A5B2BEA8E1CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9561A317-E9E5-4B18-9A3B-17D9BE54592A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9561A317-E9E5-4B18-9A3B-17D9BE54592A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9561A317-E9E5-4B18-9A3B-17D9BE54592A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9561A317-E9E5-4B18-9A3B-17D9BE54592A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -243,6 +249,7 @@ Global
 		{1F3E1A58-51BB-46BD-815D-966D1BF0AB21} = {53D93485-1520-4753-81CE-DA1CFF334372}
 		{62900E41-0B12-4AD8-A71A-2D8C2C4D033A} = {1F3E1A58-51BB-46BD-815D-966D1BF0AB21}
 		{521A03C8-BB0D-43AF-92DF-FAD510B91C24} = {1F3E1A58-51BB-46BD-815D-966D1BF0AB21}
+		{9561A317-E9E5-4B18-9A3B-17D9BE54592A} = {9933B251-881A-4638-8995-EB7CC5370002}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {83CB65B8-011F-4ED7-BCD3-A6CFA935EF7E}
