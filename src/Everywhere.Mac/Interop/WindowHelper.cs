@@ -168,14 +168,9 @@ public class WindowHelper : IWindowHelper
             nativeWindow.MakeKeyAndOrderFront(null);
 
             // Make sure it gets an input focus.
-            if (OperatingSystem.IsMacOSVersionAtLeast(14))
-            {
-                NSApplication.SharedApplication.Activate();
-            }
-            else
-            {
-                NSApplication.SharedApplication.ActivateIgnoringOtherApps(true);
-            }
+#pragma warning disable CA1422
+            NSApplication.SharedApplication.ActivateIgnoringOtherApps(true);
+#pragma warning restore CA1422
         }
     }
 
