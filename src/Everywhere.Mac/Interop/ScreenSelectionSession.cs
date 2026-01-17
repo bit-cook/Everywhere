@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -12,7 +11,7 @@ using ZLinq;
 
 namespace Everywhere.Mac.Interop;
 
-internal abstract partial class ScreenSelectionSession : ScreenSelectionTransparentWindow
+internal abstract class ScreenSelectionSession : ScreenSelectionTransparentWindow
 {
     protected IWindowHelper WindowHelper { get; }
     protected ScreenSelectionMaskWindow[] MaskWindows { get; }
@@ -85,6 +84,9 @@ internal abstract partial class ScreenSelectionSession : ScreenSelectionTranspar
         ToolTipWindow = new ScreenSelectionToolTipWindow(allowedModes, initialMode);
         windowHelper.SetHitTestVisible(ToolTipWindow, false);
         SetNsWindowPlacement(ToolTipWindow, null);
+
+        // Since the window is full screen and transparent, we need to listen to keyboard events globally.
+        CGEventListener.Default.EventReceived += HandleCGEvent;
     }
 
     private static void SetNsWindowPlacement(Window window, CGRect? frame)
@@ -92,8 +94,9 @@ internal abstract partial class ScreenSelectionSession : ScreenSelectionTranspar
         var handle = window.TryGetPlatformHandle()?.Handle ?? 0;
         if (handle == 0) return;
 
-        using var nsWindow = new NSWindow();
-        nsWindow.Handle = handle;
+        using var nsWindow = Runtime.GetNSObject<NSWindow>(handle);
+        if (nsWindow is null) return;
+
         nsWindow.Level = NSWindowLevel.ScreenSaver; // above all other windows
         if (frame.HasValue) nsWindow.SetFrame(frame.Value, true);
         nsWindow.Handle = 0;
@@ -141,45 +144,76 @@ internal abstract partial class ScreenSelectionSession : ScreenSelectionTranspar
         }
     }
 
+    private void HandleCGEvent(CGEventType type, CGEvent cgEvent, ref IntPtr cgEventRef)
+    {
+        if (type is not CGEventType.KeyDown and not CGEventType.KeyUp) return;
+
+        var keyCode = (CGKeyCode)cgEvent.GetLongValueField(CGEventField.KeyboardEventKeycode);
+        switch (keyCode)
+        {
+            case CGKeyCode.Escape:
+            {
+                cgEventRef = 0;
+
+                // On Escape key up, cancel the picking session
+                // If we handle on KeyDown, Handler will not receive further events
+                // and the state of Escape will be stuck.
+                if (type == CGEventType.KeyUp)
+                {
+                    Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        OnCanceled();
+                        Close();
+                    });
+                }
+                break;
+            }
+            case CGKeyCode.D1:
+            case CGKeyCode.NumPad1:
+            case CGKeyCode.F1:
+            {
+                SetMode(ScreenSelectionMode.Screen);
+                break;
+            }
+            case CGKeyCode.D2:
+            case CGKeyCode.NumPad2:
+            case CGKeyCode.F2:
+            {
+                SetMode(ScreenSelectionMode.Window);
+                break;
+            }
+            case CGKeyCode.D3:
+            case CGKeyCode.NumPad3:
+            case CGKeyCode.F3:
+            {
+                SetMode(ScreenSelectionMode.Element);
+                break;
+            }
+            case CGKeyCode.D4:
+            case CGKeyCode.NumPad4:
+            case CGKeyCode.F4:
+            {
+                SetMode(ScreenSelectionMode.Free);
+                break;
+            }
+        }
+
+        void SetMode(ScreenSelectionMode mode)
+        {
+            if (type != CGEventType.KeyDown) return;
+            if (!_allowedModes.Contains(mode)) return;
+
+            Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                CurrentMode = mode;
+                HandlePickModeChanged();
+            });
+        }
+    }
+
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
         OnMouseWheel(Math.Sign(e.Delta.Y));
-    }
-
-    protected override void OnKeyDown(KeyEventArgs e)
-    {
-        switch (e.Key)
-        {
-            case Key.Escape:
-                OnCanceled();
-                Close();
-                break;
-            case Key.D1:
-            case Key.NumPad1:
-            case Key.F1:
-                CurrentMode = ScreenSelectionMode.Screen;
-                HandlePickModeChanged();
-                break;
-            case Key.D2:
-            case Key.NumPad2:
-            case Key.F2:
-                CurrentMode = ScreenSelectionMode.Window;
-                HandlePickModeChanged();
-                break;
-            case Key.D3:
-            case Key.NumPad3:
-            case Key.F3:
-                CurrentMode = ScreenSelectionMode.Element;
-                HandlePickModeChanged();
-                break;
-            case Key.D4:
-            case Key.NumPad4:
-            case Key.F4:
-                CurrentMode = ScreenSelectionMode.Free;
-                HandlePickModeChanged();
-                break;
-        }
-        base.OnKeyDown(e);
     }
 
     private void OnMouseWheel(int delta)
@@ -199,9 +233,7 @@ internal abstract partial class ScreenSelectionSession : ScreenSelectionTranspar
     private void HandlePickModeChanged()
     {
         HandlePointerMoved(CurrentMouseLocation);
-        Dispatcher.UIThread.Post(
-            () => ToolTipWindow.ToolTip.Mode = CurrentMode,
-            DispatcherPriority.Background);
+        ToolTipWindow.ToolTip.Mode = CurrentMode;
     }
 
     private void HandlePointerMoved(CGPoint point)
@@ -268,6 +300,7 @@ internal abstract partial class ScreenSelectionSession : ScreenSelectionTranspar
     protected virtual void OnCanceled()
     {
         SelectedElement = null;
+        CGEventListener.Default.EventReceived -= HandleCGEvent;
     }
 
     protected virtual void OnMove(CGPoint point)

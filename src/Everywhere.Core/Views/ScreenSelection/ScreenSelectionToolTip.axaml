@@ -8,23 +8,19 @@
     <Setter Property="TextElement.Foreground" Value="{DynamicResource ForegroundColor}"/>
     <Setter Property="Template">
       <ControlTemplate>
-        <ExperimentalAcrylicBorder Padding="8,6">
-          <ExperimentalAcrylicBorder.CornerRadius>
+        <Border
+          Padding="8,6"
+          Background="{DynamicResource AcrylicWindowBackgroundColor}">
+          <Border.CornerRadius>
             <OnPlatform
               x:TypeArguments="CornerRadius" Linux="0"
               Windows="0" macOS="10"/>
-          </ExperimentalAcrylicBorder.CornerRadius>
-
-          <ExperimentalAcrylicBorder.Material>
-            <ExperimentalAcrylicMaterial
-              FallbackColor="#CC000000" MaterialOpacity="0.5"
-              TintColor="Black" TintOpacity="0.7"/>
-          </ExperimentalAcrylicBorder.Material>
+          </Border.CornerRadius>
 
           <StackPanel Spacing="4">
             <TextBlock
               FontWeight="SemiBold"
-              Foreground="{DynamicResource SuccessColor}"
+              Foreground="{DynamicResource PrimaryColor}"
               IsVisible="{Binding Mode, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static interop:ScreenSelectionMode.Free}}"
               Text="{TemplateBinding Header}"/>
             <TextBlock
@@ -33,7 +29,7 @@
               Text="{TemplateBinding TipText}"/>
             <TextBlock
               FontSize="12"
-              Foreground="{DynamicResource SuccessColor}"
+              Foreground="{DynamicResource PrimaryColor}"
               IsVisible="{Binding SizeInfo, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}"
               Text="{TemplateBinding SizeInfo}"/>
 
@@ -64,7 +60,7 @@
               </ListBox.DataTemplates>
             </ListBox>
           </StackPanel>
-        </ExperimentalAcrylicBorder>
+        </Border>
       </ControlTemplate>
     </Setter>
   </ControlTheme>

@@ -171,29 +171,33 @@ public partial class VisualElementContext
                 }
                 case VIRTUAL_KEY.VK_NUMPAD1 or VIRTUAL_KEY.VK_1 or VIRTUAL_KEY.VK_F1:
                 {
-                    CurrentMode = ScreenSelectionMode.Screen;
-                    HandleModeChanged();
+                    SetMode(ScreenSelectionMode.Screen);
                     break;
                 }
                 case VIRTUAL_KEY.VK_NUMPAD2 or VIRTUAL_KEY.VK_2 or VIRTUAL_KEY.VK_F2:
                 {
-                    CurrentMode = ScreenSelectionMode.Window;
-                    HandleModeChanged();
+                    SetMode(ScreenSelectionMode.Window);
                     break;
                 }
                 case VIRTUAL_KEY.VK_NUMPAD3 or VIRTUAL_KEY.VK_3 or VIRTUAL_KEY.VK_F3:
                 {
-                    CurrentMode = ScreenSelectionMode.Element;
-                    HandleModeChanged();
+                    SetMode(ScreenSelectionMode.Element);
                     break;
                 }
                 // Add shortcut for Free mode? F4?
                 case VIRTUAL_KEY.VK_NUMPAD4 or VIRTUAL_KEY.VK_4 or VIRTUAL_KEY.VK_F4:
                 {
-                    CurrentMode = ScreenSelectionMode.Free;
-                    HandleModeChanged();
+                    SetMode(ScreenSelectionMode.Free);
                     break;
                 }
+            }
+
+            void SetMode(ScreenSelectionMode mode)
+            {
+                if (!_allowedModes.Contains(mode)) return;
+
+                CurrentMode = mode;
+                HandleModeChanged();
             }
         }
 
