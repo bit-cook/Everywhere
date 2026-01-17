@@ -76,6 +76,7 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
         }
     }
 
+#if WINDOWS
     [JsonIgnore]
     [HiddenSettingsItem]
     public static bool IsAdministrator => NativeHelper.IsAdministrator;
@@ -154,6 +155,30 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
             OnPropertyChanged(nameof(IsStartupEnabled));
         }
     }
+#else
+    [JsonIgnore]
+    [DynamicResourceKey(
+        LocaleKey.CommonSettings_IsUserStartupEnabled_Header,
+        LocaleKey.CommonSettings_IsUserStartupEnabled_Description)]
+    public bool IsUserStartupEnabled
+    {
+        get => NativeHelper.IsUserStartupEnabled;
+        set
+        {
+            try
+            {
+                NativeHelper.IsUserStartupEnabled = value;
+                OnPropertyChanged();
+            }
+            catch (Exception ex)
+            {
+                ex = HandledSystemException.Handle(ex); // maybe blocked by UAC or antivirus, handle it gracefully
+                Logger.LogError(ex, "Failed to set user startup enabled.");
+                ShowErrorToast(ex);
+            }
+        }
+    }
+#endif
 
     [SettingsItems]
     [DynamicResourceKey(

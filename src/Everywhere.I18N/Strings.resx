@@ -2018,4 +2018,10 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value />
     </data>
+    <data name="CommonSettings_IsUserStartupEnabled_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="CommonSettings_IsUserStartupEnabled_Description" xml:space="preserve">
+        <value />
+    </data>
 </root>

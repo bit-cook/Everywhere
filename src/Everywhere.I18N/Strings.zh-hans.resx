@@ -570,7 +570,7 @@
         <value>选择 API 协议。请注意此项并不总是和模型相关联，例如 Gemini 会提供 OpenAI 兼容协议，具体请详阅对应模型的官方使用说明。</value>
     </data>
     <data name="CommonSettings_IsStartupEnabled_Header" xml:space="preserve">
-        <value>开机启动</value>
+        <value>开机时启动</value>
     </data>
     <data name="CommonSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere 会在开机后自动运行。如果开启了“以管理员方式启动”，则只有在管理员模式下才能关闭当前选项。</value>
@@ -2018,5 +2018,11 @@
     </data>
     <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value>此项为实验性功能，可能会导致意外的错误和结果</value>
+    </data>
+    <data name="CommonSettings_IsUserStartupEnabled_Header" xml:space="preserve">
+        <value>开机时启动</value>
+    </data>
+    <data name="CommonSettings_IsUserStartupEnabled_Description" xml:space="preserve">
+        <value>Everywhere 会在开机后自动运行。</value>
     </data>
 </root>
