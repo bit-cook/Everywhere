@@ -37,14 +37,15 @@
               <LucideIcon
                 Grid.Column="0" Margin="0,0,10,0"
                 Kind="{Binding Icon}"/>
-              <StackPanel Grid.Column="1">
+              <StackPanel
+                Grid.Column="1" VerticalAlignment="Center"
+                Spacing="4">
                 <TextBlock
                   Classes="p" IsHitTestVisible="False"
                   Text="{Binding HeaderKey^}"
                   TextTrimming="CharacterEllipsis"/>
                 <TextBlock
-                  Classes="Muted" Margin="0,0,0,4"
-                  IsHitTestVisible="False"
+                  Classes="Muted" IsHitTestVisible="False"
                   IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                   MaxLines="2"
                   Text="{Binding DescriptionKey^}"

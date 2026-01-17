@@ -31,6 +31,7 @@
         Classes="Draggable" Padding="0"
         BorderThickness="0"
         ItemsSource="{Binding CustomAssistants}"
+        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
         SelectedItem="{Binding SelectedCustomAssistant, Mode=TwoWay}">
         <ListBox.DataTemplates>
           <DataTemplate DataType="ai:CustomAssistant">
@@ -53,9 +54,8 @@
                   ToolTip.Tip="{Binding $self.Text}"/>
 
                 <TextBlock
-                  Classes="Muted" Margin="0,0,0,4"
+                  Classes="Muted"
                   IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                  MaxLines="2"
                   Text="{Binding Description}"
                   TextTrimming="CharacterEllipsis"
                   ToolTip.Tip="{Binding $self.Text}"/>
