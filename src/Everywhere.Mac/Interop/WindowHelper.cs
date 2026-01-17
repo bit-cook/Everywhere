@@ -60,14 +60,12 @@ public class WindowHelper : IWindowHelper
 
     private void HandleWindowOpened(Window window, RoutedEventArgs args)
     {
-        if (window is ChatWindow) return;
-        OpenedWindowCount++;
+        if (window is TransientWindow) OpenedWindowCount++;
     }
 
     private void HandleWindowClosed(Window window, RoutedEventArgs args)
     {
-        if (window is ChatWindow) return;
-        OpenedWindowCount--;
+        if (window is TransientWindow) OpenedWindowCount--;
     }
 
     /// <summary>
