@@ -1,9 +1,11 @@
 ﻿#if DEBUG
 #define DISABLE_TELEMETRY
+using Avalonia.Controls;
+#endif
+
 using System.Diagnostics;
 using System.IO.Pipes;
 using CommunityToolkit.Mvvm.Messaging;
-using Avalonia.Controls;
 using Everywhere.Interop;
 using Everywhere.Views;
 using MessagePack;
@@ -15,7 +17,6 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 using ZLinq;
-#endif
 
 namespace Everywhere.Common;
 
