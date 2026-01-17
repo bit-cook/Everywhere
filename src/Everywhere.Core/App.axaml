@@ -45,7 +45,8 @@
   <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon
-        Clicked="HandleTrayIconClicked" ToolTipText="Everywhere">
+        Clicked="HandleTrayIconClicked" MacOSProperties.IsTemplateIcon="True"
+        ToolTipText="Everywhere">
         <TrayIcon.Icon>
           <OnPlatform
             x:TypeArguments="WindowIcon" Default="avares://Everywhere.Core/Assets/Everywhere.ico"
