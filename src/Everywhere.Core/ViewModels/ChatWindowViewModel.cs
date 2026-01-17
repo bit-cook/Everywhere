@@ -32,6 +32,7 @@ public sealed partial class ChatWindowViewModel :
     BusyViewModelBase,
     IRecipient<ChatPluginConsentRequest>,
     IRecipient<ChatContextMetadataChangedMessage>,
+    IRecipient<ApplicationCommand>,
     IObserver<TextSelectionData>,
     IDisposable
 {
@@ -877,4 +878,12 @@ public sealed partial class ChatWindowViewModel :
     }
 
     #endregion
+
+    public void Receive(ApplicationCommand command)
+    {
+        if (command is ShowWindowCommand { Name: nameof(ChatWindowViewModel) })
+        {
+            Dispatcher.UIThread.Invoke(() => IsOpened = true);
+        }
+    }
 }
