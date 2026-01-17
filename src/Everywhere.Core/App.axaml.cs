@@ -4,20 +4,23 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.AttachedProperties;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
+using Everywhere.Rpc;
 using Everywhere.Utilities;
 using Everywhere.Views;
 using LiveMarkdown.Avalonia;
 using Serilog;
 using ShadUI;
+using ApplicationCommand = Everywhere.Common.ApplicationCommand;
 using Window = Avalonia.Controls.Window;
 
 namespace Everywhere;
 
-public class App : Application
+public class App : Application, IRecipient<ApplicationCommand>
 {
     public static string Version => typeof(TransientWindow).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
 
@@ -59,7 +62,8 @@ public class App : Application
         _themeManager = new ThemeManager(this);
 
         // Initialize application mutex to ensure single instance after Locale is ready.
-        Entrance.InitializeApplicationMutex(Environment.GetCommandLineArgs());
+        Entrance.InitializeSingleInstance();
+        WeakReferenceMessenger.Default.Register(this);
 
         Dispatcher.UIThread.UnhandledException += (_, e) =>
         {
@@ -222,5 +226,13 @@ public class App : Application
     private void HandleExitMenuItemClicked(object? sender, EventArgs e)
     {
         Environment.Exit(0);
+    }
+
+    public void Receive(ApplicationCommand command)
+    {
+        if (command is ShowWindowCommand { Name: nameof(MainView) })
+        {
+            Dispatcher.UIThread.Invoke(() => ShowWindow<MainView>(ref _mainWindow));
+        }
     }
 }

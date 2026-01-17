@@ -1,10 +1,12 @@
-﻿#if !DEBUG
-using Everywhere.Interop;
-#else
+﻿#if DEBUG
 #define DISABLE_TELEMETRY
-#endif
-
 using System.Diagnostics;
+using System.IO.Pipes;
+using CommunityToolkit.Mvvm.Messaging;
+using Avalonia.Controls;
+using Everywhere.Interop;
+using Everywhere.Views;
+using MessagePack;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
 using Sentry.OpenTelemetry;
@@ -13,6 +15,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Json;
 using ZLinq;
+#endif
 
 namespace Everywhere.Common;
 
@@ -22,22 +25,20 @@ public static class Entrance
 
     public static event EventHandler<UnobservedTaskExceptionEventArgs>? UnobservedTaskExceptionFilter;
 
-#if !DEBUG
     private static Mutex? _appMutex;
-#endif
+
+    private const string BundleName = "com.sylinko.everywhere";
 
     /// <summary>
     /// Releases the application mutex. Only call this method when the application is exiting.
     /// </summary>
     public static void ReleaseMutex()
     {
-#if !DEBUG
         if (_appMutex == null) return;
 
         _appMutex.ReleaseMutex();
         _appMutex.Dispose();
         _appMutex = null;
-#endif
     }
 
     public static void Initialize()
@@ -52,27 +53,99 @@ public static class Entrance
     /// <summary>
     /// Initializes the application mutex to ensure a single instance of the application.
     /// </summary>
-    /// <param name="args"></param>
-    public static void InitializeApplicationMutex(string[] args)
+    public static void InitializeSingleInstance()
     {
 #if DEBUG
-        // axaml designer may launch this code, so we need to set it to null.
-        _ = args;
-#else
-        _appMutex = new Mutex(true, "EverywhereAppMutex", out var createdNew);
-        if (createdNew) return;
+        if (Design.IsDesignMode) return;
+#endif
 
+        _appMutex = new Mutex(true, BundleName, out var createdNew);
+        if (createdNew)
+        {
+            Task.Run(StartHostPipeServer);
+            return;
+        }
+
+        var args = Environment.GetCommandLineArgs();
         if (!args.Contains("--autorun"))
         {
-            NativeMessageBox.Show(
-                LocaleResolver.Common_Info,
-                LocaleResolver.Entrance_EverywhereAlreadyRunning,
-                NativeMessageBoxButtons.Ok,
-                NativeMessageBoxIcon.Information);
+            // Bring the existing instance to the foreground.
+            SendToHost(new ShowWindowCommand(nameof(MainView))).GetAwaiter().GetResult();
         }
 
         Environment.Exit(0);
-#endif
+    }
+
+    private static async Task StartHostPipeServer()
+    {
+        var retryCount = 3;
+        while (retryCount > 0)
+        {
+            try
+            {
+                await using var server = new NamedPipeServerStream(
+                    BundleName,
+                    PipeDirection.In,
+                    1,
+                    PipeTransmissionMode.Byte,
+                    PipeOptions.Asynchronous);
+
+                await server.WaitForConnectionAsync();
+
+                var lengthBuffer = new byte[4];
+                if (await server.ReadAsync(lengthBuffer.AsMemory(0, 4)) != 4) continue;
+
+                var length = BitConverter.ToInt32(lengthBuffer, 0);
+                var buffer = new byte[length];
+                if (await server.ReadAsync(buffer.AsMemory(0, length)) != length) continue;
+
+                try
+                {
+                    var command = MessagePackSerializer.Deserialize<ApplicationCommand>(buffer);
+                    WeakReferenceMessenger.Default.Send(command);
+                }
+                catch (Exception ex)
+                {
+                    Log.ForContext(typeof(Entrance)).Error(ex, "Failed to deserialize host command.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.ForContext(typeof(Entrance)).Error(ex, "Host pipe server error.");
+
+                retryCount--;
+                await Task.Delay(1000);
+            }
+        }
+    }
+
+    private static async Task SendToHost(ApplicationCommand command)
+    {
+        try
+        {
+            await using var client = new NamedPipeClientStream(".", BundleName, PipeDirection.Out, PipeOptions.Asynchronous);
+            await client.ConnectAsync(1000);
+
+            var bytes = MessagePackSerializer.Serialize(command);
+            var lengthBytes = BitConverter.GetBytes(bytes.Length);
+
+            await client.WriteAsync(lengthBytes);
+            await client.WriteAsync(bytes);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Failed to send command to host instance.");
+
+            // Show message box if the command is ShowMainWindowCommand as a fallback
+            if (command is ShowWindowCommand)
+            {
+                NativeMessageBox.Show(
+                    LocaleResolver.Common_Info,
+                    LocaleResolver.Entrance_EverywhereAlreadyRunning,
+                    NativeMessageBoxButtons.Ok,
+                    NativeMessageBoxIcon.Information);
+            }
+        }
     }
 
     private static void InitializeTelemetry()

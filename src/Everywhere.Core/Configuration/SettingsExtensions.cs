@@ -61,7 +61,9 @@ public static class SettingsExtensions
             return settings;
         })
         .AddTransient<SoftwareUpdateControl>()
+#if WINDOWS
         .AddTransient<RestartAsAdministratorControl>()
+#endif
         .AddTransient<DebugFeaturesControl>()
         .AddSingleton<KeyValueStorage>()
         .AddSingleton<IKeyValueStorage>(sp => sp.GetRequiredService<KeyValueStorage>())
