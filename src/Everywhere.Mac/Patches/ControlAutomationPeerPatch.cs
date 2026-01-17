@@ -15,8 +15,13 @@ public class ControlAutomationPeerPatch
 {
     public static void Patch(Harmony harmony)
     {
-        var method = AccessTools.Method(typeof(ControlAutomationPeer), nameof(ControlAutomationPeer.CreatePeerForElement));
-        harmony.Patch(method, new HarmonyMethod(typeof(ControlAutomationPeerPatch), nameof(PatchedMethod)));
+        harmony.Patch(
+            AccessTools.Method(typeof(ControlAutomationPeer), nameof(ControlAutomationPeer.CreatePeerForElement)),
+            new HarmonyMethod(typeof(ControlAutomationPeerPatch), nameof(CreatePeerForElement)));
+
+        harmony.Patch(
+            AccessTools.Method(AccessTools.TypeByName("Avalonia.Native.AvnAutomationPeer"), "SetNode"),
+            new HarmonyMethod(typeof(ControlAutomationPeerPatch), nameof(SetNode)));
     }
 
     /// <summary>
@@ -26,9 +31,18 @@ public class ControlAutomationPeerPatch
     /// <returns></returns>
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once RedundantAssignment
-    private static bool PatchedMethod(ref AutomationPeer __result)
+    private static bool CreatePeerForElement(ref AutomationPeer __result)
     {
         __result = EmptyAutomationPeer.Shared;
+        return false; // Skip original method
+    }
+
+    /// <summary>
+    /// SetNode can be called only once, we skip it to avoid exceptions.
+    /// </summary>
+    /// <returns></returns>
+    private static bool SetNode()
+    {
         return false; // Skip original method
     }
 
