@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
 using Windows.Graphics.Capture;
@@ -47,7 +48,7 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
             {
                 apartmentType = DISPATCHERQUEUE_THREAD_APARTMENTTYPE.DQTAT_COM_STA,
                 threadType = DISPATCHERQUEUE_THREAD_TYPE.DQTYPE_THREAD_CURRENT,
-                dwSize = (uint)Marshal.SizeOf<DispatcherQueueOptions>()
+                dwSize = (uint)Unsafe.SizeOf<DispatcherQueueOptions>()
             },
             out _dispatcherQueueController).ThrowOnFailure();
 

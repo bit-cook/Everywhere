@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -347,7 +348,7 @@ public partial class VisualElementContext
                     },
                     type = INPUT_TYPE.INPUT_MOUSE,
                 }
-            ], Marshal.SizeOf<INPUT>());
+            ], Unsafe.SizeOf<INPUT>());
 
             // A short delay to ensure the click is done before sending mouse up
             Thread.Sleep(30);
@@ -364,7 +365,7 @@ public partial class VisualElementContext
                     },
                     type = INPUT_TYPE.INPUT_MOUSE,
                 }
-            ], Marshal.SizeOf<INPUT>());
+            ], Unsafe.SizeOf<INPUT>());
 
             void LogError(Exception ex, string action) =>
                 Log.ForContext<AutomationVisualElementImpl>().Information(ex, "Failed to perform {Action} on element {Type}", action, Type);
@@ -417,7 +418,7 @@ public partial class VisualElementContext
             if (shortcut.Modifiers.HasFlag(KeyModifiers.Meta)) MakeInputs(VIRTUAL_KEY.VK_LWIN);
             MakeInputs(shortcut.Key.ToVirtualKey());
 
-            var result = PInvoke.SendInput(CollectionsMarshal.AsSpan(inputs), Marshal.SizeOf<INPUT>());
+            var result = PInvoke.SendInput(CollectionsMarshal.AsSpan(inputs), Unsafe.SizeOf<INPUT>());
             if (result == 0)
             {
                 throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to send keyboard input to the target element.");

@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reactive.Subjects;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
@@ -233,7 +234,7 @@ partial class VisualElementContext
 
         private static void CaptureCursor(ref HCURSOR cursorStore)
         {
-            var ci = new CURSORINFO { cbSize = (uint)Marshal.SizeOf<CURSORINFO>() };
+            var ci = new CURSORINFO { cbSize = (uint)Unsafe.SizeOf<CURSORINFO>() };
             if (PInvoke.GetCursorInfo(ref ci))
             {
                 cursorStore = ci.hCursor;
@@ -740,7 +741,7 @@ partial class VisualElementContext
                     var inputArr = inputs.ToArray();
                     fixed (INPUT* pInputs = inputArr)
                     {
-                        PInvoke.SendInput((uint)inputArr.Length, pInputs, Marshal.SizeOf<INPUT>());
+                        PInvoke.SendInput((uint)inputArr.Length, pInputs, Unsafe.SizeOf<INPUT>());
                     }
                 }
             }
