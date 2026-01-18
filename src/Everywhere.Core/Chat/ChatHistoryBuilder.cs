@@ -84,12 +84,22 @@ public static class ChatHistoryBuilder
                     await PopulateKernelContentsAsync(chatAttachment, items, cancellationToken);
                 }
 
-                items.Add(
-                    new TextContent(
-                        $"""
-                         <UserRequestStart/>
-                         {user.Content}
-                         """));
+                if (items.Count > 0)
+                {
+                    // If there are attachments, add the user content as a separate item.
+                    items.Add(
+                        new TextContent(
+                            $"""
+                             <UserRequestStart/>
+                             {user.Content}
+                             """));
+                }
+                else
+                {
+                    // No attachments, just add the content directly.
+                    items.Add(new TextContent(user.Content));
+                }
+
                 yield return new ChatMessageContent(AuthorRole.User, items);
                 break;
             }
