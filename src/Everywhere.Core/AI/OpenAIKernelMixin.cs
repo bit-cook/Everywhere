@@ -46,10 +46,16 @@ public class OpenAIKernelMixin : KernelMixinBase
     /// <summary>
     /// Hook called before sending a streaming chat request.
     /// </summary>
-    protected virtual Task BeforeStreamingRequestAsync(IList<ChatMessage> messages, ChatOptions? options)
+    protected virtual Task BeforeStreamingRequestAsync(IList<ChatMessage> messages, ref ChatOptions? options)
     {
         // If deep thinking is not supported, skip processing.
         if (!_customAssistant.IsDeepThinkingSupported) return Task.CompletedTask;
+
+        options ??= new ChatOptions();
+        options.RawRepresentationFactory = _ => new ChatCompletionOptions
+        {
+            ReasoningEffortLevel = ChatReasoningEffortLevel.High
+        };
 
         foreach (var assistantMessage in messages.AsValueEnumerable().Where(m => m.Role == ChatRole.Assistant))
         {
@@ -110,19 +116,10 @@ public class OpenAIKernelMixin : KernelMixinBase
                 original.RawRepresentation = openai;
             }
 
-            await _owner.BeforeStreamingRequestAsync(messagesList, options).ConfigureAwait(false);
+            await _owner.BeforeStreamingRequestAsync(messagesList, ref options).ConfigureAwait(false);
 
             // cache the value to avoid property changes during enumeration
             var isDeepThinkingSupported = _owner.IsDeepThinkingSupported;
-            if (isDeepThinkingSupported)
-            {
-                options ??= new ChatOptions();
-                options.RawRepresentationFactory = _ => new ChatCompletionOptions
-                {
-                    ReasoningEffortLevel = ChatReasoningEffortLevel.Medium
-                };
-            }
-
             await foreach (var update in base.GetStreamingResponseAsync(messagesList, options, cancellationToken))
             {
                 // Why you keep reasoning in the fucking internal properties, OpenAI???

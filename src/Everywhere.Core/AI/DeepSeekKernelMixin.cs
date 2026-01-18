@@ -33,7 +33,7 @@ public class DeepSeekKernelMixin(
     /// <param name="messages"></param>
     /// <param name="options"></param>
     /// <returns></returns>
-    protected override Task BeforeStreamingRequestAsync(IList<ChatMessage> messages, ChatOptions? options)
+    protected override Task BeforeStreamingRequestAsync(IList<ChatMessage> messages, ref ChatOptions? options)
     {
         var lastAssistantMessage = messages.AsValueEnumerable().Where(m => m.Role == ChatRole.Assistant).LastOrDefault();
         if (lastAssistantMessage?.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage ||
