@@ -5,10 +5,8 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
 using OpenAI;
 using OpenAI.Chat;
-using BinaryContent = System.ClientModel.BinaryContent;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using FunctionCallContent = Microsoft.Extensions.AI.FunctionCallContent;
 using TextContent = Microsoft.Extensions.AI.TextContent;
@@ -31,7 +29,7 @@ public sealed class OpenAIKernelMixin : KernelMixinBase
     ) : base(customAssistant)
     {
         ChatCompletionService = new OptimizedOpenAIApiClient(
-            new OptimizedChatClient(
+            new ChatClient(
                 ModelId,
                 // some models don't need API key (e.g. LM Studio)
                 new ApiKeyCredential(ApiKey.IsNullOrWhiteSpace() ? "NO_API_KEY" : ApiKey),
@@ -45,56 +43,10 @@ public sealed class OpenAIKernelMixin : KernelMixinBase
         ).AsChatCompletionService();
     }
 
-    public override PromptExecutionSettings GetPromptExecutionSettings(FunctionChoiceBehavior? functionChoiceBehavior = null)
-    {
-        double? temperature = _customAssistant.Temperature.IsCustomValueSet ? _customAssistant.Temperature.ActualValue : null;
-        double? topP = _customAssistant.TopP.IsCustomValueSet ? _customAssistant.TopP.ActualValue : null;
-        double? presencePenalty = _customAssistant.PresencePenalty.IsCustomValueSet ? _customAssistant.PresencePenalty.ActualValue : null;
-        double? frequencyPenalty = _customAssistant.FrequencyPenalty.IsCustomValueSet ? _customAssistant.FrequencyPenalty.ActualValue : null;
-        int? maxTokens = _customAssistant.MaxTokens <= 0 ? null : _customAssistant.MaxTokens;
-
-        return new OpenAIPromptExecutionSettings
-        {
-            MaxTokens = maxTokens,
-            Temperature = temperature,
-            TopP = topP,
-            PresencePenalty = presencePenalty,
-            FrequencyPenalty = frequencyPenalty,
-            FunctionChoiceBehavior = functionChoiceBehavior
-        };
-    }
-
     /// <summary>
-    /// optimized wrapper around OpenAI's ChatClient to set custom User-Agent header.
+    /// optimized wrapper around MEAI's IChatClient to extract reasoning content from internal properties.
     /// </summary>
-    /// <remarks>
-    /// Layered upon layer, are you an onion?
-    /// </remarks>
-    private sealed class OptimizedChatClient(string modelId, ApiKeyCredential credential, OpenAIClientOptions options)
-        : ChatClient(modelId, credential, options)
-    {
-        public override Task<ClientResult> CompleteChatAsync(BinaryContent content, RequestOptions? options = null)
-        {
-            options?.SetHeader(
-                "UserAgent",
-                $"Everywhere/{typeof(OpenAIKernelMixin).Assembly.GetName().Version?.ToString() ?? "1.0.0"} " +
-#if IsWindows
-                "(Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
-#elif IsOSX
-                "(Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
-#else
-                "(X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
-#endif
-            );
-
-            return base.CompleteChatAsync(content, options);
-        }
-    }
-
-    /// <summary>
-    /// optimized wrapper around OpenAI's IChatClient to extract reasoning content from internal properties.
-    /// </summary>
-    private sealed class OptimizedOpenAIApiClient(IChatClient client, OpenAIKernelMixin owner) : IChatClient
+    private sealed class OptimizedOpenAIApiClient(IChatClient client, OpenAIKernelMixin owner) : DelegatingChatClient(client)
     {
         private static readonly PropertyInfo? ChoicesProperty =
             typeof(StreamingChatCompletionUpdate).GetProperty("Choices", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -103,25 +55,14 @@ public sealed class OpenAIKernelMixin : KernelMixinBase
         private static PropertyInfo? _choiceDeltaProperty;
         private static PropertyInfo? _deltaPatchProperty;
 
-        public Task<ChatResponse> GetResponseAsync(
-            IEnumerable<ChatMessage> messages,
-            ChatOptions? options = null,
-            CancellationToken cancellationToken = default)
-        {
-            messages = EnsureCompatibilityFields(messages);
-            return client.GetResponseAsync(messages, options, cancellationToken);
-        }
-
-        public async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
+        public override async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
             IEnumerable<ChatMessage> messages,
             ChatOptions? options = null,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            messages = EnsureCompatibilityFields(messages);
-
             // cache the value to avoid property changes during enumeration
             var isDeepThinkingSupported = owner.IsDeepThinkingSupported;
-            await foreach (var update in client.GetStreamingResponseAsync(messages, options, cancellationToken))
+            await foreach (var update in base.GetStreamingResponseAsync(messages, options, cancellationToken))
             {
                 // Why you keep reasoning in the fucking internal properties, OpenAI???
                 if (isDeepThinkingSupported && update is { Text: not { Length: > 0 }, RawRepresentation: StreamingChatCompletionUpdate detail })
@@ -210,47 +151,6 @@ public sealed class OpenAIKernelMixin : KernelMixinBase
 
                 yield return update;
             }
-        }
-
-        /// <summary>
-        /// Ensure each ChatMessage contains the compatibility fields required by some models/clients.
-        /// We use reflection to avoid compile-time dependency on the concrete ChatMessage shape.
-        /// The fields added are: 'refusal', 'annotations', 'audio', 'function_call' (all set to null).
-        /// </summary>
-        private static IEnumerable<ChatMessage> EnsureCompatibilityFields(IEnumerable<ChatMessage> messages)
-        {
-            foreach (var msg in messages)
-            {
-                if (msg.AdditionalProperties is { } dict)
-                {
-                    dict.TryAdd("refusal", null);
-                    dict.TryAdd("annotations", null);
-                    dict.TryAdd("audio", null);
-                    dict.TryAdd("function_call", null);
-                }
-                else
-                {
-                    msg.AdditionalProperties = new AdditionalPropertiesDictionary
-                    {
-                        ["refusal"] = null,
-                        ["annotations"] = null,
-                        ["audio"] = null,
-                        ["function_call"] = null
-                    };
-                }
-
-                yield return msg;
-            }
-        }
-
-        public object? GetService(Type serviceType, object? serviceKey = null)
-        {
-            return client.GetService(serviceType, serviceKey);
-        }
-
-        public void Dispose()
-        {
-            client.Dispose();
         }
     }
 }

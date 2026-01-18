@@ -15,6 +15,7 @@ using Everywhere.Utilities;
 using LiveMarkdown.Avalonia;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using ShadUI;
 
 namespace Everywhere.Views;
@@ -55,6 +56,11 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
     /// </summary>
     private bool _isUserResized;
 
+    /// <summary>
+    /// Indicates whether the window can be closed.
+    /// </summary>
+    private bool _canCloseWindow;
+
     public ChatWindow(
         ILauncher launcher,
         IWindowHelper windowHelper,
@@ -72,10 +78,10 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
         ViewModel.PropertyChanged += HandleViewModelPropertyChanged;
         ChatInputArea.TextChanged += HandleChatInputAreaTextChanged;
         ChatInputArea.PastingFromClipboard += HandleChatInputAreaPastingFromClipboard;
-        
+
         SetupDragDropHandlers();
     }
-    
+
     private void SetupDragDropHandlers()
     {
         DragDrop.SetAllowDrop(this, true);
@@ -231,7 +237,7 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
     {
         return new NoneAutomationPeer(this); // Disable automation peer to avoid being detected by self
     }
-    
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -303,6 +309,7 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
         // otherwise, Windows will say "Everywhere is preventing shutdown"
         if (e.CloseReason is WindowCloseReason.ApplicationShutdown or WindowCloseReason.OSShutdown)
         {
+            _canCloseWindow = true;
             base.OnClosing(e);
             return;
         }
@@ -318,7 +325,8 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
     {
         base.OnClosed(e);
 
-        ServiceLocator.Resolve<ILogger<ChatWindow>>().LogError("Chat window was closed unexpectedly. This should not happen.");
+        if (!_canCloseWindow)
+            Log.ForContext<ChatWindow>().Error("Chat window was closed unexpectedly. This should not happen.");
     }
 
     [RelayCommand]

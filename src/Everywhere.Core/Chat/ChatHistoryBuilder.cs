@@ -72,7 +72,7 @@ public static class ChatHistoryBuilder
             }
             case UserChatMessage user:
             {
-                var items = new ChatMessageContentItemCollection { new TextContent("<ToolCallResultAttachments>") };
+                var items = new ChatMessageContentItemCollection();
                 foreach (var chatAttachment in user.Attachments.AsValueEnumerable().ToList())
                 {
                     await PopulateKernelContentsAsync(chatAttachment, items, cancellationToken);

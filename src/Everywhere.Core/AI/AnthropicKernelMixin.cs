@@ -1,7 +1,6 @@
 ﻿using Anthropic;
 using Anthropic.Core;
 using Microsoft.Extensions.AI;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace Everywhere.AI;
@@ -12,12 +11,6 @@ namespace Everywhere.AI;
 public sealed class AnthropicKernelMixin : KernelMixinBase
 {
     public override IChatCompletionService ChatCompletionService { get; }
-
-    public override PromptExecutionSettings GetPromptExecutionSettings(FunctionChoiceBehavior? functionChoiceBehavior = null) => new()
-    {
-        ModelId = ModelId,
-        FunctionChoiceBehavior = functionChoiceBehavior
-    };
 
     private readonly OptimizedChatClient _client;
 
@@ -49,13 +42,9 @@ public sealed class AnthropicKernelMixin : KernelMixinBase
 
             double? temperature = customAssistant.Temperature.IsCustomValueSet ? customAssistant.Temperature.ActualValue : null;
             double? topP = customAssistant.TopP.IsCustomValueSet ? customAssistant.TopP.ActualValue : null;
-            double? presencePenalty = customAssistant.PresencePenalty.IsCustomValueSet ? customAssistant.PresencePenalty.ActualValue : null;
-            double? frequencyPenalty = customAssistant.FrequencyPenalty.IsCustomValueSet ? customAssistant.FrequencyPenalty.ActualValue : null;
 
             if (temperature is not null) options.Temperature = (float)temperature.Value;
             if (topP is not null) options.TopP = (float)topP.Value;
-            if (presencePenalty is not null) options.PresencePenalty = (float)presencePenalty.Value;
-            if (frequencyPenalty is not null) options.FrequencyPenalty = (float)frequencyPenalty.Value;
         }
 
         public override Task<ChatResponse> GetResponseAsync(
