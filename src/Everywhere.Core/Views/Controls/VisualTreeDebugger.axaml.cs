@@ -143,7 +143,7 @@ public partial class VisualTreeDebugger : UserControl
         try
         {
             var tokenLimit = int.Parse(TokenLimitTextBox.Text ?? "8000");
-            var xmlBuilder = new VisualTreeXmlBuilder(
+            var builder = new VisualTreeBuilder(
                 VisualTreeView.SelectedItems.AsValueEnumerable().OfType<IVisualElement>().ToList(),
                 tokenLimit,
                 0,
@@ -158,7 +158,7 @@ public partial class VisualTreeDebugger : UserControl
 
                 try
                 {
-                    return xmlBuilder.BuildXml(CancellationToken.None);
+                    return builder.Build(CancellationToken.None);
                 }
                 finally
                 {

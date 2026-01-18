@@ -33,18 +33,17 @@ public enum VisualTreeDetailLevel
 /// <param name="coreElements"></param>
 /// <param name="approximateTokenLimit"></param>
 /// <param name="detailLevel"></param>
-public partial class VisualTreeXmlBuilder(
+public partial class VisualTreeBuilder(
     IReadOnlyList<IVisualElement> coreElements,
     int approximateTokenLimit,
     int startingId,
     VisualTreeDetailLevel detailLevel
 )
 {
-    private static readonly ActivitySource ActivitySource = new(typeof(VisualTreeXmlBuilder).FullName.NotNull());
+    private static readonly ActivitySource ActivitySource = new(typeof(VisualTreeBuilder).FullName.NotNull());
 
     /// <summary>
-    /// Builds the XML representation of the visual tree for the given attachments as core elements.
-    /// It groups the visual elements from the attachments and constructs the XML using a weighted priority traversal algorithm.
+    /// Builds the text representation of the visual tree for the given attachments as core elements and populates the attachment contents.
     /// </summary>
     /// <param name="attachments"></param>
     /// <param name="approximateTokenLimit"></param>
@@ -52,7 +51,7 @@ public partial class VisualTreeXmlBuilder(
     /// <param name="detailLevel"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public static IReadOnlyDictionary<int, IVisualElement> BuildPopulateXml(
+    public static IReadOnlyDictionary<int, IVisualElement> BuildAndPopulate(
         IReadOnlyList<ChatVisualElementAttachment> attachments,
         int approximateTokenLimit,
         int startingId,
@@ -101,13 +100,13 @@ public partial class VisualTreeXmlBuilder(
             // Allocate token limit relative to the number of elements in the group
             var groupTokenLimit = (int)((long)approximateTokenLimit * groupCount / totalElements);
 
-            var xmlBuilder = new VisualTreeXmlBuilder(
+            var xmlBuilder = new VisualTreeBuilder(
                 groupElements,
                 groupTokenLimit,
                 startingId,
                 detailLevel);
 
-            var xml = xmlBuilder.BuildXml(cancellationToken);
+            var xml = xmlBuilder.Build(cancellationToken);
 
             // 3. for attachments in the same group
             // First attachment gets the full XML, others got null.
@@ -116,12 +115,12 @@ public partial class VisualTreeXmlBuilder(
             {
                 if (isFirst)
                 {
-                    attachment.Xml = xml;
+                    attachment.Content = xml;
                     isFirst = false;
                 }
                 else
                 {
-                    attachment.Xml = null;
+                    attachment.Content = null;
                 }
             }
 
@@ -341,8 +340,9 @@ public partial class VisualTreeXmlBuilder(
     /// Represents a node in the XML tree being built.
     /// This class is mutable to support dynamic updates of activation state during traversal.
     /// </summary>
-    private class XmlVisualElement(
+    private class VisualElementNode(
         IVisualElement element,
+        VisualElementType type,
         string? parentId,
         int siblingIndex,
         string? description,
@@ -354,6 +354,8 @@ public partial class VisualTreeXmlBuilder(
     )
     {
         public IVisualElement Element { get; } = element;
+
+        public VisualElementType Type { get; } = type;
 
         public string? ParentId { get; } = parentId;
 
@@ -373,9 +375,9 @@ public partial class VisualTreeXmlBuilder(
         /// </summary>
         public int ContentTokenCount { get; } = contentTokenCount;
 
-        public XmlVisualElement? Parent { get; set; }
+        public VisualElementNode? Parent { get; set; }
 
-        public HashSet<XmlVisualElement> Children { get; } = [];
+        public HashSet<VisualElementNode> Children { get; } = [];
 
         /// <summary>
         /// Indicates whether this element should be rendered in the final XML.
@@ -415,7 +417,7 @@ public partial class VisualTreeXmlBuilder(
         .Where(id => !string.IsNullOrEmpty(id))
         .ToHashSet(StringComparer.Ordinal);
 
-    private StringBuilder? _xmlBuilder;
+    private StringBuilder? _stringBuilder;
 
 #if DEBUG_VISUAL_TREE_BUILDER
     private VisualTreeRecorder? _debugRecorder;
@@ -423,11 +425,17 @@ public partial class VisualTreeXmlBuilder(
 
     private const VisualElementStates InteractiveStates = VisualElementStates.Focused | VisualElementStates.Selected;
 
-    public string BuildXml(CancellationToken cancellationToken)
+    /// <summary>
+    /// Builds the text representation of the visual tree for the core elements.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public string Build(CancellationToken cancellationToken)
     {
-        if (coreElements.Count == 0) throw new InvalidOperationException("No core elements to build XML from.");
+        if (coreElements.Count == 0) throw new InvalidOperationException("No core elements to build.");
 
-        if (_xmlBuilder != null) return _xmlBuilder.ToString();
+        if (_stringBuilder != null) return _stringBuilder.ToString();
         cancellationToken.ThrowIfCancellationRequested();
 
 #if DEBUG_VISUAL_TREE_BUILDER
@@ -436,7 +444,7 @@ public partial class VisualTreeXmlBuilder(
 
         // Priority Queue for Best-First Search
         var priorityQueue = new PriorityQueue<TraversalNode, float>();
-        var visitedElements = new Dictionary<string, XmlVisualElement>();
+        var visitedElements = new Dictionary<string, VisualElementNode>();
 
         // 1. Enqueue core nodes
         TryEnqueueTraversalNode(priorityQueue, null, 0, TraverseDirection.Core, coreElements.GetEnumerator());
@@ -453,8 +461,49 @@ public partial class VisualTreeXmlBuilder(
             }
         }
 
-        // 4. Generate XML
-        return GenerateXmlString(visitedElements);
+        // 4. Generate
+        return detailLevel == VisualTreeDetailLevel.Minimal ?
+            GenerateMarkdownString(visitedElements) :
+            GenerateXmlString(visitedElements);
+    }
+
+    /// <summary>
+    /// Builds the Markdown representation of the visual tree for the core elements.
+    /// Markdown is a more compact format than XML, suitable for LLM consumption.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
+    /// <returns>A Markdown string representing the visual tree.</returns>
+    public string BuildMarkdown(CancellationToken cancellationToken)
+    {
+        if (coreElements.Count == 0) throw new InvalidOperationException("No core elements to build Markdown from.");
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+#if DEBUG_VISUAL_TREE_BUILDER
+        _debugRecorder ??= new VisualTreeRecorder(coreElements, approximateTokenLimit, "WeightedPriority");
+#endif
+
+        // Priority Queue for Best-First Search
+        var priorityQueue = new PriorityQueue<TraversalNode, float>();
+        var visitedElements = new Dictionary<string, VisualElementNode>();
+
+        // 1. Enqueue core nodes
+        TryEnqueueTraversalNode(priorityQueue, null, 0, TraverseDirection.Core, coreElements.GetEnumerator());
+
+        // 2. Process the Queue
+        ProcessTraversalQueue(priorityQueue, visitedElements, cancellationToken);
+
+        // 3. Dispose remaining enumerators
+        while (priorityQueue.Count > 0)
+        {
+            if (priorityQueue.TryDequeue(out var node, out _))
+            {
+                node.Enumerator.Dispose();
+            }
+        }
+
+        // 4. Generate Markdown
+        return GenerateMarkdownString(visitedElements);
     }
 
 #if DEBUG_VISUAL_TREE_BUILDER
@@ -502,7 +551,7 @@ public partial class VisualTreeXmlBuilder(
 
     private void ProcessTraversalQueue(
         PriorityQueue<TraversalNode, float> priorityQueue,
-        Dictionary<string, XmlVisualElement> visitedElements,
+        Dictionary<string, VisualElementNode> visitedElements,
         CancellationToken cancellationToken)
     {
         var accumulatedTokenCount = 0;
@@ -568,18 +617,19 @@ public partial class VisualTreeXmlBuilder(
     }
 
     private void CreateXmlVisualElement(
-        Dictionary<string, XmlVisualElement> visitedElements,
-        TraversalNode node,
+        Dictionary<string, VisualElementNode> visitedElements,
+        TraversalNode traversalNode,
         int remainingTokenCount,
         ref int accumulatedTokenCount)
     {
-        var element = node.Element;
+        var element = traversalNode.Element;
         var id = element.Id;
+        var type = element.Type;
 
         // --- Determine Content and Self-Informativeness ---
         string? description = null;
         string? content = null;
-        var isTextElement = element.Type is VisualElementType.Label or VisualElementType.TextEdit or VisualElementType.Document;
+        var isTextElement = type is VisualElementType.Label or VisualElementType.TextEdit or VisualElementType.Document;
         var text = element.GetText();
         if (element.Name is { Length: > 0 } name)
         {
@@ -604,10 +654,10 @@ public partial class VisualTreeXmlBuilder(
         // --- Calculate Token Costs ---
         // Base cost: indentation (approx 2), start tag (<Type), id attribute ( id="..."), end tag (</Type>)
         // We approximate this as 8 tokens.
-        var selfTokenCount = ShouldIncludeId(detailLevel, element.Type) ? 8 : 6;
+        var selfTokenCount = ShouldIncludeId(detailLevel, type) ? 8 : 6;
 
         // Add cost for bounds attributes if applicable (x, y, width, height)
-        if (ShouldIncludeBounds(detailLevel, element.Type))
+        if (ShouldIncludeBounds(detailLevel, type))
         {
             selfTokenCount += 20; // Approximate cost for pos="..." size="..."
         }
@@ -622,52 +672,53 @@ public partial class VisualTreeXmlBuilder(
         };
 
         // Create the XML Element node
-        var xmlElement = visitedElements[id] = new XmlVisualElement(
+        var elementNode = visitedElements[id] = new VisualElementNode(
             element,
-            node.ParentId,
-            node.SiblingIndex,
+            type,
+            traversalNode.ParentId,
+            traversalNode.SiblingIndex,
             description,
             contentLines,
             selfTokenCount,
             contentTokenCount,
             isSelfInformative,
-            node.Direction == TraverseDirection.Core);
+            traversalNode.Direction == TraverseDirection.Core);
 
         // --- Update Token Count and Propagate ---
 
         // If the element is self-informative, it is active immediately.
-        if (xmlElement.IsVisible)
+        if (elementNode.IsVisible || type is not VisualElementType.TopLevel and not VisualElementType.Screen)
         {
-            accumulatedTokenCount += xmlElement.SelfTokenCount + xmlElement.ContentTokenCount;
+            accumulatedTokenCount += elementNode.SelfTokenCount + elementNode.ContentTokenCount;
         }
 
         // Link to parent and propagate updates
-        if (node.ParentId != null && visitedElements.TryGetValue(node.ParentId, out var parentXmlElement))
+        if (traversalNode.ParentId != null && visitedElements.TryGetValue(traversalNode.ParentId, out var parentXmlElement))
         {
-            parentXmlElement.Children.Add(xmlElement);
-            xmlElement.Parent = parentXmlElement;
+            parentXmlElement.Children.Add(elementNode);
+            elementNode.Parent = parentXmlElement;
 
             // If the new child is informative (self-informative or has informative descendants),
             // we need to notify the parent.
             // Note: A newly created node has no descendants yet, so HasInformativeDescendants is false.
             // So we only check IsSelfInformative.
-            if (xmlElement.IsSelfInformative)
+            if (elementNode.IsSelfInformative)
             {
                 PropagateInformativeUpdate(parentXmlElement, ref accumulatedTokenCount);
             }
         }
         // If we traversed from parent direction, above method cannot link parent-child.
-        else if (node is { Direction: TraverseDirection.Parent })
+        else if (traversalNode is { Direction: TraverseDirection.Parent })
         {
             foreach (var childXmlElement in visitedElements.Values
                          .AsValueEnumerable()
                          .Where(e => e.Parent is null)
                          .Where(e => string.Equals(e.ParentId, id, StringComparison.Ordinal)))
             {
-                xmlElement.Children.Add(childXmlElement);
-                childXmlElement.Parent = xmlElement;
+                elementNode.Children.Add(childXmlElement);
+                childXmlElement.Parent = elementNode;
 
-                if (xmlElement.IsSelfInformative)
+                if (elementNode.IsSelfInformative)
                 {
                     PropagateInformativeUpdate(childXmlElement, ref accumulatedTokenCount);
                 }
@@ -829,12 +880,12 @@ public partial class VisualTreeXmlBuilder(
         }
     }
 
-    private string GenerateXmlString(Dictionary<string, XmlVisualElement> visualElements)
+    private string GenerateXmlString(Dictionary<string, VisualElementNode> visualElements)
     {
-        _xmlBuilder = new StringBuilder();
+        _stringBuilder = new StringBuilder();
         foreach (var rootElement in visualElements.Values.AsValueEnumerable().Where(e => e.Parent is null))
         {
-            if (rootElement.Element.Type is not VisualElementType.TopLevel and not VisualElementType.Screen)
+            if (rootElement.Type is not VisualElementType.TopLevel and not VisualElementType.Screen)
             {
                 // Append a synthetic root for non-top-level elements
                 var topLevelOrScreenElement = rootElement.Element.Parent;
@@ -846,14 +897,13 @@ public partial class VisualTreeXmlBuilder(
                 if (topLevelOrScreenElement is not null)
                 {
                     // Create a synthetic root element and build its XML
-                    var actualRootElement = new XmlVisualElement(
+                    var actualRootElement = new VisualElementNode(
                         topLevelOrScreenElement,
+                        topLevelOrScreenElement.Type,
                         null,
                         0,
                         null,
-                        [
-                            "<!-- Child elements omitted for brevity -->"
-                        ],
+                        ["<!-- Child elements omitted for brevity -->"],
                         8,
                         0,
                         true,
@@ -861,12 +911,12 @@ public partial class VisualTreeXmlBuilder(
                     {
                         Children = { rootElement }
                     };
-                    InternalBuildXml(actualRootElement, 0);
+                    InternalBuildXml(_stringBuilder, actualRootElement, 0);
                     continue;
                 }
             }
 
-            InternalBuildXml(rootElement, 0);
+            InternalBuildXml(_stringBuilder, rootElement, 0);
         }
 
 #if DEBUG_VISUAL_TREE_BUILDER
@@ -876,131 +926,132 @@ public partial class VisualTreeXmlBuilder(
         _debugRecorder?.SaveSession(debugPath);
 #endif
 
-        return _xmlBuilder.TrimEnd().ToString();
+        return _stringBuilder.TrimEnd().ToString();
+    }
 
-        void InternalBuildXml(XmlVisualElement xmlElement, int indentLevel)
+    private void InternalBuildXml(StringBuilder sb, VisualElementNode elementNode, int indentLevel)
+    {
+        var element = elementNode.Element;
+        var elementType = elementNode.Type;
+        var indent = new string(' ', indentLevel * 2);
+
+        // If not active, we don't render this element's tags, but we might render its children.
+        // This acts as a "passthrough" for structural containers that are not interesting enough to show.
+        // For TopLevel and Screen elements, we always render them even if not visible.
+        if (!elementNode.IsVisible && elementType is not VisualElementType.TopLevel and not VisualElementType.Screen)
         {
-            // If not active, we don't render this element's tags, but we might render its children.
-            // This acts as a "passthrough" for structural containers that are not interesting enough to show.
-            if (!xmlElement.IsVisible)
+            foreach (var child in elementNode.Children.AsValueEnumerable().OrderBy(x => x.SiblingIndex))
             {
-                foreach (var child in xmlElement.Children.AsValueEnumerable().OrderBy(x => x.SiblingIndex)) InternalBuildXml(child, indentLevel);
-                return;
+                InternalBuildXml(sb, child, indentLevel);
             }
 
-            var indent = new string(' ', indentLevel * 2);
-            var element = xmlElement.Element;
-            var elementType = element.Type;
+            return;
+        }
 
-            // Start tag
-            _xmlBuilder.Append(indent).Append('<').Append(elementType);
+        // Start tag
+        sb.Append(indent).Append('<').Append(elementType);
 
-            // Add ID if needed
+        // Add ID if needed
+        if (ShouldIncludeId(detailLevel, elementType))
+        {
             var id = BuiltVisualElements.Count + startingId;
             BuiltVisualElements[id] = element;
-            if (ShouldIncludeId(detailLevel, elementType))
-            {
-                _xmlBuilder.Append(" id=\"").Append(id).Append('"');
-            }
-
-            // Add coreElement attribute if applicable
-            if (xmlElement.IsCoreElement)
-            {
-                _xmlBuilder.Append(" coreElement=\"true\"");
-            }
-
-            // Add bounds if needed
-            if (ShouldIncludeBounds(detailLevel, elementType))
-            {
-                // for containers, include the element's size
-                var bounds = element.BoundingRectangle;
-                _xmlBuilder
-                    .Append(" pos=\"")
-                    .Append(bounds.X).Append(',').Append(bounds.Y)
-                    .Append('"')
-                    .Append(" size=\"")
-                    .Append(bounds.Width).Append('x').Append(bounds.Height)
-                    .Append('"');
-            }
-
-            // For top-level elements, add pid, process name and WindowHandle attributes
-            if (xmlElement.Element.Type == VisualElementType.TopLevel)
-            {
-                var processId = xmlElement.Element.ProcessId;
-                if (processId > 0)
-                {
-                    _xmlBuilder.Append(" pid=\"").Append(processId).Append('"');
-                    try
-                    {
-                        using var process = Process.GetProcessById(processId);
-                        _xmlBuilder.Append(" processName=\"").Append(SecurityElement.Escape(process.ProcessName)).Append('"');
-                    }
-                    catch
-                    {
-                        // Ignore if process not found
-                    }
-                }
-
-                var windowHandle = xmlElement.Element.NativeWindowHandle;
-                if (windowHandle > 0)
-                {
-                    _xmlBuilder.Append(" handle=\"0x").Append(windowHandle.ToString("X")).Append('"');
-                }
-            }
-
-            if (xmlElement.Description != null)
-            {
-                _xmlBuilder.Append(" description=\"").Append(SecurityElement.Escape(xmlElement.Description)).Append('"');
-            }
-
-            // Add content attribute if there's a 1 or 2 line content
-            if (xmlElement.ContentLines.Count is > 0 and < 3)
-            {
-                _xmlBuilder.Append(" content=\"").Append(SecurityElement.Escape(string.Join('\n', xmlElement.ContentLines))).Append('"');
-            }
-
-            if (xmlElement.Children.Count == 0 && xmlElement.ContentLines.Count < 3)
-            {
-                // Self-closing tag if no children and no content
-                _xmlBuilder.Append("/>").AppendLine();
-                return;
-            }
-
-            _xmlBuilder.Append('>').AppendLine();
-            var xmlLengthBeforeContent = _xmlBuilder.Length;
-
-            // Add contents if there are 3 or more lines
-            if (xmlElement.ContentLines.Count >= 3)
-            {
-                foreach (var contentLine in xmlElement.ContentLines.AsValueEnumerable())
-                {
-                    if (string.IsNullOrWhiteSpace(contentLine))
-                    {
-                        _xmlBuilder.AppendLine(); // don't write indentation for empty lines
-                        continue;
-                    }
-
-                    _xmlBuilder
-                        .Append(indent)
-                        .Append("  ")
-                        .Append(SecurityElement.Escape(contentLine))
-                        .AppendLine();
-                }
-            }
-
-            // Handle child elements
-            foreach (var child in xmlElement.Children.AsValueEnumerable().OrderBy(x => x.SiblingIndex)) InternalBuildXml(child, indentLevel + 1);
-            if (xmlLengthBeforeContent == _xmlBuilder.Length)
-            {
-                // No content or children were added, so we can convert to self-closing tag
-                _xmlBuilder.Length -= Environment.NewLine.Length + 1; // Remove the newline and '>'
-                _xmlBuilder.Append("/>").AppendLine();
-                return;
-            }
-
-            // End tag
-            _xmlBuilder.Append(indent).Append("</").Append(element.Type).Append('>').AppendLine();
+            sb.Append(" id=\"").Append(id).Append('"');
         }
+
+        // Add coreElement attribute if applicable
+        if (elementNode.IsCoreElement)
+        {
+            sb.Append(" coreElement=\"true\"");
+        }
+
+        // Add bounds if needed
+        if (ShouldIncludeBounds(detailLevel, elementType))
+        {
+            // for containers, include the element's size
+            var bounds = element.BoundingRectangle;
+            sb.Append(" pos=\"")
+                .Append(bounds.X).Append(',').Append(bounds.Y)
+                .Append('"')
+                .Append(" size=\"")
+                .Append(bounds.Width).Append('x').Append(bounds.Height)
+                .Append('"');
+        }
+
+        // For top-level elements, add pid, process name and WindowHandle attributes
+        if (elementType == VisualElementType.TopLevel)
+        {
+            var processId = elementNode.Element.ProcessId;
+            if (processId > 0)
+            {
+                sb.Append(" pid=\"").Append(processId).Append('"');
+                try
+                {
+                    using var process = Process.GetProcessById(processId);
+                    sb.Append(" processName=\"").Append(SecurityElement.Escape(process.ProcessName)).Append('"');
+                }
+                catch
+                {
+                    // Ignore if process not found
+                }
+            }
+
+            var windowHandle = elementNode.Element.NativeWindowHandle;
+            if (windowHandle > 0)
+            {
+                sb.Append(" handle=\"0x").Append(windowHandle.ToString("X")).Append('"');
+            }
+        }
+
+        if (elementNode.Description != null)
+        {
+            sb.Append(" description=\"").Append(SecurityElement.Escape(elementNode.Description)).Append('"');
+        }
+
+        // Add content attribute if there's a 1 or 2 line content
+        if (elementNode.ContentLines.Count is > 0 and < 3)
+        {
+            sb.Append(" content=\"").Append(SecurityElement.Escape(string.Join('\n', elementNode.ContentLines))).Append('"');
+        }
+
+        if (elementNode.Children.Count == 0 && elementNode.ContentLines.Count < 3)
+        {
+            // Self-closing tag if no children and no content
+            sb.Append("/>").AppendLine();
+            return;
+        }
+
+        sb.Append('>').AppendLine();
+        var xmlLengthBeforeContent = sb.Length;
+
+        // Add contents if there are 3 or more lines
+        if (elementNode.ContentLines.Count >= 3)
+        {
+            foreach (var contentLine in elementNode.ContentLines.AsValueEnumerable())
+            {
+                if (string.IsNullOrWhiteSpace(contentLine))
+                {
+                    sb.AppendLine(); // don't write indentation for empty lines
+                    continue;
+                }
+
+                sb.Append(indent).Append("  ").Append(SecurityElement.Escape(contentLine)).AppendLine();
+            }
+        }
+
+        // Handle child elements
+        foreach (var child in elementNode.Children.AsValueEnumerable().OrderBy(x => x.SiblingIndex))
+            InternalBuildXml(sb, child, indentLevel + 1);
+        if (xmlLengthBeforeContent == sb.Length)
+        {
+            // No content or children were added, so we can convert to self-closing tag
+            sb.Length -= Environment.NewLine.Length + 1; // Remove the newline and '>'
+            sb.Append("/>").AppendLine();
+            return;
+        }
+
+        // End tag
+        sb.Append(indent).Append("</").Append(element.Type).Append('>').AppendLine();
     }
 
     private static bool ShouldIncludeId(VisualTreeDetailLevel detailLevel, VisualElementType type) => detailLevel switch
@@ -1021,6 +1072,419 @@ public partial class VisualTreeXmlBuilder(
             VisualElementType.Screen => true,
         _ => false
     };
+
+    /// <summary>
+    /// Generates a Markdown representation of the visual tree as a more compact alternative to XML.
+    /// Markdown is designed to be readable by LLMs while preserving interactive element IDs.
+    /// TopLevel and Screen elements are kept in XML format for metadata preservation.
+    /// </summary>
+    /// <param name="visualElements">The dictionary of visual element nodes built during traversal.</param>
+    /// <returns>A Markdown string representing the visual tree.</returns>
+    private string GenerateMarkdownString(Dictionary<string, VisualElementNode> visualElements)
+    {
+        var mdBuilder = new StringBuilder();
+        foreach (var rootElement in visualElements.Values.AsValueEnumerable().Where(e => e.Parent is null))
+        {
+            if (rootElement.Type is not VisualElementType.TopLevel and not VisualElementType.Screen)
+            {
+                // Append a synthetic root for non-top-level elements
+                var topLevelOrScreenElement = rootElement.Element.Parent;
+                while (topLevelOrScreenElement is { Type: not VisualElementType.TopLevel and not VisualElementType.Screen, Parent: { } parent })
+                {
+                    topLevelOrScreenElement = parent;
+                }
+
+                if (topLevelOrScreenElement is not null)
+                {
+                    // Create a synthetic root element and build its Markdown
+                    var actualRootElement = new VisualElementNode(
+                        topLevelOrScreenElement,
+                        topLevelOrScreenElement.Type,
+                        null,
+                        0,
+                        null,
+                        ["(children omitted)"],
+                        8,
+                        0,
+                        true,
+                        false)
+                    {
+                        Children = { rootElement }
+                    };
+                    InternalBuildMarkdown(mdBuilder, actualRootElement, 0);
+                    continue;
+                }
+            }
+
+            InternalBuildMarkdown(mdBuilder, rootElement, 0);
+        }
+
+        return mdBuilder.TrimEnd().ToString();
+    }
+
+    /// <summary>
+    /// Internal recursive method to build Markdown for a visual element node.
+    /// Design principles:
+    /// - TopLevel/Screen: XML format with attributes
+    /// - Panel/Document with content: Markdown headers (# to ########, max 8 levels)
+    /// - Panel without content: skip, don't increase heading level
+    /// - Hyperlink: standard Markdown [text](url), no ID needed
+    /// - Interactive elements: &lt;type#id&gt; description
+    /// - Consecutive simple Labels: concatenate into a paragraph
+    /// - ListViewItem: use - prefix
+    /// </summary>
+    /// <param name="sb">The StringBuilder to append to.</param>
+    /// <param name="elementNode">The current element node to render.</param>
+    /// <param name="headingLevel">The current heading level (1-8 for containers).</param>
+    private void InternalBuildMarkdown(StringBuilder sb, VisualElementNode elementNode, int headingLevel)
+    {
+        var element = elementNode.Element;
+        var elementType = elementNode.Type;
+
+        // If not visible, skip this element's representation but render its children.
+        if (!elementNode.IsVisible && elementType is not VisualElementType.TopLevel and not VisualElementType.Screen)
+        {
+            foreach (var child in elementNode.Children.AsValueEnumerable().OrderBy(x => x.SiblingIndex))
+            {
+                InternalBuildMarkdown(sb, child, headingLevel);
+            }
+            return;
+        }
+
+        // TopLevel and Screen elements are rendered as XML for metadata preservation
+        if (elementType is VisualElementType.TopLevel or VisualElementType.Screen)
+        {
+            var id = BuiltVisualElements.Count + startingId;
+            BuiltVisualElements[id] = element;
+            BuildTopLevelXmlTag(sb, elementNode, id);
+            return;
+        }
+
+        // Check if this is a container that should become a heading
+        var isContainerType = elementType is
+            VisualElementType.Panel or
+            VisualElementType.Document or
+            VisualElementType.TabControl or
+            VisualElementType.ListView or
+            VisualElementType.TreeView;
+        var hasContainerContent = !string.IsNullOrEmpty(elementNode.Description) || elementNode.ContentLines.Count > 0;
+
+        if (isContainerType && hasContainerContent)
+        {
+            // Render as Markdown heading (max 8 levels)
+            var effectiveLevel = Math.Min(headingLevel + 1, 8);
+            var headerPrefix = new string('#', effectiveLevel);
+            var content = !string.IsNullOrEmpty(elementNode.Description) ? elementNode.Description : string.Join(" ", elementNode.ContentLines);
+
+            sb.AppendLine();
+            sb.Append(headerPrefix).Append(' ');
+
+            // For containers that need ID (like Document, TabControl, ListView)
+            if (ShouldIncludeId(detailLevel, elementType))
+            {
+                var id = BuiltVisualElements.Count + startingId;
+                BuiltVisualElements[id] = element;
+                sb.Append('<').Append(elementType).Append('#').Append(id).Append("> ");
+            }
+
+            sb.Append(EscapeMarkdown(TruncateDescription(content)));
+            if (elementNode.IsCoreElement) sb.Append(" ⭐");
+            sb.AppendLine();
+
+            // Render children with increased heading level
+            RenderChildrenWithLabelMerging(sb, elementNode, effectiveLevel);
+            return;
+        }
+
+        if (isContainerType && !hasContainerContent)
+        {
+            // Container without content: skip, don't increase heading level
+            foreach (var child in elementNode.Children.AsValueEnumerable().OrderBy(x => x.SiblingIndex))
+            {
+                InternalBuildMarkdown(sb, child, headingLevel);
+            }
+            return;
+        }
+
+        // Handle Hyperlink specially: use standard Markdown link format, no ID
+        if (elementType == VisualElementType.Hyperlink)
+        {
+            var linkText = !string.IsNullOrEmpty(elementNode.Description) ? elementNode.Description : "link";
+            var linkUrl = elementNode.ContentLines.Count > 0 ? elementNode.ContentLines[0] : "#";
+            sb.Append('[').Append(EscapeMarkdownLinkText(linkText)).Append("](").Append(linkUrl).Append(')').AppendLine();
+            // Hyperlinks typically don't have children, but handle just in case
+            RenderChildrenWithLabelMerging(sb, elementNode, headingLevel);
+            return;
+        }
+
+        // Handle ListViewItem/TreeViewItem with - prefix
+        if (elementType is VisualElementType.ListViewItem or VisualElementType.TreeViewItem or VisualElementType.DataGridItem)
+        {
+            var shortTag = GetShortTag(elementType);
+            var id = BuiltVisualElements.Count + startingId;
+            BuiltVisualElements[id] = element;
+            sb.Append("- <").Append(shortTag).Append('#').Append(id).Append("> ");
+            if (!string.IsNullOrEmpty(elementNode.Description))
+            {
+                sb.Append(EscapeMarkdown(elementNode.Description));
+            }
+            else if (elementNode.ContentLines.Count > 0)
+            {
+                sb.Append(EscapeMarkdown(string.Join(" ", elementNode.ContentLines)));
+            }
+            if (elementNode.IsCoreElement) sb.Append(" ⭐");
+            sb.AppendLine();
+
+            // Children of list items are indented
+            foreach (var child in elementNode.Children.AsValueEnumerable().OrderBy(x => x.SiblingIndex))
+            {
+                sb.Append("  "); // Indent for list item children
+                InternalBuildMarkdown(sb, child, headingLevel);
+            }
+            return;
+        }
+
+        // Handle other interactive elements
+        if (ShouldIncludeId(detailLevel, elementType))
+        {
+            var id = BuiltVisualElements.Count + startingId;
+            BuiltVisualElements[id] = element;
+
+            // Interactive element: <btn#3> description
+            var tag = GetShortTag(elementType) ?? elementType.ToString();
+            sb.Append('<').Append(tag).Append('#').Append(id).Append("> ");
+        }
+
+        // Add content
+        if (!string.IsNullOrEmpty(elementNode.Description))
+        {
+            sb.Append(EscapeMarkdown(TruncateDescription(elementNode.Description)));
+            if (elementNode.ContentLines.Count > 0)
+            {
+                sb.Append(": ").Append(EscapeMarkdown(string.Join(" ", elementNode.ContentLines)));
+            }
+        }
+        else if (elementNode.ContentLines.Count > 0)
+        {
+            sb.Append(EscapeMarkdown(string.Join(" ", elementNode.ContentLines)));
+        }
+
+        if (elementNode.IsCoreElement) sb.Append(" ⭐");
+
+        // Add position/size for detailed mode
+        if (ShouldIncludeBounds(detailLevel, elementType))
+        {
+            var bounds = element.BoundingRectangle;
+            sb.Append(" @").Append(bounds.X).Append(',').Append(bounds.Y)
+                .Append(' ').Append(bounds.Width).Append('x').Append(bounds.Height);
+        }
+
+        sb.AppendLine();
+
+        // Handle multi-line content (3+ lines) as code block
+        // if (elementNode.ContentLines.Count >= 3)
+        // {
+        //     sb.AppendLine("```");
+        //     foreach (var line in elementNode.ContentLines)
+        //     {
+        //         sb.AppendLine(line);
+        //     }
+        //     sb.AppendLine("```");
+        // }
+
+        // Render children
+        RenderChildrenWithLabelMerging(sb, elementNode, headingLevel);
+    }
+
+    /// <summary>
+    /// Renders children of a node, merging consecutive simple Labels into paragraphs.
+    /// </summary>
+    private void RenderChildrenWithLabelMerging(StringBuilder sb, VisualElementNode parentNode, int headingLevel)
+    {
+        var orderedChildren = parentNode.Children.AsValueEnumerable().OrderBy(x => x.SiblingIndex).ToList();
+        var labelBuffer = new List<string>();
+
+        foreach (var child in orderedChildren)
+        {
+            // Check if this is a simple Label (no children, has content, not interactive, not core)
+            if (IsSimpleLabel(child))
+            {
+                // Accumulate label content
+                var content = child.ContentLines.Count > 0 ? string.Join(" ", child.ContentLines) : child.Description ?? "";
+
+                if (string.IsNullOrEmpty(content)) continue;
+
+                if (child.IsCoreElement)
+                {
+                    // Core element labels get special treatment - flush buffer first
+                    FlushLabelBuffer(sb, labelBuffer);
+                    sb.Append(EscapeMarkdown(content)).Append(" ⭐").AppendLine();
+                }
+                else
+                {
+                    labelBuffer.Add(content);
+                }
+            }
+            else
+            {
+                // Non-label element: flush accumulated labels first
+                FlushLabelBuffer(sb, labelBuffer);
+                InternalBuildMarkdown(sb, child, headingLevel);
+            }
+        }
+
+        // Flush any remaining labels
+        FlushLabelBuffer(sb, labelBuffer);
+    }
+
+    /// <summary>
+    /// Checks if a node is a simple Label that can be merged with others.
+    /// </summary>
+    private static bool IsSimpleLabel(VisualElementNode node)
+    {
+        return node.Element.Type == VisualElementType.Label
+            && node.Children.Count == 0
+            && node is { IsVisible: true, IsCoreElement: false };
+    }
+
+    /// <summary>
+    /// Flushes accumulated label content as a single paragraph.
+    /// </summary>
+    private static void FlushLabelBuffer(StringBuilder sb, List<string> labelBuffer)
+    {
+        if (labelBuffer.Count == 0) return;
+
+        // Join labels without spaces (as requested)
+        foreach (var label in labelBuffer)
+        {
+            sb.Append(EscapeMarkdown(label));
+        }
+        sb.AppendLine();
+        labelBuffer.Clear();
+    }
+
+    /// <summary>
+    /// Builds XML opening and closing tags for TopLevel/Screen elements in Markdown output.
+    /// These elements retain full XML format to preserve important metadata (pid, processName, handle).
+    /// </summary>
+    private void BuildTopLevelXmlTag(StringBuilder sb, VisualElementNode elementNode, int id)
+    {
+        var element = elementNode.Element;
+        var elementType = element.Type;
+
+        // Build opening tag with all attributes
+        sb.Append('<').Append(elementType);
+        sb.Append(" id=\"").Append(id).Append('"');
+
+        if (elementNode.IsCoreElement)
+        {
+            sb.Append(" coreElement=\"true\"");
+        }
+
+        // Add bounds
+        var bounds = element.BoundingRectangle;
+        sb.Append(" pos=\"").Append(bounds.X).Append(',').Append(bounds.Y).Append('"');
+        sb.Append(" size=\"").Append(bounds.Width).Append('x').Append(bounds.Height).Append('"');
+
+        // For TopLevel, add process info
+        if (elementType == VisualElementType.TopLevel)
+        {
+            var processId = element.ProcessId;
+            if (processId > 0)
+            {
+                sb.Append(" pid=\"").Append(processId).Append('"');
+                try
+                {
+                    using var process = Process.GetProcessById(processId);
+                    sb.Append(" processName=\"").Append(SecurityElement.Escape(process.ProcessName)).Append('"');
+                }
+                catch
+                {
+                    // Ignore if process not found
+                }
+            }
+
+            var windowHandle = element.NativeWindowHandle;
+            if (windowHandle > 0)
+            {
+                sb.Append(" handle=\"0x").Append(windowHandle.ToString("X")).Append('"');
+            }
+        }
+
+        if (!string.IsNullOrEmpty(elementNode.Description))
+        {
+            sb.Append(" description=\"").Append(SecurityElement.Escape(TruncateDescription(elementNode.Description))).Append('"');
+        }
+
+        sb.Append('>').AppendLine();
+
+        // Render children starting at heading level 1
+        RenderChildrenWithLabelMerging(sb, elementNode, 0);
+
+        // Closing tag
+        sb.Append("</").Append(elementType).Append('>').AppendLine();
+    }
+
+    /// <summary>
+    /// Gets the short tag notation for interactive element types.
+    /// Returns null for elements that don't have a short tag.
+    /// </summary>
+    private static string? GetShortTag(VisualElementType type) => type switch
+    {
+        VisualElementType.Button => "btn",
+        VisualElementType.TextEdit => "edit",
+        VisualElementType.CheckBox => "chk",
+        VisualElementType.RadioButton => "radio",
+        VisualElementType.ComboBox => "sel",
+        VisualElementType.TabItem => "tab",
+        VisualElementType.MenuItem => "menu",
+        VisualElementType.ListViewItem => "item",
+        VisualElementType.TreeViewItem => "node",
+        VisualElementType.DataGridItem => "row",
+        VisualElementType.Slider => "slider",
+        _ => null
+    };
+
+    /// <summary>
+    /// Truncates description to a reasonable length for display.
+    /// </summary>
+    private static string TruncateDescription(string description, int maxLength = 80)
+    {
+        if (string.IsNullOrEmpty(description) || description.Length <= maxLength)
+            return description;
+        return description[..(maxLength - 3)] + "...";
+    }
+
+    /// <summary>
+    /// Escapes special Markdown characters in text to prevent formatting issues.
+    /// Only escapes characters that would significantly alter rendering.
+    /// </summary>
+    private static string EscapeMarkdown(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+
+        // Minimal escaping for LLM consumption - only escape critical characters
+        return text
+            .Replace("\\", "\\\\")
+            .Replace("`", "\\`")
+            .Replace("*", "\\*")
+            .Replace("_", "\\_")
+            .Replace("<", "\\<")
+            .Replace(">", "\\>");
+    }
+
+    /// <summary>
+    /// Escapes text for use in Markdown link text [text](url).
+    /// </summary>
+    private static string EscapeMarkdownLinkText(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+
+        return text
+            .Replace("\\", "\\\\")
+            .Replace("[", "\\[")
+            .Replace("]", "\\]");
+    }
 
     private static bool ShouldIncludeBounds(VisualTreeDetailLevel detailLevel, VisualElementType type) => detailLevel switch
     {
@@ -1057,7 +1521,7 @@ public partial class VisualTreeXmlBuilder(
     /// Propagates the information that a child is informative up the tree.
     /// This may cause ancestors to become active (rendered) if they meet the criteria for the current <see cref="detailLevel"/>.
     /// </summary>
-    private void PropagateInformativeUpdate(XmlVisualElement? parent, ref int accumulatedTokenCount)
+    private void PropagateInformativeUpdate(VisualElementNode? parent, ref int accumulatedTokenCount)
     {
         while (parent != null)
         {
@@ -1097,10 +1561,10 @@ public partial class VisualTreeXmlBuilder(
     }
 
     /// <summary>
-    /// Updates the <see cref="XmlVisualElement.IsVisible"/> state of an element based on the current <see cref="detailLevel"/>
+    /// Updates the <see cref="VisualElementNode.IsVisible"/> state of an element based on the current <see cref="detailLevel"/>
     /// and its informative status.
     /// </summary>
-    private void UpdateActivationState(XmlVisualElement element)
+    private void UpdateActivationState(VisualElementNode element)
     {
         // If it's self-informative, it's always active.
         if (element.IsSelfInformative)
@@ -1121,12 +1585,11 @@ public partial class VisualTreeXmlBuilder(
         element.IsVisible = shouldRender;
     }
 
-    private static bool ShouldKeepContainerForCompact(XmlVisualElement element)
+    private static bool ShouldKeepContainerForCompact(VisualElementNode element)
     {
         if (element.Parent is null) return element.InformativeChildCount > 0;
 
-        var type = element.Element.Type;
-        return type switch
+        return element.Type switch
         {
             VisualElementType.Screen or VisualElementType.TopLevel => element.InformativeChildCount > 1,
             VisualElementType.Document => element.InformativeChildCount > 0,
@@ -1135,7 +1598,7 @@ public partial class VisualTreeXmlBuilder(
         };
     }
 
-    private static bool ShouldKeepContainerForMinimal(XmlVisualElement element)
+    private static bool ShouldKeepContainerForMinimal(VisualElementNode element)
     {
         if (element.Parent is null)
         {

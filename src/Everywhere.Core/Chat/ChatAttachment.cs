@@ -36,10 +36,10 @@ public partial class ChatVisualElementAttachment : ChatAttachment
     public override LucideIconKind Icon { get; }
 
     /// <summary>
-    /// The XML representation of the visual element.
+    /// The text representation of the visual element.
     /// </summary>
     [Key(2)]
-    public string? Xml { get; set; }
+    public string? Content { get; set; }
 
     /// <summary>
     /// Ignore this property during serialization because it should already be converted into prompts and shouldn't appear in history.

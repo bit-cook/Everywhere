@@ -160,7 +160,7 @@ public sealed partial class ChatService(
                 () =>
                 {
                     // Build and populate the XML for visual elements.
-                    var builtVisualElements = VisualTreeXmlBuilder.BuildPopulateXml(
+                    var builtVisualElements = VisualTreeBuilder.BuildAndPopulate(
                         visualElementAttachments,
                         approximateTokenLimit,
                         chatContext.VisualElements.Count + 1,
