@@ -26,7 +26,6 @@ public partial class VisualElementContext
         protected IVisualElement? PickingElement { get; private set; }
 
         private readonly IReadOnlyList<ScreenSelectionMode> _allowedModes;
-        private readonly PixelRect _allScreenBounds;
 
         private bool _isRightButtonPressed;
         private IDisposable? _mouseHookSubscription;
@@ -42,18 +41,18 @@ public partial class VisualElementContext
 
             var allScreens = Screens.All;
             MaskWindows = new ScreenSelectionMaskWindow[allScreens.Count];
-            _allScreenBounds = new PixelRect();
+            var allScreenBounds = new PixelRect();
             for (var i = 0; i < allScreens.Count; i++)
             {
                 var screen = allScreens[i];
-                _allScreenBounds = _allScreenBounds.Union(screen.Bounds);
+                allScreenBounds = allScreenBounds.Union(screen.Bounds);
                 var maskWindow = new ScreenSelectionMaskWindow(screen.Bounds);
                 windowHelper.SetHitTestVisible(maskWindow, false);
                 MaskWindows[i] = maskWindow;
             }
 
             // Cover the entire virtual screen
-            SetPlacement(_allScreenBounds, out _);
+            SetPlacement(allScreenBounds, out _);
 
             ToolTipWindow = new ScreenSelectionToolTipWindow(allowedModes, initialMode);
             windowHelper.SetHitTestVisible(ToolTipWindow, false);
@@ -61,10 +60,6 @@ public partial class VisualElementContext
 
         protected override unsafe void OnPointerEntered(PointerEventArgs e)
         {
-            // Simulate a mouse left button down in the top-left corner of the window (8,8 to avoid the border)
-            var x = (_allScreenBounds.X + 8d) / _allScreenBounds.Width * 65535;
-            var y = (_allScreenBounds.Y + 8d) / _allScreenBounds.Height * 65535;
-
             // SendInput MouseRightButtonDown, this will:
             // 1. prevent the cursor from changing to the default arrow cursor and interacting with other windows
             // 2. Trigger the OnPointerPressed event to set the window to hit test invisible
@@ -78,9 +73,7 @@ public partial class VisualElementContext
                         {
                             mi = new MOUSEINPUT
                             {
-                                dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTDOWN | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
-                                dx = (int)x,
-                                dy = (int)y
+                                dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTDOWN
                             }
                         }
                     },
@@ -110,6 +103,11 @@ public partial class VisualElementContext
         {
             switch (msg)
             {
+                case WINDOW_MESSAGE.WM_RBUTTONDOWN:
+                {
+                    blockNext = true;
+                    break;
+                }
                 // Close the window and cancel selection on right button up (Exit the picking mode)
                 case WINDOW_MESSAGE.WM_RBUTTONUP:
                 {
@@ -224,22 +222,26 @@ public partial class VisualElementContext
             // right button down event (from SendInput) is not blocked and triggered OnPointerPressed
             // so currently system thinks right button is still pressed
             // we need to let the right button up event go through to avoid stuck right button state
-            PInvoke.SendInput(
-                new ReadOnlySpan<INPUT>(
-                [
-                    new INPUT
-                    {
-                        type = INPUT_TYPE.INPUT_MOUSE,
-                        Anonymous = new INPUT._Anonymous_e__Union
+            // Run it on a separate thread to avoid blocking the UI thread
+            Task.Run(() =>
+            {
+                PInvoke.SendInput(
+                    new ReadOnlySpan<INPUT>(
+                    [
+                        new INPUT
                         {
-                            mi = new MOUSEINPUT
+                            type = INPUT_TYPE.INPUT_MOUSE,
+                            Anonymous = new INPUT._Anonymous_e__Union
                             {
-                                dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP | MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE,
+                                mi = new MOUSEINPUT
+                                {
+                                    dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP
+                                }
                             }
-                        }
-                    },
-                ]),
-                sizeof(INPUT));
+                        },
+                    ]),
+                    sizeof(INPUT));
+            });
         }
 
         private void PickCursorElement()
