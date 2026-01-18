@@ -53,11 +53,34 @@ public abstract class KernelMixinBase(CustomAssistant customAssistant) : IKernel
         ["reasoning"] = true
     };
 
+    /// <summary>
+    /// Applies reasoning properties to the given dictionary. Indicating current chat message contains reasoning content.
+    /// </summary>
+    /// <param name="dictionary"></param>
+    /// <returns></returns>
     protected static AdditionalPropertiesDictionary ApplyReasoningProperties(AdditionalPropertiesDictionary? dictionary)
     {
         if (dictionary is null) return ReasoningProperties;
         dictionary["reasoning"] = true;
         return dictionary;
+    }
+
+    /// <summary>
+    /// Sets a customizable property's actual value into the extension data of the prompt execution settings if it has a custom value set.
+    /// </summary>
+    /// <param name="settings"></param>
+    /// <param name="customizable"></param>
+    /// <param name="propertyName"></param>
+    /// <typeparam name="T"></typeparam>
+    protected static void SetPromptExecutionSettingsExtensionData<T>(
+        PromptExecutionSettings settings,
+        Customizable<T> customizable,
+        string propertyName) where T : struct
+    {
+        if (!customizable.IsCustomValueSet) return;
+
+        settings.ExtensionData ??= new Dictionary<string, object>();
+        settings.ExtensionData[propertyName] = customizable.ActualValue;
     }
 
     /// <summary>
@@ -89,23 +112,5 @@ public abstract class KernelMixinBase(CustomAssistant customAssistant) : IKernel
     public virtual void Dispose()
     {
         GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// Sets a customizable property's actual value into the extension data of the prompt execution settings if it has a custom value set.
-    /// </summary>
-    /// <param name="settings"></param>
-    /// <param name="customizable"></param>
-    /// <param name="propertyName"></param>
-    /// <typeparam name="T"></typeparam>
-    protected static void SetPromptExecutionSettingsExtensionData<T>(
-        PromptExecutionSettings settings,
-        Customizable<T> customizable,
-        string propertyName) where T : struct
-    {
-        if (!customizable.IsCustomValueSet) return;
-
-        settings.ExtensionData ??= new Dictionary<string, object>();
-        settings.ExtensionData[propertyName] = customizable.ActualValue;
     }
 }

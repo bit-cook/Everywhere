@@ -529,13 +529,17 @@ public sealed partial class ChatService(
         }
 
         // Mark the reasoning as finished if we have any reasoning output.
-        if (chatSpan.ReasoningOutput is not null && chatSpan.ReasoningFinishedAt is null)
+        if (!chatSpan.ReasoningOutput.IsNullOrEmpty() && chatSpan.ReasoningFinishedAt is null)
         {
             chatSpan.ReasoningFinishedAt = DateTimeOffset.UtcNow;
         }
 
         // Finally, add the assistant message to the chat history.
-        if (assistantContentBuilder.Length > 0) chatHistory.AddAssistantMessage(assistantContentBuilder.ToString());
+        if (assistantContentBuilder.Length > 0)
+        {
+            // Don't forget to add reasoning content metadata.
+            chatHistory.AddMessage(AuthorRole.Assistant, assistantContentBuilder.ToString(), metadata: TryCreateReasoningMetadata(chatSpan));
+        }
 
         assistantChatMessage.InputTokenCount = inputTokenCount;
         assistantChatMessage.OutputTokenCount = outputTokenCount;
@@ -631,7 +635,10 @@ public sealed partial class ChatService(
                 chatSpan.AddFunctionCall(missingFunctionMessage);
 
                 // Add call message to the chat history.
-                var missingFunctionCallMessage = new ChatMessageContent(AuthorRole.Assistant, content: null);
+                var missingFunctionCallMessage = new ChatMessageContent(
+                    AuthorRole.Assistant,
+                    content: null,
+                    metadata: TryCreateReasoningMetadata(chatSpan));
                 missingFunctionCallMessage.Items.AddRange(functionCallContentGroup);
                 chatHistory.Add(missingFunctionCallMessage);
 
@@ -683,7 +690,10 @@ public sealed partial class ChatService(
             chatSpan.AddFunctionCall(functionCallChatMessage);
 
             // Add call message to the chat history.
-            var functionCallMessage = new ChatMessageContent(AuthorRole.Assistant, content: null);
+            var functionCallMessage = new ChatMessageContent(
+                AuthorRole.Assistant,
+                content: null,
+                metadata: TryCreateReasoningMetadata(chatSpan));
             chatHistory.Add(functionCallMessage);
 
             try
@@ -870,6 +880,14 @@ public sealed partial class ChatService(
 
         return resultContent;
     }
+
+    /// <summary>
+    /// Creates reasoning metadata if the reasoning content is not null or empty.
+    /// </summary>
+    /// <param name="span"></param>
+    /// <returns></returns>
+    private static Dictionary<string, object?>? TryCreateReasoningMetadata(AssistantChatMessageSpan span) =>
+        span.ReasoningOutput.IsNullOrEmpty() ? null : new Dictionary<string, object?> { { "reasoning_content", span.ReasoningOutput } };
 
     private async Task GenerateTitleAsync(
         IKernelMixin kernelMixin,

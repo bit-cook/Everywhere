@@ -54,7 +54,13 @@ public static class ChatHistoryBuilder
                     var span = assistant.Spans[spanIndex];
                     if (span.MarkdownBuilder.Length > 0)
                     {
-                        yield return new ChatMessageContent(AuthorRole.Assistant, span.MarkdownBuilder.ToString());
+                        var metadata = span.ReasoningOutput.IsNullOrEmpty() ?
+                            null :
+                            new Dictionary<string, object?>
+                            {
+                                { "reasoning_content", span.ReasoningOutput }
+                            };
+                        yield return new ChatMessageContent(AuthorRole.Assistant, span.MarkdownBuilder.ToString(), metadata: metadata);
                     }
 
                     // ReSharper disable once ForCanBeConvertedToForeach

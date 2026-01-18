@@ -3,10 +3,10 @@ using System.ClientModel.Primitives;
 using System.Reflection;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using OpenAI;
 using OpenAI.Chat;
+using ZLinq;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using FunctionCallContent = Microsoft.Extensions.AI.FunctionCallContent;
 using TextContent = Microsoft.Extensions.AI.TextContent;
@@ -18,7 +18,7 @@ namespace Everywhere.AI;
 /// <summary>
 /// An implementation of <see cref="IKernelMixin"/> for OpenAI models via Chat Completions.
 /// </summary>
-public sealed class OpenAIKernelMixin : KernelMixinBase
+public class OpenAIKernelMixin : KernelMixinBase
 {
     public override IChatCompletionService ChatCompletionService { get; }
 
@@ -44,9 +44,15 @@ public sealed class OpenAIKernelMixin : KernelMixinBase
     }
 
     /// <summary>
+    /// Hook called before sending a streaming chat request.
+    /// You can override this method to modify messages or options.
+    /// </summary>
+    protected virtual Task BeforeStreamingRequestAsync(IList<ChatMessage> messages, ChatOptions? options) => Task.CompletedTask;
+
+    /// <summary>
     /// optimized wrapper around MEAI's IChatClient to extract reasoning content from internal properties.
     /// </summary>
-    private sealed class OptimizedOpenAIApiClient(IChatClient client, OpenAIKernelMixin owner) : DelegatingChatClient(client)
+    private sealed class OptimizedOpenAIApiClient : DelegatingChatClient
     {
         private static readonly PropertyInfo? ChoicesProperty =
             typeof(StreamingChatCompletionUpdate).GetProperty("Choices", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -54,15 +60,45 @@ public sealed class OpenAIKernelMixin : KernelMixinBase
         private static PropertyInfo? _choiceIndexerProperty;
         private static PropertyInfo? _choiceDeltaProperty;
         private static PropertyInfo? _deltaPatchProperty;
+        private static Func<IEnumerable<ChatMessage>, ChatOptions?, IEnumerable<OpenAI.Chat.ChatMessage>>? _toOpenAIChatMessages;
+
+        private readonly OpenAIKernelMixin _owner;
+
+        /// <summary>
+        /// optimized wrapper around MEAI's IChatClient to extract reasoning content from internal properties.
+        /// </summary>
+        public OptimizedOpenAIApiClient(IChatClient client, OpenAIKernelMixin owner) : base(client)
+        {
+            _toOpenAIChatMessages ??=
+                client.GetType()
+                    .GetMethod("ToOpenAIChatMessages", BindingFlags.NonPublic | BindingFlags.Static)
+                    .NotNull("Failed to create hook for ToOpenAIChatMessages method. Make sure client is of type OpenAIChatClient.")
+                    .CreateDelegate<Func<IEnumerable<ChatMessage>, ChatOptions?, IEnumerable<OpenAI.Chat.ChatMessage>>>();
+
+            _owner = owner;
+        }
 
         public override async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
             IEnumerable<ChatMessage> messages,
             ChatOptions? options = null,
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
+            // snapshot messages for modification
+            var messagesList = messages.AsValueEnumerable().ToList();
+
+            // early convert to OpenAI chat messages and store raw representation
+            // so that we can modify them in BeforeStreamingRequestAsync if needed
+            var openAIMessages = _toOpenAIChatMessages!(messagesList, options);
+            foreach (var (original, openai) in messagesList.AsValueEnumerable().Zip(openAIMessages))
+            {
+                original.RawRepresentation = openai;
+            }
+
+            await _owner.BeforeStreamingRequestAsync(messagesList, options).ConfigureAwait(false);
+
             // cache the value to avoid property changes during enumeration
-            var isDeepThinkingSupported = owner.IsDeepThinkingSupported;
-            await foreach (var update in base.GetStreamingResponseAsync(messages, options, cancellationToken))
+            var isDeepThinkingSupported = _owner.IsDeepThinkingSupported;
+            await foreach (var update in base.GetStreamingResponseAsync(messagesList, options, cancellationToken))
             {
                 // Why you keep reasoning in the fucking internal properties, OpenAI???
                 if (isDeepThinkingSupported && update is { Text: not { Length: > 0 }, RawRepresentation: StreamingChatCompletionUpdate detail })
