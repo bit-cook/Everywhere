@@ -1997,4 +1997,7 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>Capture d'écran</value>
     </data>
+    <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
+        <value>DeepSeek</value>
+    </data>
 </root>

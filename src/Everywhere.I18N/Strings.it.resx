@@ -1997,4 +1997,7 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>Cattura schermo</value>
     </data>
+    <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
+        <value>DeepSeek</value>
+    </data>
 </root>

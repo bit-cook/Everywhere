@@ -1251,9 +1251,6 @@
     <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Header" xml:space="preserve">
         <value>擷取 UI 元素</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Header" xml:space="preserve">
-        <value>擷取全螢幕</value>
-    </data>
     <data name="Windows_BuiltInChatPlugin_Everything_SearchFiles_Header" xml:space="preserve">
         <value>透過 Everything 搜尋檔案</value>
     </data>
@@ -1376,12 +1373,6 @@
     </data>
     <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Description" xml:space="preserve">
         <value>捕捉視覺元素的螢幕截圖。</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Description" xml:space="preserve">
-        <value>捕捉整個螢幕的螢幕截圖。</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
-        <value>沒有可用的螢幕可供捕捉。</value>
     </data>
     <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">
         <value>執行網頁搜尋。</value>
@@ -1996,5 +1987,8 @@
     </data>
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>螢幕截圖</value>
+    </data>
+    <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
+        <value>DeepSeek</value>
     </data>
 </root>

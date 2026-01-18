@@ -1251,9 +1251,6 @@ Se pueden usar marcadores de posición en la palabra clave, que están contenido
     <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Header" xml:space="preserve">
         <value>Capturar Elemento de UI</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Header" xml:space="preserve">
-        <value>Capturar Pantalla Completa</value>
-    </data>
     <data name="Windows_BuiltInChatPlugin_Everything_SearchFiles_Header" xml:space="preserve">
         <value>Buscar Archivos con Everything</value>
     </data>
@@ -1376,12 +1373,6 @@ Se pueden usar marcadores de posición en la palabra clave, que están contenido
     </data>
     <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Description" xml:space="preserve">
         <value>Captura una captura de pantalla de un elemento visual.</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Description" xml:space="preserve">
-        <value>Captura una captura de pantalla de toda la pantalla.</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
-        <value>No hay pantalla disponible para capturar.</value>
     </data>
     <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">
         <value>Realiza una búsqueda en la web.</value>
@@ -1996,5 +1987,8 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     </data>
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>Captura de pantalla</value>
+    </data>
+    <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
+        <value>DeepSeek</value>
     </data>
 </root>

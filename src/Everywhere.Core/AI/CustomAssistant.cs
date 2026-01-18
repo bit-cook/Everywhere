@@ -490,7 +490,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
             OfficialWebsiteUrl = "https://www.deepseek.com",
             DarkIconUrl = "avares://Everywhere.Core/Assets/Icons/deepseek-color.svg",
             LightIconUrl = "avares://Everywhere.Core/Assets/Icons/deepseek-color.svg",
-            Schema = ModelProviderSchema.OpenAI,
+            Schema = ModelProviderSchema.DeepSeek,
             ModelDefinitions =
             [
                 new ModelDefinitionTemplate
