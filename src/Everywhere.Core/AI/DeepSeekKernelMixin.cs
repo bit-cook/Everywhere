@@ -27,7 +27,7 @@ public class DeepSeekKernelMixin(
     /// Apply reasoning content patch before sending the streaming chat request.
     /// </summary>
     /// <remarks>
-    /// As the official documentation states, we need set the "reasoningContent" field in the last assistant message
+    /// As the official documentation states, we need set the "reasoningContent" field in the **last** assistant message
     /// https://api-docs.deepseek.com/zh-cn/guides/thinking_mode
     /// </remarks>
     /// <param name="messages"></param>
@@ -38,12 +38,12 @@ public class DeepSeekKernelMixin(
         var lastAssistantMessage = messages.AsValueEnumerable().Where(m => m.Role == ChatRole.Assistant).LastOrDefault();
         if (lastAssistantMessage?.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage ||
             lastAssistantMessage.AdditionalProperties?.TryGetValue("reasoning_content", out var reasoningObj) is not true ||
-            reasoningObj is not string { Length: > 0 } reasoningContent) return base.BeforeStreamingRequestAsync(messages, options);
+            reasoningObj is not string { Length: > 0 } reasoningContent) return Task.CompletedTask;
 
         var patch = new JsonPatch();
         patch.Set("$.reasoning_content"u8.ToArray(), reasoningContent);
         chatMessage.Patch = patch;
 
-        return base.BeforeStreamingRequestAsync(messages, options);
+        return Task.CompletedTask;
     }
 }

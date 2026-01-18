@@ -45,9 +45,25 @@ public class OpenAIKernelMixin : KernelMixinBase
 
     /// <summary>
     /// Hook called before sending a streaming chat request.
-    /// You can override this method to modify messages or options.
     /// </summary>
-    protected virtual Task BeforeStreamingRequestAsync(IList<ChatMessage> messages, ChatOptions? options) => Task.CompletedTask;
+    protected virtual Task BeforeStreamingRequestAsync(IList<ChatMessage> messages, ChatOptions? options)
+    {
+        // If deep thinking is not supported, skip processing.
+        if (!_customAssistant.IsDeepThinkingSupported) return Task.CompletedTask;
+
+        foreach (var assistantMessage in messages.AsValueEnumerable().Where(m => m.Role == ChatRole.Assistant))
+        {
+            if (assistantMessage.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage ||
+                assistantMessage.AdditionalProperties?.TryGetValue("reasoning_content", out var reasoningObj) is not true ||
+                reasoningObj is not string { Length: > 0 } reasoningContent) continue;
+
+            var patch = new JsonPatch();
+            patch.Set("$.reasoning_content"u8.ToArray(), reasoningContent);
+            chatMessage.Patch = patch;
+        }
+
+        return Task.CompletedTask;
+    }
 
     /// <summary>
     /// optimized wrapper around MEAI's IChatClient to extract reasoning content from internal properties.
@@ -98,6 +114,15 @@ public class OpenAIKernelMixin : KernelMixinBase
 
             // cache the value to avoid property changes during enumeration
             var isDeepThinkingSupported = _owner.IsDeepThinkingSupported;
+            if (isDeepThinkingSupported)
+            {
+                options ??= new ChatOptions();
+                options.RawRepresentationFactory = _ => new ChatCompletionOptions
+                {
+                    ReasoningEffortLevel = ChatReasoningEffortLevel.Medium
+                };
+            }
+
             await foreach (var update in base.GetStreamingResponseAsync(messagesList, options, cancellationToken))
             {
                 // Why you keep reasoning in the fucking internal properties, OpenAI???
