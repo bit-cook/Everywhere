@@ -1,5 +1,5 @@
-﻿using Anthropic.SDK;
-using Anthropic.SDK.Messaging;
+﻿using Anthropic;
+using Anthropic.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -26,11 +26,13 @@ public sealed class AnthropicKernelMixin : KernelMixinBase
     /// </summary>
     public AnthropicKernelMixin(CustomAssistant customAssistant, HttpClient httpClient) : base(customAssistant)
     {
-        var messagesEndpoint = new AnthropicClient(new APIAuthentication(ApiKey), httpClient)
+        var anthropicClient = new AnthropicClient(new ClientOptions
         {
-            ApiUrlFormat = Endpoint + "/{0}/{1}"
-        }.Messages;
-        _client = new OptimizedChatClient(customAssistant, messagesEndpoint);
+            ApiKey = ApiKey,
+            HttpClient = httpClient,
+            BaseUrl = Endpoint
+        }).AsIChatClient(defaultModelId: ModelId);
+        _client = new OptimizedChatClient(customAssistant, anthropicClient);
         ChatCompletionService = _client.AsChatCompletionService();
     }
 
@@ -39,7 +41,7 @@ public sealed class AnthropicKernelMixin : KernelMixinBase
         _client.Dispose();
     }
 
-    private sealed class OptimizedChatClient(CustomAssistant customAssistant, MessagesEndpoint anthropicClient) : IChatClient
+    private sealed class OptimizedChatClient(CustomAssistant customAssistant, IChatClient anthropicClient) : DelegatingChatClient(anthropicClient)
     {
         private void BuildOptions(ref ChatOptions? options)
         {
@@ -56,32 +58,22 @@ public sealed class AnthropicKernelMixin : KernelMixinBase
             if (frequencyPenalty is not null) options.FrequencyPenalty = (float)frequencyPenalty.Value;
         }
 
-        public Task<ChatResponse> GetResponseAsync(
+        public override Task<ChatResponse> GetResponseAsync(
             IEnumerable<ChatMessage> messages,
             ChatOptions? options = null,
             CancellationToken cancellationToken = default)
         {
             BuildOptions(ref options);
-            return ((IChatClient)anthropicClient).GetResponseAsync(messages, options, cancellationToken);
+            return base.GetResponseAsync(messages, options, cancellationToken);
         }
 
-        public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
+        public override IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
             IEnumerable<ChatMessage> messages,
             ChatOptions? options = null,
             CancellationToken cancellationToken = default)
         {
             BuildOptions(ref options);
-            return ((IChatClient)anthropicClient).GetStreamingResponseAsync(messages, options, cancellationToken);
-        }
-
-        public object? GetService(Type serviceType, object? serviceKey = null)
-        {
-            return ((IChatClient)anthropicClient).GetService(serviceType, serviceKey);
-        }
-
-        public void Dispose()
-        {
-            ((IDisposable)anthropicClient).Dispose();
+            return base.GetStreamingResponseAsync(messages, options, cancellationToken);
         }
     }
 }

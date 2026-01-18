@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using Anthropic.SDK.Messaging;
+using Anthropic.Models.Messages;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.AI;
