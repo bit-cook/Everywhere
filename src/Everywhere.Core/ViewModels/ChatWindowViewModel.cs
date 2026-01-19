@@ -624,6 +624,12 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [RelayCommand]
+    private void OpenSettings()
+    {
+        WeakReferenceMessenger.Default.Send<ApplicationCommand>(new ShowWindowCommand(nameof(MainView)));
+    }
+
+    [RelayCommand]
     private void SwitchViewingHistory(object? value)
     {
         IsViewingHistory = Convert.ToBoolean(value);

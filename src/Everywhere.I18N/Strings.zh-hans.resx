@@ -2028,4 +2028,7 @@
     <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
         <value>DeepSeek</value>
     </data>
+    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_MoreSettings" xml:space="preserve">
+        <value>更多设置</value>
+    </data>
 </root>

@@ -2027,4 +2027,7 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
         <value>DeepSeek</value>
     </data>
+    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_MoreSettings" xml:space="preserve">
+        <value>More Settings</value>
+    </data>
 </root>
