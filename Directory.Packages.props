@@ -50,8 +50,8 @@
     <PackageVersion Include="System.Text.Json" Version="$(MicrosoftPackageVersion)" />
     <PackageVersion Include="ZLinq" Version="1.5.4" />
     <!-- AI packages -->
-    <PackageVersion Include="Anthropic" Version="12.2.0" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="$(MEAIVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="$(MEAIVersion)" />
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="$(MEAIVersion)-preview.1.26063.2" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.22.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="$(SemanticKernelVersion)" />

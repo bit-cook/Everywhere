@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using Anthropic.Models.Messages;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.AI;
@@ -450,13 +449,6 @@ public sealed partial class ChatService(
                             inputTokenCount = Math.Max(inputTokenCount, usageDetails.InputTokenCount ?? 0);
                             outputTokenCount = Math.Max(outputTokenCount, usageDetails.OutputTokenCount ?? 0);
                             totalTokenCount = Math.Max(totalTokenCount, usageDetails.TotalTokenCount ?? 0);
-                            break;
-                        }
-                        case Usage anthropicUsage:
-                        {
-                            inputTokenCount = Math.Max(inputTokenCount, anthropicUsage.InputTokens);
-                            outputTokenCount = Math.Max(outputTokenCount, anthropicUsage.OutputTokens);
-                            totalTokenCount = Math.Max(totalTokenCount, anthropicUsage.InputTokens + anthropicUsage.OutputTokens);
                             break;
                         }
                         case ChatTokenUsage openAIUsage:
