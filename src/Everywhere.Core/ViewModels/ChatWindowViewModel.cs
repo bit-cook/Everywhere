@@ -349,7 +349,7 @@ public sealed partial class ChatWindowViewModel :
                     {
                         var uri = storageItem.Path;
                         if (!uri.IsFile) break;
-                        await AddFileUncheckAsync(uri.AbsolutePath, "from clipboard, temporary filepath", cancellationToken);
+                        await AddFileUncheckAsync(uri.LocalPath, "from clipboard, temporary filepath", cancellationToken);
                         if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) break;
                     }
                 }
