@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Runtime.Versioning;
 using System.Text.Json.Serialization;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -79,6 +80,7 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
 #if WINDOWS
     [JsonIgnore]
     [HiddenSettingsItem]
+    [SupportedOSPlatform("windows")]
     public static bool IsAdministrator => NativeHelper.IsAdministrator;
 
     [JsonIgnore]
@@ -86,6 +88,7 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
         LocaleKey.CommonSettings_RestartAsAdministrator_Header,
         LocaleKey.CommonSettings_RestartAsAdministrator_Description)]
     [SettingsItem(IsVisibleBindingPath = $"!{nameof(IsAdministrator)}")]
+    [SupportedOSPlatform("windows")]
     public SettingsControl<RestartAsAdministratorControl> RestartAsAdministrator { get; } = new();
 
     [JsonIgnore]
@@ -93,6 +96,7 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
         LocaleKey.CommonSettings_IsStartupEnabled_Header,
         LocaleKey.CommonSettings_IsStartupEnabled_Description)]
     [SettingsItem(IsEnabledBindingPath = $"{nameof(IsAdministrator)} || !{nameof(IsAdministratorStartupEnabled)}")]
+    [SupportedOSPlatform("windows")]
     public bool IsStartupEnabled
     {
         get => NativeHelper.IsUserStartupEnabled || NativeHelper.IsAdministratorStartupEnabled;
@@ -131,6 +135,7 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
         LocaleKey.CommonSettings_IsAdministratorStartupEnabled_Header,
         LocaleKey.CommonSettings_IsAdministratorStartupEnabled_Description)]
     [SettingsItem(IsVisibleBindingPath = nameof(IsStartupEnabled), IsEnabledBindingPath = nameof(IsAdministrator))]
+    [SupportedOSPlatform("windows")]
     public bool IsAdministratorStartupEnabled
     {
         get => NativeHelper.IsAdministratorStartupEnabled;
