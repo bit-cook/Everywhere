@@ -226,15 +226,7 @@ public static class AnthropicClientExtensions
 
                         if (rawMessageStart.Message.Usage is { } usage)
                         {
-                            UsageDetails current = ToUsageDetails(usage);
-                            if (usageDetails is null)
-                            {
-                                usageDetails = current;
-                            }
-                            else
-                            {
-                                usageDetails.Add(current);
-                            }
+                            usageDetails = ToUsageDetails(usage);
                         }
                         break;
 
@@ -242,7 +234,51 @@ public static class AnthropicClientExtensions
                         finishReason = ToFinishReason(rawMessageDelta.Delta.StopReason);
                         if (rawMessageDelta.Usage is { } deltaUsage)
                         {
-                            usageDetails = ToUsageDetails(deltaUsage);
+                            UsageDetails current = ToUsageDetails(deltaUsage);
+                            if (usageDetails is null)
+                            {
+                                usageDetails = current;
+                            }
+                            else
+                            {
+                                usageDetails.InputTokenCount = Math.Max(
+                                    usageDetails.InputTokenCount ?? 0,
+                                    current.InputTokenCount ?? 0
+                                );
+                                usageDetails.OutputTokenCount = Math.Max(
+                                    usageDetails.OutputTokenCount ?? 0,
+                                    current.OutputTokenCount ?? 0
+                                );
+                                usageDetails.TotalTokenCount = Math.Max(
+                                    usageDetails.TotalTokenCount ?? 0,
+                                    current.TotalTokenCount ?? 0
+                                );
+                                usageDetails.CachedInputTokenCount = Math.Max(
+                                    usageDetails.CachedInputTokenCount ?? 0,
+                                    current.CachedInputTokenCount ?? 0
+                                );
+                                usageDetails.ReasoningTokenCount = Math.Max(
+                                    usageDetails.ReasoningTokenCount ?? 0,
+                                    current.ReasoningTokenCount ?? 0
+                                );
+
+                                if (usageDetails.AdditionalCounts is { } additionalCounts)
+                                {
+                                    if (current.AdditionalCounts is null)
+                                    {
+                                        current.AdditionalCounts = new(additionalCounts);
+                                    }
+                                    else
+                                    {
+                                        foreach (var kvp in additionalCounts)
+                                        {
+                                            current.AdditionalCounts[kvp.Key] = current.AdditionalCounts.TryGetValue(kvp.Key, out var existingValue) ?
+                                                Math.Max(existingValue, kvp.Value) :
+                                                kvp.Value;
+                                        }
+                                    }
+                                }
+                            }
                         }
                         break;
 
