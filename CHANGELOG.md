@@ -1,3 +1,24 @@
+## [v0.6.0](https://github.com/DearVa/Everywhere/releases/tag/v0.6.0) - 2026-01-21
+
+### ✨ Features
+- 🎉 **macOS Support**: Native macOS support is here! We have brought a complete experience almost identical to the Windows version.
+- Added "Selection Context" (Experimental): When enabled in settings, the selected text and its context will be automatically attached, providing better context understanding for translation and explanation tasks.
+- Added a button to open the Settings window directly from the Chat Window.
+
+### 🚀 Improvements
+- Improved encoding detection accuracy for the file reader tool.
+- Optimized prompts for the web search tool.
+
+### 🐛 Bug Fixes
+- Fixed broken support for DeepSeek reasoning models.
+- Fixed an issue where token usage statistics for Claude models were displayed incorrectly.
+- Fixed an issue where files could not be pasted correctly if the file path contained spaces.
+- Fixed an issue where the color picker in the assistant icon editor was unresponsive.
+
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.11...v0.6.0
+
+
+
 ## [v0.5.11](https://github.com/DearVa/Everywhere/releases/tag/v0.5.11) - 2026-01-12
 
 ### 🐛 Bug Fixes
