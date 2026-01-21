@@ -13,7 +13,7 @@ namespace Everywhere.Mac.Interop;
 /// </summary>
 public partial class AXUIElement : NSObject, IVisualElement
 {
-    public string Id => $"{ProcessId}.{NativeWindowHandle}.{CoreFoundationInterop.CFHash(Handle)}";
+    public string Id => $"{ProcessId}.{NativeWindowHandle}.{CFInterop.CFHash(Handle)}";
 
     public IVisualElement? Parent => field ??= GetAttributeAsElement(AXAttributeConstants.Parent);
 
@@ -23,12 +23,12 @@ public partial class AXUIElement : NSObject, IVisualElement
     {
         get
         {
-            var children = GetAttribute<NSArray>(AXAttributeConstants.Children);
+            using var children = GetAttribute<NSArray>(AXAttributeConstants.Children);
             if (children is null) yield break;
 
             for (nuint i = 0; i < children.Count; i++)
             {
-                if (children.GetItem<AXUIElement>(i) is { } child)
+                if (FromCopyArray(children, i) is { } child)
                 {
                     yield return child;
                 }
@@ -188,6 +188,21 @@ public partial class AXUIElement : NSObject, IVisualElement
         AXUIElementSetMessagingTimeout(SystemWide.Handle.Handle, 1f);
     }
 
+    /// <summary>
+    /// Create AXUIElement from NSArray at given index.
+    /// </summary>
+    /// <param name="array"></param>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    private static AXUIElement? FromCopyArray(NSArray array, nuint index)
+    {
+        var pValue = array.ValueAt(index);
+        if (pValue.Handle == 0) return null;
+
+        CFInterop.CFRetain(pValue);
+        return new AXUIElement(pValue.Handle);
+    }
+
     private AXUIElement(NativeHandle handle) : base(handle, true)
     {
         var axRole = GetAttribute<NSString>(AXAttributeConstants.Role);
@@ -222,7 +237,12 @@ public partial class AXUIElement : NSObject, IVisualElement
         throw new NotImplementedException();
     }
 
-    public string? GetSelectionText() => GetAttribute<NSString>(AXAttributeConstants.SelectedText);
+    /// <summary>
+    /// Get the selected text of the visual element.
+    /// In case of numeric input fields that return NSNumber, it will be converted to string.
+    /// </summary>
+    /// <returns></returns>
+    public string? GetSelectionText() => GetAttribute<NSObject>(AXAttributeConstants.SelectedText)?.ToString();
 
     public Task<Bitmap> CaptureAsync(CancellationToken cancellationToken)
     {
@@ -231,10 +251,12 @@ public partial class AXUIElement : NSObject, IVisualElement
         var windowId = NativeWindowHandle;
 
         // we use CGSHWCaptureWindowList because it can screenshot minimized windows, which CGWindowListCreateImage can't
+        // Use BestResolution to get physical pixel size (matches BackingScaleFactor). 
+        // NominalResolution returns 1x logical pixels which causes scaling mismatches when cropping with scale factor.
         using var cgImage = SkyLightInterop.HardwareCaptureWindowList(
             [(uint)windowId],
             SkyLightInterop.CGSWindowCaptureOptions.IgnoreGlobalCLipShape |
-            SkyLightInterop.CGSWindowCaptureOptions.NominalResolution |
+            SkyLightInterop.CGSWindowCaptureOptions.BestResolution |
             SkyLightInterop.CGSWindowCaptureOptions.FullSize);
 
         if (cgImage is null)
@@ -254,10 +276,48 @@ public partial class AXUIElement : NSObject, IVisualElement
         {
             var screen = NSScreen.Screens.FirstOrDefault(s => s.Frame.IntersectsWith(rect));
             var scale = screen?.BackingScaleFactor ?? 1.0;
+
+            var targetWidth = rect.Width * scale;
+            var targetHeight = rect.Height * scale;
+
+            // cgImage captures the window content starting at (0,0) in Window Local Coordinates.
+            // rect contains Screen Coordinates (including Dock/Menu bar offsets).
+            // To crop correctly, we must transform rect to Window-Relative coordinates.
+            double windowX = 0;
+            double windowY = 0;
+
+            // Try to find the parent window to get its screen position.
+            var windowRef = GetAttributeAsElement(AXAttributeConstants.Window);
+            if (windowRef != null)
+            {
+                var wRect = windowRef.BoundingRectangle;
+                windowX = wRect.X;
+                windowY = wRect.Y;
+            }
+            else if (Role == AXRoleAttribute.AXWindow)
+            {
+                // Fallback: if we are the window itself
+                windowX = rect.X;
+                windowY = rect.Y;
+            }
+
+            // Check if captured image approximately matches target size (allowing for rounding/shadows).
+            // If it matches, we assume full window capture and start at 0,0.
+            bool isFullWindow = cgImage.Width >= targetWidth - 2 && cgImage.Width <= targetWidth + 100;
+
+            // If full window, offset is 0. 
+            // If partial (element inside window), offset is (ElementScreenPos - WindowScreenPos).
+            var cropX = isFullWindow ? 0 : (rect.X - windowX) * scale;
+            var cropY = isFullWindow ? 0 : (rect.Y - windowY) * scale;
+
+            // Clamp invalid values
+            if (cropX < 0) cropX = 0;
+            if (cropY < 0) cropY = 0;
+
             using var croppedImage = cgImage.WithImageInRect(
                 new CGRect(
-                    rect.X * scale,
-                    rect.Y * scale,
+                    cropX,
+                    cropY,
                     rect.Width * scale,
                     rect.Height * scale));
 
@@ -280,6 +340,12 @@ public partial class AXUIElement : NSObject, IVisualElement
         return Task.FromResult(new Bitmap(data.AsStream()));
     }
 
+    public bool SetAttribute(NSString attributeName, NSObject value)
+    {
+        var error = SetAttributeValue(Handle, attributeName.Handle, value.Handle);
+        return error == AXError.Success;
+    }
+
     public override bool Equals(object? obj)
     {
         return obj is AXUIElement element && CFType.Equal(Handle, element.Handle);
@@ -287,7 +353,7 @@ public partial class AXUIElement : NSObject, IVisualElement
 
     public override int GetHashCode()
     {
-        return CoreFoundationInterop.CFHash(Handle).GetHashCode();
+        return CFInterop.CFHash(Handle).GetHashCode();
     }
 
     #region Helpers
@@ -295,7 +361,7 @@ public partial class AXUIElement : NSObject, IVisualElement
     private T? GetAttribute<T>(NSString attributeName) where T : NSObject
     {
         var error = CopyAttributeValue(Handle, attributeName.Handle, out var value);
-        return error == AXError.Success ? Runtime.GetNSObject<T>(value) : null;
+        return error == AXError.Success && value != 0 ? Runtime.GetNSObject<T>(value, owns: true) : null;
     }
 
     private AXUIElement? GetAttributeAsElement(NSString attributeName)
@@ -401,7 +467,7 @@ public partial class AXUIElement : NSObject, IVisualElement
             var count = (nint)siblings.Count;
             for (var i = _index + 1; i < count; i++)
             {
-                if (siblings.GetItem<AXUIElement>((nuint)i) is { } sibling)
+                if (FromCopyArray(siblings, (nuint)i) is { } sibling)
                 {
                     yield return sibling;
                 }
@@ -414,7 +480,7 @@ public partial class AXUIElement : NSObject, IVisualElement
 
             for (var i = _index - 1; i >= 0; i--)
             {
-                if (siblings.GetItem<AXUIElement>((nuint)i) is { } sibling)
+                if (FromCopyArray(siblings, (nuint)i) is { } sibling)
                 {
                     yield return sibling;
                 }

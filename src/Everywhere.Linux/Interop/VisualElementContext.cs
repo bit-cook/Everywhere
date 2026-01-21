@@ -15,10 +15,9 @@ namespace Everywhere.Linux.Interop;
 public partial class VisualElementContext(
     IWindowBackend backend,
     ILogger<VisualElementContext> logger
-)
-    : IVisualElementContext
+) : IVisualElementContext
 {
-    public IVisualElement? KeyboardFocusedElement
+    public IVisualElement? FocusedElement
     {
         get
         {

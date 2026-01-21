@@ -67,7 +67,7 @@ public class ScreenSelectionToolTip(IEnumerable<ScreenSelectionMode> allowedMode
 
         DynamicResourceKey key;
         var elementTypeKey = new DynamicResourceKey($"VisualElementType_{element.Type}");
-        if (element.ProcessId != 0)
+        if (element.ProcessId > 0)
         {
             if (!_processNameCache.TryGetValue(element.ProcessId, out var processName))
             {

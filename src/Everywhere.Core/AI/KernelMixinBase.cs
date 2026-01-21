@@ -1,4 +1,5 @@
 ﻿using Everywhere.Common;
+using Everywhere.Configuration;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -52,6 +53,11 @@ public abstract class KernelMixinBase(CustomAssistant customAssistant) : IKernel
         ["reasoning"] = true
     };
 
+    /// <summary>
+    /// Applies reasoning properties to the given dictionary. Indicating current chat message contains reasoning content.
+    /// </summary>
+    /// <param name="dictionary"></param>
+    /// <returns></returns>
     protected static AdditionalPropertiesDictionary ApplyReasoningProperties(AdditionalPropertiesDictionary? dictionary)
     {
         if (dictionary is null) return ReasoningProperties;
@@ -59,7 +65,41 @@ public abstract class KernelMixinBase(CustomAssistant customAssistant) : IKernel
         return dictionary;
     }
 
-    public abstract PromptExecutionSettings? GetPromptExecutionSettings(FunctionChoiceBehavior? functionChoiceBehavior = null);
+    /// <summary>
+    /// Sets a customizable property's actual value into the extension data of the prompt execution settings if it has a custom value set.
+    /// </summary>
+    /// <param name="settings"></param>
+    /// <param name="customizable"></param>
+    /// <param name="propertyName"></param>
+    /// <typeparam name="T"></typeparam>
+    protected static void SetPromptExecutionSettingsExtensionData<T>(
+        PromptExecutionSettings settings,
+        Customizable<T> customizable,
+        string propertyName) where T : struct
+    {
+        if (!customizable.IsCustomValueSet) return;
+
+        settings.ExtensionData ??= new Dictionary<string, object>();
+        settings.ExtensionData[propertyName] = customizable.ActualValue;
+    }
+
+    /// <summary>
+    /// Default implementation includes temperature and top_p from the custom assistant.
+    /// </summary>
+    /// <param name="functionChoiceBehavior"></param>
+    /// <returns></returns>
+    public virtual PromptExecutionSettings GetPromptExecutionSettings(FunctionChoiceBehavior? functionChoiceBehavior = null)
+    {
+        var result = new PromptExecutionSettings
+        {
+            FunctionChoiceBehavior = functionChoiceBehavior
+        };
+
+        SetPromptExecutionSettingsExtensionData(result, _customAssistant.Temperature, "temperature");
+        SetPromptExecutionSettingsExtensionData(result, _customAssistant.TopP, "top_p");
+
+        return result;
+    }
 
     public Task CheckConnectivityAsync(CancellationToken cancellationToken = default) => ChatCompletionService.GetChatMessageContentAsync(
         [
@@ -69,5 +109,8 @@ public abstract class KernelMixinBase(CustomAssistant customAssistant) : IKernel
         GetPromptExecutionSettings(),
         cancellationToken: cancellationToken);
 
-    public virtual void Dispose() { }
+    public virtual void Dispose()
+    {
+        GC.SuppressFinalize(this);
+    }
 }

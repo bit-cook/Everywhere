@@ -1,16 +1,12 @@
-﻿using System.Collections.Immutable;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Text;
 using System.Text.Json.Serialization;
-using Avalonia.Controls.Documents;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
-using Everywhere.Serialization;
 using LiveMarkdown.Avalonia;
 using Lucide.Avalonia;
 using MessagePack;
@@ -311,35 +307,25 @@ public sealed partial class AssistantChatMessageSpan : ObservableObject, IDispos
 }
 
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public partial class UserChatMessage(string userPrompt, IEnumerable<ChatAttachment> attachments) : ChatMessage, IChatMessageWithAttachments
+public partial class UserChatMessage(string content, IEnumerable<ChatAttachment> attachments) : ChatMessage, IChatMessageWithAttachments
 {
     public override AuthorRole Role => AuthorRole.User;
 
     /// <summary>
     /// The actual prompt that sends to the LLM.
+    /// Including attachments converted prompts that are invisible to the user.
     /// </summary>
     [Key(0)]
-    public string UserPrompt { get; set; } = userPrompt;
+    [ObservableProperty]
+    public partial string Content { get; set; } = content;
 
     [Key(1)]
     public IEnumerable<ChatAttachment> Attachments { get; set; } = attachments;
 
-    /// <summary>
-    /// The inlines that display in the chat message.
-    /// </summary>
-    public InlineCollection Inlines { get; } = new();
-
-    [Key(2)]
-    private IEnumerable<MessagePackInline> MessagePackInlines
-    {
-        get => Dispatcher.UIThread.InvokeOnDemand(() => Inlines.Select(MessagePackInline.FromInline).ToImmutableArray());
-        set => Dispatcher.UIThread.InvokeOnDemand(() => Inlines.Reset(value.Select(i => i.ToInline())));
-    }
-
     [Key(3)]
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
-    public override string ToString() => UserPrompt;
+    public override string ToString() => Content;
 }
 
 /// <summary>

@@ -5,6 +5,7 @@ using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
 using Everywhere.I18N;
+using Everywhere.Interop;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -19,16 +20,19 @@ public class ZshPlugin : BuiltInChatPlugin
 
     public override LucideIconKind? Icon => LucideIconKind.SquareTerminal;
 
+    private readonly IWatchdogManager _watchdogManager;
     private readonly ILogger<ZshPlugin> _logger;
 
-    public ZshPlugin(ILogger<ZshPlugin> logger) : base("zsh")
+    public ZshPlugin(IWatchdogManager watchdogManager, ILogger<ZshPlugin> logger) : base("zsh")
     {
+        _watchdogManager = watchdogManager;
         _logger = logger;
 
         _functionsSource.Add(
             new NativeChatFunction(
                 ExecuteScriptAsync,
-                ChatFunctionPermissions.ShellExecute));
+                ChatFunctionPermissions.ShellExecute,
+                isExperimental: true));
     }
 
     [KernelFunction("execute_script")]
@@ -101,21 +105,32 @@ public class ZshPlugin : BuiltInChatPlugin
                 throw new SystemException("Failed to start Zsh script execution process.");
             }
 
-            await process.StandardInput.WriteAsync(script);
-            process.StandardInput.Close();
+            var processId = process.Id;
+            await _watchdogManager.RegisterProcessAsync(processId);
+            cancellationToken.Register(() => _watchdogManager.UnregisterProcessAsync(processId));
 
-            result = await process.StandardOutput.ReadToEndAsync(cancellationToken);
-            var errorOutput = await process.StandardError.ReadToEndAsync(cancellationToken);
-
-            await process.WaitForExitAsync(cancellationToken);
-            if (process.ExitCode != 0)
+            try
             {
-                throw new HandledException(
-                    new SystemException($"Zsh script execution failed: {errorOutput}"),
-                    new FormattedDynamicResourceKey(
-                        LocaleKey.MacOS_BuiltInChatPlugin_Zsh_ExecuteScript_ErrorMessage,
-                        new DirectResourceKey(errorOutput)),
-                    showDetails: false);
+                await process.StandardInput.WriteAsync(script);
+                process.StandardInput.Close();
+
+                result = await process.StandardOutput.ReadToEndAsync(cancellationToken);
+                var errorOutput = await process.StandardError.ReadToEndAsync(cancellationToken);
+
+                await process.WaitForExitAsync(cancellationToken);
+                if (process.ExitCode != 0)
+                {
+                    throw new HandledException(
+                        new SystemException($"Zsh script execution failed: {errorOutput}"),
+                        new FormattedDynamicResourceKey(
+                            LocaleKey.MacOS_BuiltInChatPlugin_Zsh_ExecuteScript_ErrorMessage,
+                            new DirectResourceKey(errorOutput)),
+                        showDetails: false);
+                }
+            }
+            finally
+            {
+                await _watchdogManager.UnregisterProcessAsync(processId);
             }
         }
 

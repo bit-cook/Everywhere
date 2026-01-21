@@ -1,16 +1,22 @@
+using Avalonia.Threading;
 using Everywhere.Interop;
 
 namespace Everywhere.Mac.Interop;
 
-public partial class VisualElementContext
+partial class VisualElementContext
 {
     private class PickerSession : ScreenSelectionSession
     {
-        public static Task<IVisualElement?> PickAsync(IWindowHelper windowHelper, ScreenSelectionMode mode)
+        private static ScreenSelectionMode _previousMode = ScreenSelectionMode.Element;
+
+        public static async Task<IVisualElement?> PickAsync(IWindowHelper windowHelper, ScreenSelectionMode? initialMode)
         {
-            var window = new PickerSession(windowHelper, mode);
+            // Give time to hide other windows
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Background);
+
+            var window = new PickerSession(windowHelper, initialMode ?? _previousMode);
             window.Show();
-            return window._pickingPromise.Task;
+            return await window._pickingPromise.Task;
         }
 
         private readonly TaskCompletionSource<IVisualElement?> _pickingPromise = new();
@@ -25,6 +31,7 @@ public partial class VisualElementContext
 
         protected override void OnClosed(EventArgs e)
         {
+            _previousMode = CurrentMode;
             _pickingPromise.TrySetResult(SelectedElement);
             base.OnClosed(e);
         }

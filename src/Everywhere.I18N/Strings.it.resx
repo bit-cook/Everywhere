@@ -692,12 +692,6 @@
     <data name="ChatPluginPage_TabItem_Functions_Header" xml:space="preserve">
         <value>Funzioni</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_Header" xml:space="preserve">
-        <value>Albero Visivo</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_Description" xml:space="preserve">
-        <value>Fornisce la capacità di percepire e manipolare gli elementi dell'interfaccia utente sullo schermo.</value>
-    </data>
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>Visualizza su GitHub</value>
     </data>
@@ -1254,14 +1248,11 @@ Nel prompt possono essere utilizzati segnaposto, racchiusi in {}, che verranno s
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ScriptConsent_Header" xml:space="preserve">
         <value>Il seguente script PowerShell verrà eseguito</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Header" xml:space="preserve">
         <value>Cattura Elemento UI</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Header" xml:space="preserve">
         <value>Cattura Schermo Intero</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Header" xml:space="preserve">
-        <value>Opera su elementi UI</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_Everything_SearchFiles_Header" xml:space="preserve">
         <value>Cerca File tramite Everything</value>
@@ -1383,16 +1374,13 @@ Nel prompt possono essere utilizzati segnaposto, racchiusi in {}, che verranno s
     <data name="BuiltInChatPlugin_FileSystem_EnsureFileSystemInfo_PathNotExist_ErrorMessage" xml:space="preserve">
         <value>Il percorso specificato non esiste.</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Description" xml:space="preserve">
         <value>Cattura uno screenshot di un elemento visivo.</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Description" xml:space="preserve">
         <value>Cattura uno screenshot dell'intero schermo.</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Description" xml:space="preserve">
-        <value>Esegui un insieme di azioni di automazione UI come cliccare, digitare o inviare scorciatoie.</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
         <value>Nessuno schermo disponibile da catturare.</value>
     </data>
     <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">
@@ -2008,5 +1996,8 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     </data>
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>Cattura schermo</value>
+    </data>
+    <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
+        <value>DeepSeek</value>
     </data>
 </root>

@@ -28,6 +28,17 @@ public static partial class PermissionHelper
         Environment.Exit(0);
     }
 
+    /// <summary>
+    /// Requests screen recording permission by attempting to capture a minimal portion of the screen.
+    /// https://stackoverflow.com/questions/59337022/enabling-screen-recording-api-in-catalina-kcgwindowname
+    /// </summary>
+    public static void RequestForScreenRecordingPermission()
+    {
+#pragma warning disable CA1422
+        using var _ = CGImage.ScreenImage(0, new CGRect(0, 0, 1, 1), CGWindowListOption.OnScreenOnly, CGWindowImageOption.Default);
+#pragma warning restore CA1422
+    }
+
     // ReSharper disable once InconsistentNaming
     private static bool AXIsProcessTrustedWithOptions(NSDictionary options)
     {

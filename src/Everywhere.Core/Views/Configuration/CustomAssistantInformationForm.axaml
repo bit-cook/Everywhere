@@ -37,6 +37,7 @@
               shadui:ControlAssist.Label="{I18N {x:Static LocaleKey.CustomAssistant_Name_Header}}"
               MaxLength="32"
               Text="{Binding CustomAssistant.Name, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=''}"
+              ToolTip.Placement="Bottom"
               ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_Name_Description}}"
               Watermark="{I18N {x:Static LocaleKey.CustomAssistant_Name_Description}}"/>
 
@@ -46,7 +47,7 @@
               AcceptsReturn="True" MaxLength="4096"
               MaxLines="4" MinLines="2"
               Text="{Binding CustomAssistant.Description, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=''}"
-              TextWrapping="Wrap"
+              TextWrapping="Wrap" ToolTip.Placement="Bottom"
               ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_Description_Description}}"
               Watermark="{I18N {x:Static LocaleKey.CustomAssistant_Description_Description}}"/>
           </StackPanel>

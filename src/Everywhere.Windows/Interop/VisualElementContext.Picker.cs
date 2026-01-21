@@ -40,7 +40,7 @@ public partial class VisualElementContext
             base.OnClosed(e);
 
             _previousMode = CurrentMode;
-            _pickingPromise.TrySetResult(SelectedElement);
+            _pickingPromise.TrySetResult(PickingElement);
         }
     }
 }

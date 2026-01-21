@@ -144,20 +144,6 @@ public partial class CustomAssistant : ObservableValidator
     [SettingsDoubleItem(Min = 0.0, Max = 1.0, Step = 0.1)]
     public partial Customizable<double> TopP { get; set; } = 0.9;
 
-    [ObservableProperty]
-    [DynamicResourceKey(
-        LocaleKey.CustomAssistant_PresencePenalty_Header,
-        LocaleKey.CustomAssistant_PresencePenalty_Description)]
-    [SettingsDoubleItem(Min = -2.0, Max = 2.0, Step = 0.1)]
-    public partial Customizable<double> PresencePenalty { get; set; } = 0.0;
-
-    [ObservableProperty]
-    [DynamicResourceKey(
-        LocaleKey.CustomAssistant_FrequencyPenalty_Header,
-        LocaleKey.CustomAssistant_FrequencyPenalty_Description)]
-    [SettingsDoubleItem(Min = -2.0, Max = 2.0, Step = 0.1)]
-    public partial Customizable<double> FrequencyPenalty { get; set; } = 0.0;
-
     private readonly OfficialModelProviderConfigurator _officialConfigurator;
     private readonly PresetBasedModelProviderConfigurator _presetBasedConfigurator;
     private readonly AdvancedModelProviderConfigurator _advancedConfigurator;
@@ -504,7 +490,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
             OfficialWebsiteUrl = "https://www.deepseek.com",
             DarkIconUrl = "avares://Everywhere.Core/Assets/Icons/deepseek-color.svg",
             LightIconUrl = "avares://Everywhere.Core/Assets/Icons/deepseek-color.svg",
-            Schema = ModelProviderSchema.OpenAI,
+            Schema = ModelProviderSchema.DeepSeek,
             ModelDefinitions =
             [
                 new ModelDefinitionTemplate

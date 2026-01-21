@@ -315,7 +315,9 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         RemoveCommand.NotifyCanExecuteChanged();
     }
 
-    [RelayCommand]
+    public bool CanRemoveSelected => LoadedMetadata.AsValueEnumerable().Any(m => m.IsSelected);
+
+    [RelayCommand(CanExecute = nameof(CanRemoveSelected))]
     private async Task RemoveSelectedAsync(CancellationToken cancellationToken)
     {
         foreach (var metadata in LoadedMetadata.AsValueEnumerable().Where(m => m.IsSelected).ToList())

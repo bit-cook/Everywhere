@@ -87,3 +87,25 @@ CommandLineToArgv
 LocalFree
 
 LoadUserProfile
+
+OpenProcess
+QueryFullProcessImageName
+LoadCursor
+IDC_IBEAM
+IDC_ARROW
+IDC_HAND
+GetCursorInfo
+GlobalAlloc
+GlobalLock
+GlobalUnlock
+RegisterClipboardFormat
+EmptyClipboard
+SetClipboardData
+GetClipboardSequenceNumber
+EnumClipboardFormats
+GlobalSize
+SHQueryUserNotificationState
+
+PeekMessage
+PostThreadMessage
+WM_USER

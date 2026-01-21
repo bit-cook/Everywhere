@@ -1,4 +1,7 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Interactivity;
 using Everywhere.Interop;
 using Everywhere.Views;
 using ObjCRuntime;
@@ -7,6 +10,62 @@ namespace Everywhere.Mac.Interop;
 
 public class WindowHelper : IWindowHelper
 {
+    private int OpenedWindowCount
+    {
+        get;
+        set
+        {
+            value = Math.Max(0, value);
+            if (value == field) return;
+
+            // changing activation policy
+            if (field == 0)
+            {
+                // first window opened
+                AppDelegate.IsVisibleInDock = true;
+            }
+            else if (value == 0)
+            {
+                // last window closed
+                AppDelegate.IsVisibleInDock = false;
+            }
+
+            field = value;
+        }
+    }
+
+    private bool IsChatWindowCloaked
+    {
+        set
+        {
+            if (value == field) return;
+            field = value;
+            if (value) OpenedWindowCount--;
+            else OpenedWindowCount++;
+        }
+    }
+
+    public WindowHelper()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            OpenedWindowCount = desktop.Windows.Count;
+        }
+
+        Window.WindowOpenedEvent.AddClassHandler<Window>(HandleWindowOpened, handledEventsToo: true);
+        Window.WindowClosedEvent.AddClassHandler<Window>(HandleWindowClosed, handledEventsToo: true);
+    }
+
+    private void HandleWindowOpened(Window window, RoutedEventArgs args)
+    {
+        if (window is TransientWindow) OpenedWindowCount++;
+    }
+
+    private void HandleWindowClosed(Window window, RoutedEventArgs args)
+    {
+        if (window is TransientWindow) OpenedWindowCount--;
+    }
+
     /// <summary>
     /// Sets whether the window can become the key window (i.e., receive keyboard focus).
     /// </summary>
@@ -29,6 +88,15 @@ public class WindowHelper : IWindowHelper
 
         // This is the direct equivalent of WS_EX_TRANSPARENT on Windows.
         nativeWindow.IgnoresMouseEvents = !visible;
+
+        // Special handling to ensure it remains interactive in full screen mode.
+        nativeWindow.CollectionBehavior |=
+            NSWindowCollectionBehavior.CanJoinAllSpaces |
+            NSWindowCollectionBehavior.FullScreenAuxiliary;
+        nativeWindow.CollectionBehavior &=
+            ~(NSWindowCollectionBehavior.FullScreenPrimary |
+                NSWindowCollectionBehavior.Managed);
+        nativeWindow.Level = NSWindowLevel.ScreenSaver;
     }
 
     /// <summary>
@@ -63,22 +131,21 @@ public class WindowHelper : IWindowHelper
         if (window is ChatWindow)
         {
             // For ChatWindow, we might want to ensure it can appear on all spaces and in full screen mode.
-            nativeWindow.CollectionBehavior |=
+            nativeWindow.Level = NSWindowLevel.Floating;
+            nativeWindow.CollectionBehavior =
                 NSWindowCollectionBehavior.CanJoinAllSpaces |
-                NSWindowCollectionBehavior.FullScreenAuxiliary |
-                NSWindowCollectionBehavior.FullScreenDisallowsTiling |
-                NSWindowCollectionBehavior.Auxiliary;
-            nativeWindow.CollectionBehavior &=
-                ~(NSWindowCollectionBehavior.FullScreenPrimary |
-                    NSWindowCollectionBehavior.Managed);
-            nativeWindow.Level = NSWindowLevel.MainMenu;
+                NSWindowCollectionBehavior.FullScreenAuxiliary;
+
+            // Chat window will not be closed, so hide/show is treated as close/open for counting purposes.
+            IsChatWindowCloaked = cloaked;
         }
 
         if (cloaked)
         {
             // Hide the window and ensure it's not in the window cycle (Cmd+Tab).
             nativeWindow.CollectionBehavior |= NSWindowCollectionBehavior.IgnoresCycle;
-            
+
+            // Animate the hiding to avoid flicker
             NSAnimationContext.BeginGrouping();
             NSAnimationContext.CurrentContext.Duration = 0;
             window.Hide();
@@ -92,14 +159,9 @@ public class WindowHelper : IWindowHelper
             nativeWindow.MakeKeyAndOrderFront(null);
 
             // Make sure it gets an input focus.
-            if (OperatingSystem.IsMacOSVersionAtLeast(14))
-            {
-                NSApplication.SharedApplication.Activate();
-            }
-            else
-            {
-                NSApplication.SharedApplication.ActivateIgnoringOtherApps(true);
-            }
+#pragma warning disable CA1422
+            NSApplication.SharedApplication.ActivateIgnoringOtherApps(true);
+#pragma warning restore CA1422
         }
     }
 

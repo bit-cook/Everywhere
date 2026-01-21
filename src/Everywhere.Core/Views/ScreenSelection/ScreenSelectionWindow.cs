@@ -20,6 +20,7 @@ public abstract class ScreenSelectionWindow : Window
         CanMaximize = false;
         CanMinimize = false;
         ShowInTaskbar = false;
+        BorderThickness = new Thickness(0);
         WindowStartupLocation = WindowStartupLocation.Manual;
     }
 }

@@ -29,17 +29,17 @@ public record ModelDefinitionTemplate
     /// <summary>
     /// Indicates whether the model supports image input capabilities.
     /// </summary>
-    public bool IsImageInputSupported { get; set; } = false;
+    public bool IsImageInputSupported { get; set; }
 
     /// <summary>
     /// Indicates whether the model supports function calling capabilities.
     /// </summary>
-    public bool IsFunctionCallingSupported { get; set; } = false;
+    public bool IsFunctionCallingSupported { get; set; }
 
     /// <summary>
     /// Indicates whether the model supports tool calls.
     /// </summary>
-    public bool IsDeepThinkingSupported { get; set; } = false;
+    public bool IsDeepThinkingSupported { get; set; }
 
     /// <summary>
     /// Maximum number of tokens that the model can process in a single request.

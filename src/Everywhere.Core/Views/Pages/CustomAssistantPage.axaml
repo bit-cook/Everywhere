@@ -31,11 +31,12 @@
         Classes="Draggable" Padding="0"
         BorderThickness="0"
         ItemsSource="{Binding CustomAssistants}"
+        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
         SelectedItem="{Binding SelectedCustomAssistant, Mode=TwoWay}">
         <ListBox.DataTemplates>
           <DataTemplate DataType="ai:CustomAssistant">
             <DockPanel
-              HorizontalSpacing="12" LastChildFill="True">
+              HorizontalSpacing="10" LastChildFill="True">
               <v:IconPresenter
                 DockPanel.Dock="Left" Width="40"
                 Height="40"
@@ -55,7 +56,6 @@
                 <TextBlock
                   Classes="Muted"
                   IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                  MaxLines="2"
                   Text="{Binding Description}"
                   TextTrimming="CharacterEllipsis"
                   ToolTip.Tip="{Binding $self.Text}"/>

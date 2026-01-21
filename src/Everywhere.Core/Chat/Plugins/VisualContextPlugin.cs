@@ -1,4 +1,7 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
+using System.Security;
+using System.Text;
 using System.Text.Json.Serialization;
 using Avalonia.Input;
 using Everywhere.Chat.Permissions;
@@ -12,17 +15,17 @@ using ZLinq;
 
 namespace Everywhere.Chat.Plugins;
 
-public class VisualTreePlugin : BuiltInChatPlugin
+public class VisualContextPlugin : BuiltInChatPlugin
 {
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualTree_Header);
-    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualTree_Description);
+    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualContext_Header);
+    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualContext_Description);
     public override LucideIconKind? Icon => LucideIconKind.Component;
     public override bool IsDefaultEnabled => true;
 
     private readonly IBlobStorage _blobStorage;
     private readonly IVisualElementContext _visualElementContext;
 
-    public VisualTreePlugin(IBlobStorage blobStorage, IVisualElementContext visualElementContext) : base("visual_tree")
+    public VisualContextPlugin(IBlobStorage blobStorage, IVisualElementContext visualElementContext) : base("visual_context")
     {
         _blobStorage = blobStorage;
         _visualElementContext = visualElementContext;
@@ -30,50 +33,101 @@ public class VisualTreePlugin : BuiltInChatPlugin
         {
             list.Add(
                 new NativeChatFunction(
+                    ListWindows,
+                    ChatFunctionPermissions.ScreenRead));
+            list.Add(
+                new NativeChatFunction(
                     CaptureVisualElementByIdAsync,
                     ChatFunctionPermissions.ScreenRead));
             list.Add(
                 new NativeChatFunction(
-                    CaptureFullScreenAsync,
-                    ChatFunctionPermissions.ScreenRead));
-            // temporary disabled due to reliability issues
-            // list.Add(
-            //     new NativeChatFunction(
-            //         ExecuteVisualActionQueueAsync,
-            //         ChatFunctionPermissions.ScreenAccess));
+                    ExecuteVisualActionsAsync,
+                    ChatFunctionPermissions.ScreenAccess,
+                    isExperimental: true));
         });
+    }
+
+    [KernelFunction("list_windows")]
+    [Description("Lists all top-level windows with their IDs, titles, process information, and status.")]
+    [DynamicResourceKey(
+        LocaleKey.BuiltInChatPlugin_VisualContext_ListWindows_Header,
+        LocaleKey.BuiltInChatPlugin_VisualContext_ListWindows_Description)]
+    private string ListWindows()
+    {
+        var xmlBuilder = new StringBuilder();
+        foreach (var screen in _visualElementContext.Screens.AsValueEnumerable())
+        {
+            var boundingRect = screen.BoundingRectangle;
+            xmlBuilder.Append("<Screen ")
+                .Append(" pos=\"")
+                .Append(boundingRect.X).Append(',').Append(boundingRect.Y)
+                .Append('"')
+                .Append(" size=\"")
+                .Append(boundingRect.Width).Append('x').Append(boundingRect.Height)
+                .Append('"')
+                .AppendLine(">");
+
+            foreach (var window in screen.Children.AsValueEnumerable().Where(v => v.Type == VisualElementType.TopLevel))
+            {
+                xmlBuilder.Append("  <TopLevel ");
+
+                if (window.Name is { Length: > 0 } name)
+                {
+                    xmlBuilder.Append(" name=\"").Append(SecurityElement.Escape(name)).Append('"');
+                }
+
+                var bounds = window.BoundingRectangle;
+                xmlBuilder
+                    .Append(" pos=\"")
+                    .Append(bounds.X).Append(',').Append(bounds.Y)
+                    .Append('"')
+                    .Append(" size=\"")
+                    .Append(bounds.Width).Append('x').Append(bounds.Height)
+                    .Append('"');
+
+                var processId = window.ProcessId;
+                if (processId > 0)
+                {
+                    xmlBuilder.Append(" pid=\"").Append(processId).Append('"');
+                    try
+                    {
+                        using var process = Process.GetProcessById(processId);
+                        xmlBuilder.Append(" processName=\"").Append(SecurityElement.Escape(process.ProcessName)).Append('"');
+                    }
+                    catch
+                    {
+                        // Ignore if process not found
+                    }
+                }
+
+                var windowHandle = window.NativeWindowHandle;
+                if (windowHandle > 0)
+                {
+                    xmlBuilder.Append(" handle=\"0x").Append(windowHandle.ToString("X")).Append('"');
+                }
+
+                xmlBuilder.Append(" state=\"").Append(window.States.ToString()).Append('"');
+
+                xmlBuilder.AppendLine("/>");
+            }
+
+            xmlBuilder.AppendLine("</Screen>");
+        }
+
+        return xmlBuilder.TrimEnd().ToString();
     }
 
     [KernelFunction("capture_visual_element_by_id")]
     [Description("Captures a screenshot of the specified visual element by Id. Use when XML content is inaccessible or element is image-like.")]
     [DynamicResourceKey(
-        LocaleKey.BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Header,
-        LocaleKey.BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Description)]
+        LocaleKey.BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Header,
+        LocaleKey.BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Description)]
     private Task<ChatFileAttachment> CaptureVisualElementByIdAsync(
         [FromKernelServices] ChatContext chatContext,
         int elementId,
         CancellationToken cancellationToken = default)
     {
         return CaptureVisualElementAsync(ResolveVisualElement(chatContext, elementId, nameof(elementId)), cancellationToken);
-    }
-
-    [KernelFunction("snapshot_full_screen")]
-    [Description("Snapshot an entire screen. Use when no specific visual element is available.")]
-    [DynamicResourceKey(
-        LocaleKey.BuiltInChatPlugin_VisualTree_CaptureFullScreen_Header,
-        LocaleKey.BuiltInChatPlugin_VisualTree_CaptureFullScreen_Description)]
-    private Task<ChatFileAttachment> CaptureFullScreenAsync(CancellationToken cancellationToken = default)
-    {
-        var visualElement = _visualElementContext.ElementFromPointer(ScreenSelectionMode.Screen);
-        if (visualElement is null)
-        {
-            throw new HandledException(
-                new InvalidOperationException("No screen is available to capture."),
-                new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualTree_CaptureFullScreen_NoScreenAvailable_ErrorMessage),
-                showDetails: false);
-        }
-
-        return CaptureVisualElementAsync(visualElement, cancellationToken);
     }
 
     private async Task<ChatFileAttachment> CaptureVisualElementAsync(IVisualElement visualElement, CancellationToken cancellationToken)
@@ -96,17 +150,16 @@ public class VisualTreePlugin : BuiltInChatPlugin
 
     [KernelFunction("execute_visual_actions")]
     [Description(
-        "Executes a reliable UI automation action queue. Supports clicking elements, entering text, sending shortcuts (e.g., Ctrl+V), and waiting without simulating pointer input. " +
-        "Useful for automating stable interactions, even when the target window is minimized.")]
+        "Executes UI automation actions as a queue. Supports clicking elements, entering text, sending shortcuts (e.g., Ctrl+V), and waiting.")]
     [DynamicResourceKey(
-        LocaleKey.BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Header,
-        LocaleKey.BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Description)]
-    private async static Task<string> ExecuteVisualActionQueueAsync(
+        LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Header,
+        LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Description)]
+    private async static Task<string> ExecuteVisualActionsAsync(
         [FromKernelServices] ChatContext chatContext,
-        VisualElementAction[] actions,
+        IReadOnlyList<VisualElementAction> actions,
         CancellationToken cancellationToken = default)
     {
-        if (actions == null || actions.Length == 0)
+        if (actions == null || actions.Count == 0)
         {
             throw new HandledFunctionInvokingException(
                 HandledFunctionInvokingExceptionType.ArgumentError,
@@ -115,35 +168,35 @@ public class VisualTreePlugin : BuiltInChatPlugin
         }
 
         var index = 0;
-        foreach (var step in actions)
+        foreach (var action in actions)
         {
-            cancellationToken.ThrowIfCancellationRequested(); 
+            cancellationToken.ThrowIfCancellationRequested();
             index++;
 
-            switch (step.Type)
+            switch (action.Type)
             {
                 case VisualActionType.Click:
                 {
-                    var element = ResolveVisualElement(chatContext, step.EnsureElementId(), nameof(actions));
+                    var element = ResolveVisualElement(chatContext, action.EnsureElementId(), nameof(actions));
                     element.Invoke();
                     break;
                 }
                 case VisualActionType.SetText:
                 {
-                    var element = ResolveVisualElement(chatContext, step.EnsureElementId(), nameof(actions));
-                    element.SetText(step.Text ?? string.Empty);
+                    var element = ResolveVisualElement(chatContext, action.EnsureElementId(), nameof(actions));
+                    element.SetText(action.Text ?? string.Empty);
                     break;
                 }
                 case VisualActionType.SendKey:
                 {
-                    var element = ResolveVisualElement(chatContext, step.EnsureElementId(), nameof(actions));
-                    var shortcut = step.ResolveShortcut();
+                    var element = ResolveVisualElement(chatContext, action.EnsureElementId(), nameof(actions));
+                    var shortcut = action.ResolveShortcut();
                     element.SendShortcut(shortcut);
                     break;
                 }
                 case VisualActionType.Wait:
                 {
-                    var delay = step.EnsureDelayMs();
+                    var delay = action.EnsureDelayMs();
                     if (delay < 0)
                     {
                         throw new HandledFunctionInvokingException(
@@ -162,12 +215,12 @@ public class VisualTreePlugin : BuiltInChatPlugin
                         nameof(actions),
                         new ArgumentOutOfRangeException(
                             nameof(actions),
-                            $"Unsupported action type '{step.Type}' at step {index}."));
+                            $"Unsupported action type '{action.Type}' at step {index}."));
                 }
             }
         }
 
-        return $"Executed {actions.Length} action(s).";
+        return $"{actions.Count} action(s) executed successfully.";
     }
 
     private static IVisualElement ResolveVisualElement(ChatContext chatContext, int elementId, string? argumentName = null)

@@ -2,6 +2,7 @@
   <PropertyGroup>
     <RootNamespace>Everywhere</RootNamespace>
     <IsDeploymentTarget>true</IsDeploymentTarget>
+    <NoWarn>$(NoWarn);SCME0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Anthropic.SDK"/>
     <PackageReference Include="Avalonia"/>
     <PackageReference Include="Avalonia.Fonts.Inter"/>
     <PackageReference Include="Avalonia.Diagnostics">
@@ -29,15 +29,16 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.AI"/>
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI"/>
     <PackageReference Include="Microsoft.Extensions.Configuration"/>
     <PackageReference Include="Microsoft.Extensions.Http"/>
     <PackageReference Include="Microsoft.Extensions.Logging"/>
-    <PackageReference Include="Microsoft.SemanticKernel"/>
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions"/>
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama"/>
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI"/>
+    <PackageReference Include="Microsoft.SemanticKernel.Core"/>
     <PackageReference Include="ModelContextProtocol"/>
     <PackageReference Include="Nito.AsyncEx"/>
+    <PackageReference Include="OllamaSharp"/>
     <PackageReference Include="OpenTelemetry"/>
     <PackageReference Include="OpenTelemetry.Extensions.Hosting"/>
     <PackageReference Include="PuppeteerSharp"/>
@@ -53,6 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\3rd\anthropic-sdk-csharp-patch\src\Anthropic\Anthropic.csproj" />
     <ProjectReference Include="..\..\3rd\MessagePack-CSharp\src\MessagePack.SourceGenerator\MessagePack.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
     <ProjectReference Include="..\..\3rd\semantic-kernel-patch\Connectors.Google\Connectors.Google.csproj" />
     <ProjectReference Include="..\..\3rd\semantic-kernel-patch\Plugins.Web\Plugins.Web.csproj" />
@@ -87,15 +89,5 @@
     <AvaloniaResource Include="..\..\CHANGELOG.md">
       <Link>Assets\CHANGELOG.md</Link>
     </AvaloniaResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Views\VisualElementPicker\VisualElementPickerToolTip.axaml.cs">
-      <DependentUpon>ElementPickerToolTip.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Views\Configuration\ModelProviderConfiguratorSelector.axaml.cs">
-      <DependentUpon>ModelProviderConfiguratorSelector.axaml</DependentUpon>
-    </Compile>
   </ItemGroup>
 </Project>

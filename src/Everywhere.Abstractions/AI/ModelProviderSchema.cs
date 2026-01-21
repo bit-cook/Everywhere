@@ -9,5 +9,6 @@ public enum ModelProviderSchema
     OpenAIResponses,
     Anthropic,
     Google,
-    Ollama
+    Ollama,
+    DeepSeek
 }

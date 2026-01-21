@@ -52,6 +52,13 @@ public partial class ChatWindowSettings : ObservableObject, ISettingsCategory
         LocaleKey.ChatWindowSettings_AutomaticallyAddElement_Description)]
     public partial bool AutomaticallyAddElement { get; set; } = true;
 
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.ChatWindowSettings_AutomaticallyAddTextSelection_Header,
+        LocaleKey.ChatWindowSettings_AutomaticallyAddTextSelection_Description)]
+    [SettingsItem(IsExperimental = true)]
+    public partial bool AutomaticallyAddTextSelection { get; set; }
+
     /// <summary>
     /// When enabled, always start a new chat when opening chat window.
     /// </summary>

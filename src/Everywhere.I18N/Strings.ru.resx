@@ -692,12 +692,6 @@
     <data name="ChatPluginPage_TabItem_Functions_Header" xml:space="preserve">
         <value>Функции</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_Header" xml:space="preserve">
-        <value>Визуальное дерево</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_Description" xml:space="preserve">
-        <value>Обеспечивает возможность восприятия и управления элементами интерфейса на экране.</value>
-    </data>
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>Посмотреть на GitHub</value>
     </data>
@@ -1254,14 +1248,11 @@
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ScriptConsent_Header" xml:space="preserve">
         <value>Следующий скрипт PowerShell будет выполнен</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Header" xml:space="preserve">
         <value>Захват элемента интерфейса</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Header" xml:space="preserve">
         <value>Захватить весь экран</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Header" xml:space="preserve">
-        <value>Управление элементами интерфейса</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_Everything_SearchFiles_Header" xml:space="preserve">
         <value>Поиск файлов через Everything</value>
@@ -1383,16 +1374,13 @@
     <data name="BuiltInChatPlugin_FileSystem_EnsureFileSystemInfo_PathNotExist_ErrorMessage" xml:space="preserve">
         <value>Указанный путь не существует.</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureVisualElementById_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Description" xml:space="preserve">
         <value>Сделать скриншот визуального элемента.</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_Description" xml:space="preserve">
         <value>Сделать скриншот всего экрана.</value>
     </data>
-    <data name="BuiltInChatPlugin_VisualTree_ExecuteVisualActionQueue_Description" xml:space="preserve">
-        <value>Выполнить набор действий автоматизации UI, таких как нажатие, ввод текста или отправка сочетаний клавиш.</value>
-    </data>
-    <data name="BuiltInChatPlugin_VisualTree_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_VisualContext_CaptureFullScreen_NoScreenAvailable_ErrorMessage" xml:space="preserve">
         <value>Нет доступного экрана для захвата.</value>
     </data>
     <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">
@@ -2008,5 +1996,8 @@
     </data>
     <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
         <value>Скриншот</value>
+    </data>
+    <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
+        <value>DeepSeek</value>
     </data>
 </root>

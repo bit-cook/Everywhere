@@ -164,6 +164,7 @@ Translation Guidelines:
 7. For proper nouns, brand names, and trademarks (like "Everywhere"), DO NOT TRANSLATE - keep them as is.
 8. Ensure UI text is concise and clear for a software interface.
 9. Return ONLY a valid JSON object with the same keys and translated values. Do NOT add any explanations, comments, or markdown formatting.
+10. For headers, titles, short labels and tooltips, prefer shorter translations and title case where applicable.
 """
         try:
             response = self.client.chat.completions.create(

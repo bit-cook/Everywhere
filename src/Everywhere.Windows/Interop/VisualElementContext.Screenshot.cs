@@ -119,8 +119,8 @@ public partial class VisualElementContext
             else
             {
                 // Other modes
-                if (SelectedElement == null) return false;
-                captureRect = SelectedElement.BoundingRectangle;
+                if (PickingElement == null) return false;
+                captureRect = PickingElement.BoundingRectangle;
             }
 
             // Hide ToolTip and capture
@@ -129,9 +129,9 @@ public partial class VisualElementContext
             return true; // Close
         }
 
-        protected override void OnMove(Point point)
+        protected override void PickElement(Point cursorPos)
         {
-            var pixelPoint = new PixelPoint(point.X, point.Y);
+            var pixelPoint = new PixelPoint(cursorPos.X, cursorPos.Y);
 
             if (CurrentMode == ScreenSelectionMode.Free)
             {
@@ -170,7 +170,7 @@ public partial class VisualElementContext
                 // Reset Drag state if we switched modes while dragging (should handle in OnModeChanged but Update is enough)
                 _isDragging = false;
 
-                base.OnMove(point);
+                base.PickElement(cursorPos);
             }
         }
 

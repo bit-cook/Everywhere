@@ -2,6 +2,10 @@
 
 namespace Everywhere.Interop;
 
+/// <summary>
+/// Represents the mode of screen selection.
+/// Used when picking elements or taking screenshots.
+/// </summary>
 public enum ScreenSelectionMode
 {
     /// <summary>
@@ -29,9 +33,36 @@ public enum ScreenSelectionMode
     Free
 }
 
-public interface IVisualElementContext
+/// <summary>
+/// Represents data about text selection.
+/// Used in IVisualElementContext to notify about text selection changes.
+/// </summary>
+/// <param name="Text">The selected text, or null if no text is selected.</param>
+/// <param name="Element">The visual element from which the text is selected, or null if no element is associated.</param>
+public readonly record struct TextSelectionData(
+    string? Text,
+    IVisualElement? Element
+);
+
+/// <summary>
+/// Represents a context for visual elements, providing methods to interact with them.
+/// </summary>
+/// <remarks>
+/// This interface extends IObservable to allow observers to subscribe to text selection changes.
+/// Warning: Implementers should ensure that related hooks only exist when there are active subscribers
+/// to avoid unnecessary resource usage and side effects (e.g. unnecessary clipboard monitoring).
+/// </remarks>
+public interface IVisualElementContext : IObservable<TextSelectionData>
 {
-    IVisualElement? KeyboardFocusedElement { get; }
+    /// <summary>
+    /// Get the currently focused element.
+    /// </summary>
+    IVisualElement? FocusedElement { get; }
+
+    /// <summary>
+    /// Get all screens available in the system.
+    /// </summary>
+    IEnumerable<IVisualElement> Screens { get; }
 
     /// <summary>
     /// Get the element at the specified point.

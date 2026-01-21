@@ -584,6 +584,11 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
             sb.AppendLine($"{itemName}.Classes.AddRange(new string[] {{ {string.Join(", ", classes)} }});");
         }
 
+        if (settingsItemAttribute.GetNamedArgument("IsExperimental") is { IsNull: false, Value: bool isExperimental })
+        {
+            sb.AppendLine($"{itemName}.IsExperimental = {isExperimental.ToString().ToLowerInvariant()};");
+        }
+
         if (settingsItemAttribute.GetNamedArgument("IsEnabledBindingPath") is { IsNull: false, Value: string isEnabledBindingPath })
         {
             sb.Append($"{itemName}[!global::Everywhere.Configuration.SettingsItem.IsEnabledProperty] = ");

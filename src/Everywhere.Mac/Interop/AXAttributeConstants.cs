@@ -24,6 +24,11 @@ public static class AXAttributeConstants
     public static readonly NSString SelectedText = new("AXSelectedText");
     public static readonly NSString Selected = new("AXSelected");
     public static readonly NSString Hidden = new("AXHidden");
+    public static readonly NSString FocusedWindow = new("AXFocusedWindow");
+
+    // Additional attributes can be added here as needed
+    public static readonly NSString EnhancedUserInterface = new("AXEnhancedUserInterface");
+    public static readonly NSString ManualAccessibility = new("AXManualAccessibility");
 
     // Actions
     public static readonly NSString Press = new("AXPress");
