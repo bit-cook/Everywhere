@@ -65,7 +65,7 @@ jobs:
       run: dotnet workload restore src/Everywhere.Mac/Everywhere.Mac.csproj
 
     - name: Restore
-      run: dotnet restore src/Everywhere.Mac/Everywhere.Mac.csproj -r ${{ matrix.runtime }}
+      run: dotnet restore Everywhere.Mac.slnf -r ${{ matrix.runtime }}
 
     - name: Publish
       env:
