@@ -56,9 +56,9 @@ jobs:
 
         # Import the P12 and the Intermediate Certificate
         security import $CERT_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
-        security import $RUNNER_TEMP/AppleRootCA-G2.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild
-        security import $RUNNER_TEMP/AppleRootCA-G3.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild
-        security import $RUNNER_TEMP/DeveloperIDG2CA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild
+        security import $RUNNER_TEMP/AppleRootCA-G2.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild || echo "AppleRootCA-G2 import failed or already exists"
+        security import $RUNNER_TEMP/AppleRootCA-G3.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild || echo "AppleRootCA-G3 import failed or already exists"
+        security import $RUNNER_TEMP/DeveloperIDG2CA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild || echo "DeveloperIDG2CA import failed or already exists"
         security list-keychain -d user -s $KEYCHAIN_PATH
 
     - name: Replace Version inside Info.plist
