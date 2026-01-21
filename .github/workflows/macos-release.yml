@@ -61,10 +61,8 @@ jobs:
         security import $RUNNER_TEMP/DeveloperIDG2CA.cer -k $KEYCHAIN_PATH -T /usr/bin/codesign -T /usr/bin/productbuild || echo "DeveloperIDG2CA import failed or already exists"
         security list-keychain -d user -s $KEYCHAIN_PATH
 
-    - name: Replace Version inside Info.plist
-      run: |
-        /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ env.VERSION }}" src/Everywhere.Mac/Info.plist
-        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${{ env.VERSION }}" src/Everywhere.Mac/Info.plist
+    - name: Install Workloads
+      run: dotnet workload restore src/Everywhere.Mac/Everywhere.Mac.csproj
 
     - name: Restore
       run: dotnet restore src/Everywhere.Mac/Everywhere.Mac.csproj -r ${{ matrix.runtime }}
