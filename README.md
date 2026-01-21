@@ -186,7 +186,7 @@ Every moment, Every place. Your AI - `Everywhere`
 | Platform | Minimum Version |
 |----------|-----------------|
 | Windows  | 10.0.19041.0    |
-| macOS    | **Coming soon** |
+| macOS    | Monterey 12.0   |
 | Linux    | **Coming soon** |
 
 ## 🚀 Getting Started
@@ -197,10 +197,15 @@ Every moment, Every place. Your AI - `Everywhere`
 
   Download here: [Latest Release](https://github.com/DearVa/Everywhere/releases/latest)
 
-  Where the `Everywhere-Windows-x64-Setup-vx.x.x.exe` is installer package and the `Everywhere-Windows-x64-vx.x.x.zip`
-  is install-free package. Their content are in the same.
+  Where the `Everywhere-Windows-x64-Setup-vx.x.x.exe` is installer package and the `Everywhere-Windows-x64-vx.x.x.zip` is install-free package. Their content are in the same.
 
-- macOS and Linux
+- macOS
+
+  Download here: [Latest Release](https://github.com/DearVa/Everywhere/releases/latest)
+
+  Where the `Everywhere-macOS-arm64-vx.x.x.pkg` is for Apple Silicon (M series) Macs, and the `Everywhere-macOS-x64-vx.x.x.pkg` is for Intel Macs.
+
+- Linux
 
   Currently not supported but **coming soon**.
 

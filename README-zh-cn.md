@@ -183,11 +183,11 @@
 
 ## 📋 系统要求
 
-| 平台      | 最低版本         |
-|---------|--------------|
-| Windows | 10.0.19041.0 |
-| macOS   | **即将到来**     |
-| Linux   | **即将到来**     |
+| 平台    | 最低版本      |
+| ------- | ------------- |
+| Windows | 10.0.19041.0  |
+| macOS   | Monterey 12.0 |
+| Linux   | **即将到来**  |
 
 ## 🚀 快速开始
 
@@ -199,7 +199,13 @@
 
   其中 `Everywhere-Windows-x64-Setup-vx.x.x.exe` 是安装包，`Everywhere-Windows-x64-vx.x.x.zip` 是免安装版。它们的内容完全一样。
 
-- macOS 和 Linux
+- macOS
+
+  在这里下载 [最新发布版本](https://github.com/DearVa/Everywhere/releases/latest)
+
+  其中 `Everywhere-macOS-arm64-vx.x.x.pkg` 适用于 Apple Silicon (M 系列) Mac，`Everywhere-macOS-x64-vx.x.x.pkg` 适用于 Intel Mac。
+
+- Linux
   
   目前尚不支持，但**即将到来**。
 
