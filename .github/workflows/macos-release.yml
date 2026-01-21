@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 jobs:
   build-mac:
@@ -17,6 +18,10 @@ jobs:
             asset_name: macOS-arm64
 
     steps:
+    - uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '26.2'
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
@@ -24,7 +29,21 @@ jobs:
         submodules: true
         lfs: true
 
+    - name: Verify Tag (Manual Trigger)
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        TAG=$(git describe --exact-match --tags HEAD 2>/dev/null || echo "")
+        if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+          echo "Error: Current commit is not tagged with a valid version (vX.X.X)."
+          echo "Current tag: $TAG"
+          exit 1
+        fi
+        echo "Found valid tag: $TAG"
+        echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+        echo "GITHUB_REF=refs/tags/$TAG" >> $GITHUB_ENV
+
     - name: Get version from tag
+      if: github.event_name != 'workflow_dispatch'
       id: get_version
       run: |
         echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
@@ -65,7 +84,7 @@ jobs:
       run: dotnet workload restore src/Everywhere.Mac/Everywhere.Mac.csproj
 
     - name: Restore
-      run: dotnet restore Everywhere.Mac.slnf -r ${{ matrix.runtime }}
+      run: dotnet restore Everywhere.Mac.slnf -r ${{ matrix.runtime }} /p:RuntimeIdentifier=${{ matrix.runtime }}
 
     - name: Publish
       env:
@@ -75,6 +94,7 @@ jobs:
         dotnet publish src/Everywhere.Mac/Everywhere.Mac.csproj \
           -c Release \
           -r ${{ matrix.runtime }} \
+          /p:RuntimeIdentifier=${{ matrix.runtime }} \
           /p:CodesignKey="$CODE_SIGN_KEY" \
           /p:PackageSigningKey="$PACKAGE_SIGNING_KEY" \
           /p:Version=${{ env.VERSION }} \

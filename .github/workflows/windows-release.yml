@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 jobs:
   build-and-release:
@@ -19,8 +20,26 @@ jobs:
         fetch-depth: 0
         submodules: true
         lfs: true
+
+    - name: Verify Tag (Manual Trigger)
+      if: github.event_name == 'workflow_dispatch'
+      shell: pwsh
+      run: |
+        $tag = git describe --exact-match --tags HEAD 2>$null
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Error: Current commit is not tagged."
+          exit 1
+        }
+        if ($tag -notmatch '^v\d+\.\d+\.\d+') {
+          Write-Error "Error: Current commit tag '$tag' does not match vX.X.X format."
+          exit 1
+        }
+        Write-Host "Found valid tag: $tag"
+        echo "VERSION=$($tag -replace '^v','')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "GITHUB_REF=refs/tags/$tag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
     
     - name: Get version from tag
+      if: github.event_name != 'workflow_dispatch'
       id: get_version
       shell: pwsh
       run: |
