@@ -1,8 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <!-- References: -->
-  <!-- https://github.com/dotnet/macios/blob/main/msbuild/Xamarin.Shared/Xamarin.Shared.targets -->
-  <!-- https://github.com/dotnet/macios/tree/main/docs/building-apps -->
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AssemblyName>Everywhere</AssemblyName>
@@ -13,74 +9,79 @@
     <SupportedOSPlatformVersion>12.0</SupportedOSPlatformVersion>
     <IsDeploymentTarget>true</IsDeploymentTarget>
     <UseAppHost>true</UseAppHost>
-    <CreateAppBundle>true</CreateAppBundle> <!-- Enable .app bundle creation -->
+    <CreateAppBundle>true</CreateAppBundle>
     <BundleCreateDump>true</BundleCreateDump>
+
+    <!-- The signing and packaging by SDK is broken for macOS, so we disable it and do it ourselves -->
     <CreatePackage>false</CreatePackage>
     <EnablePackageSigning>false</EnablePackageSigning>
+    <EnableCodeSigning>false</EnableCodeSigning>
+    <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
+  </PropertyGroup>
+
+
+  <!-- $(IsPublish) is set to 'true' when running 'dotnet publish /p:IsPublish=true' -->
+  <PropertyGroup Condition="'$(IsPublish)' != 'true'">
+    <!-- Please run $repo_root/tools/create_dev_cert.sh to create a local dev certificate named 'EverywhereDev' -->
+    <CodesignKey>EverywhereDev</CodesignKey>
+    <UseHardenedRuntime>false</UseHardenedRuntime>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsPublish)' == 'true'">
-    <EnableCodeSigning>false</EnableCodeSigning> <!-- Disable SDK automatic signing to have full control -->
     <UseHardenedRuntime>true</UseHardenedRuntime>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(IsPublish)' == 'false'">
-    <EnableCodeSigning>true</EnableCodeSigning>
-    <UseHardenedRuntime>false</UseHardenedRuntime>
-    <CodesignDependsOn>$(CodesignDependsOn);ClearQuarantineAttribute</CodesignDependsOn>
-    <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
-    <CodesignKey Condition="'$(CodesignKey)' == ''">EverywhereDev</CodesignKey>
-    <CodesignExtraArgs>--deep</CodesignExtraArgs>
-  </PropertyGroup>
-
-  <Target Name="ClearQuarantineAttribute">
-    <Message Text="Clearing quarantine attribute from app bundle..." Importance="high" />
-    <Exec Command="xattr -cr &quot;$(AppBundleDir)&quot;" />
+  <!-- When not publishing, we sign the build output for local debugging -->
+  <Target Name="SignOnBuild" AfterTargets="Build" Condition="'$(IsPublish)' != 'true'">
+    <Message Text="[Dev Workflow] Processing build output for local debugging..." Importance="high"/>
+    <CallTarget Targets="_CoreSignAppBundle"/>
   </Target>
 
-  <!-- Manual Code Signing & Packaging Workflow -->
-  <Target Name="ManualSignAndPackage" AfterTargets="Publish" Condition="'$(IsPublish)' == 'true'">
+  <Target Name="SignAndPackageOnPublish" AfterTargets="Publish" Condition="'$(IsPublish)' == 'true'">
+    <Message Text="[Publish Workflow] Processing publish output for distribution..." Importance="high"/>
+
     <PropertyGroup>
-      <AppBundlePath>$(AppBundleDir)</AppBundlePath>
-      <InfoPListPath>$(AppBundlePath)/Contents/Info.plist</InfoPListPath>
-      <WatchdogPath>$(AppBundlePath)/Contents/Helpers/Everywhere.Watchdog</WatchdogPath>
+      <!-- AppBundleDir is set by the SDK when CreateAppBundle is true -->
+      <InfoPlistPath>$(AppBundleDir)/Contents/Info.plist</InfoPlistPath>
     </PropertyGroup>
 
-    <Message Text="Starting manual post-processing for $(AppBundlePath)..." Importance="high" />
+    <Message Text="Updating Info.plist version to $(Version)..." Importance="high"/>
+    <Error Text="Info.plist not found at $(InfoPlistPath)" Condition="!Exists('$(InfoPlistPath)')"/>
 
-    <!-- 1. Update Version in Info.plist -->
-    <Message Text="Updating Info.plist version to $(Version)..." Importance="high" />
-    <Exec Command="/usr/libexec/PlistBuddy -c &quot;Set :CFBundleShortVersionString $(Version)&quot; &quot;$(InfoPListPath)&quot;" ContinueOnError="true" />
-    <Exec Command="/usr/libexec/PlistBuddy -c &quot;Set :CFBundleVersion $(Version)&quot; &quot;$(InfoPListPath)&quot;" ContinueOnError="true" />
+    <Exec Command="/usr/libexec/PlistBuddy -c &quot;Set :CFBundleShortVersionString $(Version)&quot; &quot;$(InfoPlistPath)&quot;" ContinueOnError="true"/>
+    <Exec Command="/usr/libexec/PlistBuddy -c &quot;Set :CFBundleVersion $(Version)&quot; &quot;$(InfoPlistPath)&quot;" ContinueOnError="true"/>
 
-    <!-- 2. Clear Quarantine Attributes -->
-    <Message Text="Clearing quarantine attributes..." Importance="high" />
-    <Exec Command="xattr -cr &quot;$(AppBundlePath)&quot;" />
+    <CallTarget Targets="_CoreSignAppBundle"/>
 
-    <!-- 3. Sign Native Libraries (Dylibs) -->
-    <Message Text="Signing native libraries in MonoBundle..." Condition="'$(CodesignKey)' != '-' and '$(CodesignKey)' != ''" Importance="high" />
-    <Exec Command="find &quot;$(AppBundlePath)/Contents/MonoBundle&quot; \( -name &quot;*.dylib&quot; -o -name &quot;*.so&quot; -o -name &quot;createdump&quot; \) -exec codesign --force --sign &quot;$(CodesignKey)&quot; --timestamp --options runtime &quot;{}&quot; \;" 
-          Condition="'$(CodesignKey)' != '-' and '$(CodesignKey)' != ''" />
+    <Exec Command="codesign --verify --deep --strict --verbose=2 &quot;$(AppBundleDir)&quot;"/>
 
-    <!-- 4. Sign Watchdog (if exists and key provided) -->
-    <Message Text="Signing Watchdog..." Condition="Exists('$(WatchdogPath)') and '$(CodesignKey)' != '-' and '$(CodesignKey)' != ''" Importance="high" />
-    <Exec Command="codesign --force --sign &quot;$(CodesignKey)&quot; --entitlements Entitlements.plist --timestamp --options runtime &quot;$(WatchdogPath)&quot;" 
-          Condition="Exists('$(WatchdogPath)') and '$(CodesignKey)' != '-' and '$(CodesignKey)' != ''" />
-
-    <!-- 5. Sign Main App Bundle -->
-    <Message Text="Signing Main App Bundle..." Condition="'$(CodesignKey)' != '-' and '$(CodesignKey)' != ''" Importance="high" />
-    <Exec Command="codesign --force --sign &quot;$(CodesignKey)&quot; --entitlements Entitlements.plist --timestamp --options runtime &quot;$(AppBundlePath)&quot;" 
-          Condition="'$(CodesignKey)' != '-' and '$(CodesignKey)' != ''" />
-    
-    <!-- 6. Verify Signature -->
-    <Exec Command="codesign --verify --deep --strict --verbose=2 &quot;$(AppBundlePath)&quot;" 
-          Condition="'$(CodesignKey)' != '-' and '$(CodesignKey)' != ''" />
-
-    <!-- 7. Create Installer Package (if key provided) -->
-    <CallTarget Targets="CreateInstallerPackage" Condition="'$(PackageSigningKey)' != ''" />
+    <CallTarget Targets="CreateInstallerPackage" Condition="'$(PackageSigningKey)' != ''"/>
   </Target>
 
-  <!-- .pkg Creation Logic -->
+
+  <Target Name="_CoreSignAppBundle">
+    <PropertyGroup>
+      <WatchdogPath>$(AppBundleDir)/Contents/Helpers/Everywhere.Watchdog</WatchdogPath>
+    </PropertyGroup>
+
+    <Message Text=">>> Signing App Bundle at: $(AppBundleDir)" Importance="high"/>
+
+    <Exec Command="xattr -cr &quot;$(AppBundleDir)&quot;"/>
+
+    <Message Text="Signing native libraries (MonoBundle)..." Importance="high"/>
+    <Exec Command="find &quot;$(AppBundleDir)/Contents/MonoBundle&quot; \( -name &quot;*.dylib&quot; -o -name &quot;*.so&quot; -o -name &quot;createdump&quot; \) -exec codesign --force --sign &quot;$(CodesignKey)&quot; --timestamp --options runtime &quot;{}&quot; \;"/>
+
+    <Message Text="Signing Watchdog..." Condition="Exists('$(WatchdogPath)')" Importance="high"/>
+    <Exec Command="codesign --force --sign &quot;$(CodesignKey)&quot; --entitlements &quot;$(CodesignEntitlements)&quot; --timestamp --options runtime &quot;$(WatchdogPath)&quot;"
+          Condition="Exists('$(WatchdogPath)')"/>
+
+    <Message Text="Signing Main Application executable..." Importance="high"/>
+    <Exec Command="codesign --force --sign &quot;$(CodesignKey)&quot; --entitlements &quot;$(CodesignEntitlements)&quot; --timestamp --options runtime &quot;$(AppBundleDir)&quot;"/>
+
+    <Message Text=">>> Signing Complete." Importance="high"/>
+  </Target>
+
+
   <Target Name="CreateInstallerPackage">
     <PropertyGroup>
       <PkgName>$(AssemblyName)-$(Version).pkg</PkgName>
@@ -89,55 +90,39 @@
       <ComponentPlistPath>$(PublishDir)component.plist</ComponentPlistPath>
       <PkgRoot>$(PublishDir)pkg-root</PkgRoot>
     </PropertyGroup>
-    
-    <!-- 1. Prepare Staging Directory -->
-    <Message Text="Preparing staging directory for packaging..." Importance="high" />
-    <RemoveDir Directories="$(PkgRoot)" />
-    <MakeDir Directories="$(PkgRoot)" />
-    <Exec Command="ditto &quot;$(AppBundleDir)&quot; &quot;$(PkgRoot)/$(AssemblyName).app&quot;" />
 
-    <!-- 2. Analyze Staging Directory -->
-    <Message Text="Analyzing staging directory for component property list..." Importance="high" />
-    <Exec Command="pkgbuild --analyze --root &quot;$(PkgRoot)&quot; &quot;$(ComponentPlistPath)&quot;" />
-    
-    <!-- 3. Disable Relocation (using sed to edit the plist array) -->
-    <Message Text="Disabling bundle relocation..." Importance="high" />
-    <Exec Command="sed -i '' '/&lt;key&gt;BundleIsRelocatable&lt;\/key&gt;/{n;s/&lt;true\/&gt;/&lt;false\/&gt;/;}' &quot;$(ComponentPlistPath)&quot;" />
-    
-    <!-- 4. Build Component Package using Root -->
-    <Message Text="Creating intermediate component package..." Importance="high" />
-    <Exec Command="pkgbuild --root &quot;$(PkgRoot)&quot; --component-plist &quot;$(ComponentPlistPath)&quot; --install-location /Applications &quot;$(IntermediatePkgPath)&quot;" />
-    
-    <!-- 5. Build Distribution Package -->
-    <Message Text="Creating signed distribution package: $(PkgOutputPath)" Importance="high" />
-    <!-- We need to synthesize a distribution file to set the title properly, otherwise it defaults to "Installer" -->
+    <Message Text="Creating Installer Package..." Importance="high"/>
+
+    <RemoveDir Directories="$(PkgRoot)"/>
+    <MakeDir Directories="$(PkgRoot)"/>
+    <Exec Command="ditto &quot;$(AppBundleDir)&quot; &quot;$(PkgRoot)/$(AssemblyName).app&quot;"/>
+    <Exec Command="pkgbuild --analyze --root &quot;$(PkgRoot)&quot; &quot;$(ComponentPlistPath)&quot;"/>
+    <Exec Command="sed -i '' '/&lt;key&gt;BundleIsRelocatable&lt;\/key&gt;/{n;s/&lt;true\/&gt;/&lt;false\/&gt;/;}' &quot;$(ComponentPlistPath)&quot;"/>
+    <Exec Command="pkgbuild --root &quot;$(PkgRoot)&quot; --component-plist &quot;$(ComponentPlistPath)&quot; --install-location /Applications &quot;$(IntermediatePkgPath)&quot;"/>
+
     <PropertyGroup>
       <DistributionXmlPath>$(PublishDir)distribution.xml</DistributionXmlPath>
     </PropertyGroup>
 
-    <Exec Command="productbuild --synthesize --package &quot;$(IntermediatePkgPath)&quot; &quot;$(DistributionXmlPath)&quot;" />
+    <Exec Command="productbuild --synthesize --package &quot;$(IntermediatePkgPath)&quot; &quot;$(DistributionXmlPath)&quot;"/>
+    <Exec Command="grep -q &quot;&lt;title&gt;&quot; &quot;$(DistributionXmlPath)&quot; &amp;&amp; sed -i '' 's/&lt;title&gt;.*&lt;\/title&gt;/&lt;title&gt;$(ApplicationTitle)&lt;\/title&gt;/' &quot;$(DistributionXmlPath)&quot; || sed -i '' 's/&lt;installer-gui-script[^&gt;]*&gt;/&amp;&lt;title&gt;$(ApplicationTitle)&lt;\/title&gt;/' &quot;$(DistributionXmlPath)&quot;"/>
+    <Exec Command="productbuild --distribution &quot;$(DistributionXmlPath)&quot; --package-path &quot;$(PublishDir)&quot; --sign &quot;$(PackageSigningKey)&quot; &quot;$(PkgOutputPath)&quot;"/>
+    <Exec Command="rm &quot;$(IntermediatePkgPath)&quot; &quot;$(ComponentPlistPath)&quot; &quot;$(DistributionXmlPath)&quot;"/>
+    <RemoveDir Directories="$(PkgRoot)"/>
 
-    <!-- Set the title in distribution.xml. 
-         If <title> exists, replace it. If not, insert it after <installer-gui-script ...> -->
-    <Exec Command="grep -q &quot;&lt;title&gt;&quot; &quot;$(DistributionXmlPath)&quot; &amp;&amp; sed -i '' 's/&lt;title&gt;.*&lt;\/title&gt;/&lt;title&gt;$(ApplicationTitle)&lt;\/title&gt;/' &quot;$(DistributionXmlPath)&quot; || sed -i '' 's/&lt;installer-gui-script[^&gt;]*&gt;/&amp;&lt;title&gt;$(ApplicationTitle)&lt;\/title&gt;/' &quot;$(DistributionXmlPath)&quot;" />
-    
-    <Exec Command="productbuild --distribution &quot;$(DistributionXmlPath)&quot; --package-path &quot;$(PublishDir)&quot; --sign &quot;$(PackageSigningKey)&quot; &quot;$(PkgOutputPath)&quot;" />
-    
-    <!-- 6. Cleanup -->
-    <Exec Command="rm &quot;$(IntermediatePkgPath)&quot; &quot;$(ComponentPlistPath)&quot; &quot;$(DistributionXmlPath)&quot;" />
-    <RemoveDir Directories="$(PkgRoot)" />
+    <Message Text="Installer created successfully at: $(PkgOutputPath)" Importance="high"/>
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" />
-    <PackageReference Include="Lib.Harmony" />
+    <PackageReference Include="Avalonia.Desktop"/>
+    <PackageReference Include="Lib.Harmony"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Everywhere.Core\Everywhere.Core.csproj" />
+    <ProjectReference Include="..\Everywhere.Core\Everywhere.Core.csproj"/>
   </ItemGroup>
 
-  <Import Project="..\Build.Watchdog.targets" />
+  <Import Project="..\Build.Watchdog.targets"/>
 
   <ItemGroup>
     <None Include="..\..\img\Everywhere.ico">

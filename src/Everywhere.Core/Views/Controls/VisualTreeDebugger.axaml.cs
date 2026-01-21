@@ -167,7 +167,7 @@ public partial class VisualTreeDebugger : UserControl
                 }
             });
 #else
-            var xml = await Task.Run(() => xmlBuilder.BuildXml(CancellationToken.None));
+            var xml = await Task.Run(() => builder.Build(CancellationToken.None));
 #endif
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var filename = $"visual_tree_{timestamp}.xml";
