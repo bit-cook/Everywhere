@@ -22,14 +22,12 @@ public class WindowHelper : IWindowHelper
             if (field == 0)
             {
                 // first window opened
-                using var pool = new NSAutoreleasePool();
-                NSApplication.SharedApplication.ActivationPolicy = NSApplicationActivationPolicy.Regular;
+                AppDelegate.IsVisibleInDock = true;
             }
             else if (value == 0)
             {
                 // last window closed
-                using var pool = new NSAutoreleasePool();
-                NSApplication.SharedApplication.ActivationPolicy = NSApplicationActivationPolicy.Accessory;
+                AppDelegate.IsVisibleInDock = false;
             }
 
             field = value;
@@ -94,9 +92,7 @@ public class WindowHelper : IWindowHelper
         // Special handling to ensure it remains interactive in full screen mode.
         nativeWindow.CollectionBehavior |=
             NSWindowCollectionBehavior.CanJoinAllSpaces |
-            NSWindowCollectionBehavior.FullScreenAuxiliary |
-            NSWindowCollectionBehavior.FullScreenDisallowsTiling |
-            NSWindowCollectionBehavior.Auxiliary;
+            NSWindowCollectionBehavior.FullScreenAuxiliary;
         nativeWindow.CollectionBehavior &=
             ~(NSWindowCollectionBehavior.FullScreenPrimary |
                 NSWindowCollectionBehavior.Managed);
@@ -135,15 +131,10 @@ public class WindowHelper : IWindowHelper
         if (window is ChatWindow)
         {
             // For ChatWindow, we might want to ensure it can appear on all spaces and in full screen mode.
-            nativeWindow.CollectionBehavior |=
+            nativeWindow.Level = NSWindowLevel.Floating;
+            nativeWindow.CollectionBehavior =
                 NSWindowCollectionBehavior.CanJoinAllSpaces |
-                NSWindowCollectionBehavior.FullScreenAuxiliary |
-                NSWindowCollectionBehavior.FullScreenDisallowsTiling |
-                NSWindowCollectionBehavior.Auxiliary;
-            nativeWindow.CollectionBehavior &=
-                ~(NSWindowCollectionBehavior.FullScreenPrimary |
-                    NSWindowCollectionBehavior.Managed);
-            nativeWindow.Level = NSWindowLevel.MainMenu;
+                NSWindowCollectionBehavior.FullScreenAuxiliary;
 
             // Chat window will not be closed, so hide/show is treated as close/open for counting purposes.
             IsChatWindowCloaked = cloaked;

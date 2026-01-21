@@ -1,6 +1,5 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Everywhere.AI;
 using Everywhere.Chat;
 using Everywhere.Chat.Plugins;
@@ -18,7 +17,6 @@ using Everywhere.Mac.Patches;
 using HarmonyLib;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using ObjCRuntime;
 using Serilog;
 using Serilog.Extensions.Logging;
 
@@ -32,7 +30,6 @@ public static class Program
         NativeMessageBox.MacOSMessageBoxHandler = MessageBoxHandler;
         Entrance.Initialize();
         InitializeHarmony();
-        FixPopupInFullscreen();
 
         ServiceLocator.Build(x => x
 
@@ -181,28 +178,6 @@ public static class Program
         var harmony = new Harmony("com.sylinko.everywhere.mac.patches");
         ControlAutomationPeerPatch.Patch(harmony);
         BclLauncherExecPatch.Patch(harmony);
-    }
-
-    private static void FixPopupInFullscreen()
-    {
-        // On macOS, popups may not appear correctly over fullscreen windows.
-        // This method applies necessary fixes to ensure popups are displayed properly.
-
-        Control.SizeChangedEvent.AddClassHandler<PopupRoot>((popupRoot, _) =>
-        {
-            if (popupRoot.TryGetPlatformHandle()?.Handle is not { } handle || handle == 0) return;
-            if (Runtime.GetNSObject(handle) is not NSWindow nsWindow) return;
-
-            nsWindow.CollectionBehavior |=
-                NSWindowCollectionBehavior.CanJoinAllSpaces |
-                NSWindowCollectionBehavior.FullScreenAuxiliary |
-                NSWindowCollectionBehavior.FullScreenDisallowsTiling |
-                NSWindowCollectionBehavior.Auxiliary;
-            nsWindow.CollectionBehavior &=
-                ~(NSWindowCollectionBehavior.FullScreenPrimary |
-                    NSWindowCollectionBehavior.Managed);
-            nsWindow.Level = NSWindowLevel.PopUpMenu;
-        });
     }
 
     private static AppBuilder BuildAvaloniaApp() =>
