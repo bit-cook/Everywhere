@@ -16,7 +16,9 @@ public enum FileTypeCategory
 /// </summary>
 public static class FileUtilities
 {
-    public static IReadOnlyDictionary<string, string> KnownMimeTypes { get; } = new Dictionary<string, string>
+    public static IReadOnlyDictionary<string, string> KnownMimeTypes { get; } = new Dictionary<string, string>(
+        141,
+        StringComparer.OrdinalIgnoreCase)
     {
         // --- Images ---
         { ".jpg", "image/jpeg" },
@@ -191,7 +193,9 @@ public static class FileUtilities
         { ".map", "application/json" },
     };
 
-    public static IReadOnlyDictionary<string, FileTypeCategory> KnownFileTypes { get; } = new Dictionary<string, FileTypeCategory>
+    public static IReadOnlyDictionary<string, FileTypeCategory> KnownFileTypes { get; } = new Dictionary<string, FileTypeCategory>(
+        95,
+        StringComparer.OrdinalIgnoreCase)
     {
         { "image/jpeg", FileTypeCategory.Image },
         { "image/png", FileTypeCategory.Image },

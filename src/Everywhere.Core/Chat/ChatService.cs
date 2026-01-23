@@ -8,6 +8,7 @@ using Everywhere.Chat.Plugins;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
+using Everywhere.Storage;
 using Everywhere.Utilities;
 using LiveMarkdown.Avalonia;
 using Lucide.Avalonia;
@@ -29,6 +30,7 @@ public sealed partial class ChatService(
     IChatContextManager chatContextManager,
     IChatPluginManager chatPluginManager,
     IKernelMixinFactory kernelMixinFactory,
+    IBlobStorage blobStorage,
     Settings settings,
     PersistentState persistentState,
     ILogger<ChatService> logger
@@ -482,6 +484,20 @@ public sealed partial class ChatService(
                             await HandleReasoningMessageAsync(reasoningContent.Text);
                             break;
                         }
+                    }
+
+                    // Handle binary content separately.
+                    if (item.InnerContent is BinaryContent { Data: not null, MimeType: not null } binaryContent &&
+                        FileUtilities.IsOfCategory(binaryContent.MimeType, FileTypeCategory.Image) &&
+                        (binaryContent.Metadata?.TryGetValue("thumbnail", out var isThumbnail) is not true || isThumbnail is false))
+                    {
+                        using var memoryStream = new MemoryStream(binaryContent.Data.Value.ToArray());
+                        var blob = await blobStorage.StorageBlobAsync(memoryStream, binaryContent.MimeType, cancellationToken);
+                        chatSpan.ImageOutput = new ChatFileAttachment(
+                            new DynamicResourceKey(string.Empty),
+                            blob.LocalPath,
+                            blob.Sha256,
+                            blob.MimeType);
                     }
 
                     bool IsReasoningContent(StreamingKernelContent content) =>

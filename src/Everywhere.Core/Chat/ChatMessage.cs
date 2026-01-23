@@ -32,7 +32,7 @@ public abstract partial class ChatMessage : ObservableObject
     public partial bool IsBusy { get; set; }
 }
 
-public interface IChatMessageWithAttachments
+public interface IHaveChatAttachments
 {
     IEnumerable<ChatAttachment> Attachments { get; }
 }
@@ -50,7 +50,11 @@ public partial class SystemChatMessage(string systemPrompt) : ChatMessage
 }
 
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public sealed partial class AssistantChatMessage : ChatMessage, IReadOnlyList<AssistantChatMessageSpan>, IDisposable
+public sealed partial class AssistantChatMessage :
+    ChatMessage,
+    IHaveChatAttachments,
+    IReadOnlyList<AssistantChatMessageSpan>,
+    IDisposable
 {
     public override AuthorRole Role => AuthorRole.Assistant;
 
@@ -122,6 +126,9 @@ public sealed partial class AssistantChatMessage : ChatMessage, IReadOnlyList<As
     public partial double TotalTokenCount { get; set; }
 
     [IgnoreMember]
+    public IEnumerable<ChatAttachment> Attachments => _spansSource.Items.SelectMany(s => s.Attachments);
+
+    [IgnoreMember]
     public int Count => _spansSource.Items.Count;
 
     [IgnoreMember]
@@ -189,7 +196,7 @@ public sealed partial class AssistantChatMessage : ChatMessage, IReadOnlyList<As
 /// A span can contain markdown content and associated function calls.
 /// </summary>
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public sealed partial class AssistantChatMessageSpan : ObservableObject, IDisposable
+public sealed partial class AssistantChatMessageSpan : ObservableObject, IHaveChatAttachments, IDisposable
 {
     [IgnoreMember]
     public ObservableStringBuilder MarkdownBuilder { get; }
@@ -256,6 +263,36 @@ public sealed partial class AssistantChatMessageSpan : ObservableObject, IDispos
     [JsonIgnore]
     public double ReasoningElapsedSeconds => Math.Max((ReasoningFinishedAt.GetValueOrDefault() - CreatedAt).TotalSeconds, 0);
 
+    /// <summary>
+    /// Additional metadata associated with this message span. e.g. thoughtSignature for Gemini
+    /// </summary>
+    [Key(6)]
+    public Dictionary<string, object?> Metadata { get; set; } = new();
+
+    [Key(7)]
+    [ObservableProperty]
+    public partial ChatFileAttachment? ImageOutput { get; set; }
+
+    [IgnoreMember]
+    public IEnumerable<ChatAttachment> Attachments
+    {
+        get
+        {
+            foreach (var functionCallChatMessage in _functionCallsSource.Items)
+            {
+                foreach (var attachment in functionCallChatMessage.Attachments)
+                {
+                    yield return attachment;
+                }
+            }
+
+            if (ImageOutput is not null)
+            {
+                yield return ImageOutput;
+            }
+        }
+    }
+
     [IgnoreMember] private readonly SourceList<FunctionCallChatMessage> _functionCallsSource = new();
     [IgnoreMember] private readonly IDisposable _functionCallsConnection;
 
@@ -307,7 +344,7 @@ public sealed partial class AssistantChatMessageSpan : ObservableObject, IDispos
 }
 
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public partial class UserChatMessage(string content, IEnumerable<ChatAttachment> attachments) : ChatMessage, IChatMessageWithAttachments
+public partial class UserChatMessage(string content, IEnumerable<ChatAttachment> attachments) : ChatMessage, IHaveChatAttachments
 {
     public override AuthorRole Role => AuthorRole.User;
 
@@ -382,7 +419,7 @@ public partial class ActionChatMessage : ChatMessage
 /// Represents a function call action message in the chat.
 /// </summary>
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public sealed partial class FunctionCallChatMessage : ChatMessage, IChatMessageWithAttachments, IDisposable
+public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAttachments, IDisposable
 {
     [Key(0)]
     public override AuthorRole Role => AuthorRole.Tool;

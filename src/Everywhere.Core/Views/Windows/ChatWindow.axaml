@@ -525,47 +525,59 @@
                                     </ControlTemplate>
                                   </v:LazyContentControl>
 
-                                  <md:MarkdownRenderer
-                                    Margin="4,0"
-                                    shadui:Timeline.Anchor="{Binding $self.(TextBlock.LineHeight), Converter={x:Static shadui:TimelineConverters.HalfDouble}}"
-                                    IsVisible="{Binding !!MarkdownBuilder.Length}"
-                                    LinkCommand="{Binding $parent[v:ChatWindow].LaunchLinkCommand}"
-                                    MarkdownBuilder="{Binding MarkdownBuilder}"
-                                    TextBlock.LineHeight="{DynamicResource LineHeightM}">
-                                    <md:MarkdownRenderer.ContextFlyout>
-                                      <MenuFlyout Placement="Bottom">
-                                        <MenuItem
-                                          x:Name="MarkdownRendererContextFlyoutCopyItem"
-                                          Command="{Binding $parent[md:MarkdownRenderer].Copy}"
-                                          Cursor="Hand"
-                                          Header="{I18N {x:Static LocaleKey.Common_Copy}}"
-                                          InputGesture="{Binding $parent[md:MarkdownRenderer].CopyGesture}"
-                                          IsEnabled="{Binding $parent[md:MarkdownRenderer].CanCopy}"/>
-                                      </MenuFlyout>
-                                    </md:MarkdownRenderer.ContextFlyout>
-                                    <md:MarkdownRenderer.LinkContextMenu>
-                                      <ContextMenu>
-                                        <MenuItem
-                                          Command="{Binding OpenCommand, DataType=md:Link}"
-                                          Cursor="Hand"
-                                          Header="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_ContextFlyout_OpenLink}}"
-                                          Icon="{LucideIconContent ExternalLink}"/>
-                                        <MenuItem
-                                          Command="{Binding CopyCommand, DataType=md:Link}"
-                                          Cursor="Hand"
-                                          Header="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_ContextFlyout_CopyLink}}"
-                                          Icon="{LucideIconContent Link}"/>
-                                        <Separator IsVisible="{Binding $parent[md:MarkdownRenderer].CanCopy}"/>
-                                        <MenuItem
-                                          Command="{Binding $parent[md:MarkdownRenderer].Copy}"
-                                          Cursor="Hand"
-                                          Header="{I18N {x:Static LocaleKey.Common_Copy}}"
-                                          Icon="{LucideIconContent Copy}"
-                                          InputGesture="{Binding $parent[md:MarkdownRenderer].CopyGesture}"
-                                          IsVisible="{Binding $parent[md:MarkdownRenderer].CanCopy}"/>
-                                      </ContextMenu>
-                                    </md:MarkdownRenderer.LinkContextMenu>
-                                  </md:MarkdownRenderer>
+                                  <v:LazyContentControl IsVisible="{Binding ImageOutput, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                    <ControlTemplate>
+                                      <Image
+                                        MaxHeight="{Binding $parent[ItemsControl].Bounds.Width}"
+                                        Margin="0,0,8,0" shadui:Timeline.Anchor="0,5"
+                                        Source="{Binding ImageOutput.Image, FallbackValue={x:Null}}"/>
+                                    </ControlTemplate>
+                                  </v:LazyContentControl>
+
+                                  <v:LazyContentControl IsVisible="{Binding !!MarkdownBuilder.Length}">
+                                    <ControlTemplate>
+                                      <md:MarkdownRenderer
+                                        Margin="4,0"
+                                        shadui:Timeline.Anchor="{Binding $self.(TextBlock.LineHeight), Converter={x:Static shadui:TimelineConverters.HalfDouble}}"
+                                        LinkCommand="{Binding $parent[v:ChatWindow].LaunchLinkCommand}"
+                                        MarkdownBuilder="{Binding MarkdownBuilder}"
+                                        TextBlock.LineHeight="{DynamicResource LineHeightM}">
+                                        <md:MarkdownRenderer.ContextFlyout>
+                                          <MenuFlyout Placement="Bottom">
+                                            <MenuItem
+                                              x:Name="MarkdownRendererContextFlyoutCopyItem"
+                                              Command="{Binding $parent[md:MarkdownRenderer].Copy}"
+                                              Cursor="Hand"
+                                              Header="{I18N {x:Static LocaleKey.Common_Copy}}"
+                                              InputGesture="{Binding $parent[md:MarkdownRenderer].CopyGesture}"
+                                              IsEnabled="{Binding $parent[md:MarkdownRenderer].CanCopy}"/>
+                                          </MenuFlyout>
+                                        </md:MarkdownRenderer.ContextFlyout>
+                                        <md:MarkdownRenderer.LinkContextMenu>
+                                          <ContextMenu>
+                                            <MenuItem
+                                              Command="{Binding OpenCommand, DataType=md:Link}"
+                                              Cursor="Hand"
+                                              Header="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_ContextFlyout_OpenLink}}"
+                                              Icon="{LucideIconContent ExternalLink}"/>
+                                            <MenuItem
+                                              Command="{Binding CopyCommand, DataType=md:Link}"
+                                              Cursor="Hand"
+                                              Header="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_ContextFlyout_CopyLink}}"
+                                              Icon="{LucideIconContent Link}"/>
+                                            <Separator IsVisible="{Binding $parent[md:MarkdownRenderer].CanCopy}"/>
+                                            <MenuItem
+                                              Command="{Binding $parent[md:MarkdownRenderer].Copy}"
+                                              Cursor="Hand"
+                                              Header="{I18N {x:Static LocaleKey.Common_Copy}}"
+                                              Icon="{LucideIconContent Copy}"
+                                              InputGesture="{Binding $parent[md:MarkdownRenderer].CopyGesture}"
+                                              IsVisible="{Binding $parent[md:MarkdownRenderer].CanCopy}"/>
+                                          </ContextMenu>
+                                        </md:MarkdownRenderer.LinkContextMenu>
+                                      </md:MarkdownRenderer>
+                                    </ControlTemplate>
+                                  </v:LazyContentControl>
 
                                   <ItemsControl
                                     ClipToBounds="False"

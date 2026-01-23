@@ -787,6 +787,33 @@ internal sealed class GeminiChatCompletionClient : ClientBase
             }
         }
 
+        // Add image
+        foreach (var part in parts)
+        {
+            if (part.InlineData is not { } inlineDataPart) continue;
+
+            byte[] data;
+            try
+            {
+                data = Convert.FromBase64String(inlineDataPart.InlineData);
+            }
+            catch (FormatException)
+            {
+                // Skip invalid base64 data
+                continue;
+            }
+
+            message.Items.Add(new ImageContent(
+                data: data,
+                mimeType: inlineDataPart.MimeType)
+            {
+                Metadata = new Dictionary<string, object?>
+                {
+                    ["thumbnail"] = part.Thought is true
+                }
+            });
+        }
+
         return message;
     }
 
@@ -835,7 +862,7 @@ internal sealed class GeminiChatCompletionClient : ClientBase
                 metadata: message.Metadata);
         }
 
-        // Copy thinking content items from message to streaming content
+        // Copy thinking & image content items from message to streaming content
         foreach (var item in message.Items)
         {
             if (item is TextContent textContent &&
@@ -846,6 +873,17 @@ internal sealed class GeminiChatCompletionClient : ClientBase
                     text: textContent.Text,
                     modelId: this._modelId,
                     metadata: textContent.Metadata));
+            }
+
+            if (item is BinaryContent binaryContent)
+            {
+                streamingContent.Items.Add(new StreamingTextContent(
+                    text: null,
+                    modelId: this._modelId,
+                    metadata: binaryContent.Metadata)
+                {
+                    InnerContent = binaryContent
+                });
             }
         }
 
