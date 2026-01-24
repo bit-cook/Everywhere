@@ -140,12 +140,14 @@ public class WindowHelper : IWindowHelper
         var hWnd = (HWND)handle.Handle;
         if (cloaked)
         {
+            // We must first hide our Avalonia window, otherwise Avalonia's focus state will get confused
+            window.Hide();
+
             Cloak(hWnd);
 
             // Then hide our HWND, to make sure that the OS gives the FG / focus back to another app
             // (there's no way for us to guess what the right hwnd might be, only the OS can do it right)
             PInvoke.ShowWindow(hWnd, SHOW_WINDOW_CMD.SW_HIDE);
-            window.Hide();
         }
         else
         {
