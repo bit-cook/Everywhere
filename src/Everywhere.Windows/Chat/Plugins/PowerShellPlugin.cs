@@ -9,6 +9,7 @@ using Everywhere.Chat.Plugins;
 using Everywhere.Common;
 using Everywhere.Extensions;
 using Everywhere.I18N;
+using Everywhere.Interop;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -102,8 +103,11 @@ public class PowerShellPlugin : BuiltInChatPlugin
             StandardInputEncoding = new UTF8Encoding(false), // remove BOM header
             UseShellExecute = false,
             CreateNoWindow = true,
-            WorkingDirectory = chatContextManager.EnsureWorkingDirectory(chatContext)
+            WorkingDirectory = chatContextManager.EnsureWorkingDirectory(chatContext),
         };
+
+        // Ensure the latest PATH variable is used
+        if (EnvironmentVariableUtilities.GetLatestPathVariable() is { Length: > 0 } latestPath) psi.EnvironmentVariables["Path"] = latestPath;
 
         string result;
         using (var process = Process.Start(psi))

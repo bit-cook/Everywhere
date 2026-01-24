@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using System.Reflection;
+using System.Text;
 using DynamicData;
 using Everywhere.Common;
 using Everywhere.Configuration;
@@ -210,11 +211,17 @@ public class ChatPluginManager : IChatPluginManager
                         .Where(x => !x.IsNullOrWhiteSpace())
                         .ToList(),
                     WorkingDirectory = EnsureWorkingDirectory(stdio.WorkingDirectory),
-                    EnvironmentVariables = stdio.EnvironmentVariables
-                        .AsValueEnumerable()
-                        .Where(kv => !kv.Key.IsNullOrWhiteSpace())
-                        .DistinctBy(kv => kv.Key)
-                        .ToDictionary(kv => kv.Key, kv => kv.Value),
+                    EnvironmentVariables = EnsureLatestPath(
+                        stdio.EnvironmentVariables
+                            .AsValueEnumerable()
+                            .Where(kv => !kv.Key.IsNullOrWhiteSpace())
+                            .DistinctBy(
+                                kv => kv.Key,
+                                OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal)
+                            .ToDictionary(
+                                kv => kv.Key,
+                                kv => kv.Value,
+                                OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal)),
                 },
                 loggerFactory),
             HttpMcpTransportConfiguration sse => new HttpClientTransport(
@@ -300,6 +307,24 @@ public class ChatPluginManager : IChatPluginManager
             var fallbackDir = _runtimeConstantProvider.EnsureWritableDataFolderPath(
                 Path.Combine("plugins", "mcp", mcpChatPlugin.Id.ToString("N")));
             return fallbackDir;
+        }
+
+        Dictionary<string, string?> EnsureLatestPath(Dictionary<string, string?> environmentVariables)
+        {
+            var latestPath = EnvironmentVariableUtilities.GetLatestPathVariable();
+            if (latestPath.IsNullOrEmpty()) return environmentVariables;
+
+            // Put our latest PATH at the front.
+            var pathBuilder = new StringBuilder(latestPath);
+
+            // Append existing PATH variable if any.
+            if (environmentVariables.TryGetValue("PATH", out var existingPath) && !existingPath.IsNullOrEmpty())
+            {
+                pathBuilder.Append(Path.PathSeparator).Append(existingPath);
+            }
+
+            environmentVariables["PATH"] = pathBuilder.ToString();
+            return environmentVariables;
         }
     }
 

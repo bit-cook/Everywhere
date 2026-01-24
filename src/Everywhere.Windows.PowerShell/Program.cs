@@ -14,8 +14,6 @@ public static partial class Program
         Console.InputEncoding = Encoding.UTF8;
         Console.OutputEncoding = Encoding.UTF8;
 
-        RefreshEnvironmentPath();
-
         var path = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location);
         var modulesPath = Path.Combine(path ?? ".", "runtimes", "win", "lib", "net9.0", "Modules");
 
@@ -73,55 +71,6 @@ public static partial class Program
         var result = results.FirstOrDefault()?.ToString() ?? string.Empty;
         if (result.EndsWith(Environment.NewLine)) result = result[..^Environment.NewLine.Length]; // Trim trailing new line
         Console.Write(result);
-    }
-
-    /// <summary>
-    /// Refreshes the PATH environment variable by merging the latest User PATH from the registry.
-    /// This fixes issues where the parent process (e.g. IDE) has an outdated environment block.
-    /// </summary>
-    private static void RefreshEnvironmentPath()
-    {
-        try
-        {
-            // 1. Get latest paths from Registry to simulate a fresh terminal
-            // Standard Windows order is Machine PATH followed by User PATH
-            var machinePath = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Machine) ?? string.Empty;
-            var userPath = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.User) ?? string.Empty;
-
-            var sb = new StringBuilder();
-            var existingPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            void AppendPaths(string sourcePath)
-            {
-                if (string.IsNullOrEmpty(sourcePath)) return;
-                var parts = sourcePath.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                foreach (var part in parts)
-                {
-                    if (existingPaths.Add(part))
-                    {
-                        if (sb.Length > 0) sb.Append(Path.PathSeparator);
-                        sb.Append(part);
-                    }
-                }
-            }
-
-            // 2. Add Machine and User paths FIRST. 
-            // This ensures we respect the latest OS configuration and standard priority.
-            AppendPaths(machinePath);
-            AppendPaths(userPath);
-
-            // 3. Append any remaining paths from the current process execution context.
-            // These might be temporary paths injected by the IDE, Debugger, or parent process.
-            // We keep them but put them LAST so they don't shadow the actual system tools.
-            var currentProcessPath = Environment.GetEnvironmentVariable("Path", EnvironmentVariableTarget.Process) ?? string.Empty;
-            AppendPaths(currentProcessPath);
-
-            Environment.SetEnvironmentVariable("Path", sb.ToString(), EnvironmentVariableTarget.Process);
-        }
-        catch
-        {
-            // Ignore errors when trying to refresh environment
-        }
     }
 
     /// <summary>
