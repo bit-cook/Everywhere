@@ -9,13 +9,11 @@ using Everywhere.AttachedProperties;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
-using Everywhere.Rpc;
 using Everywhere.Utilities;
 using Everywhere.Views;
 using LiveMarkdown.Avalonia;
 using Serilog;
 using ShadUI;
-using ApplicationCommand = Everywhere.Common.ApplicationCommand;
 using Window = Avalonia.Controls.Window;
 
 namespace Everywhere;
@@ -59,10 +57,12 @@ public class App : Application, IRecipient<ApplicationCommand>
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+
+        // After this, ThemeChanged event from the system can be received
         _themeManager = new ThemeManager(this);
 
-        // Initialize application mutex to ensure single instance after Locale is ready.
-        Entrance.InitializeSingleInstance();
+        // Register to receive application commands
+        // e.g. ShowMainWindow
         WeakReferenceMessenger.Default.Register(this);
 
         Dispatcher.UIThread.UnhandledException += (_, e) =>

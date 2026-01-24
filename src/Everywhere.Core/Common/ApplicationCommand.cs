@@ -7,7 +7,7 @@ namespace Everywhere.Common;
 /// </summary>
 [MessagePackObject]
 [Union(0, typeof(ShowWindowCommand))]
-[Union(1, typeof(OAuthCallbackCommand))]
+[Union(1, typeof(UrlProtocolCallbackCommand))]
 public abstract partial class ApplicationCommand;
 
 /// <summary>
@@ -24,11 +24,13 @@ public partial class ShowWindowCommand(string name) : ApplicationCommand
 }
 
 /// <summary>
-/// Command to handle OAuth callback with the provided URL.
+/// Command to handle when application is launched via URL protocol.
 /// </summary>
 [MessagePackObject]
-public partial class OAuthCallbackCommand(string url) : ApplicationCommand
+public partial class UrlProtocolCallbackCommand(string url) : ApplicationCommand
 {
+    public const string Scheme = "sylinko-everywhere";
+
     [Key(0)]
     public string Url { get; } = url;
 }

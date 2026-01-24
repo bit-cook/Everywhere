@@ -25,10 +25,10 @@ namespace Everywhere.Mac;
 public static class Program
 {
     [STAThread]
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         NativeMessageBox.MacOSMessageBoxHandler = MessageBoxHandler;
-        Entrance.Initialize();
+        await Entrance.InitializeAsync();
         InitializeHarmony();
 
         ServiceLocator.Build(x => x

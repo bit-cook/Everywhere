@@ -42,8 +42,10 @@ public static class Entrance
         _appMutex = null;
     }
 
-    public static void Initialize()
+    public static async ValueTask InitializeAsync(string[] args)
     {
+        await InitializeSingleInstanceAsync(args);
+
 #if !DISABLE_TELEMETRY
         InitializeTelemetry();
 #endif
@@ -54,7 +56,7 @@ public static class Entrance
     /// <summary>
     /// Initializes the application mutex to ensure a single instance of the application.
     /// </summary>
-    public static void InitializeSingleInstance()
+    private static async ValueTask InitializeSingleInstanceAsync(string[] args)
     {
 #if DEBUG
         if (Design.IsDesignMode) return;
@@ -63,17 +65,27 @@ public static class Entrance
         _appMutex = new Mutex(true, BundleName, out var createdNew);
         if (createdNew)
         {
-            Task.Run(StartHostPipeServer);
+            Task.Run(StartHostPipeServer).Detach(Log.ForContext(typeof(Entrance)).ToExceptionHandler());
             return;
         }
 
-        var args = Environment.GetCommandLineArgs();
-        if (!args.Contains("--autorun"))
+        if (args.Contains("--autorun"))
         {
-            // Bring the existing instance to the foreground.
-            SendToHost(new ShowWindowCommand(nameof(MainView))).GetAwaiter().GetResult();
+            // Autorun, if there is already an instance, exit immediately
+            Environment.Exit(0);
+            return;
         }
 
+        if (args.FirstOrDefault(x => x.StartsWith($"{UrlProtocolCallbackCommand.Scheme}:")) is { } url)
+        {
+            // Bring the existing instance to the foreground.
+            await SendToHost(new UrlProtocolCallbackCommand(url)).ConfigureAwait(false);
+            Environment.Exit(0);
+            return;
+        }
+
+        // Bring the existing instance to the foreground.
+        await SendToHost(new ShowWindowCommand(nameof(MainView))).ConfigureAwait(false);
         Environment.Exit(0);
     }
 

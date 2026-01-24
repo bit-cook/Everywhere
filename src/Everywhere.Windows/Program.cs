@@ -26,14 +26,14 @@ namespace Everywhere.Windows;
 public static class Program
 {
     [STAThread]
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         if (args.Contains("--load-user-profile"))
         {
             LoadUserProfile();
         }
 
-        Entrance.Initialize();
+        await Entrance.InitializeAsync(args);
 
         ServiceLocator.Build(x => x
 

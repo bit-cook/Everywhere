@@ -45,9 +45,9 @@ public static class Program
     }
     
     [STAThread]
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
-        Entrance.Initialize();
+        await Entrance.InitializeAsync();
 
         ServiceLocator.Build(x => x
 
