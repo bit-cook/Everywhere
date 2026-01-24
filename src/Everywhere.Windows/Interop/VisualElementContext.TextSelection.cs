@@ -370,7 +370,7 @@ partial class VisualElementContext
 
                     string? text = null;
                     IVisualElement? visualElement = null;
-                    ControlType? uiaControlType = null;
+                    var uiaControlType = ControlType.Unknown;
 
                     // 1. Try to get selection from element (Priority 1)
                     TryGetSelectionTextFromElement();
@@ -399,7 +399,7 @@ partial class VisualElementContext
                             return;
                         }
 
-                        uiaControlType = element.ControlType;
+                        element.Properties.ControlType.TryGetValue(out uiaControlType);
                         visualElement = new AutomationVisualElementImpl(element);
                         text = visualElement.GetSelectionText();
                     }
@@ -441,7 +441,7 @@ partial class VisualElementContext
         /// Check if we should process GetTextViaClipboard
         /// </summary>
         /// <returns></returns>
-        private bool ShouldProcessViaClipboard(ControlType? uiaControlType, string processName)
+        private bool ShouldProcessViaClipboard(ControlType uiaControlType, string processName)
         {
             // when mouse down or up, any one of them is beamCursor, we can use clipboard
             // otherwise, we have to check the situation further
@@ -471,7 +471,7 @@ partial class VisualElementContext
             // chrome devtools: UIA_GroupControlTypeId (50026)
             // chrome pages: UIA_DocumentControlTypeId (50030), UIA_TextControlTypeId (50020)
             //
-            return uiaControlType is null or ControlType.Group or ControlType.Document or ControlType.Text;
+            return uiaControlType is ControlType.Unknown or ControlType.Group or ControlType.Document or ControlType.Text;
         }
 
         private async static Task<string?> GetTextViaClipboardAsync(string processName)

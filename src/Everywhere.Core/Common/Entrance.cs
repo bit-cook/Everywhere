@@ -1,5 +1,4 @@
 ﻿#if DEBUG
-#define DISABLE_TELEMETRY
 using Avalonia.Controls;
 #endif
 
@@ -11,6 +10,7 @@ using Everywhere.Views;
 using MessagePack;
 using OpenTelemetry;
 using OpenTelemetry.Trace;
+using PuppeteerSharp;
 using Sentry.OpenTelemetry;
 using Serilog;
 using Serilog.Core;
@@ -20,7 +20,7 @@ using ZLinq;
 
 namespace Everywhere.Common;
 
-public static class Entrance
+public static partial class Entrance
 {
     public static bool SendOnlyNecessaryTelemetry { get; set; }
 
@@ -46,9 +46,7 @@ public static class Entrance
     {
         await InitializeSingleInstanceAsync(args);
 
-#if !DISABLE_TELEMETRY
         InitializeTelemetry();
-#endif
         InitializeLogger();
         InitializeErrorHandling();
     }
@@ -163,10 +161,13 @@ public static class Entrance
 
     private static void InitializeTelemetry()
     {
+        if (string.IsNullOrEmpty(SentryDsn)) return;
+
         var sentry = SentrySdk.Init(o =>
         {
-            o.Dsn = "https://25114ca299b74da64aed26ffc2ac072e@o4510145762689024.ingest.us.sentry.io/4510145814069248";
+            o.Dsn = SentryDsn;
             o.AutoSessionTracking = true;
+            o.IsGlobalModeEnabled = true;
             o.Experimental.EnableLogs = true;
 #if DEBUG
             o.TracesSampleRate = 1.0;
@@ -182,9 +183,13 @@ public static class Entrance
             o.SetBeforeSend(evt =>
                 evt.Exception.Segregate()
                     .AsValueEnumerable()
-                    .Any(e => e is not OperationCanceledException and not HandledException { IsExpected: true }) ?
-                    evt :
-                    null);
+                    .Any(e => e is
+                        OperationCanceledException or
+                        TimeoutException or
+                        HandledException { IsExpected: true } or
+                        PuppeteerException) ? // No one knows why PuppeteerSharp throws so many exceptions and leave them unhandled in Task.Run
+                    null :
+                    evt);
             o.SetBeforeSendTransaction(transaction => SendOnlyNecessaryTelemetry ? null : transaction);
             o.SetBeforeBreadcrumb(breadcrumb => SendOnlyNecessaryTelemetry ? null : breadcrumb);
         });

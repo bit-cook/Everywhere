@@ -45,7 +45,7 @@ public partial class VisualElementContext
                     var parent = TreeWalker.GetParent(_element);
                     return parent is null ? null : new AutomationVisualElementImpl(parent);
                 }
-                catch (COMException)
+                catch
                 {
                     return null;
                 }
@@ -56,11 +56,38 @@ public partial class VisualElementContext
         {
             get
             {
-                var child = TreeWalker.GetFirstChild(_element);
+                AutomationElement? child;
+                try
+                {
+                    child = TreeWalker.GetFirstChild(_element);
+                }
+                catch
+                {
+                    yield break;
+                }
+
                 while (child is not null)
                 {
-                    yield return new AutomationVisualElementImpl(child);
-                    child = TreeWalker.GetNextSibling(child);
+                    AutomationVisualElementImpl item;
+                    try
+                    {
+                        item = new AutomationVisualElementImpl(child);
+                    }
+                    catch
+                    {
+                        yield break;
+                    }
+
+                    yield return item;
+
+                    try
+                    {
+                        child = TreeWalker.GetNextSibling(child);
+                    }
+                    catch
+                    {
+                        yield break;
+                    }
                 }
             }
         }
@@ -115,7 +142,7 @@ public partial class VisualElementContext
                         _ => VisualElementType.Unknown
                     };
                 }
-                catch (COMException)
+                catch
                 {
                     return VisualElementType.Unknown;
                 }
@@ -143,7 +170,7 @@ public partial class VisualElementContext
                         states |= VisualElementStates.Password;
                     return states;
                 }
-                catch (COMException)
+                catch
                 {
                     return VisualElementStates.None;
                 }
@@ -179,7 +206,7 @@ public partial class VisualElementContext
                         r.Width,
                         r.Height));
                 }
-                catch (COMException)
+                catch
                 {
                     return default;
                 }
@@ -617,21 +644,75 @@ public partial class VisualElementContext
         {
             protected override IEnumerator<IVisualElement> CreateForwardEnumerator()
             {
-                var sibling = TreeWalker.GetNextSibling(visualElement._element);
+                AutomationElement? sibling;
+                try
+                {
+                    sibling = TreeWalker.GetNextSibling(visualElement._element);
+                }
+                catch
+                {
+                    yield break;
+                }
+
                 while (sibling is not null)
                 {
-                    yield return new AutomationVisualElementImpl(sibling);
-                    sibling = TreeWalker.GetNextSibling(sibling);
+                    AutomationVisualElementImpl item;
+                    try
+                    {
+                        item = new AutomationVisualElementImpl(sibling);
+                    }
+                    catch
+                    {
+                        yield break;
+                    }
+
+                    yield return item;
+
+                    try
+                    {
+                        sibling = TreeWalker.GetNextSibling(sibling);
+                    }
+                    catch
+                    {
+                        yield break;
+                    }
                 }
             }
 
             protected override IEnumerator<IVisualElement> CreateBackwardEnumerator()
             {
-                var sibling = TreeWalker.GetPreviousSibling(visualElement._element);
+                AutomationElement? sibling;
+                try
+                {
+                    sibling = TreeWalker.GetNextSibling(visualElement._element);
+                }
+                catch
+                {
+                    yield break;
+                }
+
                 while (sibling is not null)
                 {
-                    yield return new AutomationVisualElementImpl(sibling);
-                    sibling = TreeWalker.GetPreviousSibling(sibling);
+                    AutomationVisualElementImpl item;
+                    try
+                    {
+                        item = new AutomationVisualElementImpl(sibling);
+                    }
+                    catch
+                    {
+                        yield break;
+                    }
+
+                    yield return item;
+
+                    try
+                    {
+                        sibling = TreeWalker.GetPreviousSibling(sibling);
+                    }
+                    catch
+                    {
+                        yield break;
+                    }
                 }
             }
         }

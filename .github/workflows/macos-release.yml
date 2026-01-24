@@ -90,6 +90,7 @@ jobs:
       env:
         CODE_SIGN_KEY: ${{ secrets.CODE_SIGN_KEY }}
         PACKAGE_SIGNING_KEY: ${{ secrets.PACKAGE_SIGNING_KEY }}
+        SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
       run: |
         dotnet publish src/Everywhere.Mac/Everywhere.Mac.csproj \
           -c Release \
@@ -98,6 +99,7 @@ jobs:
           /p:CodesignKey="$CODE_SIGN_KEY" \
           /p:PackageSigningKey="$PACKAGE_SIGNING_KEY" \
           /p:Version=${{ env.VERSION }} \
+          /p:SentryDsn="$SENTRY_DSN" \
           /p:IsPublish="true" \
           -o ./publish \
           --no-restore
