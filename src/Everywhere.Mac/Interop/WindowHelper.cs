@@ -131,7 +131,6 @@ public class WindowHelper : IWindowHelper
         if (window is ChatWindow)
         {
             // For ChatWindow, we might want to ensure it can appear on all spaces and in full screen mode.
-            nativeWindow.Level = NSWindowLevel.Floating;
             nativeWindow.CollectionBehavior =
                 NSWindowCollectionBehavior.CanJoinAllSpaces |
                 NSWindowCollectionBehavior.FullScreenAuxiliary;

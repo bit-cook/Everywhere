@@ -79,8 +79,30 @@
             </Style>
 
             <Style Selector="ToggleButton.TitleBar">
+              <Setter Property="BorderBrush" Value="Transparent"/>
               <Setter Property="shadui:ButtonAssist.CheckedForeground" Value="{DynamicResource PrimaryForegroundColor}"/>
               <Setter Property="shadui:ButtonAssist.CheckedBackground" Value="{DynamicResource PrimaryColor50}"/>
+
+              <Style Selector="^:checked">
+                <Style Selector="^ LucideIcon">
+                  <Setter Property="Kind" Value="Pin"/>
+                </Style>
+              </Style>
+
+              <Style Selector="^:indeterminate">
+                <Setter Property="BorderBrush" Value="{DynamicResource PrimaryColor50}"/>
+
+                <Style Selector="^ LucideIcon">
+                  <Setter Property="Kind" Value="Pin"/>
+                  <Setter Property="RenderTransform" Value="rotate(45deg)"/>
+                </Style>
+              </Style>
+
+              <Style Selector="^:unchecked">
+                <Style Selector="^ LucideIcon">
+                  <Setter Property="Kind" Value="PinOff"/>
+                </Style>
+              </Style>
             </Style>
 
             <Style Selector="FlyoutPresenter">
@@ -208,10 +230,12 @@
 
           <ToggleButton
             Classes="Ghost TitleBar" Background="#00252525"
-            Content="{LucideIconContent Pin, Size=16}"
-            HotKey="Ctrl+D"
+            BorderThickness="1.5" HotKey="Ctrl+D"
             IsChecked="{Binding $parent[v:ChatWindow].IsWindowPinned, Mode=TwoWay}"
-            ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_TogglePin_ToolTip}}"/>
+            IsThreeState="True"
+            ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_TogglePin_ToolTip}}">
+            <LucideIcon Size="16"/>
+          </ToggleButton>
 
           <Button
             Classes="Ghost TitleBar Close"

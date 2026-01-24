@@ -35,10 +35,19 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
         private set => SetAndRaise(IsOpenedProperty, ref field, value);
     }
 
-    public static readonly StyledProperty<bool> IsWindowPinnedProperty =
-        AvaloniaProperty.Register<ChatWindow, bool>(nameof(IsWindowPinned));
+    /// <summary>
+    /// Defines the <see cref="IsWindowPinned"/> property.
+    /// </summary>
+    public static readonly StyledProperty<bool?> IsWindowPinnedProperty =
+        AvaloniaProperty.Register<ChatWindow, bool?>(nameof(IsWindowPinned));
 
-    public bool IsWindowPinned
+    /// <summary>
+    /// Gets or sets a value indicating whether the window is pinned.
+    /// true: pinned and on top
+    /// null: pinned but not on top
+    /// false: not pinned, on top. hidden when unfocused
+    /// </summary>
+    public bool? IsWindowPinned
     {
         get => GetValue(IsWindowPinnedProperty);
         set => SetValue(IsWindowPinnedProperty, value);
@@ -149,9 +158,10 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
         }
         else if (change.Property == IsWindowPinnedProperty)
         {
-            var value = change.NewValue is true;
+            var value = change.NewValue as bool?;
             _persistentState.IsChatWindowPinned = value;
-            ShowInTaskbar = value;
+            ShowInTaskbar = value is true or null;
+            Topmost = value is not null; // false: topmost, null: normal, true: topmost
             _windowHelper.SetCloaked(this, false); // Uncloak when pinned state changes to ensure visibility
         }
     }
@@ -227,7 +237,7 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
     {
         base.OnLostFocus(e);
 
-        if (!ViewModel.IsPickingFiles && !IsActive && !IsWindowPinned && !_windowHelper.AnyModelDialogOpened(this))
+        if (!ViewModel.IsPickingFiles && !IsActive && IsWindowPinned is false && !_windowHelper.AnyModelDialogOpened(this))
         {
             IsOpened = false;
         }
@@ -272,7 +282,7 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
                 }
             }
 
-            ShowInTaskbar = IsWindowPinned;
+            ShowInTaskbar = IsWindowPinned is true or null;
             _windowHelper.SetCloaked(this, false);
             ChatInputArea.Focus();
         }

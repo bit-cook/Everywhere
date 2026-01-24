@@ -90,4 +90,24 @@
       <Link>Assets\CHANGELOG.md</Link>
     </AvaloniaResource>
   </ItemGroup>
+
+  <Target Name="GenerateTelemetryConstants" BeforeTargets="CoreCompile">
+    <PropertyGroup>
+      <SentryDsn Condition="'$(SentryDsn)' == ''"/>
+      <GeneratedTelemetryFile>$(IntermediateOutputPath)TelemetryConstants.g.cs</GeneratedTelemetryFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <TelemetryCode Include="// &lt;auto-generated /&gt;" />
+      <TelemetryCode Include="namespace Everywhere.Common%3B" />
+      <TelemetryCode Include="internal static class TelemetryConstants" />
+      <TelemetryCode Include="{" />
+      <TelemetryCode Include="%20%20%20%20public const string SentryDsn = &quot;$(SentryDsn)&quot;%3B" />
+      <TelemetryCode Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(GeneratedTelemetryFile)" Lines="@(TelemetryCode)" Overwrite="true" />
+    <ItemGroup>
+      <Compile Include="$(GeneratedTelemetryFile)" />
+    </ItemGroup>
+  </Target>
+
 </Project>

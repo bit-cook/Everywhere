@@ -176,6 +176,10 @@ public class WindowHelper : IWindowHelper
             // Push our window to the top of the Z-order and make it the topmost, so that it appears above all other windows.
             // We want to remove the topmost status when we hide the window (because we cloak it instead of hiding it).
             var topMost = window.Topmost;
+
+            // This line is needed to ensure the window can be focused properly.
+            PInvoke.SetWindowPos(hWnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
+
             window.Topmost = true;
             window.Topmost = topMost;
         }

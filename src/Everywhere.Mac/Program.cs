@@ -28,7 +28,7 @@ public static class Program
     public static async Task Main(string[] args)
     {
         NativeMessageBox.MacOSMessageBoxHandler = MessageBoxHandler;
-        await Entrance.InitializeAsync();
+        await Entrance.InitializeAsync(args);
         InitializeHarmony();
 
         ServiceLocator.Build(x => x
