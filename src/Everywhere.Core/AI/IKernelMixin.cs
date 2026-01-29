@@ -25,6 +25,20 @@ public interface IKernelMixin : IDisposable
     bool IsDeepThinkingSupported { get; }
 
     /// <summary>
+    /// Determines if the specified message-level metadata key is needed to be persisted.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    bool IsPersistentMessageMetadataKey(string key);
+
+    /// <summary>
+    /// Determines if the specified span-level metadata key is needed to be persisted. e.g. reasoningSteps for DeepSeek.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns></returns>
+    bool IsPersistentSpanMetadataKey(string key);
+
+    /// <summary>
     /// Gets the prompt execution settings.
     /// </summary>
     /// <param name="functionChoiceBehavior"></param>

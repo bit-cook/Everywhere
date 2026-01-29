@@ -110,7 +110,7 @@ public class EssentialPlugin : BuiltInChatPlugin
             return "The subagent did not return any response.";
         }
 
-        var result = assistantChatMessage[^1].Content;
+        var result = (assistantChatMessage.Items[^1] as AssistantChatMessageTextSpan)?.Content;
         userInterface.DisplaySink.AppendMarkdown().Append(result);
         userInterface.DisplaySink.AppendDynamicResourceKey(
             new FormattedDynamicResourceKey(
@@ -119,7 +119,7 @@ public class EssentialPlugin : BuiltInChatPlugin
                 new DirectResourceKey(assistantChatMessage.OutputTokenCount),
                 new DirectResourceKey(assistantChatMessage.TotalTokenCount)),
             "Small Muted");
-        return result;
+        return result ?? string.Empty;
     }
 
     [KernelFunction("manage_todo_list")]

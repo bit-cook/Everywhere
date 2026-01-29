@@ -83,6 +83,10 @@ public abstract class KernelMixinBase(CustomAssistant customAssistant) : IKernel
         settings.ExtensionData[propertyName] = customizable.ActualValue;
     }
 
+    public virtual bool IsPersistentMessageMetadataKey(string key) => false;
+
+    public virtual bool IsPersistentSpanMetadataKey(string key) => false;
+
     /// <summary>
     /// Default implementation includes temperature and top_p from the custom assistant.
     /// </summary>

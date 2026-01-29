@@ -29,6 +29,8 @@ public sealed class GoogleKernelMixin : KernelMixinBase
         ChatCompletionService = new OptimizedGeminiChatCompletionService(service);
     }
 
+    public override bool IsPersistentMessageMetadataKey(string key) => key is "thoughtSignature";
+
     public override PromptExecutionSettings GetPromptExecutionSettings(FunctionChoiceBehavior? functionChoiceBehavior = null)
     {
         double? temperature = _customAssistant.Temperature.IsCustomValueSet ? _customAssistant.Temperature.ActualValue : null;

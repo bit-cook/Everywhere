@@ -47,31 +47,90 @@ public static class ChatHistoryBuilder
             }
             case AssistantChatMessage assistant:
             {
-                // ReSharper disable once ForCanBeConvertedToForeach
-                // foreach would create an enumerator object, which will cause thread lock issues.
-                for (var spanIndex = 0; spanIndex < assistant.Spans.Count; spanIndex++)
+                // assistant.Items property is IReadOnlyList of a SourceList, which is copied for thread safety.
+                var spans = assistant.Items;
+                var metadata = assistant.Metadata;
+                if (spans.AsValueEnumerable()
+                        .OfType<AssistantChatMessageReasoningSpan>()
+                        .Select(s => s.ReasoningOutput)
+                        .LastOrDefault(r => !r.IsNullOrEmpty()) is { } reasoningOutput)
                 {
-                    var span = assistant.Spans[spanIndex];
-                    if (span.MarkdownBuilder.Length > 0)
+                    // If any span has reasoning output, add it to the assistant message metadata.
+                    // Add this into the top-level assistant message metadata for compatibility with DeepSeek requirements.
+                    // We take last reasoning output in case of multiple reasoning spans. For example:
+                    // - Reasoning: I should look up the weather.
+                    // - [Tool call: get_weather]
+                    // - Reasoning: The weather returns error. I have make a mistake. Let me try again.
+                    // - [Tool call: get_weather_v2]
+                    // At this point, we want to take the last reasoning output.
+                    metadata ??= new MetadataDictionary();
+                    metadata["reasoning_content"] = reasoningOutput;
+                }
+
+                foreach (var span in assistant.Items)
+                {
+                    var items = new ChatMessageContentItemCollection();
+                    switch (span)
                     {
-                        var metadata = span.ReasoningOutput.IsNullOrEmpty() ?
-                            null :
-                            new Dictionary<string, object?>
+                        case AssistantChatMessageTextSpan { Content: { Length: > 0 } content }:
+                        {
+                            items.Add(new TextContent(content, metadata: span.Metadata));
+                            break;
+                        }
+                        case AssistantChatMessageFunctionCallSpan { Items: { Count: > 0 } functionCalls }:
+                        {
+                            // First, yield any accumulated items before the function calls.
+                            if (items.Count > 0)
                             {
-                                { "reasoning_content", span.ReasoningOutput }
-                            };
-                        yield return new ChatMessageContent(AuthorRole.Assistant, span.MarkdownBuilder.ToString(), metadata: metadata);
+                                yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: metadata);
+
+                                // Clear items for function call contents.
+                                items = [];
+                            }
+
+                            foreach (var functionCallChatMessage in functionCalls)
+                            {
+                                await foreach (var actionChatMessageContent in CreateChatMessageContentsAsync(
+                                                   functionCallChatMessage,
+                                                   cancellationToken))
+                                {
+                                    if (metadata is not null)
+                                    {
+                                        actionChatMessageContent.Metadata ??= new MetadataDictionary();
+                                        var nestedMetadata = (MetadataDictionary)actionChatMessageContent.Metadata;
+                                        foreach (var (key, value) in metadata)
+                                        {
+                                            nestedMetadata[key] = value;
+                                        }
+                                    }
+
+                                    yield return actionChatMessageContent;
+                                }
+                            }
+                            break;
+                        }
+                        case AssistantChatMessageImageSpan { ImageOutput: { } imageOutput }:
+                        {
+                            try
+                            {
+                                var imageData = await File.ReadAllBytesAsync(imageOutput.FilePath, cancellationToken);
+                                items.Add(
+                                    new ImageContent(imageData, imageOutput.MimeType)
+                                    {
+                                        Metadata = span.Metadata
+                                    });
+                            }
+                            catch
+                            {
+                                items.Add(new TextContent("The image is generated but failed to be read from disk.", metadata: span.Metadata));
+                            }
+                            break;
+                        }
                     }
 
-                    // ReSharper disable once ForCanBeConvertedToForeach
-                    // foreach would create an enumerator object, which will cause thread lock issues.
-                    for (var callIndex = 0; callIndex < span.FunctionCalls.Count; callIndex++)
+                    if (items.Count > 0)
                     {
-                        var functionCallChatMessage = span.FunctionCalls[callIndex];
-                        await foreach (var actionChatMessageContent in CreateChatMessageContentsAsync(functionCallChatMessage, cancellationToken))
-                        {
-                            yield return actionChatMessageContent;
-                        }
+                        yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: metadata);
                     }
                 }
                 break;
@@ -129,12 +188,17 @@ public static class ChatHistoryBuilder
                                 $"This may caused by an error during function execution or user cancellation.")
                         ]);
 
-                    if (await TryCreateExtraToolCallResultsContentAsync(
-                            resultContent,
-                            cancellationToken) is { } extraToolCallResultsContent)
-                    {
-                        yield return extraToolCallResultsContent;
-                    }
+                    // If the function call result is a ChatAttachment, add it as extra attachment message(s).
+                    if (resultContent?.Result is not ChatAttachment extraToolCallResult) break;
+
+                    var items = new ChatMessageContentItemCollection { new TextContent("<ExtraToolCallResultAttachments>") };
+                    await PopulateKernelContentsAsync(extraToolCallResult, items, cancellationToken);
+
+                    // No valid attachment added
+                    if (items.Count == 1) break;
+
+                    items.Add(new TextContent("</ExtraToolCallResultAttachments>"));
+                    yield return new ChatMessageContent(AuthorRole.User, items);
                 }
 
                 break;
@@ -145,31 +209,6 @@ public static class ChatHistoryBuilder
                 break;
             }
         }
-    }
-
-    /// <summary>
-    /// Creates a special ChatMessageContent to hold the extra tool call results if there are any attachments in the function call chat message.
-    /// This is a workaround to include additional tool call results that are not part of the standard function call results. e.g. images, audio, etc.
-    /// </summary>
-    /// <param name="resultContent"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    public static async ValueTask<ChatMessageContent?> TryCreateExtraToolCallResultsContentAsync(
-        FunctionResultContent? resultContent,
-        CancellationToken cancellationToken)
-    {
-        if (resultContent?.Result is not ChatAttachment chatAttachment) return null;
-
-        var items = new ChatMessageContentItemCollection { new TextContent("<ExtraToolCallResultAttachments>") };
-        await PopulateKernelContentsAsync(chatAttachment, items, cancellationToken);
-
-        if (items.Count == 1) // No valid attachment added
-        {
-            return null;
-        }
-
-        items.Add(new TextContent("</ExtraToolCallResultAttachments>"));
-        return new ChatMessageContent(AuthorRole.User, items);
     }
 
     /// <summary>
