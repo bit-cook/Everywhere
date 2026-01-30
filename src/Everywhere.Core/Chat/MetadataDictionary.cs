@@ -8,4 +8,6 @@ public class MetadataDictionary : Dictionary<string, object?>
     public MetadataDictionary() { }
 
     public MetadataDictionary(int capacity) : base(capacity) { }
+
+    public MetadataDictionary(IDictionary<string, object?> dictionary) : base(dictionary) { }
 }

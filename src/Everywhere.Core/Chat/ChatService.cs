@@ -640,6 +640,7 @@ public sealed partial class ChatService(
             {
                 IsBusy = true,
             };
+            functionCallSpan.Add(functionCallChatMessage);
 
             // Set the current function call context.
             // Push the previous context to the stack, allowing nested function calls.
@@ -654,8 +655,6 @@ public sealed partial class ChatService(
                 chatPlugin,
                 chatFunction,
                 functionCallChatMessage);
-
-            functionCallSpan.Add(functionCallChatMessage);
 
             try
             {

@@ -47,26 +47,7 @@ public static class ChatHistoryBuilder
             }
             case AssistantChatMessage assistant:
             {
-                // assistant.Items property is IReadOnlyList of a SourceList, which is copied for thread safety.
-                var spans = assistant.Items;
-                var metadata = assistant.Metadata;
-                if (spans.AsValueEnumerable()
-                        .OfType<AssistantChatMessageReasoningSpan>()
-                        .Select(s => s.ReasoningOutput)
-                        .LastOrDefault(r => !r.IsNullOrEmpty()) is { } reasoningOutput)
-                {
-                    // If any span has reasoning output, add it to the assistant message metadata.
-                    // Add this into the top-level assistant message metadata for compatibility with DeepSeek requirements.
-                    // We take last reasoning output in case of multiple reasoning spans. For example:
-                    // - Reasoning: I should look up the weather.
-                    // - [Tool call: get_weather]
-                    // - Reasoning: The weather returns error. I have make a mistake. Let me try again.
-                    // - [Tool call: get_weather_v2]
-                    // At this point, we want to take the last reasoning output.
-                    metadata ??= new MetadataDictionary();
-                    metadata["reasoning_content"] = reasoningOutput;
-                }
-
+                string? previousReasoningOutput = null;
                 foreach (var span in assistant.Items)
                 {
                     var items = new ChatMessageContentItemCollection();
@@ -82,7 +63,7 @@ public static class ChatHistoryBuilder
                             // First, yield any accumulated items before the function calls.
                             if (items.Count > 0)
                             {
-                                yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: metadata);
+                                yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: assistant.Metadata);
 
                                 // Clear items for function call contents.
                                 items = [];
@@ -90,6 +71,7 @@ public static class ChatHistoryBuilder
 
                             foreach (var functionCallChatMessage in functionCalls)
                             {
+                                var metadata = GetMetadataWithReasoning();
                                 await foreach (var actionChatMessageContent in CreateChatMessageContentsAsync(
                                                    functionCallChatMessage,
                                                    cancellationToken))
@@ -107,6 +89,11 @@ public static class ChatHistoryBuilder
                                     yield return actionChatMessageContent;
                                 }
                             }
+                            break;
+                        }
+                        case AssistantChatMessageReasoningSpan { ReasoningOutput: { Length: > 0 } reasoningOutput }:
+                        {
+                            previousReasoningOutput = reasoningOutput;
                             break;
                         }
                         case AssistantChatMessageImageSpan { ImageOutput: { } imageOutput }:
@@ -130,7 +117,27 @@ public static class ChatHistoryBuilder
 
                     if (items.Count > 0)
                     {
-                        yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: metadata);
+                        yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: assistant.Metadata);
+                    }
+
+                    // If any span has reasoning output, add it to the assistant message metadata.
+                    // - Reasoning: I should look up the weather.
+                    // |-> [Tool call: get_weather]
+                    // - Reasoning: The weather returns error. I have make a mistake. Let me try again.
+                    // |-> [Tool call: get_weather_v2]
+                    MetadataDictionary? GetMetadataWithReasoning()
+                    {
+                        // Return assistant.Metadata directly if there's no reasoning output to add.
+                        if (previousReasoningOutput is null) return assistant.Metadata;
+
+                        var combinedMetadata = assistant.Metadata is { } existingMetadata ?
+                            new MetadataDictionary(existingMetadata) :
+                            new MetadataDictionary(1);
+
+                        combinedMetadata["reasoning_content"] = previousReasoningOutput;
+                        previousReasoningOutput = null;
+
+                        return combinedMetadata;
                     }
                 }
                 break;
