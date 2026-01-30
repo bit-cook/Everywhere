@@ -35,6 +35,10 @@ public class DeepSeekKernelMixin(
     /// <returns></returns>
     protected override Task BeforeStreamingRequestAsync(IList<ChatMessage> messages, ref ChatOptions? options)
     {
+        options ??= new ChatOptions();
+        options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+        options.AdditionalProperties["thinking"] = new { type = "enabled" };
+
         var lastAssistantMessage = messages.AsValueEnumerable().Where(m => m.Role == ChatRole.Assistant).LastOrDefault();
         if (lastAssistantMessage?.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage ||
             lastAssistantMessage.AdditionalProperties?.TryGetValue("reasoning_content", out var reasoningObj) is not true ||

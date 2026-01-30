@@ -91,12 +91,19 @@ public abstract class KernelMixinBase(CustomAssistant customAssistant) : IKernel
     /// Default implementation includes temperature and top_p from the custom assistant.
     /// </summary>
     /// <param name="functionChoiceBehavior"></param>
+    /// <param name="reasoningEffortLevel"></param>
     /// <returns></returns>
-    public virtual PromptExecutionSettings GetPromptExecutionSettings(FunctionChoiceBehavior? functionChoiceBehavior = null)
+    public virtual PromptExecutionSettings GetPromptExecutionSettings(
+        FunctionChoiceBehavior? functionChoiceBehavior = null,
+        ReasoningEffortLevel reasoningEffortLevel = ReasoningEffortLevel.Default)
     {
         var result = new PromptExecutionSettings
         {
-            FunctionChoiceBehavior = functionChoiceBehavior
+            FunctionChoiceBehavior = functionChoiceBehavior,
+            ExtensionData = new Dictionary<string, object>(1)
+            {
+                { "reasoning_effort_level", reasoningEffortLevel }
+            }
         };
 
         SetPromptExecutionSettingsExtensionData(result, _customAssistant.Temperature, "temperature");

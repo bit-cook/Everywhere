@@ -42,8 +42,11 @@ public interface IKernelMixin : IDisposable
     /// Gets the prompt execution settings.
     /// </summary>
     /// <param name="functionChoiceBehavior"></param>
+    /// <param name="reasoningEffortLevel"></param>
     /// <returns>The prompt execution settings.</returns>
-    PromptExecutionSettings? GetPromptExecutionSettings(FunctionChoiceBehavior? functionChoiceBehavior = null);
+    PromptExecutionSettings? GetPromptExecutionSettings(
+        FunctionChoiceBehavior? functionChoiceBehavior = null,
+        ReasoningEffortLevel reasoningEffortLevel = ReasoningEffortLevel.Default);
 
     /// <summary>
     /// Checks the connectivity to the AI service. Throws an exception if the connectivity check fails.
