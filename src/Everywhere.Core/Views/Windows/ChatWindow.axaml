@@ -295,7 +295,7 @@
 
           <StackPanel
             Margin="8,0,8,8"
-            IsVisible="{Binding ChatContextManager.Current.BranchNodesWithoutSystem.Count, Converter={x:Static vc:Int32Converters.NotGreaterThan}, ConverterParameter=1}"
+            IsVisible="{Binding ChatContextManager.Current.DisplayItems.Count, Converter={x:Static vc:Int32Converters.NotGreaterThan}, ConverterParameter=1}"
             Spacing="8">
             <ToggleSwitch
               HorizontalAlignment="Center" shadui:ToggleSwitchAssist.RightAlignedContent="True"
@@ -351,7 +351,7 @@
           <v:ChatMessageItemsControl
             Margin="8,0" Padding="8,0"
             IsVisible="{Binding $self.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}"
-            ItemsSource="{Binding ChatContextManager.Current.BranchNodesWithoutSystem}"/>
+            ItemsSource="{Binding ChatContextManager.Current.DisplayItems}"/>
         </Panel>
       </ScrollViewer>
 

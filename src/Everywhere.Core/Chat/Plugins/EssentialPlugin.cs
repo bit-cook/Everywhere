@@ -101,6 +101,10 @@ public class EssentialPlugin : BuiltInChatPlugin
         var chatContext = new ChatContext { Metadata = { IsTemporary = true } };
         chatContext.Add(new UserChatMessage(prompt, []));
         var assistantChatMessage = new AssistantChatMessage();
+        chatContext.Add(assistantChatMessage);
+
+        // Display the chat context in the UI
+        userInterface.DisplaySink.AppendChatContext(chatContext);
 
         await chatService.GenerateAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken);
 
@@ -111,14 +115,6 @@ public class EssentialPlugin : BuiltInChatPlugin
         }
 
         var result = (assistantChatMessage.Items[^1] as AssistantChatMessageTextSpan)?.Content;
-        userInterface.DisplaySink.AppendMarkdown().Append(result);
-        userInterface.DisplaySink.AppendDynamicResourceKey(
-            new FormattedDynamicResourceKey(
-                LocaleKey.BuiltInChatPlugin_Essential_RunSubagent_TokenCount,
-                new DirectResourceKey(assistantChatMessage.UsageDetails.InputTokenCount),
-                new DirectResourceKey(assistantChatMessage.UsageDetails.OutputTokenCount),
-                new DirectResourceKey(assistantChatMessage.UsageDetails.TotalTokenCount)),
-            "Small Muted");
         return result ?? string.Empty;
     }
 

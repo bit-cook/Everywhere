@@ -303,9 +303,14 @@
             </SelectableTextBlock>
 
             <StackPanel
-              x:Name="ChatMessageOperationPanel"
-              IsVisible="{Binding !IsBusy}"
-              Orientation="Horizontal">
+              x:Name="ChatMessageOperationPanel" Orientation="Horizontal">
+              <StackPanel.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                  <Binding Path="!$parent[v:ChatMessageItemsControl].IsReadonly"/>
+                  <Binding Path="!IsBusy"/>
+                </MultiBinding>
+              </StackPanel.IsVisible>
+
               <NumericUpDown
                 x:Name="ChoiceSelector" Margin="0,0,4,0"
                 IsVisible="{Binding $parent[ContentControl].((chat:ChatMessageNode)DataContext).Parent.ChoiceCount, FallbackValue=False, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=1}"
@@ -356,7 +361,9 @@
             <v:ChatAttachmentItemsControl ItemsSource="{Binding Attachments}"/>
 
             <StackPanel
-              x:Name="ChatMessageOperationPanel" Orientation="Horizontal">
+              x:Name="ChatMessageOperationPanel"
+              IsVisible="{Binding !$parent[v:ChatMessageItemsControl].IsReadonly}"
+              Orientation="Horizontal">
               <Button
                 Classes="Ghost Compact"
                 Command="{Binding $parent[v:ChatWindow].ViewModel.EditCommand}"

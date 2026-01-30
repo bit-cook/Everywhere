@@ -210,9 +210,9 @@ public sealed class ChatContextStorage(
             if (row.Id == Guid.Empty) continue; // handle root later
 
             var msg = DeserializeMessage(row.Payload);
-            if (msg is UserChatMessage userMsg)
+            if (msg is IHaveChatAttachments { Attachments: { } attachments })
             {
-                foreach (var attachment in userMsg.Attachments.OfType<ChatFileAttachment>())
+                foreach (var attachment in attachments.OfType<ChatFileAttachment>())
                 {
                     if (blobsByHash.TryGetValue(attachment.Sha256, out var blobEntity))
                     {

@@ -356,6 +356,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
     [Key(8)]
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ElapsedSeconds))]
+    [NotifyPropertyChangedFor(nameof(SerializableDisplayBlocks))] // Notify for serialization purposes
     public partial DateTimeOffset FinishedAt { get; set; } = DateTimeOffset.UtcNow;
 
     [IgnoreMember]
