@@ -868,6 +868,8 @@ public sealed partial class ChatService(
         CancellationToken cancellationToken)
     {
         using var activity = _activitySource.StartActivity();
+        if (metadata.IsGeneratingTopic) return;
+        metadata.IsGeneratingTopic = true;
 
         try
         {
@@ -890,13 +892,12 @@ public sealed partial class ChatService(
                         new Dictionary<string, Func<string>>
                         {
                             { "UserMessage", () => userMessage.SafeSubstring(0, 2048) },
-                            { "AssistantMessage", () => assistantMessage.SafeSubstring(0, 2048) },
                             { "SystemLanguage", () => language }
                         })),
             };
             var chatMessageContent = await kernelMixin.ChatCompletionService.GetChatMessageContentAsync(
                 chatHistory,
-                kernelMixin.GetPromptExecutionSettings(),
+                kernelMixin.GetPromptExecutionSettings(reasoningEffortLevel: ReasoningEffortLevel.Minimal),
                 cancellationToken: cancellationToken);
 
             Span<char> punctuationChars = ['.', ',', '!', '?', '。', '，', '！', '？'];
@@ -909,6 +910,10 @@ public sealed partial class ChatService(
             e = HandledChatException.Handle(e);
             activity?.SetStatus(ActivityStatusCode.Error, e.Message);
             logger.LogError(e, "Failed to generate chat title");
+        }
+        finally
+        {
+            metadata.IsGeneratingTopic = false;
         }
     }
 
