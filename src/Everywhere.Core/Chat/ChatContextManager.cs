@@ -174,7 +174,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
 
         WeakReferenceMessenger.Default.Register(this);
 
-        Task.Run(CleanupUnusedWorkingDirectories);
+        Task.Run(CleanupUnusedWorkingDirectories).Detach(logger.ToExceptionHandler());
     }
 
     /// <summary>
