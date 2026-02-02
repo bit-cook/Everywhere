@@ -27,7 +27,7 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
 
     public bool IsToolCallEnabled
     {
-        get => Get<bool>();
+        get => Get(true);
         set => Set(value);
     }
 
@@ -39,7 +39,7 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
 
     public bool IsMainViewSidebarExpanded
     {
-        get => Get<bool>();
+        get => Get(true);
         set => Set(value);
     }
 
