@@ -43,9 +43,10 @@ public class FunctionCallContentMessagePackFormatter : FunctionContentMessagePac
                     functionName = reader.ReadString();
                     break;
                 }
-                case 3 when MetadataDictionaryMessagePackFormatter.Deserialize(ref reader, options) is { } dictionary:
+                case 3:
                 {
-                    arguments = new KernelArguments(dictionary);
+                    if (MetadataDictionaryMessagePackFormatter.Deserialize(ref reader, options) is { Count: > 0 } dictionary)
+                        arguments = new KernelArguments(dictionary);
                     break;
                 }
                 case 4:
