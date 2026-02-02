@@ -175,11 +175,9 @@ public static class ChatHistoryBuilder
                 functionCallMessage.Items.AddRange(functionCall.Calls);
                 yield return functionCallMessage;
 
-                // ReSharper disable once ForCanBeConvertedToForeach
-                // foreach would create an enumerator object, which will cause thread lock issues.
-                for (var callIndex = 0; callIndex < functionCall.Calls.Count; callIndex++)
+                foreach (var call in functionCall.Calls)
                 {
-                    var callId = functionCall.Calls[callIndex].Id;
+                    var callId = call.Id;
                     if (callId.IsNullOrEmpty())
                     {
                         throw new InvalidOperationException("Function call ID cannot be null or empty when creating chat message contents.");
@@ -190,19 +188,19 @@ public static class ChatHistoryBuilder
                         AuthorRole.Tool,
                         [
                             new FunctionResultContent(
-                                functionCall.Calls[callIndex],
+                                call,
                                 $"Error: No result found for function call ID '{callId}'. " +
                                 $"This may caused by an error during function execution or user cancellation.")
                         ]);
 
                     // If the function call result is a ChatAttachment, add it as extra attachment message(s).
-                    if (resultContent?.Result is not ChatAttachment extraToolCallResult) break;
+                    if (resultContent?.Result is not ChatAttachment extraToolCallResult) continue;
 
                     var items = new ChatMessageContentItemCollection { new TextContent("<ExtraToolCallResultAttachments>") };
                     await PopulateKernelContentsAsync(extraToolCallResult, items, cancellationToken);
 
                     // No valid attachment added
-                    if (items.Count == 1) break;
+                    if (items.Count == 1) continue;
 
                     items.Add(new TextContent("</ExtraToolCallResultAttachments>"));
                     yield return new ChatMessageContent(AuthorRole.User, items);
