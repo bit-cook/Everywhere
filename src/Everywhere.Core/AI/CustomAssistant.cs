@@ -529,6 +529,17 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
             [
                 new ModelDefinitionTemplate
                 {
+                    Id = "kimi-k2.5",
+                    ModelId = "kimi-k2.5",
+                    DisplayName = "Kimi K2.5",
+                    MaxTokens = 262_144,
+                    IsImageInputSupported = true,
+                    IsFunctionCallingSupported = true,
+                    IsDeepThinkingSupported = true,
+                    IsDefault = true
+                },
+                new ModelDefinitionTemplate
+                {
                     Id = "kimi-k2-0905-preview",
                     ModelId = "kimi-k2-0905-preview",
                     DisplayName = "Kimi K2",
@@ -566,17 +577,6 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                     IsImageInputSupported = false,
                     IsFunctionCallingSupported = true,
                     IsDeepThinkingSupported = true,
-                },
-                new ModelDefinitionTemplate
-                {
-                    Id = "kimi-latest",
-                    ModelId = "kimi-latest",
-                    DisplayName = "Kimi Latest",
-                    MaxTokens = 128_000,
-                    IsImageInputSupported = true,
-                    IsFunctionCallingSupported = true,
-                    IsDeepThinkingSupported = false,
-                    IsDefault = true
                 }
             ]
         },
