@@ -1,3 +1,24 @@
+## [v0.6.1](https://github.com/DearVa/Everywhere/releases/tag/v0.6.1) - 2026-02-03
+
+### ✨ Features
+- **Enhanced Window Pinning**: Introduced three pinning states: Pinned & Topmost, Pinned (Not Topmost), and Unpinned (Auto-hide on lost focus).
+- **Model Updates**: Removed obsolete Kimi models and added support for **Kimi K2.5**.
+- **Sub-Agent Streaming**: The Sub-Agent tool now supports streaming output.
+
+### 🚀 Improvements
+- Optimized environment variable updates; MCP tools now automatically use the latest system environment variables (#264).
+- Improved the prompt and logic for automatic chat title generation.
+- Tool calling is now enabled by default for new users.
+
+### 🐛 Bug Fixes
+- Fixed an issue where the window could be positioned off-screen in multi-monitor setups.
+- Fixed an issue where DeepSeek models failed to call tools during the reasoning process.
+- Fixed an issue with incorrect token usage counting.
+
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.0...v0.6.1
+
+
+
 ## [v0.6.0](https://github.com/DearVa/Everywhere/releases/tag/v0.6.0) - 2026-01-21
 
 ### ✨ Features
