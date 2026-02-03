@@ -40,7 +40,7 @@
 
     <shadui:NavigationBar
       Margin="12,8" ExpandedSize="220"
-      IsExpanded="{Binding PersistentState.IsMainViewSidebarExpanded}"
+      IsExpanded="{Binding PersistentState.IsMainViewSidebarExpanded, Mode=TwoWay}"
       ItemsSource="{Binding Pages}"
       SelectedItem="{Binding SelectedPage, Mode=TwoWay}"
       ZIndex="1">
