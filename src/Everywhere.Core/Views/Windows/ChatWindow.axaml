@@ -147,7 +147,8 @@
               <Flyout ShowMode="Transient">
                 <DockPanel>
                   <Button
-                    DockPanel.Dock="Bottom" Padding="0,6"
+                    Classes="NoPressedAnimation" DockPanel.Dock="Bottom"
+                    Padding="0,6"
                     BorderBrush="{DynamicResource BorderColor}"
                     BorderThickness="0,1,0,0"
                     Content="{I18N {x:Static LocaleKey.ChatWindow_ViewAllHistoryButton_Content}}"
