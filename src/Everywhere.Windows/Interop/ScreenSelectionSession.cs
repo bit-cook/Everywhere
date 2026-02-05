@@ -1,11 +1,14 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Threading;
 using DynamicData;
 using Everywhere.Interop;
 using Everywhere.Utilities;
@@ -16,6 +19,18 @@ namespace Everywhere.Windows.Interop;
 
 public partial class VisualElementContext
 {
+    /// <summary>
+    /// Represents a modal screen selection session (e.g., picking a window or element).
+    /// <para>
+    /// ARCHITECTURE & WORKAROUNDS:
+    /// 1. <see cref="OnPointerEntered"/>: Simulates a <see cref="MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTDOWN"/> to immediately "capture" the session 
+    ///    and prevent interaction with the desktop.
+    /// 2. <see cref="WindowHelper.SetHitTestVisible"/>: The window is set to be transparent to input (HitTestVisible=false). 
+    ///    This allows underlying windows to be detected by APIs like <see cref="PInvoke.WindowFromPoint"/>.
+    /// 3. <see cref="LowLevelHook"/>: Since the window is input-transparent, we must use Global Hooks to track mouse movement and capture input.
+    /// 4. <see cref="OnClosing"/>: Implements a complex shutdown sequence to prevent "Phantom Right Clicks" from triggering context menus on the desktop.
+    /// </para>
+    /// </summary>
     private abstract class ScreenSelectionSession : ScreenSelectionTransparentWindow
     {
         protected IWindowHelper WindowHelper { get; }
@@ -30,6 +45,7 @@ public partial class VisualElementContext
         private bool _isRightButtonPressed;
         private IDisposable? _mouseHookSubscription;
         private IDisposable? _keyboardHookSubscription;
+        private bool _canClose;
 
         protected ScreenSelectionSession(IWindowHelper windowHelper, IReadOnlyList<ScreenSelectionMode> allowedModes, ScreenSelectionMode initialMode)
         {
@@ -60,9 +76,12 @@ public partial class VisualElementContext
 
         protected override unsafe void OnPointerEntered(PointerEventArgs e)
         {
-            // SendInput MouseRightButtonDown, this will:
-            // 1. prevent the cursor from changing to the default arrow cursor and interacting with other windows
-            // 2. Trigger the OnPointerPressed event to set the window to hit test invisible
+            // WORKAROUND: Simulate a Right Mouse Button Down event immediately upon entry.
+            // Purpose:
+            // 1. Logically "press" the mouse to prevent the cursor from interacting with underlying windows (e.g. hover effects).
+            // 2. Trigger the OnPointerPressed event handler below, which performs the actual state transition:
+            //    - Sets HitTestVisible = false (to "see through" to the desktop).
+            //    - Installs low-level hooks.
             PInvoke.SendInput(
                 new ReadOnlySpan<INPUT>(
                 [
@@ -96,7 +115,8 @@ public partial class VisualElementContext
             _keyboardHookSubscription ??= LowLevelHook.CreateKeyboardHook(HandleKeyboardHook, false);
 
             // Pick the element under the cursor immediately
-            PickCursorElement();
+            // Run on next dispatcher loop to ensure the mouse hook is installed & tooltip is shown
+            Dispatcher.UIThread.InvokeAsync(PickCursorElement);
         }
 
         private void HandleMouseHook(WINDOW_MESSAGE msg, ref MSLLHOOKSTRUCT hookStruct, ref bool blockNext)
@@ -214,34 +234,60 @@ public partial class VisualElementContext
             PickCursorElement();
         }
 
-        protected override unsafe void OnClosed(EventArgs e)
+        protected override void OnClosing(WindowClosingEventArgs e)
         {
-            DisposeCollector.DisposeToDefault(ref _mouseHookSubscription);
-            DisposeCollector.DisposeToDefault(ref _keyboardHookSubscription);
+            // WORKAROUND: Safe Shutdown Sequence.
+            // Since we started the session by simulating a Right Button DOWN, we must release it with a Right Button UP.
+            // However, simply sending 'RightUp' is dangerous:
+            // - If the window is still transparent (HitTestVisible=false), the 'RightUp' event will fall through to the desktop.
+            // - The underlying application (e.g., Explorer) will see a valid 'Right Click' sequence and open a Context Menu.
+            //
+            // Solution:
+            // 1. Cancel the immediate close.
+            // 2. Dispose hooks (stop intercepting input).
+            // 3. Make this window Opaque to input (HitTestVisible=true) so it absorbs the 'RightUp' event.
+            // 4. Send 'RightUp'.
+            // 5. Finally Close.
+            e.Cancel = !_canClose;
 
-            // right button down event (from SendInput) is not blocked and triggered OnPointerPressed
-            // so currently system thinks right button is still pressed
-            // we need to let the right button up event go through to avoid stuck right button state
-            // Run it on a separate thread to avoid blocking the UI thread
-            Task.Run(() =>
+            if (!_canClose)
             {
-                PInvoke.SendInput(
-                    new ReadOnlySpan<INPUT>(
-                    [
-                        new INPUT
-                        {
-                            type = INPUT_TYPE.INPUT_MOUSE,
-                            Anonymous = new INPUT._Anonymous_e__Union
-                            {
-                                mi = new MOUSEINPUT
+                _canClose = true;
+
+                DisposeCollector.DisposeToDefault(ref _mouseHookSubscription);
+                DisposeCollector.DisposeToDefault(ref _keyboardHookSubscription);
+
+                // Restore HitTestVisible so we can catch and absorb the simulated RightUp event.
+                WindowHelper.SetHitTestVisible(this, true);
+
+                Dispatcher.UIThread.InvokeAsync(
+                    () =>
+                    {
+                        // Release the Right Mouse Button.
+                        PInvoke.SendInput(
+                            new ReadOnlySpan<INPUT>(
+                            [
+                                new INPUT
                                 {
-                                    dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP
-                                }
-                            }
-                        },
-                    ]),
-                    sizeof(INPUT));
-            });
+                                    type = INPUT_TYPE.INPUT_MOUSE,
+                                    Anonymous = new INPUT._Anonymous_e__Union
+                                    {
+                                        mi = new MOUSEINPUT
+                                        {
+                                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP,
+                                        }
+                                    }
+                                },
+                            ]),
+                            Unsafe.SizeOf<INPUT>());
+
+                        // Dispatch the Close call to ensure the input event is processed first.
+                        Dispatcher.UIThread.InvokeAsync(Close, DispatcherPriority.Background);
+                    },
+                    DispatcherPriority.Background);
+            }
+
+            base.OnClosing(e);
         }
 
         private void PickCursorElement()
@@ -249,6 +295,7 @@ public partial class VisualElementContext
             if (!PInvoke.GetCursorPos(out var cursorPos)) return;
 
             PickElement(cursorPos);
+            SetToolTipWindowPosition(cursorPos);
         }
 
         private void Cancel()
@@ -300,7 +347,8 @@ public partial class VisualElementContext
                 }
                 case ScreenSelectionMode.Element:
                 {
-                    // BUG: sometimes this only picks the window, not the element under the cursor (e.g. QQ)
+                    // KNOWN ISSUE: Sometimes this only picks the window, not the specific element under the cursor.
+                    // This happens with applications using non-standard UI frameworks (e.g., QQ, DirectUI) that do not fully support UI Automation.
                     PickingElement = TryCreateVisualElement(() => Automation.FromPoint(cursorPos));
                     if (PickingElement == null) break;
 
