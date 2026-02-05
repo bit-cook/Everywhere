@@ -31,6 +31,7 @@
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/Chat/ChatPluginDisplayBlockPresenter.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/ConsentDecisionCard.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/CreateApiKeyForm.axaml"/>
+        <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/Eva.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/IconEditor.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/IconPresenter.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/ManageApiKeyForm.axaml"/>

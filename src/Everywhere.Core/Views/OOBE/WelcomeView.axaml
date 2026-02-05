@@ -16,16 +16,15 @@
       <RowDefinition MinHeight="200"/>
     </Grid.RowDefinitions>
 
-    <Viewbox
+    <v:Eva
       Grid.Row="1" Grid.Column="0"
-      Width="36" Height="36"
-      Margin="32,8,4,-4" VerticalAlignment="Top">
-      <ContentPresenter Content="{StaticResource AssistantAvatar}"/>
-    </Viewbox>
+      Width="48" Height="48"
+      Margin="24,8,4,-4" VerticalAlignment="Top"
+      IsThinking="{Binding IsBusy}"/>
 
     <TransitioningContentControl
       Grid.Row="1" Grid.Column="1"
-      Margin="0,8,32,0"
+      Margin="0,8,24,0"
       Content="{Binding CurrentStep}"
       IsTransitionReversed="{Binding IsPageTransitionReversed}">
       <TransitioningContentControl.Styles>

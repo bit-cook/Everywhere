@@ -21,6 +21,7 @@
     <PackageReference Include="FuzzySharp"/>
     <PackageReference Include="GnomeStack.Os.Secrets"/>
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="JetBrains.Profiler.Api"/>
+    <PackageReference Include="HotAvalonia" PrivateAssets="All" Publish="True"/>
     <PackageReference Include="LiveMarkdown.Avalonia"/>
     <PackageReference Include="LiveMarkdown.Avalonia.Math"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore"/>
@@ -89,6 +90,13 @@
     <AvaloniaResource Include="..\..\CHANGELOG.md">
       <Link>Assets\CHANGELOG.md</Link>
     </AvaloniaResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\Controls\Eva.axaml.cs">
+      <DependentUpon>Eva.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
   <Target Name="GenerateTelemetryConstants" BeforeTargets="CoreCompile">
