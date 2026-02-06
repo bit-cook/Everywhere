@@ -142,7 +142,7 @@
               <TextBlock
                 FontSize="{TemplateBinding FontSize}"
                 Opacity="0.5"
-                Text="{I18N {x:Static LocaleKey.ChatInputArea_Watermark}}"
+                Text="{TemplateBinding Watermark}"
                 TextAlignment="{TemplateBinding TextAlignment}"
                 TextWrapping="{TemplateBinding TextWrapping}">
                 <TextBlock.IsVisible>

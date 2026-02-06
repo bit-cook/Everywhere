@@ -127,12 +127,20 @@ public sealed partial class ChatWindowViewModel :
         }
     }
 
+    /// <summary>
+    /// The resource key for the watermark text in the chat input box.
+    /// Can be set to one of greetings or instructions based on the chat context, or a default value.
+    /// </summary>
+    [ObservableProperty]
+    public partial DynamicResourceKeyBase ChatInputAreaWatermarkKey { get; private set; }
+
     private readonly IChatService _chatService;
     private readonly IVisualElementContext _visualElementContext;
     private readonly INativeHelper _nativeHelper;
     private readonly IBlobStorage _blobStorage;
     private readonly ILogger<ChatWindowViewModel> _logger;
 
+    private readonly DynamicResourceKey _defaultWatermarkKey = new(LocaleKey.ChatInputArea_Watermark);
     private readonly CompositeDisposable _disposables = new(2);
     private readonly SourceList<ChatAttachment> _chatAttachmentsSource = new();
     private readonly ReusableCancellationTokenSource _cancellationTokenSource = new();
@@ -168,6 +176,7 @@ public sealed partial class ChatWindowViewModel :
 
         // Load the saved input box text
         ChatInputAreaText = PersistentState.ChatInputAreaText;
+        ChatInputAreaWatermarkKey = _defaultWatermarkKey;
 
         ChatAttachments = _chatAttachmentsSource
             .Connect()
@@ -886,6 +895,15 @@ public sealed partial class ChatWindowViewModel :
         EditCommand.NotifyCanExecuteChanged();
         RetryCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
+
+        if (IsBusy)
+        {
+            ChatInputAreaWatermarkKey = Greetings.GetRandomTip();
+        }
+        else
+        {
+            ChatInputAreaWatermarkKey = _defaultWatermarkKey;
+        }
     }
 
     public void Receive(ChatPluginConsentRequest message)

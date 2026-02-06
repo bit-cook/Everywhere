@@ -14,7 +14,6 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <LocaleManager/>
-        <ResourceInclude Source="avares://ShadUI/Utilities/Easings.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Assets/Resources.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Assets/DataTemplates.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/ApiKeyComboBox.axaml"/>

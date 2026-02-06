@@ -21,7 +21,6 @@
     <PackageReference Include="FuzzySharp"/>
     <PackageReference Include="GnomeStack.Os.Secrets"/>
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="JetBrains.Profiler.Api"/>
-    <PackageReference Include="HotAvalonia" PrivateAssets="All" Publish="True"/>
     <PackageReference Include="LiveMarkdown.Avalonia"/>
     <PackageReference Include="LiveMarkdown.Avalonia.Math"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore"/>

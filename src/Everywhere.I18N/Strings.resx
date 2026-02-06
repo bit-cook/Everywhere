@@ -2072,4 +2072,13 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>Deep Thinking</value>
     </data>
+    <data name="Greetings_Tip1" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Greetings_Tip2" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Greetings_Tip3" xml:space="preserve">
+        <value />
+    </data>
 </root>

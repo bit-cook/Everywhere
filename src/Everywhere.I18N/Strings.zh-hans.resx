@@ -2073,4 +2073,13 @@
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>深度思考</value>
     </data>
+    <data name="Greetings_Tip1" xml:space="preserve">
+        <value>你知道吗：你可以使用 Ctrl + 数字键 快速切换助手</value>
+    </data>
+    <data name="Greetings_Tip2" xml:space="preserve">
+        <value>你知道吗：你可以在左下角助手图标上使用滚轮快速切换</value>
+    </data>
+    <data name="Greetings_Tip3" xml:space="preserve">
+        <value>你知道吗：你可以将 Copilot 按键设为 Everywhere 快捷键</value>
+    </data>
 </root>
