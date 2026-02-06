@@ -147,7 +147,7 @@
                 <HyperlinkButton
                   VerticalAlignment="Center"
                   Content="{I18N {x:Static LocaleKey.WelcomeView_ModelProviderHyperlinkButton_Content}}"
-                  NavigateUri="https://everywhere.sylinko.com/model-provider/"
+                  NavigateUri="https://everywhere.sylinko.com/docs/model-provider"
                   TextElement.Foreground="{DynamicResource InfoColor}"/>
               </StackPanel>
               <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_AssistantStep_PresetBased_Message4}}"/>
