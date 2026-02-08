@@ -491,9 +491,6 @@
     <data name="VisualTreeDetailLevel_Detailed" xml:space="preserve">
         <value>Подробно</value>
     </data>
-    <data name="VisualTreeDetailLevel_Compact" xml:space="preserve">
-        <value>Компактно</value>
-    </data>
     <data name="VisualTreeDetailLevel_Minimal" xml:space="preserve">
         <value>Минимально</value>
     </data>
@@ -502,12 +499,6 @@
     </data>
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>Определяет режим закрепления окна чата при его открытии. Когда окно не закреплено, оно будет автоматически скрываться при потере фокуса.</value>
-    </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
-        <value>Уровень детализации визуального дерева</value>
-    </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
-        <value>Выберите, сколько информации будет захвачено из дерева UI при подключении элементов.</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">
         <value>Ошибка клиента.</value>
@@ -553,9 +544,6 @@
     </data>
     <data name="CustomAssistant_IsDeepThinkingSupported_Header" xml:space="preserve">
         <value>Поддержка глубокого мышления</value>
-    </data>
-    <data name="CustomAssistant_MaxTokens_Description" xml:space="preserve">
-        <value>Максимальная длина контекста диалога. Это повлияет на стратегию построения визуального дерева, постарайтесь установить реальное значение.</value>
     </data>
     <data name="CustomAssistant_MaxTokens_Header" xml:space="preserve">
         <value>Максимальная длина контекста (max_tokens)</value>
@@ -637,9 +625,6 @@
     </data>
     <data name="CustomAssistant_ModelId_Description" xml:space="preserve">
         <value>Идентификатор модели для вызова API, например, gpt-4o.</value>
-    </data>
-    <data name="ChatPluginPage_Title" xml:space="preserve">
-        <value>Чат-плагины</value>
     </data>
     <data name="ChatPluginPage_Description" xml:space="preserve">
         <value>Чат-плагины включают встроенные плагины и MCP-плагины. LLM, поддерживающие вызовы инструментов, будут использовать эти плагины в подходящее время (например, для поиска в интернете или доступа к локальным файлам), чтобы получить более мощные функции.</value>
@@ -898,12 +883,6 @@
     </data>
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>Настройки</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
-        <value>Ограничение длины визуального дерева:</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeDetailLevel" xml:space="preserve">
-        <value>Уровень детализации визуального дерева:</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
         <value>Доступно обновление.</value>

@@ -497,14 +497,20 @@
                 <StackPanel
                   Orientation="Horizontal" Spacing="4">
                   <TextBlock
-                    Classes="Muted" VerticalAlignment="Center"
+                    VerticalAlignment="Center"
                     FontSize="{DynamicResource FontSizeS}"
                     Text="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit}}"/>
-                  <TextBlock
-                    Classes="Muted" VerticalAlignment="Center"
-                    FontSize="{DynamicResource FontSizeS}"
-                    Text="{Binding PersistentState.VisualTreeTokenLimit, Mode=OneWay}"/>
+                  <LucideIcon
+                    Kind="CircleQuestionMark"
+                    Size="{DynamicResource FontSizeS}"
+                    ToolTip.Placement="Right"
+                    ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip}}"/>
                 </StackPanel>
+
+                <TextBlock
+                  Classes="Muted" VerticalAlignment="Center"
+                  FontSize="{DynamicResource FontSizeS}"
+                  Text="{Binding PersistentState.VisualTreeTokenLimit, Mode=OneWay}"/>
 
                 <Slider
                   MinWidth="200" VerticalAlignment="Center">
@@ -516,35 +522,47 @@
                   </Interaction.Behaviors>
                 </Slider>
               </StackPanel>
+
+              <Separator/>
+
               <StackPanel
                 Margin="0,4,0,0" Orientation="Vertical"
                 Spacing="4">
                 <StackPanel
                   Orientation="Horizontal" Spacing="4">
                   <TextBlock
-                    Classes="Muted" VerticalAlignment="Center"
+                    VerticalAlignment="Center"
                     FontSize="{DynamicResource FontSizeS}"
-                    Text="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeDetailLevel}}"/>
-                  <TextBlock
-                    Classes="Muted" VerticalAlignment="Center"
-                    FontSize="{DynamicResource FontSizeS}">
-                    <TextBlock.Text>
-                      <I18N Key="{Binding Settings.ChatWindow.VisualTreeDetailLevel, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
-                    </TextBlock.Text>
-                  </TextBlock>
+                    Text="{I18N {x:Static LocaleKey.ChatWindowSettings_VisualTreeDetailLevel_Header}}"/>
+                  <LucideIcon
+                    Kind="CircleQuestionMark"
+                    Size="{DynamicResource FontSizeS}"
+                    ToolTip.Placement="Right"
+                    ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindowSettings_VisualTreeDetailLevel_Description}}"/>
                 </StackPanel>
+
+                <TextBlock
+                  Classes="Muted" VerticalAlignment="Center"
+                  FontSize="{DynamicResource FontSizeS}">
+                  <TextBlock.Text>
+                    <I18N Key="{Binding Settings.ChatWindow.VisualTreeDetailLevel, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
+                  </TextBlock.Text>
+                </TextBlock>
+
                 <Slider
                   MinWidth="160" IsSnapToTickEnabled="True"
                   Maximum="2" Minimum="0"
                   TickFrequency="1"
                   Value="{Binding Settings.ChatWindow.VisualTreeDetailLevel, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
-
-                <Button
-                  Classes="Secondary Compact" Margin="0,4,0,0"
-                  shadui:ButtonAssist.Icon="{LucideIconContent Settings2}"
-                  Command="{Binding OpenSettingsCommand}"
-                  Content="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_MoreSettings}}"/>
               </StackPanel>
+
+              <Separator/>
+
+              <Button
+                Classes="Secondary Compact" Margin="0,4,0,0"
+                shadui:ButtonAssist.Icon="{LucideIconContent Settings2}"
+                Command="{Binding OpenSettingsCommand}"
+                Content="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_MoreSettings}}"/>
             </v:ChatInputArea.SettingsMenuItems>
           </v:ChatInputArea>
         </StackPanel>

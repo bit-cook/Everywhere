@@ -491,23 +491,11 @@
     <data name="VisualTreeDetailLevel_Detailed" xml:space="preserve">
         <value>詳細</value>
     </data>
-    <data name="VisualTreeDetailLevel_Compact" xml:space="preserve">
-        <value>緊湊</value>
-    </data>
-    <data name="VisualTreeDetailLevel_Minimal" xml:space="preserve">
-        <value>極簡</value>
-    </data>
     <data name="ChatWindowSettings_WindowPinMode_Header" xml:space="preserve">
         <value>視窗固定模式</value>
     </data>
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>指定聊天視窗開啟時的固定模式。當視窗未固定時，失去焦點會自動隱藏。</value>
-    </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
-        <value>視覺樹細節層級</value>
-    </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
-        <value>選擇在附加元素時從 UI 樹中捕獲多少資訊。</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">
         <value>客戶端錯誤。</value>
@@ -553,9 +541,6 @@
     </data>
     <data name="CustomAssistant_IsDeepThinkingSupported_Header" xml:space="preserve">
         <value>支援深度思考</value>
-    </data>
-    <data name="CustomAssistant_MaxTokens_Description" xml:space="preserve">
-        <value>對話的最大上下文長度。此項會影響構建視覺樹的策略，請盡可能設為真實值。</value>
     </data>
     <data name="CustomAssistant_MaxTokens_Header" xml:space="preserve">
         <value>最大上下文長度 (max_tokens)</value>
@@ -637,9 +622,6 @@
     </data>
     <data name="CustomAssistant_ModelId_Description" xml:space="preserve">
         <value>用於 API 調用的模型標識，例如 gpt-4o。</value>
-    </data>
-    <data name="ChatPluginPage_Title" xml:space="preserve">
-        <value>聊天插件</value>
     </data>
     <data name="ChatPluginPage_Description" xml:space="preserve">
         <value>聊天插件包括內建插件和 MCP 插件。支持工具調用的 LLM 將在適當時機使用這些插件（如搜尋網頁或存取本地檔案）以獲得更強大的功能。</value>
@@ -898,12 +880,6 @@
     </data>
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>設置</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
-        <value>視覺樹長度限制：</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeDetailLevel" xml:space="preserve">
-        <value>視覺樹詳細級別：</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
         <value>有可用更新。</value>

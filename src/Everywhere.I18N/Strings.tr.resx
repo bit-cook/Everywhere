@@ -490,9 +490,6 @@
     <data name="VisualTreeDetailLevel_Detailed" xml:space="preserve">
         <value>Detaylı</value>
     </data>
-    <data name="VisualTreeDetailLevel_Compact" xml:space="preserve">
-        <value>Kompakt</value>
-    </data>
     <data name="VisualTreeDetailLevel_Minimal" xml:space="preserve">
         <value>Minimum</value>
     </data>
@@ -501,12 +498,6 @@
     </data>
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>Sohbet penceresi açıldığında sabitleme modunu belirler. Pencere sabitlenmemişse odak kaybolduğunda otomatik olarak gizlenecektir.</value>
-    </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
-        <value>Görsel Ağ Detay Seviyesi</value>
-    </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
-        <value>Öğe eklerken, UI ağından ne kadar bilginin yakalanacağını seçin.</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">
         <value>İstemci hatası.</value>
@@ -552,9 +543,6 @@
     </data>
     <data name="CustomAssistant_IsDeepThinkingSupported_Header" xml:space="preserve">
         <value>Derin Düşünme Desteği</value>
-    </data>
-    <data name="CustomAssistant_MaxTokens_Description" xml:space="preserve">
-        <value>Sohbetin maksimum bağlam uzunluğu. Bu, görsel ağaç oluşturma stratejisini etkiler, mümkünse gerçek bir değer olarak ayarlayın.</value>
     </data>
     <data name="CustomAssistant_MaxTokens_Header" xml:space="preserve">
         <value>Maksimum Bağlam Uzunluğu (max_tokens)</value>
@@ -636,9 +624,6 @@
     </data>
     <data name="CustomAssistant_ModelId_Description" xml:space="preserve">
         <value>API çağrıları için model kimliği, örneğin gpt-4o.</value>
-    </data>
-    <data name="ChatPluginPage_Title" xml:space="preserve">
-        <value>Sohbet Eklentileri</value>
     </data>
     <data name="ChatPluginPage_Description" xml:space="preserve">
         <value>Soğbet eklentileri, yerleşik eklentiler ve MCP eklentilerini içerir. Araç çağrılarını destekleyen LLM'ler, daha güçlü işlevsellik elde etmek için (web arama veya yerel dosyalara erişim gibi) bu eklentileri uygun zamanlarda kullanır.</value>
@@ -895,12 +880,6 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     </data>
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>Ayarlar</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
-        <value>Görsel ağ uzunluk sınırı:</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeDetailLevel" xml:space="preserve">
-        <value>Görsel ağ detay seviyesi:</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
         <value>Güncelleme mevcut.</value>

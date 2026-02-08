@@ -491,9 +491,6 @@
     <data name="VisualTreeDetailLevel_Detailed" xml:space="preserve">
         <value>Détaillé</value>
     </data>
-    <data name="VisualTreeDetailLevel_Compact" xml:space="preserve">
-        <value>Compact</value>
-    </data>
     <data name="VisualTreeDetailLevel_Minimal" xml:space="preserve">
         <value>Minimal</value>
     </data>
@@ -502,12 +499,6 @@
     </data>
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>Spécifie le mode d'épinglage pour la fenêtre de chat lorsqu'elle est ouverte. Lorsque la fenêtre n'est pas fixée, elle sera automatiquement masquée lorsqu'elle perd le focus.</value>
-    </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
-        <value>Niveau de détail de l'arborescence visuelle</value>
-    </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
-        <value>Choisissez la quantité d'informations capturées depuis l'arborescence de l'interface utilisateur lors de l'attachement des éléments.</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">
         <value>Erreur du client.</value>
@@ -637,9 +628,6 @@
     </data>
     <data name="CustomAssistant_ModelId_Description" xml:space="preserve">
         <value>Identifiant du modèle utilisé pour les appels API, par exemple gpt-4o.</value>
-    </data>
-    <data name="ChatPluginPage_Title" xml:space="preserve">
-        <value>Plugins de Chat</value>
     </data>
     <data name="ChatPluginPage_Description" xml:space="preserve">
         <value>Les plugins de chat incluent des plugins intégrés et des plugins MCP. Les LLMs qui prennent en charge les appels d'outils utiliseront ces plugins au moment opportun (comme la recherche sur le web ou l'accès aux fichiers locaux) pour obtenir des fonctionnalités plus puissantes.</value>

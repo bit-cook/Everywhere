@@ -884,7 +884,7 @@ public sealed partial class ChatService(
         }
         finally
         {
-            metadata.IsGeneratingTopic.Value = false;
+            metadata.IsGeneratingTopic.FlipIfTrue();
         }
     }
 
