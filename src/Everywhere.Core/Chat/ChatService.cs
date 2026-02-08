@@ -833,11 +833,13 @@ public sealed partial class ChatService(
         ChatContextMetadata metadata,
         CancellationToken cancellationToken)
     {
-        if (metadata.IsGeneratingTopic) return;
-        metadata.IsGeneratingTopic = true;
+        if (metadata.IsGeneratingTopic.FlipIfFalse())
+        {
+            // Another generation is in progress, skip generating title to avoid token waste and confusion.
+            return;
+        }
 
         using var activity = StartChatActivity("invoke_agent", customAssistant);
-
         try
         {
             var language = settings.Common.Language.ToEnglishName();
@@ -882,7 +884,7 @@ public sealed partial class ChatService(
         }
         finally
         {
-            metadata.IsGeneratingTopic = false;
+            metadata.IsGeneratingTopic.Value = false;
         }
     }
 

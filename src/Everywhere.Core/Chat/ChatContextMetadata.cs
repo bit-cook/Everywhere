@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using Everywhere.Utilities;
 using MessagePack;
 
 namespace Everywhere.Chat;
@@ -59,7 +60,10 @@ public partial class ChatContextMetadata(Guid id, DateTimeOffset dateCreated, Da
     /// Indicates whether the topic is being generated.
     /// </summary>
     [IgnoreMember]
-    public bool IsGeneratingTopic { get; set; }
+    public AtomicBoolean IsGeneratingTopic => new(ref _isGeneratingTopicAtomic);
+
+    [IgnoreMember]
+    private int _isGeneratingTopicAtomic;
 
     [IgnoreMember]
     [ObservableProperty]
