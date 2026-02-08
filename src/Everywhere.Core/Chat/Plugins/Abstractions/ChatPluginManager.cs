@@ -439,6 +439,19 @@ public class ChatPluginManager : IChatPluginManager
 
     public void Dispose()
     {
+        foreach (var mcpClient in _runningMcpClients.Values)
+        {
+            mcpClient.DisposeAsync().Detach(IExceptionHandler.DangerouslyIgnoreAllException);
+        }
+        _runningMcpClients.Clear();
+
+        _mcpPluginsSource.Edit(items =>
+        {
+            foreach (var item in items)
+            {
+                item.IsRunning = false;
+            }
+        });
         _disposables.Dispose();
     }
 

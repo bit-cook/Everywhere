@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reactive.Disposables;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -80,7 +81,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// Value: Granted permissions for the function.
     /// </summary>
     [IgnoreMember]
-    public Dictionary<string, ChatFunctionPermissions> GrantedPermissions { get; } = new();
+    public ConcurrentDictionary<string, ChatFunctionPermissions> GrantedPermissions { get; } = new();
 
     /// <summary>
     /// Resource key for the busy message to show when waiting for a response.
@@ -301,6 +302,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
             node.PropertyChanged -= HandleNodePropertyChanged;
         }
 
+        _rootNode.PropertyChanged -= HandleNodePropertyChanged;
         _branchNodesWithoutSystemSubscription.Dispose();
         _branchNodes.Dispose();
     }

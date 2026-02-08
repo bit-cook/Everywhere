@@ -11,6 +11,7 @@ public class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILoggerFac
 {
     private readonly Lock _syncLock = new();
 
+    private HttpClient? _cachedHttpClient;
     private KernelMixinBase? _cachedKernelMixin;
 
     /// <summary>
@@ -49,11 +50,12 @@ public class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILoggerFac
             return _cachedKernelMixin;
         }
 
+        _cachedHttpClient?.Dispose();
         _cachedKernelMixin?.Dispose();
 
         // Create an HttpClient instance using the factory.
         // It will have the configured settings (timeout and proxy).
-        var httpClient = httpClientFactory.CreateClient();
+        var httpClient = _cachedHttpClient = httpClientFactory.CreateClient();
         httpClient.Timeout = TimeSpan.FromSeconds(customAssistant.RequestTimeoutSeconds.ActualValue);
         return _cachedKernelMixin = customAssistant.Schema switch
         {
