@@ -144,6 +144,12 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
                 }
                 break;
             }
+            case { Key: Key.T, KeyModifiers: KeyModifiers.Control }:
+            {
+                _persistentState.IsToolCallEnabled = !_persistentState.IsToolCallEnabled;
+                e.Handled = true;
+                break;
+            }
         }
     }
 

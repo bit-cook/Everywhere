@@ -1238,7 +1238,7 @@
         <value>{0} 个文件或文件夹</value>
     </data>
     <data name="ChatPluginDisplayBlockPresenter_FileReferences_HasMoreReferencesTextBlock_Text" xml:space="preserve">
-        <value>其余略</value>
+        <value>等等</value>
     </data>
     <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Header" xml:space="preserve">
         <value>访问网页</value>
@@ -2072,5 +2072,8 @@
     </data>
     <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip" xml:space="preserve">
         <value>采集视觉上下文的长度上限，单位为 token。此项为估算，无法保证精确限制。</value>
+    </data>
+    <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
+        <value>开启工具调用</value>
     </data>
 </root>

@@ -10,6 +10,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.AI;
 using Everywhere.Chat;
+using Everywhere.Chat.Plugins;
 using Everywhere.Utilities;
 
 namespace Everywhere.Views;
@@ -37,8 +38,8 @@ public partial class ChatInputArea : TextBox
     public static readonly StyledProperty<int> MaxChatAttachmentCountProperty =
         AvaloniaProperty.Register<ChatInputArea, int>(nameof(MaxChatAttachmentCount));
 
-    public static readonly StyledProperty<IEnumerable<CustomAssistant>?> CustomAssistantsProperty =
-        AvaloniaProperty.Register<ChatInputArea, IEnumerable<CustomAssistant>?>(nameof(CustomAssistants));
+    public static readonly StyledProperty<IEnumerable<CustomAssistant>?> CustomAssistantItemsSourceProperty =
+        AvaloniaProperty.Register<ChatInputArea, IEnumerable<CustomAssistant>?>(nameof(CustomAssistantItemsSource));
 
     public static readonly StyledProperty<CustomAssistant?> SelectedCustomAssistantProperty =
         AvaloniaProperty.Register<ChatInputArea, CustomAssistant?>(nameof(SelectedCustomAssistant));
@@ -48,16 +49,19 @@ public partial class ChatInputArea : TextBox
             nameof(AddChatAttachmentMenuItems),
             o => o.AddChatAttachmentMenuItems);
 
-    public static readonly DirectProperty<ChatInputArea, IEnumerable?> SettingsMenuItemsProperty =
+    public static readonly DirectProperty<ChatInputArea, IEnumerable?> SettingsMenuItemsSourceProperty =
         AvaloniaProperty.RegisterDirect<ChatInputArea, IEnumerable?>(
-            nameof(SettingsMenuItems),
-            o => o.SettingsMenuItems);
+            nameof(SettingsMenuItemsSource),
+            o => o.SettingsMenuItemsSource);
 
     public static readonly StyledProperty<bool> IsToolCallSupportedProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsToolCallSupported));
 
     public static readonly StyledProperty<bool> IsToolCallEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsToolCallEnabled));
+
+    public static readonly StyledProperty<IEnumerable<ChatPlugin>?> ChatPluginItemsSourceProperty =
+        AvaloniaProperty.Register<ChatInputArea, IEnumerable<ChatPlugin>?>(nameof(ChatPluginItemsSource));
 
     public static readonly StyledProperty<bool> IsSendButtonEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsSendButtonEnabled), true);
@@ -110,10 +114,10 @@ public partial class ChatInputArea : TextBox
         set => SetValue(SelectedCustomAssistantProperty, value);
     }
 
-    public IEnumerable<CustomAssistant>? CustomAssistants
+    public IEnumerable<CustomAssistant>? CustomAssistantItemsSource
     {
-        get => GetValue(CustomAssistantsProperty);
-        set => SetValue(CustomAssistantsProperty, value);
+        get => GetValue(CustomAssistantItemsSourceProperty);
+        set => SetValue(CustomAssistantItemsSourceProperty, value);
     }
 
     public IEnumerable? AddChatAttachmentMenuItems
@@ -122,10 +126,10 @@ public partial class ChatInputArea : TextBox
         set => SetAndRaise(AddChatAttachmentMenuItemsProperty, ref field, value);
     } = new AvaloniaList<MenuItem>();
 
-    public IEnumerable? SettingsMenuItems
+    public IEnumerable? SettingsMenuItemsSource
     {
         get;
-        set => SetAndRaise(SettingsMenuItemsProperty, ref field, value);
+        set => SetAndRaise(SettingsMenuItemsSourceProperty, ref field, value);
     } = new AvaloniaList<object>();
 
     public bool IsToolCallSupported
@@ -138,6 +142,12 @@ public partial class ChatInputArea : TextBox
     {
         get => GetValue(IsToolCallEnabledProperty);
         set => SetValue(IsToolCallEnabledProperty, value);
+    }
+
+    public IEnumerable<ChatPlugin>? ChatPluginItemsSource
+    {
+        get => GetValue(ChatPluginItemsSourceProperty);
+        set => SetValue(ChatPluginItemsSourceProperty, value);
     }
 
     public bool IsSendButtonEnabled
@@ -278,7 +288,7 @@ public partial class ChatInputArea : TextBox
 
     private void HandleAssistantSelectionPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
-        var assistants = CustomAssistants?.ToList();
+        var assistants = CustomAssistantItemsSource?.ToList();
         if (assistants is null || assistants.Count <= 1) return;
 
         var currentIndex = SelectedCustomAssistant is not null
@@ -316,9 +326,9 @@ public partial class ChatInputArea : TextBox
                 _ => -1
             };
 
-            if (index >= 0 && CustomAssistants != null)
+            if (index >= 0 && CustomAssistantItemsSource != null)
             {
-                var assistant = CustomAssistants.ElementAtOrDefault(index);
+                var assistant = CustomAssistantItemsSource.ElementAtOrDefault(index);
                 if (assistant != null)
                 {
                     SelectedCustomAssistant = assistant;

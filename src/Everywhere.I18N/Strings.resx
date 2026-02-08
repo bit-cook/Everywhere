@@ -2072,4 +2072,7 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip" xml:space="preserve">
         <value />
     </data>
+    <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
+        <value />
+    </data>
 </root>

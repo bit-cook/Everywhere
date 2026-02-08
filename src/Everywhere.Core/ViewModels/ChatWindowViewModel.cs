@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using System.Text;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -13,6 +14,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
+using DynamicData.Binding;
 using Everywhere.Chat;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
@@ -37,7 +39,10 @@ public sealed partial class ChatWindowViewModel :
     IDisposable
 {
     public Settings Settings { get; }
+
     public PersistentState PersistentState { get; }
+
+    public IChatContextManager ChatContextManager { get; }
 
     public bool IsOpened
     {
@@ -93,6 +98,9 @@ public sealed partial class ChatWindowViewModel :
         }
     }
 
+    [ObservableProperty]
+    public partial IReadOnlyList<DynamicNamedCommand>? QuickActions { get; private set; }
+
     /// <summary>
     /// Indicates whether the file picker is currently open.
     /// </summary>
@@ -100,10 +108,7 @@ public sealed partial class ChatWindowViewModel :
 
     public ReadOnlyObservableCollection<ChatAttachment> ChatAttachments { get; }
 
-    [ObservableProperty]
-    public partial IReadOnlyList<DynamicNamedCommand>? QuickActions { get; private set; }
-
-    public IChatContextManager ChatContextManager { get; }
+    public ReadOnlyObservableCollection<ChatPlugin> ChatPlugins { get; }
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(EditCommand))]
@@ -149,6 +154,7 @@ public sealed partial class ChatWindowViewModel :
         Settings settings,
         PersistentState persistentState,
         IChatContextManager chatContextManager,
+        IChatPluginManager chatPluginManager,
         IChatService chatService,
         IVisualElementContext visualElementContext,
         INativeHelper nativeHelper,
@@ -166,15 +172,26 @@ public sealed partial class ChatWindowViewModel :
         _blobStorage = blobStorage;
         _logger = logger;
 
-        // Load the saved input box text
-        ChatInputAreaText = PersistentState.ChatInputAreaText;
+        // Initialize chat plugins from both built-in and MCP
+        ChatPlugins = chatPluginManager.BuiltInPlugins
+            .ToObservableChangeSet()
+            .Transform(ChatPlugin (x) => x, transformOnRefresh: true)
+            .ObserveOnDispatcher()
+            .Concat(chatPluginManager.McpPlugins
+                .ToObservableChangeSet()
+                .ObserveOnDispatcher()
+                .Transform(ChatPlugin (x) => x, transformOnRefresh: true))
+            .BindEx(_disposables);
 
+        // Initialize chat plugins
         ChatAttachments = _chatAttachmentsSource
             .Connect()
             .ObserveOnDispatcher()
             .BindEx(_disposables);
-
         _disposables.Add(_chatAttachmentsSource);
+
+        // Load the saved input box text
+        ChatInputAreaText = PersistentState.ChatInputAreaText;
 
         WeakReferenceMessenger.Default.RegisterAll(this);
 

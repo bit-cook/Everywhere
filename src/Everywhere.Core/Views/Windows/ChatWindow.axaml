@@ -439,8 +439,9 @@
             CancelCommand="{Binding CancelCommand}"
             CaretIndex="{x:Static sys:Int32.MaxValue}"
             ChatAttachmentItemsSource="{Binding ChatAttachments}"
+            ChatPluginItemsSource="{Binding ChatPlugins}"
             Command="{Binding SendMessageCommand}"
-            CustomAssistants="{Binding Settings.Model.CustomAssistants}"
+            CustomAssistantItemsSource="{Binding Settings.Model.CustomAssistants}"
             Focusable="True"
             IsSendButtonEnabled="{Binding !IsBusy}"
             IsToolCallEnabled="{Binding PersistentState.IsToolCallEnabled, Mode=TwoWay}"
@@ -491,7 +492,7 @@
               </MenuItem>
             </v:ChatInputArea.AddChatAttachmentMenuItems>
 
-            <v:ChatInputArea.SettingsMenuItems>
+            <v:ChatInputArea.SettingsMenuItemsSource>
               <StackPanel
                 Orientation="Vertical" Spacing="4">
                 <StackPanel
@@ -563,7 +564,7 @@
                 shadui:ButtonAssist.Icon="{LucideIconContent Settings2}"
                 Command="{Binding OpenSettingsCommand}"
                 Content="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_MoreSettings}}"/>
-            </v:ChatInputArea.SettingsMenuItems>
+            </v:ChatInputArea.SettingsMenuItemsSource>
           </v:ChatInputArea>
         </StackPanel>
       </Border>

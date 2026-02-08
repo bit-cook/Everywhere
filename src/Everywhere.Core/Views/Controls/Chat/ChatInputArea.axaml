@@ -1,8 +1,8 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:ai="clr-namespace:Everywhere.AI" xmlns:be="clr-namespace:Everywhere.Behaviors"
-  xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI" xmlns:v="clr-namespace:Everywhere.Views"
-  xmlns:vc="clr-namespace:Everywhere.ValueConverters">
+  xmlns:p="clr-namespace:Everywhere.Chat.Plugins" xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
+  xmlns:v="clr-namespace:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters">
 
   <DataTemplate
     x:Key="{x:Type ai:CustomAssistant}"
@@ -198,7 +198,7 @@
                 Margin="0,0,4,0" shadui:MenuItemAssist.PopupMaxHeight="400"
                 shadui:MenuItemAssist.PopupPlacement="Top" shadui:MenuItemAssist.PopupVerticalOffset="-4"
                 Focusable="False" Grid.IsSharedSizeScope="True"
-                ItemsSource="{TemplateBinding CustomAssistants, Mode=OneWay}"
+                ItemsSource="{TemplateBinding CustomAssistantItemsSource, Mode=OneWay}"
                 SelectedItem="{TemplateBinding SelectedCustomAssistant, Mode=OneWay}">
                 <ToolTip.Tip>
                   <ContentPresenter
@@ -291,16 +291,207 @@
               </MenuItem>
             </Menu>
 
-            <ToggleButton
-              Classes="Outline Rounded" Focusable="False"
-              HotKey="Ctrl+T"
-              IsChecked="{Binding IsToolCallEnabled, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
-              IsVisible="{TemplateBinding IsToolCallSupported}"
+            <Button
+              Classes="Outline Rounded"
+              Classes.Primary="{TemplateBinding IsToolCallEnabled, Mode=TwoWay}"
+              Focusable="False"
+              IsEnabled="{TemplateBinding IsToolCallSupported}"
               ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputArea_ToolCallButton_ToolTip}}">
+              <Button.Flyout>
+                <Flyout
+                  Placement="Top" VerticalOffset="-4">
+                  <LayoutTransformControl
+                    MaxHeight="600" Margin="6,2"
+                    RenderTransformOrigin="50%,0%">
+                    <LayoutTransformControl.Transitions>
+                      <Transitions>
+                        <TransformOperationsTransition
+                          Property="RenderTransform" Duration="0:0:0.10"/>
+                      </Transitions>
+                    </LayoutTransformControl.Transitions>
+
+                    <DockPanel VerticalSpacing="4">
+                      <DockPanel.Styles>
+                        <Style Selector="TreeView">
+                          <Setter Property="ClipToBounds" Value="True"/>
+                          <Setter Property="Template">
+                            <ControlTemplate>
+                              <Border
+                                BorderBrush="{DynamicResource BorderColor}"
+                                BorderThickness="0,0,0,1">
+                                <ScrollViewer
+                                  Margin="0,0,-8,0" Background="Transparent"
+                                  BringIntoViewOnFocusChange="False" HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                                  <ItemsPresenter
+                                    Name="PART_ItemsPresenter" Margin="0,0,8,0"
+                                    ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                                </ScrollViewer>
+                              </Border>
+                            </ControlTemplate>
+                          </Setter>
+                        </Style>
+
+                        <Style Selector="TreeViewItem">
+                          <Setter Property="Padding" Value="0"/>
+                          <Setter Property="VerticalAlignment" Value="Center"/>
+                          <Setter Property="Template">
+                            <ControlTemplate>
+                              <StackPanel>
+                                <Border
+                                  x:Name="PART_LayoutRoot" Focusable="True"
+                                  TemplatedControl.IsTemplateFocusTarget="True">
+                                  <Grid
+                                    x:Name="PART_Header" ColumnDefinitions="Auto,*">
+                                    <Panel Name="PART_ExpandCollapseChevronContainer">
+                                      <ToggleButton
+                                        x:Name="PART_ExpandCollapseChevron" Focusable="False"
+                                        IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}">
+                                        <ToggleButton.Template>
+                                          <ControlTemplate TargetType="ToggleButton">
+                                            <Border
+                                              Width="{TemplateBinding Width}"
+                                              Height="{TemplateBinding Height}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Background="Transparent">
+                                              <LucideIcon
+                                                x:Name="ChevronPath" HorizontalAlignment="Center"
+                                                VerticalAlignment="Center" Kind="ChevronRight"
+                                                Size="{DynamicResource FontSizeM}"/>
+                                            </Border>
+                                          </ControlTemplate>
+                                        </ToggleButton.Template>
+
+                                        <ToggleButton.Transitions>
+                                          <Transitions>
+                                            <TransformOperationsTransition
+                                              Easing="CubicEaseInOut" Property="RenderTransform"
+                                              Duration="0:0:0.10"/>
+                                          </Transitions>
+                                        </ToggleButton.Transitions>
+                                      </ToggleButton>
+                                    </Panel>
+                                    <ContentPresenter
+                                      x:Name="PART_HeaderPresenter" Grid.Column="1"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                                      VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                                      Background="Transparent"
+                                      Content="{TemplateBinding Header}"
+                                      ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                      Focusable="False"/>
+                                  </Grid>
+                                </Border>
+                                <ItemsPresenter
+                                  x:Name="PART_ItemsPresenter"
+                                  IsVisible="{TemplateBinding IsExpanded}"
+                                  ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                              </StackPanel>
+                            </ControlTemplate>
+                          </Setter>
+                        </Style>
+
+                        <Style Selector="ToggleButton#PART_ExpandCollapseChevron:checked">
+                          <Setter Property="RenderTransform">
+                            <Setter.Value>
+                              <RotateTransform Angle="90"/>
+                            </Setter.Value>
+                          </Setter>
+                        </Style>
+                      </DockPanel.Styles>
+
+                      <DockPanel
+                        DockPanel.Dock="Bottom" Margin="0,0,2,0">
+                        <ToggleSwitch
+                          DockPanel.Dock="Right" VerticalAlignment="Center"
+                          IsChecked="{TemplateBinding IsToolCallEnabled, Mode=TwoWay}"/>
+
+                        <TextBlock
+                          VerticalAlignment="Center"
+                          Text="{I18N {x:Static LocaleKey.ChatInputArea_ToolCallButton_Header}}"/>
+                      </DockPanel>
+
+                      <TreeView
+                        Grid.IsSharedSizeScope="True"
+                        IsVisible="{TemplateBinding IsToolCallEnabled}"
+                        ItemsSource="{TemplateBinding ChatPluginItemsSource}">
+                        <TreeView.DataTemplates>
+                          <TreeDataTemplate
+                            DataType="p:ChatPlugin"
+                            ItemsSource="{Binding Functions}">
+                            <Border>
+                              <Grid ColumnSpacing="4">
+                                <Grid.ColumnDefinitions>
+                                  <ColumnDefinition
+                                    Width="Auto" SharedSizeGroup="Icon"/>
+                                  <ColumnDefinition Width="*"/>
+                                  <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <LucideIcon
+                                  Grid.Column="0" VerticalAlignment="Center"
+                                  Kind="{Binding Icon}"
+                                  Size="{DynamicResource FontSizeL}"/>
+
+                                <TextBlock
+                                  Grid.Column="1" VerticalAlignment="Center"
+                                  Text="{Binding HeaderKey^}"
+                                  ToolTip.Placement="Top"
+                                  ToolTip.Tip="{Binding DescriptionKey^}"/>
+
+                                <ToggleSwitch
+                                  Grid.Column="2" VerticalAlignment="Center"
+                                  IsChecked="{Binding IsEnabled, Mode=TwoWay}"/>
+                              </Grid>
+                            </Border>
+                          </TreeDataTemplate>
+
+                          <DataTemplate DataType="p:ChatFunction">
+                            <DockPanel
+                              Margin="16,0,0,0" HorizontalSpacing="4">
+                              <ToggleSwitch
+                                DockPanel.Dock="Right" VerticalAlignment="Center"
+                                IsChecked="{Binding IsEnabled, Mode=TwoWay}"/>
+
+                              <TextBlock
+                                VerticalAlignment="Center"
+                                Text="{Binding HeaderKey^}"
+                                ToolTip.Placement="Top"
+                                ToolTip.Tip="{Binding DescriptionKey^}"/>
+                            </DockPanel>
+                          </DataTemplate>
+                        </TreeView.DataTemplates>
+                      </TreeView>
+                    </DockPanel>
+                  </LayoutTransformControl>
+                </Flyout>
+              </Button.Flyout>
+
+              <Button.Styles>
+                <Style Selector="Button:flyout-open LayoutTransformControl">
+                  <Style.Animations>
+                    <Animation
+                      Easing="SineEaseInOut" FillMode="Forward"
+                      Duration="0:0:0.10">
+                      <KeyFrame Cue="0%">
+                        <Setter Property="ScaleTransform.ScaleY" Value="0.90"/>
+                        <Setter Property="ScaleTransform.ScaleX" Value="0.90"/>
+                        <Setter Property="Opacity" Value="0"/>
+                      </KeyFrame>
+                      <KeyFrame Cue="100%">
+                        <Setter Property="ScaleTransform.ScaleY" Value="1"/>
+                        <Setter Property="ScaleTransform.ScaleX" Value="1"/>
+                        <Setter Property="Opacity" Value="1"/>
+                      </KeyFrame>
+                    </Animation>
+                  </Style.Animations>
+                </Style>
+              </Button.Styles>
+
               <LucideIcon
                 Margin="1,0,0,0" Kind="Hammer"
                 Size="{DynamicResource FontSizeL}"/>
-            </ToggleButton>
+            </Button>
 
             <Button
               Classes="Outline Rounded" Focusable="False"
@@ -309,14 +500,15 @@
                 <Flyout
                   Placement="Top" VerticalOffset="-4">
                   <LayoutTransformControl
-                    Margin="6" RenderTransformOrigin="50%, 0%">
-                    <ItemsControl ItemsSource="{TemplateBinding SettingsMenuItems}"/>
+                    Margin="6" RenderTransformOrigin="50%,0%">
                     <LayoutTransformControl.Transitions>
                       <Transitions>
                         <TransformOperationsTransition
                           Property="RenderTransform" Duration="0:0:0.10"/>
                       </Transitions>
                     </LayoutTransformControl.Transitions>
+
+                    <ItemsControl ItemsSource="{TemplateBinding SettingsMenuItemsSource}"/>
                   </LayoutTransformControl>
                 </Flyout>
               </Button.Flyout>
@@ -358,13 +550,10 @@
               ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputArea_SendButton_ToolTip}}">
               <Button.IsEnabled>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
-                  <Binding
-                    Path="IsSendButtonEnabled"
-                    RelativeSource="{RelativeSource TemplatedParent}"/>
-                  <Binding
+                  <TemplateBinding Property="IsSendButtonEnabled"/>
+                  <TemplateBinding
                     Converter="{x:Static StringConverters.IsNotNullOrEmpty}"
-                    Path="Text"
-                    RelativeSource="{RelativeSource TemplatedParent}"/>
+                    Property="Text"/>
                 </MultiBinding>
               </Button.IsEnabled>
 
