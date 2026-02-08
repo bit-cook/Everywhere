@@ -70,8 +70,7 @@ public class FileSystemPlugin : BuiltInChatPlugin
     [KernelFunction("search_files")]
     [Description(
         "Search for files and directories in a specified path matching the given search pattern. " +
-        "This tool may slow; avoid using it to enumerate large numbers of files. " +
-        "DO NOT specify the value of `orderBy` when dealing with a large number of files.")]
+        "This tool may slow; avoid using it to enumerate large numbers of files.")]
     [DynamicResourceKey(LocaleKey.BuiltInChatPlugin_FileSystem_SearchFiles_Header, LocaleKey.BuiltInChatPlugin_FileSystem_SearchFiles_Description)]
     [FriendlyFunctionCallContentRenderer(typeof(FileRenderer))]
     private string SearchFiles(
@@ -82,7 +81,6 @@ public class FileSystemPlugin : BuiltInChatPlugin
         [Description("Regex search pattern to match file and directory names.")] string filePattern = ".*",
         int skip = 0,
         [Description("Maximum number of results to return. Max is 1000.")] int maxCount = 100,
-        FilesOrderBy orderBy = FilesOrderBy.Default,
         CancellationToken cancellationToken = default)
     {
         if (skip < 0) skip = 0;
@@ -90,12 +88,11 @@ public class FileSystemPlugin : BuiltInChatPlugin
         if (maxCount > 1000) maxCount = 1000;
 
         _logger.LogDebug(
-            "Searching files in path: {Path} with pattern: {SearchPattern}, skip: {Skip}, maxCount: {MaxCount}, orderBy: {OrderBy}",
+            "Searching files in path: {Path} with pattern: {SearchPattern}, skip: {Skip}, maxCount: {MaxCount}",
             path,
             filePattern,
             skip,
-            maxCount,
-            orderBy);
+            maxCount);
 
         ExpandFullPath(chatContextManager, chatContext, ref path);
         userInterface.DisplaySink.AppendFileReferences(new ChatPluginFileReference(path));
@@ -110,15 +107,6 @@ public class FileSystemPlugin : BuiltInChatPlugin
                 i.CreationTime,
                 i.LastWriteTime,
                 i.Attributes));
-
-        query = orderBy switch
-        {
-            FilesOrderBy.Name => query.OrderBy(item => item.FullPath),
-            FilesOrderBy.Size => query.OrderBy(item => item.BytesSize),
-            FilesOrderBy.Created => query.OrderBy(item => item.Created),
-            FilesOrderBy.LastModified => query.OrderBy(item => item.Modified),
-            _ => query
-        };
 
         return new FileRecords(query.Skip(skip).Take(maxCount)).ToString();
     }
@@ -492,8 +480,10 @@ public class FileSystemPlugin : BuiltInChatPlugin
 
                 successCount++;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to delete file or directory at {Path}", info.FullName);
+
                 errorCount++;
             }
         }
