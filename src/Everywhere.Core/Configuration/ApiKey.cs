@@ -53,6 +53,11 @@ public partial class ApiKey : ObservableValidator
         set => SetProperty(ref _pendingKey, value);
     }
 
+    /// <summary>
+    /// You may say: Why don't use the SecretString?
+    /// The reason is said at: https://github.com/dotnet/platform-compat/blob/master/docs/DE0001.md
+    /// TL;DR: SecretString has no native support on any OS.
+    /// </summary>
     private string? _pendingKey;
 
     /// <summary>

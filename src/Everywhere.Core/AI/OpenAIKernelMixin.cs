@@ -32,7 +32,8 @@ public class OpenAIKernelMixin : KernelMixinBase
         ChatCompletionService = new OptimizedOpenAIApiClient(
             new ChatClient(
                 ModelId,
-                // some models don't need API key (e.g. LM Studio)
+                // Some models don't need API key (e.g. LM Studio)
+                // So we set a dummy value when API key is not provided to avoid runtime exception in ChatClient constructor.
                 new ApiKeyCredential(ApiKey.IsNullOrWhiteSpace() ? "NO_API_KEY" : ApiKey),
                 new OpenAIClientOptions
                 {
