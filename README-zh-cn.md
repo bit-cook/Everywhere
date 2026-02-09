@@ -18,6 +18,7 @@
   <div>
     <a href="https://trendshift.io/repositories/15106" target="_blank"><img src="https://trendshift.io/api/badge/repositories/15106" alt="DearVa%2FEverywhere | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
     <a href="https://www.producthunt.com/products/everywhere?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-everywhere" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1034853&theme=light&t=1762403775174" alt="Everywhere - Every&#0032;moment&#0044;&#0032;&#0032;Every&#0032;place&#0046;&#0032;Your&#0032;AI&#0058;&#0032;Everywhere | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+    <a href="https://hellogithub.com/repository/DearVa/Everywhere" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=0bd4328c24794902bd6097055cda6f36&claim_uid=LNYEf6O9Qv5JeR2" alt="Featured｜HelloGitHub" style="width: 250px; height: 54px;" width="250" height="54" /></a>
   </div>
 
   <br/>
