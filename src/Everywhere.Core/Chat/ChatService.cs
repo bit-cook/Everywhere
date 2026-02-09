@@ -841,7 +841,7 @@ public sealed partial class ChatService(
         ChatContextMetadata metadata,
         CancellationToken cancellationToken)
     {
-        if (metadata.IsGeneratingTopic.FlipIfFalse())
+        if (!metadata.IsGeneratingTopic.FlipIfFalse())
         {
             // Another generation is in progress, skip generating title to avoid token waste and confusion.
             return;
