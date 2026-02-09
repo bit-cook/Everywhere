@@ -435,14 +435,26 @@ public sealed partial class ChatService(
                     {
                         case StreamingChatMessageContent { Content.Length: > 0 } chatMessageContent:
                         {
-                            if (IsReasoningContent(chatMessageContent)) await HandleReasoningMessageAsync(chatMessageContent.Content);
-                            else await HandleTextMessageAsync(chatMessageContent.Content);
+                            if (streamingContent.IsReasoning || chatMessageContent.IsReasoning)
+                            {
+                                await HandleReasoningMessageAsync(chatMessageContent.Content);
+                            }
+                            else
+                            {
+                                await HandleTextMessageAsync(chatMessageContent.Content);
+                            }
                             break;
                         }
                         case StreamingTextContent { Text.Length: > 0 } textContent:
                         {
-                            if (IsReasoningContent(textContent)) await HandleReasoningMessageAsync(textContent.Text);
-                            else await HandleTextMessageAsync(textContent.Text);
+                            if (streamingContent.IsReasoning || textContent.IsReasoning)
+                            {
+                                await HandleReasoningMessageAsync(textContent.Text);
+                            }
+                            else
+                            {
+                                await HandleTextMessageAsync(textContent.Text);
+                            }
                             break;
                         }
                         case StreamingReasoningContent reasoningContent:
@@ -476,10 +488,6 @@ public sealed partial class ChatService(
                             span.Metadata[key] = value;
                         }
                     }
-
-                    bool IsReasoningContent(StreamingKernelContent content) =>
-                        streamingContent.Metadata?.TryGetValue("reasoning", out var reasoning) is true && reasoning is true ||
-                        content.Metadata?.TryGetValue("reasoning", out reasoning) is true && reasoning is true;
 
                     DispatcherOperation<ObservableStringBuilder> HandleTextMessageAsync(string text) => Dispatcher.UIThread.InvokeAsync(() =>
                         EnsureSpan<AssistantChatMessageTextSpan>(false).ContentMarkdownBuilder.Append(text));
@@ -862,18 +870,36 @@ public sealed partial class ChatService(
                             { "SystemLanguage", () => language }
                         })),
             };
-            var chatMessageContent = await kernelMixin.ChatCompletionService.GetChatMessageContentAsync(
-                chatHistory,
-                kernelMixin.GetPromptExecutionSettings(reasoningEffortLevel: ReasoningEffortLevel.Minimal),
-                cancellationToken: cancellationToken);
-
             var usage = new ChatUsageDetails();
-            usage.Update(chatMessageContent);
+            var titleBuilder = new StringBuilder();
+
+            await foreach (var content in kernelMixin.ChatCompletionService.GetStreamingChatMessageContentsAsync(
+                               chatHistory,
+                               kernelMixin.GetPromptExecutionSettings(reasoningEffortLevel: ReasoningEffortLevel.Minimal),
+                               cancellationToken: cancellationToken))
+            {
+                usage.Update(content);
+
+                if (content.Role == AuthorRole.Assistant && !content.IsReasoning)
+                {
+                    titleBuilder.Append(content.Content);
+                }
+            }
+
             SetChatUsageTags(activity, usage);
 
-            Span<char> punctuationChars = ['.', ',', '!', '?', '。', '，', '！', '？'];
-            metadata.Topic = chatMessageContent.Content?.Trim().Trim(punctuationChars).Trim().SafeSlice(0, 50).ToString();
+            ReadOnlySpan<char> punctuationChars = ['.', ',', '!', '?', '。', '，', '！', '？'];
+            titleBuilder.Length = Math.Min(50, titleBuilder.Length); // Limit the title length to 50 characters to avoid excessively long titles.
+            for (var i = titleBuilder.Length - 1; i >= 0; i--)
+            {
+                if (char.IsWhiteSpace(titleBuilder[i]) || punctuationChars.Contains(titleBuilder[i])) continue;
 
+                // Truncate the title at the last non-whitespace and non-punctuation character to avoid ending with incomplete words or punctuation.
+                titleBuilder.Length = i + 1;
+                break;
+            }
+
+            metadata.Topic = titleBuilder.Length > 0 ? titleBuilder.ToString() : null;
             activity?.SetTag("topic.length", metadata.Topic?.Length ?? 0);
         }
         catch (Exception e)

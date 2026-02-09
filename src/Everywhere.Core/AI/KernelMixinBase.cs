@@ -112,13 +112,26 @@ public abstract class KernelMixinBase(CustomAssistant customAssistant) : IKernel
         return result;
     }
 
-    public Task CheckConnectivityAsync(CancellationToken cancellationToken = default) => ChatCompletionService.GetChatMessageContentAsync(
-        [
-            new ChatMessageContent(AuthorRole.System, "You're a helpful assistant."),
-            new ChatMessageContent(AuthorRole.User, Prompts.TestPrompt)
-        ],
-        GetPromptExecutionSettings(),
-        cancellationToken: cancellationToken);
+    public async Task CheckConnectivityAsync(CancellationToken cancellationToken = default)
+    {
+        var innerCancellationTokenSource = new CancellationTokenSource();
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken,
+            innerCancellationTokenSource.Token);
+
+        await foreach (var _ in ChatCompletionService.GetStreamingChatMessageContentsAsync(
+                           [
+                               new ChatMessageContent(AuthorRole.System, "You're a helpful assistant."),
+                               new ChatMessageContent(AuthorRole.User, Prompts.TestPrompt)
+                           ],
+                           GetPromptExecutionSettings(),
+                           cancellationToken: linkedCancellationTokenSource.Token))
+        {
+            // if we can get any response without exception, we consider the connectivity check passed, then we can cancel the request to avoid unnecessary cost.
+            await innerCancellationTokenSource.CancelAsync();
+            return;
+        }
+    }
 
     public virtual void Dispose()
     {
