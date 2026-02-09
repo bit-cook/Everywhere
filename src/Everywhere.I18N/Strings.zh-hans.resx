@@ -942,7 +942,7 @@
         <value>默认助手</value>
     </data>
     <data name="CustomAssistantPage_Title" xml:space="preserve">
-        <value>AI 助手</value>
+        <value>自定义助手</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_Content" xml:space="preserve">
         <value>创建</value>
@@ -1106,10 +1106,10 @@
         <value>确认模型服务的可用性</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_ToolTip" xml:space="preserve">
-        <value>创建一个新的 AI 助手</value>
+        <value>创建一个新的助手</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_ToolTip" xml:space="preserve">
-        <value>永久删除选中的 AI 助手</value>
+        <value>永久删除选中的助手</value>
     </data>
     <data name="ChatInputArea_ContextFlyout_CutMenuItem_Header" xml:space="preserve">
         <value>剪切</value>
@@ -1473,7 +1473,7 @@
         <value>复制</value>
     </data>
     <data name="CustomAssistantPage_DuplicateCustomAssistantButton_ToolTip" xml:space="preserve">
-        <value>复制选中的 AI 助手</value>
+        <value>复制选中的助手</value>
     </data>
     <data name="Common_Copy" xml:space="preserve">
         <value>复制</value>
@@ -1863,7 +1863,7 @@
         <value>📂 {0}</value>
     </data>
     <data name="CustomAssistant_ConfiguratorSelector_Header" xml:space="preserve">
-        <value>配置 AI 提供商</value>
+        <value>配置服务提供商</value>
     </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>添加 API 密钥</value>
