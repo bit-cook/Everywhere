@@ -58,6 +58,14 @@ public class App : Application, IRecipient<ApplicationCommand>
     {
         AvaloniaXamlLoader.Load(this);
 
+#if DEBUG
+        if (Design.IsDesignMode)
+        {
+            ServiceLocator.Build(x => x.AddAvaloniaBasicServices());
+            return;
+        }
+#endif
+
         // After this, ThemeChanged event from the system can be received
         _themeManager = new ThemeManager(this);
 

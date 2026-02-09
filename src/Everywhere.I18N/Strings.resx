@@ -2075,4 +2075,13 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>Enable Tool Call</value>
     </data>
+    <data name="Greetings_Tip1" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Greetings_Tip2" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Greetings_Tip3" xml:space="preserve">
+        <value />
+    </data>
 </root>

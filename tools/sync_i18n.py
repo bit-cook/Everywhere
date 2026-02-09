@@ -165,6 +165,7 @@ Translation Guidelines:
 8. Ensure UI text is concise and clear for a software interface.
 9. Return ONLY a valid JSON object with the same keys and translated values. Do NOT add any explanations, comments, or markdown formatting.
 10. For headers, titles, short labels and tooltips, prefer shorter translations and title case where applicable.
+11. For keys started with "Greetings_", use a friendly and casual tone in the translation and let it be fluent and elegant for native speakers.
 """
         try:
             response = self.client.chat.completions.create(

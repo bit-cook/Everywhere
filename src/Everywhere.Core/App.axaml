@@ -14,7 +14,6 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <LocaleManager/>
-        <ResourceInclude Source="avares://ShadUI/Utilities/Easings.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Assets/Resources.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Assets/DataTemplates.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/ApiKeyComboBox.axaml"/>
@@ -31,6 +30,7 @@
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/Chat/ChatPluginDisplayBlockPresenter.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/ConsentDecisionCard.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/CreateApiKeyForm.axaml"/>
+        <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/Eva.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/IconEditor.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/IconPresenter.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Controls/ManageApiKeyForm.axaml"/>
