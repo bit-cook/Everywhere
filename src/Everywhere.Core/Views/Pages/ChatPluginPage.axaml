@@ -56,12 +56,14 @@
                 Height="8" Background="Gray"
                 CornerRadius="8"
                 IsVisible="{Binding !(p:McpChatPlugin).IsRunning, FallbackValue=false}"
+                ToolTip.Placement="Top"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.ChatPluginPage_PluginStatus_NotRunning_ToolTip}}"/>
               <Border
                 Grid.Column="2" Width="8"
                 Height="8" Background="Green"
                 CornerRadius="8"
                 IsVisible="{Binding (p:McpChatPlugin).IsRunning, FallbackValue=false}"
+                ToolTip.Placement="Top"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.ChatPluginPage_PluginStatus_Running_ToolTip}}"/>
             </Grid>
           </DockPanel>
@@ -112,10 +114,11 @@
   <shadui:NavigationView
     MaxWidth="1600"
     PageTransition="{x:Null}"
-    PaneWidth="440" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+    PaneWidth="320" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
     SelectedItem="{Binding SelectedPlugin, Mode=TwoWay}">
     <shadui:NavigationView.PaneHeader>
-      <DockPanel Margin="0,0,0,8">
+      <DockPanel
+        Height="36" Margin="0,0,0,8">
         <TextBlock
           Classes="h4" DockPanel.Dock="Left"
           VerticalAlignment="Center"
@@ -157,8 +160,8 @@
               <Grid
                 RowDefinitions="Auto,*" RowSpacing="8">
                 <DockPanel
-                  Grid.Row="0" MinWidth="340"
-                  HorizontalSpacing="8" LastChildFill="True">
+                  Grid.Row="0" HorizontalSpacing="8"
+                  LastChildFill="True">
                   <LayoutTransformControl
                     Name="LayoutTransform"
                     DockPanel.Dock="{TemplateBinding TabStripPlacement}"
