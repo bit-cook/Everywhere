@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.RegularExpressions;
@@ -247,8 +248,12 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         }
         catch (Exception ex)
         {
-            ServiceLocator.Resolve<ToastManager>().CreateToast(LocaleResolver.Common_Error).WithContent(ex.GetFriendlyMessage()).ShowError();
             _logger.LogError(ex, "Failed to update recent chat context history");
+            ServiceLocator
+                .Resolve<ToastManager>()
+                .CreateToast(LocaleResolver.Common_Error)
+                .WithContent(ex.GetFriendlyMessage())
+                .ShowError();
         }
     }
 
@@ -266,8 +271,12 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         }
         catch (Exception ex)
         {
-            ServiceLocator.Resolve<ToastManager>().CreateToast(LocaleResolver.Common_Error).WithContent(ex.GetFriendlyMessage()).ShowError();
             _logger.LogError(ex, "Failed to load more chat context history");
+            ServiceLocator
+                .Resolve<ToastManager>()
+                .CreateToast(LocaleResolver.Common_Error)
+                .WithContent(ex.GetFriendlyMessage())
+                .ShowError();
         }
     }
 
@@ -309,15 +318,17 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     private bool CanRemove => _metadataMap.Count > 1 || !IsEmptyContext(_current);
 
     [RelayCommand(CanExecute = nameof(CanRemove))]
-    private Task RemoveAsync(ChatContextMetadata metadata, CancellationToken cancellationToken) =>
-        RemoveAsync([metadata.Id], cancellationToken);
+    private void Remove(ChatContextMetadata metadata)
+    {
+        RemoveInternal([metadata]);
+    }
 
     public bool CanRemoveSelected => LoadedMetadata.AsValueEnumerable().Any(m => m.IsSelected);
 
     [RelayCommand(CanExecute = nameof(CanRemoveSelected))]
     private async Task RemoveSelectedAsync(CancellationToken cancellationToken)
     {
-        var items = LoadedMetadata.AsValueEnumerable().Where(m => m.IsSelected).Select(m => m.Id).ToList();
+        var items = LoadedMetadata.AsValueEnumerable().Where(m => m.IsSelected).ToList();
         var result = await ServiceLocator
             .Resolve<DialogManager>()
             .CreateDialog(
@@ -325,42 +336,119 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                     LocaleKey.ChatContextManager_RemoveSelectedDialog_Content,
                     new DirectResourceKey(items.Count)).ToString(),
                 LocaleResolver.ChatContextManager_RemoveSelectedDialog_Title)
-            .WithPrimaryButton(LocaleResolver.Common_Yes, buttonStyle: DialogButtonStyle.Primary)
+            .WithPrimaryButton(LocaleResolver.Common_Yes, buttonStyle: ButtonStyle.Primary)
             .WithCancelButton(LocaleResolver.Common_No)
             .ShowAsync(cancellationToken);
         if (result != DialogResult.Primary) return;
 
-        await RemoveAsync(items, cancellationToken).ConfigureAwait(false);
+        RemoveInternal(items);
     }
 
-    private async Task RemoveAsync(IReadOnlyList<Guid> metadataIds, CancellationToken cancellationToken)
+    private void RemoveInternal(List<ChatContextMetadata> metadataList)
     {
         // delete in background
-        Task.Run(() => _chatContextStorage.DeleteChatContextsAsync(metadataIds, cancellationToken), cancellationToken)
+        Task.Run(async () =>
+            {
+                foreach (var metadata in metadataList)
+                {
+                    metadata.IsTemporaryDeleted = true;
+                }
+
+                // If the current chat context is being removed, we need to set a new current context
+                if (metadataList.Any(m => m.Id == _current?.Metadata.Id))
+                {
+                    await LoadRecentAsCurrentAsync().ConfigureAwait(false);
+                }
+
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    var progress = new Progress<double>();
+                    var currentProgress = 0d;
+                    var timer = new DispatcherTimer(
+                        TimeSpan.FromSeconds(1),
+                        DispatcherPriority.Normal,
+                        delegate
+                        {
+                            currentProgress += 0.2d;
+                            progress.To<IProgress<double>>().Report(currentProgress);
+                        });
+                    ServiceLocator
+                        .Resolve<ToastManager>()
+                        .CreateToast($"Removed {metadataList.Count} item(s)")
+                        .WithProgress(progress)
+                        .WithDelay(5d)
+                        .WithAction("Undo", ButtonStyle.Ghost)
+                        .ShowInfoAsync()
+                        .ContinueWith(t =>
+                        {
+                            // This continuation runs when the toast is dismissed, either by the timer or by user action (Undo).
+                            // It should be UI thread here.
+                            Debug.Assert(Dispatcher.UIThread.CheckAccess());
+
+                            timer.Stop();
+                            if (t.Result != ToastResult.ActionButtonClicked)
+                            {
+                                Task.Run(ExecuteDeleteAsync);
+                            }
+                            else
+                            {
+                                foreach (var metadata in metadataList)
+                                {
+                                    metadata.IsTemporaryDeleted = false;
+                                }
+
+                                OnPropertyChanged(nameof(AllHistory));
+                                OnPropertyChanged(nameof(RecentHistory));
+                                RemoveCommand.NotifyCanExecuteChanged();
+                            }
+                        });
+
+                    OnPropertyChanged(nameof(AllHistory));
+                    OnPropertyChanged(nameof(RecentHistory));
+                    RemoveCommand.NotifyCanExecuteChanged();
+                });
+            })
             .Detach(_logger.ToExceptionHandler());
 
-        // If the current chat context is being removed, we need to set a new current context
-        if (metadataIds.Any(id => id == _current?.Metadata.Id))
+        async Task ExecuteDeleteAsync()
         {
-            await LoadRecentAsCurrentAsync(cancellationToken).ConfigureAwait(false);
-        }
+            try
+            {
+                foreach (var metadata in metadataList)
+                {
+                    _metadataMap.TryRemove(metadata.Id, out _);
+                }
 
-        OnPropertyChanged(nameof(AllHistory));
-        OnPropertyChanged(nameof(RecentHistory));
-        RemoveCommand.NotifyCanExecuteChanged();
+                await _chatContextStorage.DeleteChatContextsAsync(metadataList.Select(m => m.Id)).ConfigureAwait(false);
+            }
+            finally
+            {
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    OnPropertyChanged(nameof(AllHistory));
+                    OnPropertyChanged(nameof(RecentHistory));
+                    RemoveCommand.NotifyCanExecuteChanged();
+                });
+            }
+        }
     }
 
     /// <summary>
     /// Loads the most recently modified chat context as current.
     /// </summary>
-    private async Task LoadRecentAsCurrentAsync(CancellationToken cancellationToken)
+    private async Task LoadRecentAsCurrentAsync()
     {
         _current = null;
 
-        if (LoadedMetadata.OrderByDescending(c => c.DateModified).FirstOrDefault() is { } historyItem)
+        // Load the most recently modified chat context that is not marked as temporary deleted
+        if (LoadedMetadata
+                .AsValueEnumerable()
+                .Where(m => !m.IsTemporaryDeleted)
+                .OrderByDescending(c => c.DateModified)
+                .FirstOrDefault() is { } historyItem)
         {
             // Switch to the most recently modified chat context
-            _current = await LoadChatContextAsync(historyItem.Id, false, cancellationToken).ConfigureAwait(false);
+            _current = await LoadChatContextAsync(historyItem.Id, false).ConfigureAwait(false);
         }
 
         if (_current is null)
@@ -396,7 +484,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         chatContext.SystemPrompt = Prompts.RenderPrompt(systemPrompt, variables);
     }
 
-    private async Task<ChatContext?> LoadChatContextAsync(Guid id, bool deleteIfFailed, CancellationToken cancellationToken)
+    private async Task<ChatContext?> LoadChatContextAsync(Guid id, bool deleteIfFailed, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -449,10 +537,33 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
 
     private Task LoadMetadataAsync(int count, Guid? startAfterId) => Task.Run(async () =>
     {
-        await foreach (var metadata in _chatContextStorage.QueryChatContextsAsync(count, ChatContextOrderBy.UpdatedAt, true, startAfterId))
+        var skippedCount = 0;
+        do
         {
-            _metadataMap[metadata.Id] = metadata;
+            if (skippedCount > 0)
+            {
+                count = skippedCount;
+                skippedCount = 0;
+            }
+
+            await foreach (var metadata in _chatContextStorage.QueryChatContextsAsync(count, ChatContextOrderBy.UpdatedAt, true, startAfterId))
+            {
+                _metadataMap.AddOrUpdate(
+                    metadata.Id,
+                    metadata,
+                    (_, existing) =>
+                    {
+                        // ReSharper disable once AccessToModifiedClosure
+                        skippedCount++; // if the metadata already exists, we should not count it towards the limit, so we increment the count back
+                        metadata.IsTemporaryDeleted = existing.IsTemporaryDeleted;
+                        return metadata;
+                    });
+
+                // The query is ordered by DateModified descending, so we can use the last item's ID as the next page's startAfterId
+                startAfterId = metadata.Id;
+            }
         }
+        while (skippedCount > 0);
 
         OnPropertyChanged(nameof(AllHistory));
         OnPropertyChanged(nameof(RecentHistory));
@@ -466,7 +577,8 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         // 1. Generate the desired state
         var newHistoryGroups = LoadedMetadata
             .AsValueEnumerable()
-            .OrderByDescending(c => c.DateModified)
+            .Where(m => !m.IsTemporaryDeleted)
+            .OrderByDescending(m => m.DateModified)
             .Take(count)
             .GroupBy(c => (currentDate - c.DateModified).TotalDays switch
             {

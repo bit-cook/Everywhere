@@ -81,7 +81,12 @@ public partial class ChatContextMetadata(Guid id, DateTimeOffset dateCreated, Da
     [ObservableProperty]
     public partial bool IsRenaming { get; set; }
 
-    public void StartRenaming() => IsRenaming = true;
+    /// <summary>
+    /// Indicates whether the context is temporarily deleted and not yet removed from the database.
+    /// Used for undo functionality and to prevent immediate hard deletion.
+    /// </summary>
+    [IgnoreMember]
+    public bool IsTemporaryDeleted { get; set; }
 
     protected override void OnPropertyChanged(PropertyChangedEventArgs e)
     {
