@@ -1,3 +1,25 @@
+## [v0.6.2](https://github.com/DearVa/Everywhere/releases/tag/v0.6.2) - 2026-02-10
+
+### ✨ Features
+- **Improved Tool Interaction**: Optimized the tool buttons in the chat window to support quick toggling.
+- **Enhanced Compatibility**: Connectivity testing and chat title generation now use streaming API calls for better model compatibility.
+- **Resource Management**: The Everything plugin on Windows now automatically closes after a period of inactivity.
+
+### 🚀 Improvements
+- Removed the inefficient `orderBy` parameter from the `search_files` tool to improve performance.
+- Refined various UI text expressions for better clarity and precision.
+- Other general UI/UX updates and enhancements.
+
+### 🐛 Bug Fixes
+- Fixed an issue on Windows where picking a UI element could trigger an unexpected right-click.
+- Fixed a UI synchronization issue where the chat window failed to update after deleting the currently selected custom assistant (#283).
+- Fixed incorrect URLs on the Welcome page.
+- General stability updates and performance improvements.
+
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.1...v0.6.2
+
+
+
 ## [v0.6.1](https://github.com/DearVa/Everywhere/releases/tag/v0.6.1) - 2026-02-03
 
 ### ✨ Features
