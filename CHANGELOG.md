@@ -1,3 +1,20 @@
+## [v0.6.3](https://github.com/DearVa/Everywhere/releases/tag/v0.6.3) - 2026-02-11
+
+### ✨ Features
+- Added confirmation and undo functionality when deleting chat history
+- Added MCP options to the tool menu in the chat window
+
+### 🚀 Improvements
+- Optimized the layout of the chat tools page
+- Other general UI/UX updates and enhancements
+
+### 🐛 Bug Fixes
+- Fixed an issue where DeepSeek reasoning models caused a 400 error when calling tools after outputting body content (#287)
+
+**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.6.2...v0.6.3
+
+
+
 ## [v0.6.2](https://github.com/DearVa/Everywhere/releases/tag/v0.6.2) - 2026-02-10
 
 ### ✨ Features
