@@ -31,6 +31,10 @@ public static class Program
         MainAsync(args).GetAwaiter().GetResult();
     }
 
+    /// <summary>
+    /// We must implement our own async Main method. otherwise [STAThread] won't work properly.
+    /// </summary>
+    /// <param name="args"></param>
     private static async Task MainAsync(string[] args)
     {
         if (args.Contains("--load-user-profile"))

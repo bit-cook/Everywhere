@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Text;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -25,7 +24,6 @@ using Everywhere.Utilities;
 using Everywhere.Views;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
-using ShadUI;
 using ZLinq;
 
 namespace Everywhere.ViewModels;
@@ -184,10 +182,8 @@ public sealed partial class ChatWindowViewModel :
         ChatPlugins = chatPluginManager.BuiltInPlugins
             .ToObservableChangeSet()
             .Transform(ChatPlugin (x) => x, transformOnRefresh: true)
-            .ObserveOnDispatcher()
-            .Concat(chatPluginManager.McpPlugins
+            .Or(chatPluginManager.McpPlugins
                 .ToObservableChangeSet()
-                .ObserveOnDispatcher()
                 .Transform(ChatPlugin (x) => x, transformOnRefresh: true))
             .BindEx(_disposables);
 

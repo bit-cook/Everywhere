@@ -10,7 +10,6 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.AI;
 using Everywhere.Chat;
-using Everywhere.Chat.Plugins;
 using Everywhere.Utilities;
 
 namespace Everywhere.Views;
@@ -60,8 +59,8 @@ public partial class ChatInputArea : TextBox
     public static readonly StyledProperty<bool> IsToolCallEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsToolCallEnabled));
 
-    public static readonly StyledProperty<IEnumerable<ChatPlugin>?> ChatPluginItemsSourceProperty =
-        AvaloniaProperty.Register<ChatInputArea, IEnumerable<ChatPlugin>?>(nameof(ChatPluginItemsSource));
+    public static readonly StyledProperty<Flyout?> ToolCallButtonFlyoutProperty =
+        AvaloniaProperty.Register<ChatInputArea, Flyout?>(nameof(ToolCallButtonFlyout));
 
     public static readonly StyledProperty<bool> IsSendButtonEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsSendButtonEnabled), true);
@@ -144,10 +143,10 @@ public partial class ChatInputArea : TextBox
         set => SetValue(IsToolCallEnabledProperty, value);
     }
 
-    public IEnumerable<ChatPlugin>? ChatPluginItemsSource
+    public Flyout? ToolCallButtonFlyout
     {
-        get => GetValue(ChatPluginItemsSourceProperty);
-        set => SetValue(ChatPluginItemsSourceProperty, value);
+        get => GetValue(ToolCallButtonFlyoutProperty);
+        set => SetValue(ToolCallButtonFlyoutProperty, value);
     }
 
     public bool IsSendButtonEnabled
