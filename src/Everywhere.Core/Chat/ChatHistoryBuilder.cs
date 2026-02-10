@@ -63,7 +63,8 @@ public static class ChatHistoryBuilder
                             // First, yield any accumulated items before the function calls.
                             if (items.Count > 0)
                             {
-                                yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: assistant.Metadata);
+                                var metadata = GetMetadataWithReasoning();
+                                yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: metadata);
 
                                 // Clear items for function call contents.
                                 items = [];
@@ -71,11 +72,11 @@ public static class ChatHistoryBuilder
 
                             foreach (var functionCallChatMessage in functionCalls)
                             {
-                                var metadata = GetMetadataWithReasoning();
                                 await foreach (var actionChatMessageContent in CreateChatMessageContentsAsync(
                                                    functionCallChatMessage,
                                                    cancellationToken))
                                 {
+                                    var metadata = GetMetadataWithReasoning();
                                     if (metadata is not null)
                                     {
                                         actionChatMessageContent.Metadata ??= new MetadataDictionary();
@@ -117,7 +118,8 @@ public static class ChatHistoryBuilder
 
                     if (items.Count > 0)
                     {
-                        yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: assistant.Metadata);
+                        var metadata = GetMetadataWithReasoning();
+                        yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: metadata);
                     }
 
                     // If any span has reasoning output, add it to the assistant message metadata.

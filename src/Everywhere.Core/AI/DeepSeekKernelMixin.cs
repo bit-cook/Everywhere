@@ -1,4 +1,7 @@
 ﻿using System.ClientModel.Primitives;
+using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using ZLinq;
@@ -50,12 +53,19 @@ public class DeepSeekKernelMixin(
 
         foreach (var assistantMessage in messages.AsValueEnumerable().Skip(lastUserMessageIndex + 1).Where(m => m.Role == ChatRole.Assistant))
         {
-            if (assistantMessage.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage ||
-                assistantMessage.AdditionalProperties?.TryGetValue("reasoning_content", out var reasoningObj) is not true ||
-                reasoningObj is not string { Length: > 0 } reasoningContent) continue;
+            Debug.Assert(assistantMessage.RawRepresentation is OpenAI.Chat.ChatMessage);
+            if (assistantMessage.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage) continue;
+
+            if (assistantMessage.AdditionalProperties?.TryGetValue("reasoning_content", out var reasoningObj) is not true ||
+                reasoningObj is not string reasoningContent)
+            {
+                reasoningContent = string.Empty; // Set to empty string if not provided, as the field is required by DeepSeek.
+            }
 
             var patch = new JsonPatch();
-            patch.Set("$.reasoning_content"u8.ToArray(), reasoningContent);
+            // patch.Set("$.reasoning_content"u8, string.Empty) will throw an exception: Empty encoded value
+            // It seems a bug in the JsonPatch implementation, so we need to encode the empty string to bytes manually.
+            patch.Set("$.reasoning_content"u8, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(reasoningContent)));
             chatMessage.Patch = patch;
         }
 
