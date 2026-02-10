@@ -2085,4 +2085,10 @@
     <data name="Greetings_Tip3" xml:space="preserve">
         <value>你知道吗：你可以将 Copilot 按键设为 Everywhere 快捷键</value>
     </data>
+    <data name="ChatContextManager_RemoveSelectedDialog_Title" xml:space="preserve">
+        <value>确认删除</value>
+    </data>
+    <data name="ChatContextManager_RemoveSelectedDialog_Content" xml:space="preserve">
+        <value>你确认要删除选中的 {0} 项聊天吗？</value>
+    </data>
 </root>

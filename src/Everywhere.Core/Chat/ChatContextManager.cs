@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
@@ -79,7 +80,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                         if (IsEmptyContext(previous) || previous?.Metadata.IsTemporary is true)
                         {
                             // Remove empty or temporary chat
-                            if (_metadataMap.Remove(previous.Metadata.Id))
+                            if (_metadataMap.Remove(previous.Metadata.Id, out _))
                             {
                                 OnPropertyChanged(nameof(AllHistory));
                                 OnPropertyChanged(nameof(RecentHistory));
@@ -112,7 +113,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
 
     private ChatContext? _current;
 
-    private readonly Dictionary<Guid, ChatContextMetadata> _metadataMap = [];
+    private readonly ConcurrentDictionary<Guid, ChatContextMetadata> _metadataMap = [];
     private readonly ObservableCollection<ChatContextHistory> _recentHistory = [];
     private readonly ObservableCollection<ChatContextHistory> _allHistory = [];
 
@@ -280,7 +281,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         {
             // Remove the temporary chat context before creating a new one
             // Temporary chat contexts are not saved to storage, so no need to delete from storage.
-            _metadataMap.Remove(_current!.Metadata.Id);
+            _metadataMap.Remove(_current!.Metadata.Id, out _);
         }
 
         _current = new ChatContext
@@ -296,7 +297,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
             },
         };
 
-        _metadataMap.Add(_current.Metadata.Id, _current.Metadata);
+        _metadataMap[_current.Metadata.Id] = _current.Metadata;
         // After created, the chat context is not added to the storage yet.
         // It will be added when it's property has changed.
 
@@ -308,16 +309,38 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     private bool CanRemove => _metadataMap.Count > 1 || !IsEmptyContext(_current);
 
     [RelayCommand(CanExecute = nameof(CanRemove))]
-    private async Task RemoveAsync(ChatContextMetadata metadata, CancellationToken cancellationToken)
-    {
-        if (!_metadataMap.Remove(metadata.Id)) return;
+    private Task RemoveAsync(ChatContextMetadata metadata, CancellationToken cancellationToken) =>
+        RemoveAsync([metadata.Id], cancellationToken);
 
+    public bool CanRemoveSelected => LoadedMetadata.AsValueEnumerable().Any(m => m.IsSelected);
+
+    [RelayCommand(CanExecute = nameof(CanRemoveSelected))]
+    private async Task RemoveSelectedAsync(CancellationToken cancellationToken)
+    {
+        var items = LoadedMetadata.AsValueEnumerable().Where(m => m.IsSelected).Select(m => m.Id).ToList();
+        var result = await ServiceLocator
+            .Resolve<DialogManager>()
+            .CreateDialog(
+                new FormattedDynamicResourceKey(
+                    LocaleKey.ChatContextManager_RemoveSelectedDialog_Content,
+                    new DirectResourceKey(items.Count)).ToString(),
+                LocaleResolver.ChatContextManager_RemoveSelectedDialog_Title)
+            .WithPrimaryButton(LocaleResolver.Common_Yes, buttonStyle: DialogButtonStyle.Primary)
+            .WithCancelButton(LocaleResolver.Common_No)
+            .ShowAsync(cancellationToken);
+        if (result != DialogResult.Primary) return;
+
+        await RemoveAsync(items, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task RemoveAsync(IReadOnlyList<Guid> metadataIds, CancellationToken cancellationToken)
+    {
         // delete in background
-        Task.Run(() => _chatContextStorage.DeleteChatContextAsync(metadata.Id, cancellationToken), cancellationToken)
+        Task.Run(() => _chatContextStorage.DeleteChatContextsAsync(metadataIds, cancellationToken), cancellationToken)
             .Detach(_logger.ToExceptionHandler());
 
         // If the current chat context is being removed, we need to set a new current context
-        if (metadata.Id == _current?.Metadata.Id)
+        if (metadataIds.Any(id => id == _current?.Metadata.Id))
         {
             await LoadRecentAsCurrentAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -325,17 +348,6 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         OnPropertyChanged(nameof(AllHistory));
         OnPropertyChanged(nameof(RecentHistory));
         RemoveCommand.NotifyCanExecuteChanged();
-    }
-
-    public bool CanRemoveSelected => LoadedMetadata.AsValueEnumerable().Any(m => m.IsSelected);
-
-    [RelayCommand(CanExecute = nameof(CanRemoveSelected))]
-    private async Task RemoveSelectedAsync(CancellationToken cancellationToken)
-    {
-        foreach (var metadata in LoadedMetadata.AsValueEnumerable().Where(m => m.IsSelected).ToList())
-        {
-            await RemoveAsync(metadata, cancellationToken).ConfigureAwait(false);
-        }
     }
 
     /// <summary>
@@ -389,13 +401,11 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         try
         {
             var chatContext = await _chatContextStorage.GetChatContextAsync(id, cancellationToken).ConfigureAwait(false);
-            if (IsEmptyContext(chatContext))
-            {
-                await _chatContextStorage.DeleteChatContextAsync(id, cancellationToken).ConfigureAwait(false);
-                return null;
-            }
+            if (!IsEmptyContext(chatContext)) return chatContext;
 
-            return chatContext;
+            // If the loaded chat context is empty, it means it's corrupted or failed to load. We should delete it from storage and remove it from history.
+            await _chatContextStorage.DeleteChatContextsAsync([id], cancellationToken).ConfigureAwait(false);
+            return null;
         }
         catch (Exception ex)
         {
@@ -414,7 +424,10 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                     .ShowError();
             });
 
-            if (deleteIfFailed) await _chatContextStorage.DeleteChatContextAsync(id, cancellationToken).ConfigureAwait(false);
+            if (deleteIfFailed)
+            {
+                await _chatContextStorage.DeleteChatContextsAsync([id], cancellationToken).ConfigureAwait(false);
+            }
 
             return null;
         }

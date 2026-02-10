@@ -67,29 +67,58 @@ public sealed class ChatContextStorage(
         SetAlive(_metadataCache, context.Metadata.Id, context.Metadata);
     }
 
-    public async Task DeleteChatContextAsync(Guid chatContextId, CancellationToken cancellationToken = default)
+    public async Task DeleteChatContextsAsync(IEnumerable<Guid> chatContextIds, CancellationToken cancellationToken = default)
     {
         using var _ = await _lock.LockAsync(cancellationToken);
         await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
-        var ctx = await db.Chats.FirstOrDefaultAsync(x => x.Id == chatContextId, cancellationToken);
-        if (ctx is null) return;
 
-        var now = DateTimeOffset.UtcNow;
-        ctx.IsDeleted = true;
-        ctx.UpdatedAt = now;
+        foreach (var chatContextId in chatContextIds)
+        {
+            var ctx = await db.Chats.FirstOrDefaultAsync(x => x.Id == chatContextId, cancellationToken);
+            if (ctx is null) continue;
 
-        await db.Nodes.Where(n => n.ChatContextId == chatContextId)
-            .ExecuteUpdateAsync(
-                s => s
-                    .SetProperty(x => x.IsDeleted, true)
-                    .SetProperty(x => x.UpdatedAt, now),
-                cancellationToken);
+            var now = DateTimeOffset.UtcNow;
+            ctx.IsDeleted = true;
+            ctx.UpdatedAt = now;
 
-        await db.SaveChangesAsync(cancellationToken);
+            await db.Nodes.Where(n => n.ChatContextId == chatContextId)
+                .ExecuteUpdateAsync(
+                    s => s
+                        .SetProperty(x => x.IsDeleted, true)
+                        .SetProperty(x => x.UpdatedAt, now),
+                    cancellationToken);
 
-        // Invalidate caches
-        _contextCache.TryRemove(chatContextId, out var _);
-        _metadataCache.TryRemove(chatContextId, out var _);
+            await db.SaveChangesAsync(cancellationToken);
+
+            // Invalidate caches
+            _contextCache.TryRemove(chatContextId, out var _);
+            _metadataCache.TryRemove(chatContextId, out var _);
+        }
+    }
+
+    public async Task RestoreChatContextsAsync(IEnumerable<Guid> chatContextIds, CancellationToken cancellationToken = default)
+    {
+        using var _ = await _lock.LockAsync(cancellationToken);
+        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
+
+        foreach (var chatContextId in chatContextIds)
+        {
+            var ctx = await db.Chats.FirstOrDefaultAsync(x => x.Id == chatContextId, cancellationToken);
+            if (ctx is null) continue;
+
+            var now = DateTimeOffset.UtcNow;
+            ctx.IsDeleted = false;
+            ctx.UpdatedAt = now;
+
+            await db.Nodes.Where(n => n.ChatContextId == chatContextId)
+                .ExecuteUpdateAsync(
+                    s => s
+                        .SetProperty(x => x.IsDeleted, false)
+                        .SetProperty(x => x.UpdatedAt, now),
+                    cancellationToken);
+
+            await db.SaveChangesAsync(cancellationToken);
+        }
     }
 
     public async IAsyncEnumerable<ChatContextMetadata> QueryChatContextsAsync(

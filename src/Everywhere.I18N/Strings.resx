@@ -2084,4 +2084,10 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="Greetings_Tip3" xml:space="preserve">
         <value>Did you know: You can set the Copilot key as the Everywhere shortcut</value>
     </data>
+    <data name="ChatContextManager_RemoveSelectedDialog_Title" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChatContextManager_RemoveSelectedDialog_Content" xml:space="preserve">
+        <value />
+    </data>
 </root>
