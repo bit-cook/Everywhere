@@ -7,7 +7,9 @@ public static class Greetings
 {
     private static ReadOnlySpan<string> Tips => new[]
     {
-        LocaleKey.Greetings_Tip1
+        LocaleKey.Greetings_Tip1,
+        LocaleKey.Greetings_Tip2,
+        LocaleKey.Greetings_Tip3,
     };
 
     public static DynamicResourceKey GetRandomTip()
