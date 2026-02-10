@@ -130,5 +130,6 @@ public partial class CustomAssistantPageViewModel(IKernelMixinFactory kernelMixi
         if (result != DialogResult.Primary) return;
 
         settings.Model.CustomAssistants.Remove(customAssistant);
+        settings.Model.SelectedCustomAssistant = settings.Model.CustomAssistants.FirstOrDefault();
     }
 }

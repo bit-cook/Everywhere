@@ -11,6 +11,7 @@ public partial class ModelSettings : ObservableObject
     public partial ObservableCollection<CustomAssistant> CustomAssistants { get; set; } = [];
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedCustomAssistant))]
     public partial Guid SelectedCustomAssistantId { get; set; }
 
     /// <summary>
@@ -21,13 +22,8 @@ public partial class ModelSettings : ObservableObject
     [JsonIgnore]
     public CustomAssistant? SelectedCustomAssistant
     {
-        get => CustomAssistants.FirstOrDefault(a => a.Id == SelectedCustomAssistantId) ??
-            CustomAssistants.FirstOrDefault(); // Default to first assistant if index is invalid.
-        set
-        {
-            SelectedCustomAssistantId = CustomAssistants.FirstOrDefault(a => a == value)?.Id ?? Guid.Empty;
-            OnPropertyChanged();
-        }
+        get => CustomAssistants.FirstOrDefault(a => a.Id == SelectedCustomAssistantId);
+        set => SelectedCustomAssistantId = CustomAssistants.FirstOrDefault(a => a == value)?.Id ?? Guid.Empty;
     }
 
     [ObservableProperty]
