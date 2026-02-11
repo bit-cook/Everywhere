@@ -503,10 +503,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>Especifica el modo de fijación para la ventana de chat cuando se abre. Cuando la ventana no está fijada, se ocultará automáticamente al perder el foco.</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
         <value>Nivel De Detalle Del Contexto Visual</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
         <value>Si se añaden elementos visuales adjuntos, Everywhere los recopilará junto con los elementos circundantes como texto estructurado antes de enviarlos al asistente. Esta opción controla la riqueza y cantidad de información recopilada.</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">

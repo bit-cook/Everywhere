@@ -37,12 +37,6 @@ public partial class ChatWindowSettings : ObservableObject, ISettingsCategory
         LocaleKey.ChatWindowSettings_TemporaryChatMode_Description)]
     public partial TemporaryChatMode TemporaryChatMode { get; set; }
 
-    [ObservableProperty]
-    [DynamicResourceKey(
-        LocaleKey.ChatWindowSettings_VisualTreeDetailLevel_Header,
-        LocaleKey.ChatWindowSettings_VisualTreeDetailLevel_Description)]
-    public partial VisualTreeDetailLevel VisualTreeDetailLevel { get; set; } = VisualTreeDetailLevel.Compact;
-
     /// <summary>
     /// When enabled, automatically add focused element as attachment when opening chat window.
     /// </summary>

@@ -18,13 +18,13 @@ namespace Everywhere.Chat;
 public enum VisualTreeDetailLevel
 {
     [DynamicResourceKey(LocaleKey.VisualTreeDetailLevel_Minimal)]
-    Minimal,
+    Minimal = 0,
 
     [DynamicResourceKey(LocaleKey.VisualTreeDetailLevel_Compact)]
-    Compact,
+    Compact = 1,
 
     [DynamicResourceKey(LocaleKey.VisualTreeDetailLevel_Detailed)]
-    Detailed,
+    Detailed = 2,
 }
 
 /// <summary>

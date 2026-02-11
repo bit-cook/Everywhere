@@ -503,10 +503,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>チャットウィンドウを開いたときの固定モードを指定します。ウィンドウが固定されていない場合、フォーカスを失うと自動的に隠れます。</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
         <value>視覚コンテキスト詳細レベル</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
         <value>視覚要素の添付が追加された場合、Everywhereはそれを周囲の要素と共に構造化テキストとして収集します。このオプションは収集の豊かさと情報量を制御します。</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">

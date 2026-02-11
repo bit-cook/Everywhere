@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.ChatCompletion;
 using OpenAI;
 using OpenAI.Chat;
-using OpenAI.Responses;
 using ZLinq;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using FunctionCallContent = Microsoft.Extensions.AI.FunctionCallContent;
@@ -70,28 +69,19 @@ public class OpenAIKernelMixin : KernelMixinBase
         return Task.CompletedTask;
     }
 
-    private static CreateResponseOptions? RawRepresentationFactory(ChatOptions chatOptions)
+    private static ChatCompletionOptions? RawRepresentationFactory(ChatOptions chatOptions)
     {
         if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true) return null;
         if (reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel) return null;
 
-        return new CreateResponseOptions
+        return new ChatCompletionOptions
         {
-            ReasoningOptions = new ResponseReasoningOptions
+            ReasoningEffortLevel = reasoningEffortLevel switch
             {
-                ReasoningEffortLevel = reasoningEffortLevel switch
-                {
-                    ReasoningEffortLevel.Minimal => ResponseReasoningEffortLevel.Minimal,
-                    ReasoningEffortLevel.Detailed => ResponseReasoningEffortLevel.High,
-                    _ => (ResponseReasoningEffortLevel?)null
-                },
-                ReasoningSummaryVerbosity = reasoningEffortLevel switch
-                {
-                    ReasoningEffortLevel.Minimal => ResponseReasoningSummaryVerbosity.Concise,
-                    ReasoningEffortLevel.Detailed =>  ResponseReasoningSummaryVerbosity.Detailed,
-                    _ => (ResponseReasoningSummaryVerbosity?)null
-                }
-            }
+                ReasoningEffortLevel.Minimal => ChatReasoningEffortLevel.Minimal,
+                ReasoningEffortLevel.Detailed => ChatReasoningEffortLevel.High,
+                _ => (ChatReasoningEffortLevel?)null
+            },
         };
     }
 

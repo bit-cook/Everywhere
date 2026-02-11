@@ -6,7 +6,12 @@
 /// </summary>
 public enum ReasoningEffortLevel
 {
-    Default,
-    Minimal,
-    Detailed,
+    [DynamicResourceKey(LocaleKey.ReasoningEffortLevel_Minimal)]
+    Minimal = 0,
+
+    [DynamicResourceKey(LocaleKey.ReasoningEffortLevel_Default)]
+    Default = 1,
+
+    [DynamicResourceKey(LocaleKey.ReasoningEffortLevel_Detailed)]
+    Detailed = 2,
 }

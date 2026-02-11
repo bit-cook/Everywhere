@@ -704,9 +704,9 @@
                       Value="{Binding PersistentState.VisualTreeTokenLimit, Mode=TwoWay}"/>
                   </Interaction.Behaviors>
                 </Slider>
-              </StackPanel>
 
-              <Separator/>
+                <Separator/>
+              </StackPanel>
 
               <StackPanel
                 Margin="0,4,0,0" Orientation="Vertical"
@@ -716,19 +716,19 @@
                   <TextBlock
                     VerticalAlignment="Center"
                     FontSize="{DynamicResource FontSizeS}"
-                    Text="{I18N {x:Static LocaleKey.ChatWindowSettings_VisualTreeDetailLevel_Header}}"/>
+                    Text="{I18N {x:Static LocaleKey.PersistentState_VisualTreeDetailLevel_Header}}"/>
                   <LucideIcon
                     Kind="CircleQuestionMark"
                     Size="{DynamicResource FontSizeS}"
                     ToolTip.Placement="Right"
-                    ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindowSettings_VisualTreeDetailLevel_Description}}"/>
+                    ToolTip.Tip="{I18N {x:Static LocaleKey.PersistentState_VisualTreeDetailLevel_Description}}"/>
                 </StackPanel>
 
                 <TextBlock
                   Classes="Muted" VerticalAlignment="Center"
                   FontSize="{DynamicResource FontSizeS}">
                   <TextBlock.Text>
-                    <I18N Key="{Binding Settings.ChatWindow.VisualTreeDetailLevel, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
+                    <I18N Key="{Binding PersistentState.VisualTreeDetailLevel, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
                   </TextBlock.Text>
                 </TextBlock>
 
@@ -736,10 +736,36 @@
                   MinWidth="160" IsSnapToTickEnabled="True"
                   Maximum="2" Minimum="0"
                   TickFrequency="1"
-                  Value="{Binding Settings.ChatWindow.VisualTreeDetailLevel, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
+                  Value="{Binding PersistentState.VisualTreeDetailLevel, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
+
+                <Separator/>
               </StackPanel>
 
-              <Separator/>
+              <StackPanel
+                Margin="0,4,0,0"
+                IsVisible="{Binding Settings.Model.SelectedCustomAssistant.IsDeepThinkingSupported, FallbackValue=False}"
+                Orientation="Vertical" Spacing="4">
+                <TextBlock
+                  VerticalAlignment="Center"
+                  FontSize="{DynamicResource FontSizeS}"
+                  Text="{I18N {x:Static LocaleKey.PersistentState_ReasoningEffortLevel_Header}}"/>
+
+                <TextBlock
+                  Classes="Muted" VerticalAlignment="Center"
+                  FontSize="{DynamicResource FontSizeS}">
+                  <TextBlock.Text>
+                    <I18N Key="{Binding PersistentState.ReasoningEffortLevel, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
+                  </TextBlock.Text>
+                </TextBlock>
+
+                <Slider
+                  MinWidth="160" IsSnapToTickEnabled="True"
+                  Maximum="2" Minimum="0"
+                  TickFrequency="1"
+                  Value="{Binding PersistentState.ReasoningEffortLevel, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
+
+                <Separator/>
+              </StackPanel>
 
               <Button
                 Classes="Secondary Compact" Margin="0,4,0,0"

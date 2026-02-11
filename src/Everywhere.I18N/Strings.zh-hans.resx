@@ -503,10 +503,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>指定聊天窗口打开时的固定模式，当窗口没有固定时，失去焦点会自动隐藏。</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
         <value>视觉上下文详细程度</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
         <value>如果添加了视觉元素附件，发送给助手前 Everywhere 会将它和周围的元素采集为结构化文本。此选项控制了采集的丰富程度和信息量。</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">
@@ -2090,5 +2090,17 @@
     </data>
     <data name="ChatContextManager_RemoveSelectedDialog_Content" xml:space="preserve">
         <value>你确认要删除选中的 {0} 项聊天吗？</value>
+    </data>
+    <data name="ReasoningEffortLevel_Default" xml:space="preserve">
+        <value>默认</value>
+    </data>
+    <data name="ReasoningEffortLevel_Detailed" xml:space="preserve">
+        <value>详细</value>
+    </data>
+    <data name="ReasoningEffortLevel_Minimal" xml:space="preserve">
+        <value>最小</value>
+    </data>
+    <data name="PersistentState_ReasoningEffortLevel_Header" xml:space="preserve">
+        <value>推理强度</value>
     </data>
 </root>

@@ -503,10 +503,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>Spécifie le mode d'épinglage pour la fenêtre de chat lorsqu'elle est ouverte. Lorsque la fenêtre n'est pas fixée, elle sera automatiquement masquée lorsqu'elle perd le focus.</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
         <value>Niveau de Détail du Contexte Visuel</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
         <value>Si des éléments visuels sont ajoutés, Everywhere les collectera avec les éléments environnants en tant que texte structuré avant de les envoyer à l'assistant. Cette option contrôle la richesse et la quantité d'informations collectées.</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">

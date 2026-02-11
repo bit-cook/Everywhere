@@ -502,10 +502,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>Sohbet penceresi açıldığında sabitleme modunu belirler. Pencere sabitlenmemişse odak kaybolduğunda otomatik olarak gizlenecektir.</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
         <value>Görsel Bağlam Detay Seviyesi</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
         <value>Görsel öğe eklenmişse, Everywhere asistanınıza göndermeden önce bunu ve çevresindeki öğeleri yapılandırılmış metin olarak toplar. Bu seçenek, toplanan bilgilerin zenginliğini ve miktarını kontrol eder.</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">

@@ -63,7 +63,8 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
     private FunctionCallContext? _currentFunctionCallContext;
 
-    public ChatService(IChatContextManager chatContextManager,
+    public ChatService(
+        IChatContextManager chatContextManager,
         IChatPluginManager chatPluginManager,
         IKernelMixinFactory kernelMixinFactory,
         IBlobStorage blobStorage,
@@ -190,7 +191,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
             var maxTokens = Math.Max(customAssistant.MaxTokens, 4096);
             var approximateTokenLimit = Math.Min(_persistentState.VisualTreeTokenLimit, maxTokens / 10);
-            var detailLevel = _settings.ChatWindow.VisualTreeDetailLevel;
+            var detailLevel = _persistentState.VisualTreeDetailLevel;
 
             await Task.Run(
                 () =>
@@ -447,7 +448,8 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         var promptExecutionSettings = kernelMixin.GetPromptExecutionSettings(
             kernelMixin.IsFunctionCallingSupported && _persistentState.IsToolCallEnabled ?
                 FunctionChoiceBehavior.Auto(autoInvoke: false) :
-                null);
+                null,
+            _persistentState.ReasoningEffortLevel);
 
         try
         {
@@ -797,7 +799,8 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         activity?.SetTag("gen_ai.tool.input", content.Arguments?.ToString());
 
         // We don't collect input arguments in metrics because they may contain sensitive information.
-        _toolCallsCounter.Add(1,
+        _toolCallsCounter.Add(
+            1,
             new KeyValuePair<string, object?>("gen_ai.tool.plugin", content.PluginName),
             new KeyValuePair<string, object?>("gen_ai.tool.name", content.FunctionName),
             new KeyValuePair<string, object?>("gen_ai.tool.is_mcp", context.Plugin is McpChatPlugin));

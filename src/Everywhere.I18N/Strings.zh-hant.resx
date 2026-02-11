@@ -503,10 +503,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>指定聊天視窗開啟時的固定模式。當視窗未固定時，失去焦點會自動隱藏。</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
         <value>視覺上下文詳細程度</value>
     </data>
-    <data name="ChatWindowSettings_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
         <value>如果添加了視覺元素附件，發送給助手前 Everywhere 會將它和周圍的元素採集為結構化文本。此選項控制了採集的豐富程度和信息量。</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">

@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Everywhere.AI;
+using Everywhere.Chat;
 
 namespace Everywhere.Configuration;
 
@@ -55,9 +57,21 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
         set => Set(value);
     }
 
+    public VisualTreeDetailLevel VisualTreeDetailLevel
+    {
+        get => Get(VisualTreeDetailLevel.Compact);
+        set => Set(value);
+    }
+
     public int VisualTreeTokenLimit
     {
         get => Get(4096);
+        set => Set(value);
+    }
+
+    public ReasoningEffortLevel ReasoningEffortLevel
+    {
+        get => Get(ReasoningEffortLevel.Default);
         set => Set(value);
     }
 
@@ -68,7 +82,9 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
 
     private void Set<T>(T? value, [CallerMemberName] string key = "")
     {
-        if (EqualityComparer<T>.Default.Equals(Get(default(T), key), value)) return;
+        if (storage.Contains(key) &&
+            EqualityComparer<T>.Default.Equals(storage.Get<T>(key), value)) return;
+
         storage.Set(key, value);
         OnPropertyChanged(key);
     }
