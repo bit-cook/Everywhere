@@ -7,7 +7,7 @@ using Everywhere.Common;
 using Everywhere.Interop;
 using Everywhere.Views;
 using Lucide.Avalonia;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using ShadUI;
 
 namespace Everywhere.Configuration;
@@ -16,7 +16,6 @@ namespace Everywhere.Configuration;
 public partial class CommonSettings : ObservableObject, ISettingsCategory
 {
     private static INativeHelper NativeHelper => ServiceLocator.Resolve<INativeHelper>();
-    private static ILogger Logger => ServiceLocator.Resolve<ILogger<CommonSettings>>();
 
     [HiddenSettingsItem]
     public DynamicResourceKeyBase DisplayNameKey => new DynamicResourceKey(LocaleKey.SettingsCategory_Common_Header);
@@ -124,7 +123,7 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
             catch (Exception ex)
             {
                 ex = HandledSystemException.Handle(ex); // maybe blocked by UAC or antivirus, handle it gracefully
-                Logger.LogError(ex, "Failed to set user startup enabled.");
+                Log.ForContext<CommonSettings>().Error(ex, "Failed to set user startup enabled.");
                 ShowErrorToast(ex);
             }
         }
@@ -152,7 +151,7 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
             catch (Exception ex)
             {
                 ex = HandledSystemException.Handle(ex); // maybe blocked by UAC or antivirus, handle it gracefully
-                Logger.LogError(ex, "Failed to set administrator startup enabled.");
+                Log.ForContext<CommonSettings>().Error(ex, "Failed to set administrator startup enabled.");
                 ShowErrorToast(ex);
             }
 

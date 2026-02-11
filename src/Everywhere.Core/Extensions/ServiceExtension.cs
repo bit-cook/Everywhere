@@ -58,5 +58,4 @@ public static class ServiceExtension
                 .AddSingleton<IChatContextStorage, ChatContextStorage>()
                 .AddTransient<IAsyncInitializer, ChatDbInitializer>();
     }
-
 }

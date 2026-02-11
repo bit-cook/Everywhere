@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Reactive.Disposables;
 using System.Text;
 using Avalonia.Input;
@@ -48,18 +49,11 @@ public sealed partial class ChatWindowViewModel :
         set
         {
             field = value;
+            _activeChatWindowsGauge.Record(value ? 1 : 0);
+
             // notify property changed even if the value is the same
             // so that the view can update its visibility and topmost
             OnPropertyChanged();
-
-            if (value)
-            {
-                _openActivity ??= _activitySource.StartActivity();
-            }
-            else
-            {
-                DisposeCollector.DisposeToDefault(ref _openActivity);
-            }
         }
     }
 
@@ -147,14 +141,11 @@ public sealed partial class ChatWindowViewModel :
     private readonly CompositeDisposable _disposables = new(2);
     private readonly SourceList<ChatAttachment> _chatAttachmentsSource = new();
     private readonly ReusableCancellationTokenSource _cancellationTokenSource = new();
-    private readonly ActivitySource _activitySource = new(typeof(ChatWindowViewModel).FullName.NotNull());
+
+    private readonly Meter _meter = new(typeof(ChatWindowViewModel).FullName.NotNull(), App.Version);
+    private readonly Gauge<int> _activeChatWindowsGauge;
 
     private List<ChatAttachment>? _chatAttachmentsBeforeEditing;
-
-    /// <summary>
-    /// Start an activity when the window is opened, and dispose it when closed.
-    /// </summary>
-    private Activity? _openActivity;
 
     public ChatWindowViewModel(
         Settings settings,
@@ -177,6 +168,8 @@ public sealed partial class ChatWindowViewModel :
         _nativeHelper = nativeHelper;
         _blobStorage = blobStorage;
         _logger = logger;
+
+        _activeChatWindowsGauge = _meter.CreateGauge<int>("app.active_chat_windows");
 
         // Initialize chat plugins from both built-in and MCP
         ChatPlugins = chatPluginManager.BuiltInPlugins

@@ -3,6 +3,7 @@ using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Views;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Everywhere.Initialization;
@@ -15,6 +16,7 @@ namespace Everywhere.Initialization;
 /// <param name="visualElementContext"></param>
 /// <param name="logger"></param>
 public class ChatWindowInitializer(
+    IServiceProvider serviceProvider,
     Settings settings,
     IShortcutListener shortcutListener,
     IVisualElementContext visualElementContext,
@@ -30,7 +32,7 @@ public class ChatWindowInitializer(
 
     public Task InitializeAsync()
     {
-        var chatWindow = ServiceLocator.Resolve<ChatWindow>();
+        var chatWindow = serviceProvider.GetRequiredService<ChatWindow>();
         var chatWindowViewModel = chatWindow.ViewModel;
         var chatWindowHandle = chatWindow.TryGetPlatformHandle()?.Handle ?? 0;
 

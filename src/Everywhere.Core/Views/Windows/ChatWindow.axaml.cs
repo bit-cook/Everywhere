@@ -483,8 +483,7 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
                     }
                     catch (Exception ex)
                     {
-                        ServiceLocator.Resolve<ILogger<ChatWindow>>()
-                            .LogError(ex, "Failed to add dropped file: {FilePath}", localPath);
+                        Log.ForContext<ChatWindow>().Error(ex, "Failed to add dropped file: {FilePath}", localPath);
                     }
 
                     if (ViewModel.ChatAttachments.Count >= _persistentState.MaxChatAttachmentCount) break;

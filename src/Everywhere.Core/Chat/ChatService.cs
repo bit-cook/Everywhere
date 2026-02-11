@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Text;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
@@ -24,15 +25,7 @@ using FunctionResultContent = Microsoft.SemanticKernel.FunctionResultContent;
 
 namespace Everywhere.Chat;
 
-public sealed partial class ChatService(
-    IChatContextManager chatContextManager,
-    IChatPluginManager chatPluginManager,
-    IKernelMixinFactory kernelMixinFactory,
-    IBlobStorage blobStorage,
-    Settings settings,
-    PersistentState persistentState,
-    ILogger<ChatService> logger
-) : IChatService, IChatPluginUserInterface
+public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 {
     /// <summary>
     /// Context for function call invocations.
@@ -48,18 +41,62 @@ public sealed partial class ChatService(
         public string PermissionKey => $"{Plugin.Key}.{Function.KernelFunction.Name}";
     }
 
-    private readonly ActivitySource _activitySource = new(typeof(ChatService).FullName.NotNull());
+    private readonly IChatContextManager _chatContextManager;
+    private readonly IChatPluginManager _chatPluginManager;
+    private readonly IKernelMixinFactory _kernelMixinFactory;
+    private readonly IBlobStorage _blobStorage;
+    private readonly Settings _settings;
+    private readonly PersistentState _persistentState;
+    private readonly ILogger<ChatService> _logger;
+
+    private readonly ActivitySource _activitySource = new(typeof(ChatService).FullName.NotNull(), App.Version);
+    private readonly Meter _meter = new(typeof(ChatService).FullName.NotNull(), App.Version);
     private readonly Stack<FunctionCallContext> _functionCallContextStack = new();
+    private readonly Counter<int> _chatRequestsCounter;
+    private readonly Counter<int> _chatTopicsCounter;
+    private readonly Histogram<double> _timeToFirstTokenHistogram;
+    private readonly Histogram<long> _inputTokensHistogram;
+    private readonly Histogram<long> _cachedInputTokensHistogram;
+    private readonly Histogram<long> _outputTokensHistogram;
+    private readonly Histogram<long> _reasoningTokensHistogram;
+    private readonly Counter<long> _toolCallsCounter;
+
     private FunctionCallContext? _currentFunctionCallContext;
+
+    public ChatService(IChatContextManager chatContextManager,
+        IChatPluginManager chatPluginManager,
+        IKernelMixinFactory kernelMixinFactory,
+        IBlobStorage blobStorage,
+        Settings settings,
+        PersistentState persistentState,
+        ILogger<ChatService> logger)
+    {
+        _chatContextManager = chatContextManager;
+        _chatPluginManager = chatPluginManager;
+        _kernelMixinFactory = kernelMixinFactory;
+        _blobStorage = blobStorage;
+        _settings = settings;
+        _persistentState = persistentState;
+        _logger = logger;
+
+        _chatRequestsCounter = _meter.CreateCounter<int>("gen_ai.chat.requests");
+        _chatTopicsCounter = _meter.CreateCounter<int>("gen_ai.chat.topics");
+        _timeToFirstTokenHistogram = _meter.CreateHistogram<double>("gen_ai.request.ttft", "s");
+        _inputTokensHistogram = _meter.CreateHistogram<long>("gen_ai.usage.input_tokens", "token");
+        _cachedInputTokensHistogram = _meter.CreateHistogram<long>("gen_ai.usage.cached_input_tokens", "token");
+        _outputTokensHistogram = _meter.CreateHistogram<long>("gen_ai.usage.output_tokens", "token");
+        _reasoningTokensHistogram = _meter.CreateHistogram<long>("gen_ai.usage.reasoning_tokens", "token");
+        _toolCallsCounter = _meter.CreateCounter<long>("gen_ai.tool.calls");
+    }
 
     public async Task SendMessageAsync(UserChatMessage message, CancellationToken cancellationToken)
     {
-        var customAssistant = settings.Model.SelectedCustomAssistant;
+        var customAssistant = _settings.Model.SelectedCustomAssistant;
         if (customAssistant is null) return;
 
         using var activity = _activitySource.StartActivity();
 
-        var chatContext = chatContextManager.Current;
+        var chatContext = _chatContextManager.Current;
         activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
         chatContext.Add(message);
 
@@ -73,7 +110,7 @@ public sealed partial class ChatService(
 
     public async Task RetryAsync(ChatMessageNode node, CancellationToken cancellationToken)
     {
-        var customAssistant = settings.Model.SelectedCustomAssistant;
+        var customAssistant = _settings.Model.SelectedCustomAssistant;
         if (customAssistant is null) return;
 
         using var activity = _activitySource.StartActivity();
@@ -92,12 +129,12 @@ public sealed partial class ChatService(
 
     public async Task EditAsync(ChatMessageNode originalNode, UserChatMessage newMessage, CancellationToken cancellationToken)
     {
-        var customAssistant = settings.Model.SelectedCustomAssistant;
+        var customAssistant = _settings.Model.SelectedCustomAssistant;
         if (customAssistant is null) return;
 
         using var activity = _activitySource.StartActivity();
 
-        var chatContext = chatContextManager.Current;
+        var chatContext = _chatContextManager.Current;
         activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
 
         if (originalNode.Message.Role != AuthorRole.User)
@@ -152,8 +189,8 @@ public sealed partial class ChatService(
             // 3. Populate result into ChatVisualElementAttachment.Xml
 
             var maxTokens = Math.Max(customAssistant.MaxTokens, 4096);
-            var approximateTokenLimit = Math.Min(persistentState.VisualTreeTokenLimit, maxTokens / 10);
-            var detailLevel = settings.ChatWindow.VisualTreeDetailLevel;
+            var approximateTokenLimit = Math.Min(_persistentState.VisualTreeTokenLimit, maxTokens / 10);
+            var detailLevel = _settings.ChatWindow.VisualTreeDetailLevel;
 
             await Task.Run(
                 () =>
@@ -189,7 +226,7 @@ public sealed partial class ChatService(
             e = HandledChatException.Handle(e);
             activity?.SetStatus(ActivityStatusCode.Error, e.Message.Trim());
             analyzingContextMessage.ErrorMessageKey = e.GetFriendlyMessage();
-            logger.LogError(e, "Error analyzing visual tree");
+            _logger.LogError(e, "Error analyzing visual tree");
         }
         finally
         {
@@ -204,7 +241,7 @@ public sealed partial class ChatService(
 
         try
         {
-            var kernelMixin = kernelMixinFactory.GetOrCreate(customAssistant);
+            var kernelMixin = _kernelMixinFactory.GetOrCreate(customAssistant);
             activity?.SetTag("llm.model.id", customAssistant.ModelId);
             activity?.SetTag("llm.model.max_embedding", customAssistant.MaxTokens);
             return kernelMixin;
@@ -236,17 +273,17 @@ public sealed partial class ChatService(
 
         builder.Services.AddSingleton(this);
         builder.Services.AddSingleton(kernelMixin.ChatCompletionService);
-        builder.Services.AddSingleton(chatContextManager);
+        builder.Services.AddSingleton(_chatContextManager);
         builder.Services.AddSingleton(chatContext);
         builder.Services.AddSingleton(customAssistant);
         builder.Services.AddSingleton<IChatPluginUserInterface>(this);
 
-        if (kernelMixin.IsFunctionCallingSupported && persistentState.IsToolCallEnabled)
+        if (kernelMixin.IsFunctionCallingSupported && _persistentState.IsToolCallEnabled)
         {
-            var needToStartMcp = chatPluginManager.McpPlugins.AsValueEnumerable().Any(p => p is { IsEnabled: true, IsRunning: false });
+            var needToStartMcp = _chatPluginManager.McpPlugins.AsValueEnumerable().Any(p => p is { IsEnabled: true, IsRunning: false });
             using var _ = needToStartMcp ? chatContext.SetBusyMessage(new DynamicResourceKey(LocaleKey.ChatContext_BusyMessage_StartingMcp)) : null;
 
-            var chatPluginScope = await chatPluginManager.CreateScopeAsync(cancellationToken);
+            var chatPluginScope = await _chatPluginManager.CreateScopeAsync(cancellationToken);
             builder.Services.AddSingleton(chatPluginScope);
             activity?.SetTag("plugins.count", chatPluginScope.Plugins.AsValueEnumerable().Count());
 
@@ -305,7 +342,7 @@ public sealed partial class ChatService(
             var kernel = await BuildKernelAsync(kernelMixin, chatContext, customAssistant, cancellationToken);
 
             // Because the custom assistant maybe changed, we need to re-render the system prompt.
-            chatContextManager.PopulateSystemPrompt(chatContext, customAssistant.SystemPrompt);
+            _chatContextManager.PopulateSystemPrompt(chatContext, customAssistant.SystemPrompt);
 
             while (true)
             {
@@ -363,11 +400,14 @@ public sealed partial class ChatService(
             e = HandledChatException.Handle(e);
             activity?.SetStatus(ActivityStatusCode.Error, e.Message.Trim());
             assistantChatMessage.ErrorMessageKey = e.GetFriendlyMessage();
-            logger.LogError(e, "Error generating chat response");
+            _logger.LogError(e, "Error generating chat response");
         }
         finally
         {
             SetChatUsageTags(activity, assistantChatMessage.UsageDetails);
+            RecordChatUsageMetrics(assistantChatMessage.UsageDetails, customAssistant.ModelId);
+            _chatRequestsCounter.Add(1, GetModelTag(customAssistant.ModelId));
+
             assistantChatMessage.FinishedAt = DateTimeOffset.UtcNow;
             assistantChatMessage.IsBusy = false;
         }
@@ -402,8 +442,10 @@ public sealed partial class ChatService(
 
         var usage = new ChatUsageDetails(); // Each generation has its own usage details.
         var functionCallContentBuilder = new FunctionCallContentBuilder();
+        var startTime = DateTimeOffset.UtcNow;
+        var isFirstToken = true;
         var promptExecutionSettings = kernelMixin.GetPromptExecutionSettings(
-            kernelMixin.IsFunctionCallingSupported && persistentState.IsToolCallEnabled ?
+            kernelMixin.IsFunctionCallingSupported && _persistentState.IsToolCallEnabled ?
                 FunctionChoiceBehavior.Auto(autoInvoke: false) :
                 null);
 
@@ -416,6 +458,15 @@ public sealed partial class ChatService(
                                cancellationToken))
             {
                 usage.Update(streamingContent);
+
+                // Track time to first token.
+                if (isFirstToken)
+                {
+                    isFirstToken = false;
+                    var ttftSeconds = (DateTimeOffset.UtcNow - startTime).TotalSeconds;
+                    activity?.SetTag("gen_ai.request.ttft", ttftSeconds);
+                    _timeToFirstTokenHistogram.Record(ttftSeconds, GetModelTag(customAssistant.ModelId));
+                }
 
                 // Add persistent message-level metadata to the assistant chat message.
                 if (streamingContent.Metadata is not null)
@@ -470,7 +521,7 @@ public sealed partial class ChatService(
                         (binaryContent.Metadata?.TryGetValue("thumbnail", out var isThumbnail) is not true || isThumbnail is false))
                     {
                         using var memoryStream = new MemoryStream(binaryContent.Data.Value.ToArray());
-                        var blob = await blobStorage.StorageBlobAsync(memoryStream, binaryContent.MimeType, cancellationToken);
+                        var blob = await _blobStorage.StorageBlobAsync(memoryStream, binaryContent.MimeType, cancellationToken);
                         EnsureSpan<AssistantChatMessageImageSpan>(true).ImageOutput = new ChatFileAttachment(
                             new DynamicResourceKey(string.Empty),
                             blob.LocalPath,
@@ -509,6 +560,7 @@ public sealed partial class ChatService(
         {
             assistantChatMessage.UsageDetails.Accumulate(usage); // Accumulate usage details.
             SetChatUsageTags(activity, usage);
+            RecordChatUsageMetrics(usage, customAssistant.ModelId);
 
             span?.FinishedAt ??= DateTimeOffset.UtcNow;
             callingToolsBusyMessage?.Dispose();
@@ -744,6 +796,12 @@ public sealed partial class ChatService(
         activity?.SetTag("gen_ai.tool.name", content.FunctionName);
         activity?.SetTag("gen_ai.tool.input", content.Arguments?.ToString());
 
+        // We don't collect input arguments in metrics because they may contain sensitive information.
+        _toolCallsCounter.Add(1,
+            new KeyValuePair<string, object?>("gen_ai.tool.plugin", content.PluginName),
+            new KeyValuePair<string, object?>("gen_ai.tool.name", content.FunctionName),
+            new KeyValuePair<string, object?>("gen_ai.tool.is_mcp", context.Plugin is McpChatPlugin));
+
         FunctionResultContent resultContent;
         try
         {
@@ -780,8 +838,8 @@ public sealed partial class ChatService(
                 {
                     case ConsentDecision.AlwaysAllow:
                     {
-                        settings.Plugin.GrantedPermissions.TryGetValue(context.PermissionKey, out var grantedGlobalPermissions);
-                        settings.Plugin.GrantedPermissions[context.PermissionKey] = grantedGlobalPermissions | context.Function.Permissions;
+                        _settings.Plugin.GrantedPermissions.TryGetValue(context.PermissionKey, out var grantedGlobalPermissions);
+                        _settings.Plugin.GrantedPermissions[context.PermissionKey] = grantedGlobalPermissions | context.Function.Permissions;
                         break;
                     }
                     case ConsentDecision.AllowSession:
@@ -810,7 +868,7 @@ public sealed partial class ChatService(
                 if (requiredPermissions < ChatFunctionPermissions.FileAccess) return true;
 
                 var grantedPermissions = ChatFunctionPermissions.None;
-                if (settings.Plugin.GrantedPermissions.TryGetValue(context.PermissionKey, out var grantedGlobalPermissions))
+                if (_settings.Plugin.GrantedPermissions.TryGetValue(context.PermissionKey, out var grantedGlobalPermissions))
                 {
                     grantedPermissions |= grantedGlobalPermissions;
                 }
@@ -826,7 +884,7 @@ public sealed partial class ChatService(
         {
             ex = HandledFunctionInvokingException.Handle(ex);
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            logger.LogError(ex, "Error invoking function '{FunctionName}'", content.FunctionName);
+            _logger.LogError(ex, "Error invoking function '{FunctionName}'", content.FunctionName);
 
             resultContent = new FunctionResultContent(content, $"Error: {ex.Message}") { InnerContent = ex };
         }
@@ -847,10 +905,11 @@ public sealed partial class ChatService(
             return;
         }
 
+        _chatTopicsCounter.Add(1, GetModelTag(customAssistant.ModelId));
         using var activity = StartChatActivity("invoke_agent", customAssistant);
         try
         {
-            var language = settings.Common.Language.ToEnglishName();
+            var language = _settings.Common.Language.ToEnglishName();
             activity?.SetTag("id", metadata.Id);
             activity?.SetTag("user_message.length", userMessage.Length);
             activity?.SetTag("system_language", language);
@@ -887,6 +946,7 @@ public sealed partial class ChatService(
             }
 
             SetChatUsageTags(activity, usage);
+            RecordChatUsageMetrics(usage, customAssistant.ModelId);
 
             ReadOnlySpan<char> punctuationChars = ['.', ',', '!', '?', '。', '，', '！', '？'];
             titleBuilder.Length = Math.Min(50, titleBuilder.Length); // Limit the title length to 50 characters to avoid excessively long titles.
@@ -906,7 +966,7 @@ public sealed partial class ChatService(
         {
             e = HandledChatException.Handle(e);
             activity?.SetStatus(ActivityStatusCode.Error, e.Message);
-            logger.LogError(e, "Failed to generate chat title");
+            _logger.LogError(e, "Failed to generate chat title");
         }
         finally
         {
@@ -958,6 +1018,17 @@ public sealed partial class ChatService(
         activity?.SetTag("gen_ai.usage.total_tokens", usage.TotalTokenCount);
     }
 
+    private void RecordChatUsageMetrics(ChatUsageDetails usageDetails, string? modelId)
+    {
+        var tag = GetModelTag(modelId);
+        if (usageDetails.InputTokenCount > 0) _inputTokensHistogram.Record(usageDetails.InputTokenCount, tag);
+        if (usageDetails.CachedInputTokenCount > 0) _cachedInputTokensHistogram.Record(usageDetails.CachedInputTokenCount, tag);
+        if (usageDetails.OutputTokenCount > 0) _outputTokensHistogram.Record(usageDetails.OutputTokenCount, tag);
+        if (usageDetails.ReasoningTokenCount > 0) _reasoningTokensHistogram.Record(usageDetails.ReasoningTokenCount, tag);
+    }
+
+    private static KeyValuePair<string, object?> GetModelTag(string? modelId) => new("gen_ai.request.model", modelId);
+
     public IChatPluginDisplaySink DisplaySink =>
         _currentFunctionCallContext?.ChatMessage.DisplaySink ?? throw new InvalidOperationException("No active function call to display sink for");
 
@@ -978,7 +1049,7 @@ public sealed partial class ChatService(
             // Check if the permission is already granted
             var grantedPermissions = ChatFunctionPermissions.None;
             permissionKey = $"{_currentFunctionCallContext.PermissionKey}.{id}";
-            if (settings.Plugin.GrantedPermissions.TryGetValue(permissionKey, out var extra))
+            if (_settings.Plugin.GrantedPermissions.TryGetValue(permissionKey, out var extra))
             {
                 grantedPermissions |= extra;
             }
@@ -1017,8 +1088,8 @@ public sealed partial class ChatService(
         {
             case ConsentDecision.AlwaysAllow:
             {
-                settings.Plugin.GrantedPermissions.TryGetValue(permissionKey, out var grantedGlobalPermissions);
-                settings.Plugin.GrantedPermissions[permissionKey] = grantedGlobalPermissions | _currentFunctionCallContext.Function.Permissions;
+                _settings.Plugin.GrantedPermissions.TryGetValue(permissionKey, out var grantedGlobalPermissions);
+                _settings.Plugin.GrantedPermissions[permissionKey] = grantedGlobalPermissions | _currentFunctionCallContext.Function.Permissions;
                 return true;
             }
             case ConsentDecision.AllowSession:

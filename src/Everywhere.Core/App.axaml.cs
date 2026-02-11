@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -110,7 +112,31 @@ public class App : Application, IRecipient<ApplicationCommand>
                 NativeMessageBoxIcon.Error);
         }
 
-        Log.ForContext<App>().Information("Application started");
+        RecordAppLaunchMetric();
+    }
+
+    private static void RecordAppLaunchMetric()
+    {
+        const string OsType =
+#if WINDOWS
+            "Windows";
+#elif LINUX
+                "Linux";
+#elif MACOS
+                "macOS";
+#else
+                "Unknown";
+#endif
+
+        using var meter = new Meter(typeof(App).FullName.NotNull(), Version);
+        meter.CreateCounter<int>("app.launches").Add(
+            1,
+            new TagList
+            {
+                { "os.type", OsType },
+                { "os.description", RuntimeInformation.OSDescription },
+                { "app.version", Version },
+            });
     }
 
     public override void OnFrameworkInitializationCompleted()

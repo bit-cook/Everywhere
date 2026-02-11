@@ -1,9 +1,8 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
-using Everywhere.Common;
 using LiveMarkdown.Avalonia;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Everywhere.Views;
 
@@ -44,7 +43,7 @@ public partial class ChangeLogView : ReactiveUserControl<ChangeLogViewModel>
         }
         catch (Exception ex)
         {
-            ServiceLocator.Resolve<ILogger<ChangeLogView>>().LogError(ex, "Failed to load changelog.");
+            Log.ForContext<ChangeLogView>().Error(ex, "Failed to load changelog.");
         }
     }
 
