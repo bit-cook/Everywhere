@@ -899,7 +899,7 @@
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>설정</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
+    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
         <value>시각적 맥락 길이 예산</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
@@ -2068,9 +2068,6 @@
     </data>
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>심층 사고</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip" xml:space="preserve">
-        <value>시각적 맥락 수집의 길이 상한, 단위는 토큰입니다. 이 항목은 추정치이며 정확한 제한을 보장하지 않습니다.</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>도구 호출 활성화</value>

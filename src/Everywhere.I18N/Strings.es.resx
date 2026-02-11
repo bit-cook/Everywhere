@@ -899,8 +899,8 @@ Mi inteligencia está impulsada por un modelo de lenguaje grande, y necesito que
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>Configuración</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
-        <value>Límite de longitud del árbol visual:</value>
+    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
+        <value>Límite de longitud del árbol visual</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
         <value>Actualización disponible.</value>
@@ -2068,9 +2068,6 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     </data>
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>Reflexión Profunda</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip" xml:space="preserve">
-        <value>Límite de longitud para la recopilación del contexto visual, en tokens. Este es un estimado y no garantiza un límite preciso.</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>Activar Llamada A Herramientas</value>

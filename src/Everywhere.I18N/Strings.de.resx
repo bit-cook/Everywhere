@@ -896,8 +896,8 @@ Meine Intelligenz wird von einem großen Sprachmodell bereitgestellt, und ich be
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>Einstellungen</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
-        <value>ung der Visual Tree-Länge:</value>
+    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
+        <value>ung der Visual Tree-Länge</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
         <value>Update verfügbar.</value>
@@ -2065,9 +2065,6 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     </data>
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>Tiefes Nachdenken</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip" xml:space="preserve">
-        <value>Längenobergrenze für die Erfassung des visuellen Kontexts, gemessen in Tokens. Dieser Wert ist eine Schätzung und kann keine genaue Begrenzung garantieren.</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>Werkzeugaufruf aktivieren</value>

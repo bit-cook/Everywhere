@@ -101,7 +101,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
         chatContext.Add(message);
 
-        await ProcessUserChatMessageAsync(chatContext, customAssistant, message, cancellationToken);
+        await ProcessUserChatMessageAsync(chatContext, message, cancellationToken);
 
         var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
         chatContext.Add(assistantChatMessage);
@@ -145,7 +145,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
         chatContext.CreateBranchOn(originalNode, newMessage);
 
-        await ProcessUserChatMessageAsync(chatContext, customAssistant, newMessage, cancellationToken);
+        await ProcessUserChatMessageAsync(chatContext, newMessage, cancellationToken);
 
         var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
         chatContext.Add(assistantChatMessage);
@@ -155,7 +155,6 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
     private async Task ProcessUserChatMessageAsync(
         ChatContext chatContext,
-        CustomAssistant customAssistant,
         UserChatMessage userChatMessage,
         CancellationToken cancellationToken)
     {
@@ -189,8 +188,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             // 2. Group the visual elements and build the XML in separate tasks.
             // 3. Populate result into ChatVisualElementAttachment.Xml
 
-            var maxTokens = Math.Max(customAssistant.MaxTokens, 4096);
-            var approximateTokenLimit = Math.Min(_persistentState.VisualTreeTokenLimit, maxTokens / 10);
+            var approximateTokenLimit = _persistentState.VisualTreeLengthLimit.ToTokenLimit();
             var detailLevel = _persistentState.VisualTreeDetailLevel;
 
             await Task.Run(

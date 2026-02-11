@@ -899,7 +899,7 @@ My intelligence is powered by large language models, and I need your help to con
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>Settings</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
+    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
         <value>Visual Context Length Budget</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
@@ -2069,8 +2069,8 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>Deep Thinking</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip" xml:space="preserve">
-        <value>The upper limit for the length of collected visual context, measured in tokens. This is an estimate and cannot guarantee precise limits.</value>
+    <data name="PersistentState_VisualTreeLengthLimit_Description" xml:space="preserve">
+        <value />
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>Enable Tool Call</value>
@@ -2103,6 +2103,21 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="PersistentState_ReasoningEffortLevel_Description" xml:space="preserve">
+        <value />
+    </data>
+    <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
+        <value />
+    </data>
+    <data name="VisualTreeLengthLimit_Balanced" xml:space="preserve">
+        <value />
+    </data>
+    <data name="VisualTreeLengthLimit_Detailed" xml:space="preserve">
+        <value />
+    </data>
+    <data name="VisualTreeLengthLimit_Ultimate" xml:space="preserve">
+        <value />
+    </data>
+    <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
         <value />
     </data>
 </root>

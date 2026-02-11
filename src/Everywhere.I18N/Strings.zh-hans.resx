@@ -899,7 +899,7 @@
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>设置</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
+    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
         <value>视觉上下文长度预算</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
@@ -2070,8 +2070,8 @@
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>深度思考</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip" xml:space="preserve">
-        <value>采集视觉上下文的长度上限，单位为 token。此项为估算，无法保证精确限制。</value>
+    <data name="PersistentState_VisualTreeLengthLimit_Description" xml:space="preserve">
+        <value>采集视觉上下文的长度上限，单位为 token。此项为估算，无法保证精确限制。对于简单的上下文，消耗的 token 往往会小于这个数；对于复杂的上下文，超出的部分会被截断。</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>开启工具调用</value>
@@ -2102,5 +2102,20 @@
     </data>
     <data name="PersistentState_ReasoningEffortLevel_Header" xml:space="preserve">
         <value>推理强度</value>
+    </data>
+    <data name="VisualTreeLengthLimit_Balanced" xml:space="preserve">
+        <value>平衡 (~4096，推荐)</value>
+    </data>
+    <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
+        <value>无限制</value>
+    </data>
+    <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
+        <value>最小 (~1024)</value>
+    </data>
+    <data name="VisualTreeLengthLimit_Ultimate" xml:space="preserve">
+        <value>极致 (~40960)</value>
+    </data>
+    <data name="VisualTreeLengthLimit_Detailed" xml:space="preserve">
+        <value>详细 (~10240)</value>
     </data>
 </root>

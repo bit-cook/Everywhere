@@ -899,7 +899,7 @@
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>Настройки</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
+    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
         <value>Бюджет Длины Визуального Контекста</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
@@ -2068,9 +2068,6 @@
     </data>
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>Глубокое мышление</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip" xml:space="preserve">
-        <value>Максимальная длина визуального контекста, измеряемая в токенах. Это оценка, точное ограничение не гарантируется.</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>Включить Вызов Инструментов</value>

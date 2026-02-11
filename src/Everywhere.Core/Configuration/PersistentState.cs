@@ -63,9 +63,9 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
         set => Set(value);
     }
 
-    public int VisualTreeTokenLimit
+    public VisualTreeLengthLimit VisualTreeLengthLimit
     {
-        get => Get(4096);
+        get => Get(VisualTreeLengthLimit.Balanced);
         set => Set(value);
     }
 

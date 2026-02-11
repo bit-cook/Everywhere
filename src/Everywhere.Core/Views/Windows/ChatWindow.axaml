@@ -644,7 +644,7 @@
                                 Grid.Column="1" VerticalAlignment="Center"
                                 Text="{Binding HeaderKey^}"
                                 ToolTip.Placement="Top"
-                                ToolTip.Tip="{Binding DescriptionKey^}"/>
+                                ToolTip.Tip="{Binding DescriptionKey^, Converter={x:Static shadui:StringConverters.EmptyOrWhiteSpaceToNull}}"/>
 
                               <ToggleSwitch
                                 Grid.Column="2" VerticalAlignment="Center"
@@ -682,28 +682,27 @@
                   <TextBlock
                     VerticalAlignment="Center"
                     FontSize="{DynamicResource FontSizeS}"
-                    Text="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit}}"/>
+                    Text="{I18N {x:Static LocaleKey.PersistentState_VisualTreeLengthLimit_Header}}"/>
                   <LucideIcon
                     Kind="CircleQuestionMark"
                     Size="{DynamicResource FontSizeS}"
                     ToolTip.Placement="Right"
-                    ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip}}"/>
+                    ToolTip.Tip="{I18N {x:Static LocaleKey.PersistentState_VisualTreeLengthLimit_Description}}"/>
                 </StackPanel>
 
                 <TextBlock
                   Classes="Muted" VerticalAlignment="Center"
-                  FontSize="{DynamicResource FontSizeS}"
-                  Text="{Binding PersistentState.VisualTreeTokenLimit, Mode=OneWay}"/>
+                  FontSize="{DynamicResource FontSizeS}">
+                  <TextBlock.Text>
+                    <I18N Key="{Binding PersistentState.VisualTreeLengthLimit, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
+                  </TextBlock.Text>
+                </TextBlock>
 
                 <Slider
-                  MinWidth="200" VerticalAlignment="Center">
-                  <Interaction.Behaviors>
-                    <be:LogarithmicSliderBehavior
-                      Maximum="{Binding Settings.Model.SelectedCustomAssistant.MaxTokens, FallbackValue=8192, Converter={x:Static vc:DoubleConverters.Multiply}, ConverterParameter=0.5}"
-                      Minimum="512"
-                      Value="{Binding PersistentState.VisualTreeTokenLimit, Mode=TwoWay}"/>
-                  </Interaction.Behaviors>
-                </Slider>
+                  MinWidth="160" IsSnapToTickEnabled="True"
+                  Maximum="4" Minimum="0"
+                  TickFrequency="1"
+                  Value="{Binding PersistentState.VisualTreeLengthLimit, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
 
                 <Separator/>
               </StackPanel>

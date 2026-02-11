@@ -896,7 +896,7 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>Ayarlar</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit" xml:space="preserve">
+    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
         <value>Görsel Bağlam Uzunluğu Bütçesi</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
@@ -2065,9 +2065,6 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     </data>
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>Derin Düşünme</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_SettingsMenuItems_VisualTreeTokenLimit_Tip" xml:space="preserve">
-        <value>Görsel bağlamın toplanacak uzunluk üst sınırı, birim token. Bu bir tahmindir, kesin bir sınır garantisi vermez.</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>Araç Çağrısını Aç</value>
