@@ -177,7 +177,7 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
             catch (Exception ex)
             {
                 ex = HandledSystemException.Handle(ex); // maybe blocked by UAC or antivirus, handle it gracefully
-                Logger.LogError(ex, "Failed to set user startup enabled.");
+                Log.ForContext<CommonSettings>().Error(ex, "Failed to set user startup enabled.");
                 ShowErrorToast(ex);
             }
         }
