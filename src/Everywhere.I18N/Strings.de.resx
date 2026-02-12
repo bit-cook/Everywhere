@@ -2103,7 +2103,7 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
         <value>Ausgewogen (~4096, empfohlen)</value>
     </data>
     <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
-        <value>Unbegrenzt</value>
+        <value>Unbegrenzt (⚠️)</value>
     </data>
     <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
         <value>Minimal (~1024)</value>

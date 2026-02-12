@@ -2106,7 +2106,7 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
         <value>Équilibré (~4096, recommandé)</value>
     </data>
     <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
-        <value>Illimité</value>
+        <value>Illimité (⚠️)</value>
     </data>
     <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
         <value>Minimal (~1024)</value>

@@ -2106,7 +2106,7 @@
         <value>バランス (~4096、推奨)</value>
     </data>
     <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
-        <value>無制限</value>
+        <value>無制限 (⚠️)</value>
     </data>
     <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
         <value>最小 (~1024)</value>

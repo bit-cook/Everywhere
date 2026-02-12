@@ -2106,7 +2106,7 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
         <value>Bilanciato (~4096, consigliato)</value>
     </data>
     <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
-        <value>Illimitato</value>
+        <value>Illimitato (⚠️)</value>
     </data>
     <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
         <value>Minimo (~1024)</value>

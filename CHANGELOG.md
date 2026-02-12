@@ -1,3 +1,17 @@
+## [v0.6.4](https://github.com/DearVa/Everywhere/releases/tag/v0.6.4) - 2026-02-13
+
+### ✨ Features
+- Added reasoning effort settings to the chat window
+- Replaced the visual context length limit with predefined tiers for a more user-friendly experience
+
+### 🚀 Improvements
+- Improved the logic for scenarios where no custom assistant is selected by adding hints and preventing input loss
+- Enhanced telemetry with the inclusion of metrics data
+
+**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.6.3...v0.6.4
+
+
+
 ## [v0.6.3](https://github.com/DearVa/Everywhere/releases/tag/v0.6.3) - 2026-02-11
 
 ### ✨ Features

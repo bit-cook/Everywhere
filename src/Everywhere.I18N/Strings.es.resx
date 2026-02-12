@@ -2106,7 +2106,7 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
         <value>Equilibrado (~4096, recomendado)</value>
     </data>
     <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
-        <value>Sin límite</value>
+        <value>Sin límite (⚠️)</value>
     </data>
     <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
         <value>Mínimo (~1024)</value>

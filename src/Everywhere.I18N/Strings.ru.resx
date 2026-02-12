@@ -2106,7 +2106,7 @@
         <value>Сбалансированный (~4096, рекомендуется)</value>
     </data>
     <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
-        <value>Без ограничений</value>
+        <value>Без ограничений (⚠️)</value>
     </data>
     <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
         <value>Минимум (~1024)</value>

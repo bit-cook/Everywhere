@@ -2106,7 +2106,7 @@
         <value>균형 (~4096, 추천)</value>
     </data>
     <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
-        <value>무제한</value>
+        <value>무제한 (⚠️)</value>
     </data>
     <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
         <value>최소 (~1024)</value>

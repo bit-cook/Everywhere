@@ -2106,7 +2106,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Balanced (~4096, Recommended)</value>
     </data>
     <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
-        <value>Unlimited</value>
+        <value>Unlimited (⚠️)</value>
     </data>
     <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
         <value>Minimal (~1024)</value>
