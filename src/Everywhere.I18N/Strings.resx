@@ -2117,4 +2117,7 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="VisualTreeLengthLimit_Detailed" xml:space="preserve">
         <value>Detailed (~10240)</value>
     </data>
+    <data name="ChatService_Error_CustomAssistantNotSelected" xml:space="preserve">
+        <value />
+    </data>
 </root>

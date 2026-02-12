@@ -92,14 +92,19 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
     public async Task SendMessageAsync(UserChatMessage message, CancellationToken cancellationToken)
     {
+        var chatContext = _chatContextManager.Current;
         var customAssistant = _settings.Model.SelectedCustomAssistant;
-        if (customAssistant is null) return;
 
         using var activity = _activitySource.StartActivity();
-
-        var chatContext = _chatContextManager.Current;
         activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
+
         chatContext.Add(message);
+
+        if (customAssistant is null)
+        {
+            chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
+            return;
+        }
 
         await ProcessUserChatMessageAsync(chatContext, message, cancellationToken);
 
@@ -111,31 +116,35 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
     public async Task RetryAsync(ChatMessageNode node, CancellationToken cancellationToken)
     {
+        var chatContext = node.Context;
         var customAssistant = _settings.Model.SelectedCustomAssistant;
-        if (customAssistant is null) return;
 
         using var activity = _activitySource.StartActivity();
-        activity?.SetTag("chat.context.id", node.Context.Metadata.Id);
+        activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
 
         if (node.Message.Role != AuthorRole.Assistant)
         {
             throw new InvalidOperationException("Only assistant messages can be retried.");
         }
 
-        var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
-        node.Context.CreateBranchOn(node, assistantChatMessage);
+        if (customAssistant is null)
+        {
+            chatContext.CreateBranchOn(node, CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
+            return;
+        }
 
-        await RunGenerateAsync(node.Context, customAssistant, assistantChatMessage, cancellationToken);
+        var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
+        chatContext.CreateBranchOn(node, assistantChatMessage);
+
+        await RunGenerateAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken);
     }
 
     public async Task EditAsync(ChatMessageNode originalNode, UserChatMessage newMessage, CancellationToken cancellationToken)
     {
+        var chatContext = originalNode.Context;
         var customAssistant = _settings.Model.SelectedCustomAssistant;
-        if (customAssistant is null) return;
 
         using var activity = _activitySource.StartActivity();
-
-        var chatContext = _chatContextManager.Current;
         activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
 
         if (originalNode.Message.Role != AuthorRole.User)
@@ -145,6 +154,12 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
         chatContext.CreateBranchOn(originalNode, newMessage);
 
+        if (customAssistant is null)
+        {
+            chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
+            return;
+        }
+
         await ProcessUserChatMessageAsync(chatContext, newMessage, cancellationToken);
 
         var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
@@ -152,6 +167,18 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
         await RunGenerateAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken);
     }
+
+    /// <summary>
+    /// Ensures that a custom assistant is selected. If not, adds an error message to the chat context and throws an exception.
+    /// We use an error message instead of throwing an exception so that user's message will not be lost and the user will know what happened in the chat UI.
+    /// </summary>
+    /// <returns></returns>
+    private static AssistantChatMessage CreateCustomAssistantNotSelectedErrorAssistantChatMessage() =>
+        new()
+        {
+            ErrorMessageKey = new DynamicResourceKey(LocaleKey.ChatService_Error_CustomAssistantNotSelected),
+            FinishedAt = DateTimeOffset.UtcNow,
+        };
 
     private async Task ProcessUserChatMessageAsync(
         ChatContext chatContext,

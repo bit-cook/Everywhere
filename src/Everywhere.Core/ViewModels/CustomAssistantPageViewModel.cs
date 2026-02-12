@@ -65,6 +65,7 @@ public partial class CustomAssistantPageViewModel(IKernelMixinFactory kernelMixi
             ConfiguratorType = ModelProviderConfiguratorType.PresetBased
         };
         settings.Model.CustomAssistants.Add(newAssistant);
+        settings.Model.SelectedCustomAssistant ??= newAssistant;
         SelectedCustomAssistant = newAssistant;
     }
 
