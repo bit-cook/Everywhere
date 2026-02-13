@@ -1038,6 +1038,17 @@ public class HandledChatException(
                 return fallback;
             }
 
+            if (message.Contains("image_url", StringComparison.OrdinalIgnoreCase))
+            {
+                return HandledChatExceptionType.ImageNotSupport;
+            }
+
+            if (message.Contains("context") ||
+                message.Contains("length", StringComparison.OrdinalIgnoreCase))
+            {
+                return HandledChatExceptionType.ContextLengthExceeded;
+            }
+
             if (message.Contains("quota", StringComparison.OrdinalIgnoreCase) ||
                 message.Contains("limit", StringComparison.OrdinalIgnoreCase) ||
                 message.Contains("exceeded", StringComparison.OrdinalIgnoreCase) ||
@@ -1062,17 +1073,6 @@ public class HandledChatException(
                 message.Contains("parameter", StringComparison.OrdinalIgnoreCase))
             {
                 return HandledChatExceptionType.InvalidConfiguration;
-            }
-
-            if (message.Contains("image_url", StringComparison.OrdinalIgnoreCase))
-            {
-                return HandledChatExceptionType.ImageNotSupport;
-            }
-
-            if (message.Contains("context") ||
-                message.Contains("length", StringComparison.OrdinalIgnoreCase))
-            {
-                return HandledChatExceptionType.ContextLengthExceeded;
             }
 
             // Default for 403 Forbidden if no specific keywords are found
@@ -1139,7 +1139,7 @@ public sealed partial class HandledFunctionInvokingException : HandledSystemExce
         _ => new Exception("An unknown function invoking error occurred.")
     };
 
-    private static DynamicResourceKeyBase? MakeFriendlyMessageKey(HandledFunctionInvokingExceptionType type, string name) => type switch
+    private static FormattedDynamicResourceKey? MakeFriendlyMessageKey(HandledFunctionInvokingExceptionType type, string name) => type switch
     {
         HandledFunctionInvokingExceptionType.ArgumentError => new FormattedDynamicResourceKey(
             new DynamicResourceKey(LocaleKey.HandledFunctionInvokingException_ArgumentError),
@@ -1170,7 +1170,7 @@ public sealed partial class HandledFunctionInvokingException : HandledSystemExce
         return HandledSystemException.Handle(exception, true);
     }
 
-    // Match `Missing argument for function parameter 'paramName'.`
-    [GeneratedRegex(@"Missing argument for function parameter '(.+?)'\.", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    // Match `Missing argument for function parameter 'paramName'`
+    [GeneratedRegex(@"Missing argument for function parameter '(.+?)'", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
     private static partial Regex MissingArgumentRegex();
 }
