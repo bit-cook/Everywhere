@@ -1,6 +1,5 @@
 ﻿using System.ClientModel;
 using System.ClientModel.Primitives;
-using System.Reflection;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -88,32 +87,8 @@ public class OpenAIKernelMixin : KernelMixinBase
     /// <summary>
     /// optimized wrapper around MEAI's IChatClient to extract reasoning content from internal properties.
     /// </summary>
-    private sealed class OptimizedOpenAIApiClient : DelegatingChatClient
+    private sealed class OptimizedOpenAIApiClient(IChatClient client, OpenAIKernelMixin owner) : DelegatingChatClient(client)
     {
-        private static readonly PropertyInfo? ChoicesProperty =
-            typeof(StreamingChatCompletionUpdate).GetProperty("Choices", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static PropertyInfo? _choiceCountProperty;
-        private static PropertyInfo? _choiceIndexerProperty;
-        private static PropertyInfo? _choiceDeltaProperty;
-        private static PropertyInfo? _deltaPatchProperty;
-        private static Func<IEnumerable<ChatMessage>, ChatOptions?, IEnumerable<OpenAI.Chat.ChatMessage>>? _toOpenAIChatMessages;
-
-        private readonly OpenAIKernelMixin _owner;
-
-        /// <summary>
-        /// optimized wrapper around MEAI's IChatClient to extract reasoning content from internal properties.
-        /// </summary>
-        public OptimizedOpenAIApiClient(IChatClient client, OpenAIKernelMixin owner) : base(client)
-        {
-            _toOpenAIChatMessages ??=
-                client.GetType()
-                    .GetMethod("ToOpenAIChatMessages", BindingFlags.NonPublic | BindingFlags.Static)
-                    .NotNull("Failed to create hook for ToOpenAIChatMessages method. Make sure client is of type OpenAIChatClient.")
-                    .CreateDelegate<Func<IEnumerable<ChatMessage>, ChatOptions?, IEnumerable<OpenAI.Chat.ChatMessage>>>();
-
-            _owner = owner;
-        }
-
         public override async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
             IEnumerable<ChatMessage> messages,
             ChatOptions? options = null,
@@ -124,70 +99,41 @@ public class OpenAIKernelMixin : KernelMixinBase
 
             // early convert to OpenAI chat messages and store raw representation
             // so that we can modify them in BeforeStreamingRequestAsync if needed
-            var openAIMessages = _toOpenAIChatMessages!(messagesList, options);
+            var openAIMessages = ToOpenAIChatMessages(null, messagesList, options);
             foreach (var (original, openai) in messagesList.AsValueEnumerable().Zip(openAIMessages))
             {
                 original.RawRepresentation = openai;
             }
 
-            await _owner.BeforeStreamingRequestAsync(messagesList, ref options).ConfigureAwait(false);
+            await owner.BeforeStreamingRequestAsync(messagesList, ref options).ConfigureAwait(false);
 
             // cache the value to avoid property changes during enumeration
-            var isDeepThinkingSupported = _owner.IsDeepThinkingSupported;
+            var isDeepThinkingSupported = owner.IsDeepThinkingSupported;
             await foreach (var update in base.GetStreamingResponseAsync(messagesList, options, cancellationToken))
             {
                 // Why you keep reasoning in the fucking internal properties, OpenAI???
+                // I'm not a thief, let me access the data! 😭😭😭😭
                 if (isDeepThinkingSupported && update is { Text: not { Length: > 0 }, RawRepresentation: StreamingChatCompletionUpdate detail })
                 {
                     // Get the value of the internal 'Choices' property.
-                    var choices = ChoicesProperty?.GetValue(detail);
-                    if (choices is null)
+                    if (GetChoices(detail) is not IEnumerable choices)
                     {
                         yield return update;
                         continue;
                     }
 
-                    // Cache PropertyInfo for the 'Count' property of the Choices collection.
-                    _choiceCountProperty ??= choices.GetType().GetProperty("Count");
-                    if (_choiceCountProperty?.GetValue(choices) is not int count || count == 0)
-                    {
-                        yield return update;
-                        continue;
-                    }
-
-                    // Cache PropertyInfo for the indexer 'Item' property of the Choices collection.
-                    _choiceIndexerProperty ??= choices.GetType().GetProperty("Item");
-                    if (_choiceIndexerProperty is null)
-                    {
-                        yield return update;
-                        continue;
-                    }
-
-                    // Get the first choice from the collection.
-                    var firstChoice = _choiceIndexerProperty.GetValue(choices, [0]);
+                    var firstChoice = choices.AsValueEnumerable().FirstOrDefault();
                     if (firstChoice is null)
                     {
                         yield return update;
                         continue;
                     }
 
-                    // Cache PropertyInfo for the 'Delta' property of a choice.
-                    _choiceDeltaProperty ??= firstChoice.GetType().GetProperty("Delta", BindingFlags.Instance | BindingFlags.NonPublic);
-                    var delta = _choiceDeltaProperty?.GetValue(firstChoice);
-                    if (delta is null)
-                    {
-                        yield return update;
-                        continue;
-                    }
-
-                    // Cache PropertyInfo for the internal 'Patch' property of the delta.
-                    _deltaPatchProperty ??= delta.GetType().GetProperty(
-                        "Patch",
-                        BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    var delta = GetDelta(firstChoice);
+                    var jsonPatch = GetPatch(delta);
 
                     // Extract and process the raw data if it exists.
-                    if (_deltaPatchProperty?.GetValue(delta) is not JsonPatch jsonPatch ||
-                        !jsonPatch.TryGetValue("$.reasoning_content"u8, out string? reasoningContent))
+                    if (!jsonPatch.TryGetValue("$.reasoning_content"u8, out string? reasoningContent))
                     {
                         yield return update;
                         continue;
@@ -224,5 +170,28 @@ public class OpenAIKernelMixin : KernelMixinBase
                 yield return update;
             }
         }
+
+        [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "ToOpenAIChatMessages")]
+        private extern static IEnumerable<OpenAI.Chat.ChatMessage> ToOpenAIChatMessages(
+            [UnsafeAccessorType("Microsoft.Extensions.AI.OpenAIChatClient, Microsoft.Extensions.AI.OpenAI")]
+            object? klass,
+            IEnumerable<ChatMessage> inputs,
+            ChatOptions? chatOptions);
+
+        private const string FuckingInternalChoiceTypeName = "OpenAI.Chat.InternalCreateChatCompletionStreamResponseChoice, OpenAI";
+        private const string FuckingInternalDeltaTypeName = "OpenAI.Chat.InternalChatCompletionStreamResponseDelta, OpenAI";
+        private const string FuckingInternalChoiceListTypeName =
+            $"System.Collections.Generic.IReadOnlyList`1[[{FuckingInternalChoiceTypeName}]], System.Private.CoreLib";
+
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_Choices")]
+        [return: UnsafeAccessorType(FuckingInternalChoiceListTypeName)]
+        private extern static object GetChoices(StreamingChatCompletionUpdate update);
+
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_Delta")]
+        [return: UnsafeAccessorType(FuckingInternalDeltaTypeName)]
+        private extern static object GetDelta([UnsafeAccessorType(FuckingInternalChoiceTypeName)] object choice);
+
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_patch")]
+        private extern static ref JsonPatch GetPatch([UnsafeAccessorType(FuckingInternalDeltaTypeName)] object delta);
     }
 }
