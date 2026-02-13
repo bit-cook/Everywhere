@@ -18,6 +18,7 @@
           <Border
             HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
             shadui:Timeline.Anchor="{Binding $self.Bounds, Converter={x:Static shadui:TimelineConverters.HalfRect}}"
+            shadui:Timeline.IsLoading="{TemplateBinding IsBusy}"
             Background="{TemplateBinding Background}"
             BorderBrush="{TemplateBinding BorderBrush}"
             BorderThickness="{TemplateBinding BorderThickness}"
@@ -47,11 +48,6 @@
                   FontSize="{DynamicResource FontSizeM}"
                   Foreground="{DynamicResource ForegroundLeadColor}"/>
 
-                <shadui:Loading
-                  Width="{DynamicResource FontSizeM}"
-                  Height="{DynamicResource FontSizeM}"
-                  VerticalAlignment="Center" IsHitTestVisible="False"
-                  IsVisible="{TemplateBinding IsBusy}"/>
                 <TextBlock
                   Margin="0,0,0,1" VerticalAlignment="Bottom"
                   FontSize="10"

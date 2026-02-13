@@ -8,6 +8,21 @@ public class NumberConverters<T> where T : struct, INumber<T>
 {
     private static T ChangeType(object? value) => (T)(Convert.ChangeType(value, typeof(T)) ?? default(T));
 
+    public static IValueConverter IsZero { get; } = new BidirectionalFuncValueConverter<T, bool>(
+        convert: static (x, _) => x == T.Zero,
+        convertBack: static (_, _) => throw new NotSupportedException()
+    );
+
+    public static IValueConverter IsNotZero { get; } = new BidirectionalFuncValueConverter<T, bool>(
+        convert: static (x, _) => x != T.Zero,
+        convertBack: static (_, _) => throw new NotSupportedException()
+    );
+
+    public static IValueConverter Negate { get; } = new BidirectionalFuncValueConverter<T, T>(
+        convert: static (x, _) => -x,
+        convertBack: static (x, _) => -x
+    );
+
     public static IValueConverter Plus { get; } = new BidirectionalFuncValueConverter<T, T>(
         convert: static (x, p) => x + ChangeType(p),
         convertBack: static (x, p) => x - ChangeType(p)

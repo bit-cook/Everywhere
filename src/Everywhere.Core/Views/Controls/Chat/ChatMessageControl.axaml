@@ -120,6 +120,20 @@
           <StackPanel
             Classes="ChatMessage Assistant" Background="Transparent"
             Orientation="Vertical" Spacing="4">
+            <shadui:Loading
+              Width="13" Height="13"
+              Margin="-14,0,0,0" HorizontalAlignment="Left"
+              Foreground="{DynamicResource PrimaryColor}">
+              <shadui:Loading.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                  <Binding Path="IsBusy"/>
+                  <Binding
+                    Converter="{x:Static vc:Int32Converters.IsZero}"
+                    Path="Spans.Count"/>
+                </MultiBinding>
+              </shadui:Loading.IsVisible>
+            </shadui:Loading>
+
             <ItemsControl
               ClipToBounds="False"
               ItemsSource="{Binding Spans}">
@@ -128,6 +142,7 @@
                   <StackPanel Spacing="8"/>
                 </ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
+
               <ItemsControl.Styles>
                 <Style Selector="MenuFlyoutPresenter">
                   <Setter Property="ItemsPanel">
@@ -154,6 +169,7 @@
                   <md:MarkdownRenderer
                     Margin="4,0"
                     shadui:Timeline.Anchor="{Binding $self.(TextBlock.LineHeight), Converter={x:Static shadui:TimelineConverters.HalfDouble}}"
+                    shadui:Timeline.IsLoading="{Binding FinishedAt, Converter={x:Static ObjectConverters.IsNull}}"
                     LinkCommand="{Binding $parent[v:ChatWindow].LaunchLinkCommand}"
                     MarkdownBuilder="{Binding ContentMarkdownBuilder}"
                     TextBlock.LineHeight="{DynamicResource LineHeightM}">
@@ -271,13 +287,6 @@
                 Text="{Binding ErrorMessageKey^, FallbackValue={x:Null}}"
                 TextWrapping="Wrap"/>
             </Border>
-
-            <shadui:Skeleton
-              Width="12" Height="12"
-              Margin="4,0,0,0" HorizontalAlignment="Left"
-              Background="{DynamicResource PrimaryColor}"
-              CornerRadius="8"
-              IsVisible="{Binding IsBusy}"/>
 
             <SelectableTextBlock
               Classes="Muted" Margin="4,0"
