@@ -296,7 +296,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                     Id = "gpt-4.1",
                     ModelId = "gpt-4.1",
                     DisplayName = "GPT 4.1",
-                    MaxTokens = 1_000_000,
+                    MaxTokens = 1_047_576,
                     IsImageInputSupported = true,
                     IsFunctionCallingSupported = true,
                     IsDeepThinkingSupported = false,
@@ -307,7 +307,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                     Id = "gpt-4.1-mini",
                     ModelId = "gpt-4.1-mini",
                     DisplayName = "GPT 4.1 mini",
-                    MaxTokens = 1_000_000,
+                    MaxTokens = 1_047_576,
                     IsImageInputSupported = true,
                     IsFunctionCallingSupported = true,
                     IsDeepThinkingSupported = false,
@@ -337,6 +337,16 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
             [
                 new ModelDefinitionTemplate
                 {
+                    Id = "claude-opus-4-6",
+                    ModelId = "claude-opus-4-6",
+                    DisplayName = "Claude Opus 4.6",
+                    MaxTokens = 200_000,
+                    IsImageInputSupported = true,
+                    IsFunctionCallingSupported = true,
+                    IsDeepThinkingSupported = true,
+                },
+                new ModelDefinitionTemplate
+                {
                     Id = "claude-opus-4-5-20251101",
                     ModelId = "claude-opus-4-5-20251101",
                     DisplayName = "Claude Opus 4.5",
@@ -354,6 +364,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                     IsImageInputSupported = true,
                     IsFunctionCallingSupported = true,
                     IsDeepThinkingSupported = true,
+                    IsDefault = true
                 },
                 new ModelDefinitionTemplate
                 {
@@ -403,14 +414,23 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                     MaxTokens = 200_000,
                     IsImageInputSupported = true,
                     IsFunctionCallingSupported = true,
-                    IsDeepThinkingSupported = true,
-                    IsDefault = true
+                    IsDeepThinkingSupported = true
                 },
                 new ModelDefinitionTemplate
                 {
                     Id = "claude-3-5-haiku-20241022",
                     ModelId = "claude-3-5-haiku-20241022",
                     DisplayName = "Claude 3.5 Haiku",
+                    MaxTokens = 200_000,
+                    IsImageInputSupported = true,
+                    IsFunctionCallingSupported = true,
+                    IsDeepThinkingSupported = false,
+                },
+                new ModelDefinitionTemplate
+                {
+                    Id = "claude-3-haiku-20240307",
+                    ModelId = "claude-3-haiku-20240307",
+                    DisplayName = "Claude 3 Haiku",
                     MaxTokens = 200_000,
                     IsImageInputSupported = true,
                     IsFunctionCallingSupported = true,
@@ -448,6 +468,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                     IsImageInputSupported = true,
                     IsFunctionCallingSupported = true,
                     IsDeepThinkingSupported = true,
+                    IsDefault = true
                 },
                 new ModelDefinitionTemplate
                 {
@@ -467,8 +488,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                     MaxTokens = 1_048_576,
                     IsImageInputSupported = true,
                     IsFunctionCallingSupported = true,
-                    IsDeepThinkingSupported = true,
-                    IsDefault = true
+                    IsDeepThinkingSupported = true
                 },
                 new ModelDefinitionTemplate
                 {
@@ -501,8 +521,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                     MaxTokens = 128_000,
                     IsImageInputSupported = false,
                     IsFunctionCallingSupported = true,
-                    IsDeepThinkingSupported = false,
-                    IsDefault = true
+                    IsDeepThinkingSupported = false
                 },
                 new ModelDefinitionTemplate
                 {
@@ -513,6 +532,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                     IsImageInputSupported = false,
                     IsFunctionCallingSupported = true,
                     IsDeepThinkingSupported = true,
+                    IsDefault = true
                 }
             ]
         },
@@ -593,6 +613,26 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
             [
                 new ModelDefinitionTemplate
                 {
+                    Id = "moonshotai/kimi-k2.5",
+                    ModelId = "moonshotai/kimi-k2.5",
+                    DisplayName = "MoonshotAI: Kimi K2.5",
+                    MaxTokens = 262_144,
+                    IsImageInputSupported = true,
+                    IsFunctionCallingSupported = true,
+                    IsDeepThinkingSupported = true,
+                },
+                new ModelDefinitionTemplate
+                {
+                    Id = "google/gemini-3-flash-preview",
+                    ModelId = "google/gemini-3-flash-preview",
+                    DisplayName = "Google: Gemini 3 Flash Preview",
+                    MaxTokens = 1_048_576,
+                    IsImageInputSupported = true,
+                    IsFunctionCallingSupported = true,
+                    IsDeepThinkingSupported = true,
+                },
+                new ModelDefinitionTemplate
+                {
                     Id = "google/gemini-2.5-flash",
                     ModelId = "google/gemini-2.5-flash",
                     DisplayName = "Google: Gemini 2.5 Flash",
@@ -643,9 +683,9 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
                 },
                 new ModelDefinitionTemplate
                 {
-                    Id = "x-ai/grok-4-fast",
-                    ModelId = "x-ai/grok-4-fast",
-                    DisplayName = "X-AI: Grok 4 Fast",
+                    Id = "x-ai/grok-4.1-fast",
+                    ModelId = "x-ai/grok-4.1-fast",
+                    DisplayName = "X-AI: Grok 4.1 Fast",
                     MaxTokens = 2_000_000,
                     IsImageInputSupported = true,
                     IsFunctionCallingSupported = true,
