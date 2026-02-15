@@ -39,6 +39,24 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
     )
     {
         public string PermissionKey => $"{Plugin.Key}.{Function.KernelFunction.Name}";
+
+        public bool IsPermissionGranted
+        {
+            get
+            {
+                var permissionKey = PermissionKey;
+
+                // If the function requires permissions that are less than FileAccess, we consider it as low-risk and grant permission by default.
+                if (Function.Permissions <= ChatFunctionPermissions.AutoGranted &&
+                    (!ChatContext.IsPermissionGrantedRecords.ContainsKey(permissionKey) || ChatContext.IsPermissionGrantedRecords[permissionKey]))
+                {
+                    return true;
+                }
+
+                ChatContext.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isSessionGranted);
+                return isSessionGranted;
+            }
+        }
     }
 
     private readonly IChatContextManager _chatContextManager;
@@ -833,13 +851,16 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         FunctionResultContent resultContent;
         try
         {
-            if (!IsPermissionGranted())
+            // Check permissions. If permissions are not granted, request user consent.
+            var permissionKey = context.PermissionKey;
+            if (!context.IsPermissionGranted &&
+                (!_settings.Plugin.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isPermissionGranted) || !isPermissionGranted))
             {
                 // The function requires permissions that are not granted.
                 var promise = new TaskCompletionSource<ConsentDecision>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 FormattedDynamicResourceKey headerKey;
-                if (context.Function.Permissions.HasFlag(ChatFunctionPermissions.MCP))
+                if (context.Plugin is McpChatPlugin)
                 {
                     headerKey = new FormattedDynamicResourceKey(
                         LocaleKey.ChatPluginConsentRequest_MCP_Header,
@@ -866,19 +887,12 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
                 {
                     case ConsentDecision.AlwaysAllow:
                     {
-                        _settings.Plugin.GrantedPermissions.TryGetValue(context.PermissionKey, out var grantedGlobalPermissions);
-                        _settings.Plugin.GrantedPermissions[context.PermissionKey] = grantedGlobalPermissions | context.Function.Permissions;
+                        context.Function.AutoApprove = true;
                         break;
                     }
                     case ConsentDecision.AllowSession:
                     {
-                        if (!context.ChatContext.GrantedPermissions.TryGetValue(context.PermissionKey, out var grantedSessionPermissions))
-                        {
-                            grantedSessionPermissions = ChatFunctionPermissions.None;
-                        }
-
-                        grantedSessionPermissions |= context.Function.Permissions;
-                        context.ChatContext.GrantedPermissions[context.PermissionKey] = grantedSessionPermissions;
+                        context.ChatContext.IsPermissionGrantedRecords[permissionKey] = true;
                         break;
                     }
                     case ConsentDecision.Deny:
@@ -889,24 +903,6 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             }
 
             resultContent = await content.InvokeAsync(context.Kernel, cancellationToken);
-
-            bool IsPermissionGranted()
-            {
-                var requiredPermissions = context.Function.Permissions;
-                if (requiredPermissions < ChatFunctionPermissions.FileAccess) return true;
-
-                var grantedPermissions = ChatFunctionPermissions.None;
-                if (_settings.Plugin.GrantedPermissions.TryGetValue(context.PermissionKey, out var grantedGlobalPermissions))
-                {
-                    grantedPermissions |= grantedGlobalPermissions;
-                }
-                if (context.ChatContext.GrantedPermissions.TryGetValue(context.PermissionKey, out var grantedSessionPermissions))
-                {
-                    grantedPermissions |= grantedSessionPermissions;
-                }
-
-                return (grantedPermissions & requiredPermissions) == requiredPermissions;
-            }
         }
         catch (Exception ex)
         {
@@ -1074,18 +1070,10 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         string? permissionKey = null;
         if (!id.IsNullOrWhiteSpace())
         {
-            // Check if the permission is already granted
-            var grantedPermissions = ChatFunctionPermissions.None;
             permissionKey = $"{_currentFunctionCallContext.PermissionKey}.{id}";
-            if (_settings.Plugin.GrantedPermissions.TryGetValue(permissionKey, out var extra))
-            {
-                grantedPermissions |= extra;
-            }
-            if (_currentFunctionCallContext.ChatContext.GrantedPermissions.TryGetValue(permissionKey, out var session))
-            {
-                grantedPermissions |= session;
-            }
-            if ((grantedPermissions & _currentFunctionCallContext.Function.Permissions) == _currentFunctionCallContext.Function.Permissions)
+            _settings.Plugin.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isGloballyGranted);
+            _currentFunctionCallContext.ChatContext.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isSessionGranted);
+            if (isGloballyGranted || isSessionGranted)
             {
                 return true;
             }
@@ -1116,19 +1104,12 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         {
             case ConsentDecision.AlwaysAllow:
             {
-                _settings.Plugin.GrantedPermissions.TryGetValue(permissionKey, out var grantedGlobalPermissions);
-                _settings.Plugin.GrantedPermissions[permissionKey] = grantedGlobalPermissions | _currentFunctionCallContext.Function.Permissions;
+                _settings.Plugin.IsPermissionGrantedRecords[permissionKey] = true;
                 return true;
             }
             case ConsentDecision.AllowSession:
             {
-                if (!_currentFunctionCallContext.ChatContext.GrantedPermissions.TryGetValue(permissionKey, out var grantedSessionPermissions))
-                {
-                    grantedSessionPermissions = ChatFunctionPermissions.None;
-                }
-
-                grantedSessionPermissions |= _currentFunctionCallContext.Function.Permissions;
-                _currentFunctionCallContext.ChatContext.GrantedPermissions[permissionKey] = grantedSessionPermissions;
+                _currentFunctionCallContext.ChatContext.IsPermissionGrantedRecords[permissionKey] = true;
                 return true;
             }
             case ConsentDecision.AllowOnce:

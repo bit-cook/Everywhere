@@ -5,7 +5,6 @@ using System.Reactive.Disposables;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
-using Everywhere.Chat.Permissions;
 using Everywhere.Interop;
 using Everywhere.Utilities;
 using MessagePack;
@@ -77,11 +76,11 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
 
     /// <summary>
     /// A map of granted permissions for plugin functions in this chat context (session).
-    /// Key: PluginName.FunctionName.id
-    /// Value: Granted permissions for the function.
+    /// Key: PluginName.FunctionName
+    /// Value: is granted or not.
     /// </summary>
     [IgnoreMember]
-    public ConcurrentDictionary<string, ChatFunctionPermissions> GrantedPermissions { get; } = new();
+    public ConcurrentDictionary<string, bool> IsPermissionGrantedRecords { get; } = new();
 
     /// <summary>
     /// Resource key for the busy message to show when waiting for a response.

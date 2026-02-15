@@ -28,6 +28,14 @@ public abstract partial class ChatFunction : ObservableObject
     [ObservableProperty]
     public partial bool IsEnabled { get; set; } = true;
 
+    [ObservableProperty]
+    public partial bool AutoApprove { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether this function is allowed to be auto-approved by the user interface without prompting for consent.
+    /// </summary>
+    public bool IsAutoApproveAllowed { get; set; }
+
     public bool IsExperimental { get; set; }
 
     public abstract KernelFunction KernelFunction { get; }
@@ -53,7 +61,12 @@ public sealed class NativeChatFunction : ChatFunction
     private readonly DynamicResourceKey? _descriptionKey;
     private readonly IFriendlyFunctionCallContentRenderer? _renderer;
 
-    public NativeChatFunction(Delegate method, ChatFunctionPermissions permissions, LucideIconKind? icon = null, bool isExperimental = false)
+    public NativeChatFunction(
+        Delegate method,
+        ChatFunctionPermissions permissions,
+        LucideIconKind? icon = null,
+        bool isAutoApproveAllowed = true,
+        bool isExperimental = false)
     {
         if (method.Method.GetCustomAttributes<DynamicResourceKeyAttribute>(false).FirstOrDefault() is
             { HeaderKey: { Length: > 0 } headerKey } attribute)
@@ -73,9 +86,10 @@ public sealed class NativeChatFunction : ChatFunction
             HeaderKey = new DirectResourceKey(method.Method.Name);
         }
 
-        Icon = icon;
-        Permissions = permissions;
         KernelFunction = KernelFunctionFactory.CreateFromMethod(method);
+        Permissions = permissions;
+        Icon = icon;
+        IsAutoApproveAllowed = isAutoApproveAllowed;
         IsExperimental = isExperimental;
 
         if (method.Method.GetCustomAttributes<FriendlyFunctionCallContentRendererAttribute>(false).FirstOrDefault() is
@@ -98,9 +112,15 @@ public sealed class NativeChatFunction : ChatFunction
     }
 }
 
-public class McpChatFunction(McpClientTool tool) : ChatFunction
+public class McpChatFunction : ChatFunction
 {
+    public McpChatFunction(McpClientTool tool)
+    {
+        KernelFunction = tool.AsKernelFunction();
+        IsAutoApproveAllowed = true;
+    }
+
     public override ChatFunctionPermissions Permissions => ChatFunctionPermissions.MCP;
 
-    public override KernelFunction KernelFunction { get; } = tool.AsKernelFunction();
+    public override KernelFunction KernelFunction { get; }
 }

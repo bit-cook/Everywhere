@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Collections;
+using Everywhere.Utilities;
 
 namespace Everywhere.Configuration;
 
@@ -20,9 +20,10 @@ public partial class PluginSettings : ObservableObject
 
     /// <summary>
     /// Gets or sets the granted permissions for each plugin function.
-    /// The key is in the format of "PluginKey.FunctionName.[Id]".
+    /// The key is in the format of "PluginKey.FunctionName".
     /// </summary>
-    public ObservableDictionary<string, ChatFunctionPermissions> GrantedPermissions { get; set; } = new();
+    [ObjectObserverIgnore]
+    public ObservableDictionary<string, bool> IsPermissionGrantedRecords { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the list of MCP chat plugins.
@@ -37,7 +38,7 @@ public partial class PluginSettings : ObservableObject
     public PluginSettings()
     {
         IsEnabledRecords.CollectionChanged += delegate { OnPropertyChanged(nameof(IsEnabledRecords)); };
-        GrantedPermissions.CollectionChanged += delegate { OnPropertyChanged(nameof(GrantedPermissions)); };
+        IsPermissionGrantedRecords.CollectionChanged += delegate { OnPropertyChanged(nameof(IsPermissionGrantedRecords)); };
     }
 }
 

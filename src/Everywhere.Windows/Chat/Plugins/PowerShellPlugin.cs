@@ -35,7 +35,8 @@ public class PowerShellPlugin : BuiltInChatPlugin
         _functionsSource.Add(
             new NativeChatFunction(
                 ExecuteScriptAsync,
-                ChatFunctionPermissions.ShellExecute));
+                ChatFunctionPermissions.ShellExecute,
+                isAutoApproveAllowed: false));
     }
 
     [KernelFunction("execute_script")]

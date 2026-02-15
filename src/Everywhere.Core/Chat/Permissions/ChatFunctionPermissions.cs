@@ -4,6 +4,12 @@
 public enum ChatFunctionPermissions : uint
 {
     /// <summary>
+    /// The minimal permissions that can be auto-granted to a function without prompting the user.
+    /// </summary>
+    [DynamicResourceKey(LocaleKey.ChatFunctionPermissions_FileRead)]
+    AutoGranted = FileRead,
+
+    /// <summary>
     /// No permissions granted. This is the default state.
     /// </summary>
     None = 0,
@@ -69,5 +75,5 @@ public enum ChatFunctionPermissions : uint
     /// </summary>
     MCP = ShellExecute | 1 << 9,
 
-    AllAccess = uint.MaxValue
+    AllAccess = uint.MaxValue,
 }

@@ -6,6 +6,8 @@ using System.Reactive.Disposables;
 using System.Reflection;
 using System.Text;
 using DynamicData;
+using Everywhere.Chat.Permissions;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Initialization;
@@ -28,6 +30,7 @@ public class ChatPluginManager : IChatPluginManager
     private readonly IWatchdogManager _watchdogManager;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly Settings _settings;
     private readonly ILogger<ChatPluginManager> _logger;
 
     private readonly CompositeDisposable _disposables = new();
@@ -48,6 +51,7 @@ public class ChatPluginManager : IChatPluginManager
         _watchdogManager = watchdogManager;
         _httpClientFactory = httpClientFactory;
         _loggerFactory = loggerFactory;
+        _settings = settings;
         _logger = loggerFactory.CreateLogger<ChatPluginManager>();
 
         // Load MCP plugins from settings.
@@ -55,14 +59,29 @@ public class ChatPluginManager : IChatPluginManager
 
         // Apply the enabled state from settings.
         var isEnabledRecords = settings.Plugin.IsEnabledRecords;
+        var isPermissionGrantedRecords = settings.Plugin.IsPermissionGrantedRecords;
+        // var pluginKeys = new HashSet<string>();
         foreach (var plugin in _builtInPluginsSource.Items.AsValueEnumerable().OfType<ChatPlugin>().Concat(_mcpPluginsSource.Items))
         {
+            // pluginKeys.Add(plugin.Key);
             plugin.IsEnabled = GetIsEnabled(plugin.Key, plugin is BuiltInChatPlugin { IsDefaultEnabled: true });
             foreach (var function in plugin.Functions)
             {
-                function.IsEnabled = GetIsEnabled($"{plugin.Key}.{function.KernelFunction.Name}", true);
+                var key = $"{plugin.Key}.{function.KernelFunction.Name}";
+                function.IsEnabled = GetIsEnabled(key, true);
+                function.AutoApprove = function.IsAutoApproveAllowed && GetIsPermissionGranted(key, function.Permissions);
             }
         }
+
+        // Remove any records in settings that do not correspond to any existing plugin.
+        // TODO: This is useless because settings allows arbitrary keys and values. We need to refactor JsonConfiguration to support this
+        // foreach (var key in isEnabledRecords.Keys.AsValueEnumerable().ToList())
+        // {
+        //     if (pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal)))
+        //     {
+        //         isEnabledRecords.Remove(key);
+        //     }
+        // }
 
         BuiltInPlugins = _builtInPluginsSource
             .Connect()
@@ -92,10 +111,26 @@ public class ChatPluginManager : IChatPluginManager
             return isEnabledRecords.TryGetValue(path, out var isEnabled) ? isEnabled : defaultValue;
         }
 
+        bool GetIsPermissionGranted(string path, ChatFunctionPermissions permissions)
+        {
+            if (isPermissionGrantedRecords.TryGetValue(path, out var isGranted) && !isGranted) return false;
+            if (isGranted) return true;
+            return permissions <= ChatFunctionPermissions.AutoGranted;
+        }
+
         // Handle changes to plugins and update settings accordingly.
         void HandleChatPluginChanged<TPlugin>(IReadOnlyList<TPlugin> plugins, in ObjectObserverChangedEventArgs e) where TPlugin : ChatPlugin
         {
-            if (!e.Path.EndsWith(nameof(ChatFunction.IsEnabled), StringComparison.Ordinal))
+            ObservableDictionary<string, bool> records;
+            if (e.Path.EndsWith(nameof(ChatFunction.IsEnabled), StringComparison.Ordinal))
+            {
+                records = isEnabledRecords;
+            }
+            else if (e.Path.EndsWith(nameof(ChatFunction.AutoApprove), StringComparison.Ordinal))
+            {
+                records = isPermissionGrantedRecords;
+            }
+            else
             {
                 return;
             }
@@ -107,11 +142,14 @@ public class ChatPluginManager : IChatPluginManager
             }
 
             var plugin = plugins[pluginIndex];
+            var value = e.Value is true;
+
+            string key;
             switch (parts.Length)
             {
                 case 2:
                 {
-                    isEnabledRecords[plugin.Key] = plugin.IsEnabled;
+                    key = plugin.Key;
                     break;
                 }
                 case 4 when
@@ -120,10 +158,16 @@ public class ChatPluginManager : IChatPluginManager
                     functionIndex < plugin.Functions.Count:
                 {
                     var function = plugin.Functions[functionIndex];
-                    isEnabledRecords[$"{plugin.Key}.{function.KernelFunction.Name}"] = function.IsEnabled;
+                    key = $"{plugin.Key}.{function.KernelFunction.Name}";
                     break;
                 }
+                default:
+                {
+                    throw new InvalidOperationException($"Unexpected change path: {e.Path}");
+                }
             }
+
+            records[key] = value;
         }
     }
 
@@ -293,10 +337,16 @@ public class ChatPluginManager : IChatPluginManager
             }
         }
 
+        var isEnabledRecords = _settings.Plugin.IsEnabledRecords;
+        var isPermissionGrantedRecords = _settings.Plugin.IsPermissionGrantedRecords;
         mcpChatPlugin.SetFunctions(
             await client
                 .EnumerateToolsAsync(cancellationToken: cancellationToken)
-                .Select(t => new McpChatFunction(t))
+                .Select(t => new McpChatFunction(t)
+                {
+                    IsEnabled = !isEnabledRecords.TryGetValue(t.Name, out var isEnabled) || isEnabled, // true if not set
+                    AutoApprove = isPermissionGrantedRecords.TryGetValue(t.Name, out var isGranted) && isGranted, // false if not set
+                })
                 .ToListAsync(cancellationToken));
 
         string EnsureWorkingDirectory(string? workingDirectory)

@@ -2121,4 +2121,10 @@
     <data name="ChatService_Error_CustomAssistantNotSelected" xml:space="preserve">
         <value>请在左下角选择一个助手。如果没有，请在设置中配置。</value>
     </data>
+    <data name="ChatPluginPage_FunctionsTabItem_EnabledDataGridTemplateColumn_Header" xml:space="preserve">
+        <value>启用</value>
+    </data>
+    <data name="ChatPluginPage_FunctionsTabItem_AutoApproveDataGridTemplateColumn_Header" xml:space="preserve">
+        <value>自动批准</value>
+    </data>
 </root>

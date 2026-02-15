@@ -32,6 +32,7 @@ public class ZshPlugin : BuiltInChatPlugin
             new NativeChatFunction(
                 ExecuteScriptAsync,
                 ChatFunctionPermissions.ShellExecute,
+                isAutoApproveAllowed: false,
                 isExperimental: true));
     }
 

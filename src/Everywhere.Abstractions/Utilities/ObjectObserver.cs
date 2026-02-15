@@ -14,6 +14,9 @@ public readonly record struct ObjectObserverChangedEventArgs(string Path, object
 
 public delegate void ObjectObserverChangedEventHandler(in ObjectObserverChangedEventArgs e);
 
+[AttributeUsage(AttributeTargets.Property)]
+public class ObjectObserverIgnoreAttribute : Attribute;
+
 /// <summary>
 /// Observes an INotifyPropertyChanged and its properties for changes.
 /// Supports nested objects and collections.
@@ -32,6 +35,7 @@ public class ObjectObserver(ObjectObserverChangedEventHandler handler) : IDispos
                     p.PropertyType.IsAssignableTo(typeof(INotifyPropertyChanged)))
                 .Where(p => p.GetMethod?.GetParameters() is { Length: 0 }) // Ignore
                 .Where(p => p.GetCustomAttribute<JsonIgnoreAttribute>() is null)
+                .Where(p => p.GetCustomAttribute<ObjectObserverIgnoreAttribute>() is null)
                 .ToList());
 
     private PropertyInfo? GetPropertyInfo(Type type, string propertyName) =>

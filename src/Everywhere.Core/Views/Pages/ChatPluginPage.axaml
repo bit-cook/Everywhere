@@ -71,16 +71,6 @@
       </Setter>
     </Style>
 
-    <Style Selector="ItemsControl.FunctionItemsControl &gt; ContentPresenter:nth-last-child(1n+2)">
-      <Setter Property="Padding" Value="0,0,0,4"/>
-      <Setter Property="BorderThickness" Value="0,0,0,1"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderColor}"/>
-    </Style>
-
-    <Style Selector="ItemsControl.FunctionItemsControl &gt; ContentPresenter:nth-child(1n+2)">
-      <Setter Property="Margin" Value="0,4,0,0"/>
-    </Style>
-
     <Style Selector="ItemsControl.ChatFunctionPermissions">
       <Setter Property="ItemsPanel">
         <ItemsPanelTemplate>
@@ -321,30 +311,26 @@
               </DataTemplate>
 
               <DataTemplate x:DataType="vm:ChatPluginPageViewModel+FunctionsTabItem">
-                <Border
+                <DataGrid
                   Background="{DynamicResource CardBackgroundColor}"
                   BorderBrush="{DynamicResource BorderColor}"
-                  BorderThickness="1" CornerRadius="8">
-                  <ScrollViewer HorizontalScrollBarVisibility="Disabled">
-                    <ItemsControl
-                      Classes="FunctionItemsControl" Padding="12,8"
-                      ItemsSource="{Binding Plugin.Functions, FallbackValue={x:Null}}">
-                      <ItemsControl.DataTemplates>
-                        <DataTemplate DataType="p:ChatFunction">
-                          <Grid
-                            ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto">
-                            <LucideIcon
-                              Grid.Row="0" Grid.RowSpan="2"
-                              Grid.Column="0" Margin="0,0,12,0"
-                              VerticalAlignment="Center"
-                              IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"
-                              Kind="{Binding Icon}"
-                              Size="22"/>
+                  BorderThickness="1" CanUserReorderColumns="False"
+                  CanUserResizeColumns="True" CanUserSortColumns="True"
+                  CornerRadius="8" GridLinesVisibility="Horizontal"
+                  ItemsSource="{Binding Plugin.Functions, FallbackValue={x:Null}}">
+                  <DataGrid.Columns>
+                    <DataGridTemplateColumn Width="*">
+                      <DataTemplate DataType="p:ChatFunction">
+                        <DockPanel HorizontalSpacing="12">
+                          <LucideIcon
+                            DockPanel.Dock="Left" VerticalAlignment="Center"
+                            IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            Kind="{Binding Icon}"
+                            Size="22"/>
 
+                          <StackPanel>
                             <StackPanel
-                              Grid.Row="0" Grid.Column="1"
-                              Margin="0,-4,0,0" Orientation="Horizontal"
-                              Spacing="6">
+                              Orientation="Horizontal" Spacing="6">
                               <TextBlock
                                 Classes="p" VerticalAlignment="Center"
                                 Text="{Binding HeaderKey^}"
@@ -358,26 +344,42 @@
                             </StackPanel>
 
                             <TextBlock
-                              Classes="Muted" Grid.Row="1"
-                              Grid.Column="1" Margin="0,0,0,4"
+                              Classes="Muted"
                               Text="{Binding DescriptionKey^}"
                               TextWrapping="Wrap"/>
 
                             <ItemsControl
-                              Classes="ChatFunctionPermissions" Grid.Row="2"
-                              Grid.Column="1" Margin="0,0,0,4"
+                              Classes="ChatFunctionPermissions" Margin="0,2,0,0"
                               ItemsSource="{Binding Permissions, Converter={x:Static vc:ChatFunctionPermissionsConverters.ToList}}"/>
+                          </StackPanel>
+                        </DockPanel>
+                      </DataTemplate>
+                    </DataGridTemplateColumn>
 
-                            <ToggleSwitch
-                              Grid.Row="0" Grid.RowSpan="3"
-                              Grid.Column="2" Margin="16,0"
-                              IsChecked="{Binding IsEnabled}"/>
-                          </Grid>
-                        </DataTemplate>
-                      </ItemsControl.DataTemplates>
-                    </ItemsControl>
-                  </ScrollViewer>
-                </Border>
+                    <DataGridTemplateColumn
+                      CanUserResize="False" CanUserSort="False"
+                      Header="{I18N {x:Static LocaleKey.ChatPluginPage_FunctionsTabItem_EnabledDataGridTemplateColumn_Header}}"
+                      IsReadOnly="False">
+                      <DataTemplate DataType="p:ChatFunction">
+                        <ToggleSwitch
+                          HorizontalAlignment="Center"
+                          IsChecked="{Binding IsEnabled}"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTemplateColumn
+                      CanUserResize="False" CanUserSort="False"
+                      Header="{I18N {x:Static LocaleKey.ChatPluginPage_FunctionsTabItem_AutoApproveDataGridTemplateColumn_Header}}"
+                      IsReadOnly="False">
+                      <DataTemplate DataType="p:ChatFunction">
+                        <ToggleSwitch
+                          HorizontalAlignment="Center"
+                          IsChecked="{Binding AutoApprove}"
+                          IsEnabled="{Binding IsAutoApproveAllowed}"/>
+                      </DataTemplate>
+                    </DataGridTemplateColumn>
+                  </DataGrid.Columns>
+                </DataGrid>
               </DataTemplate>
 
               <DataTemplate x:DataType="vm:ChatPluginPageViewModel+LogsTabItem">
