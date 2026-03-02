@@ -59,10 +59,11 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
     private const string ServiceName = "com.sylinko.everywhere";
     private const string TokenDataKey = "oauth_token_data";
 
-    private const string AuthorizeEndpoint = $"{CloudConstants.OAuthBaseUrl}/api/auth/oauth2/authorize";
-    private const string TokenEndpoint = $"{CloudConstants.OAuthBaseUrl}/api/auth/oauth2/token";
-    private const string UserInfoEndpoint = $"{CloudConstants.OAuthBaseUrl}/api/auth/oauth2/userinfo";
-    private const string RevokeEndpoint = $"{CloudConstants.OAuthBaseUrl}/api/auth/oauth2/revoke";
+    private const string AuthorizeEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/authorize";
+    private const string TokenEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/token";
+    private const string UserInfoEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/userinfo";
+    private const string RevokeEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/revoke";
+    private const string SubscriptionEndpoint = $"{CloudConstants.AuthBaseUrl}/api/subscription";
     private const string RedirectUri = "sylinko-everywhere://callback";
     private const string Scopes = "openid profile email offline_access";
 
@@ -277,12 +278,52 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
             var response = await httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            CurrentUser = await response.Content.ReadFromJsonAsync<UserProfile>(cancellationToken: cancellationToken);
+            CurrentUser = await response.Content.ReadFromJsonAsync<UserProfile>(
+                UserProfile.JsonSerializerContext.Default.Options,
+                cancellationToken: cancellationToken);
+
+            // The subscription info is not included in the user profile response, so we need to make a separate call to get it.
+            await RefreshSubscriptionAsync(cancellationToken);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get user profile");
         }
+    }
+
+    private async Task RefreshSubscriptionAsync(CancellationToken cancellationToken)
+    {
+        if (CurrentUser is not { } currentUser) return;
+
+        currentUser.Subscription = new SubscriptionInformation
+        {
+            Plan = SubscriptionPlan.Starter,
+            BonusCredits = 500000,
+            TotalPlanCredits = 1000000,
+            PlanCredits = 200000,
+            PeriodStart = DateTimeOffset.UtcNow.AddDays(-15),
+            PeriodEnd = DateTimeOffset.UtcNow.AddDays(15),
+            Status = SubscriptionStatus.Trialing
+        };
+
+        // using var httpClient = _httpClientFactory.CreateClient(nameof(ICloudClient));
+        //
+        // try
+        // {
+        //     var request = new HttpRequestMessage(HttpMethod.Get, SubscriptionEndpoint);
+        //
+        //     var response = await httpClient.SendAsync(request, cancellationToken);
+        //     var payload = await ApiPayload<SubscriptionInformation>.EnsureSuccessFromHttpResponseJsonAsync(
+        //         response,
+        //         UserProfile.JsonSerializerContext.Default.ApiPayloadSubscriptionInformation.Options,
+        //         cancellationToken);
+        //
+        //     currentUser.Subscription = payload.EnsureData();
+        // }
+        // catch (Exception ex)
+        // {
+        //     _logger.LogError(ex, "Failed to get user profile");
+        // }
     }
 
     public async Task<bool> TryRefreshTokenAsync(CancellationToken cancellationToken)

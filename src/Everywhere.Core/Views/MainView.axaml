@@ -1,18 +1,11 @@
 ﻿<v:ReactiveUserControl
   x:Class="Everywhere.Views.MainView" xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
-  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="clr-namespace:Everywhere.Views"
-  xmlns:vm="clr-namespace:Everywhere.ViewModels" x:DataType="vm:MainViewModel"
-  x:TypeArguments="vm:MainViewModel">
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
+  xmlns:v="clr-namespace:Everywhere.Views" xmlns:vm="clr-namespace:Everywhere.ViewModels"
+  x:DataType="vm:MainViewModel" x:TypeArguments="vm:MainViewModel">
 
   <v:ReactiveUserControl.Styles>
     <Style Selector="DockPanel#RootPanel">
-      <Style Selector="^ &gt; shadui|NavigationBar">
-        <Style Selector="^ /template/ ContentPresenter#PART_FooterPresenter Button#UserProfileButton">
-          <Setter Property="Flyout.Placement" Value="RightEdgeAlignedBottom"/>
-          <Setter Property="Flyout.HorizontalOffset" Value="4"/>
-        </Style>
-      </Style>
       <Style Selector="^ &gt; TransitioningContentControl">
         <Setter Property="Margin" Value="0,14,16,16"/>
       </Style>
@@ -24,10 +17,6 @@
         <Setter Property="Margin" Value="0,8"/>
         <Setter Property="HorizontalAlignment" Value="Center"/>
         <Setter Property="VerticalAlignment" Value="Bottom"/>
-        <Style Selector="^ /template/ ContentPresenter#PART_FooterPresenter Button#UserProfileButton">
-          <Setter Property="Flyout.Placement" Value="Top"/>
-          <Setter Property="Flyout.VerticalOffset" Value="-4"/>
-        </Style>
       </Style>
       <Style Selector="^ &gt; TransitioningContentControl">
         <Setter Property="Margin" Value="16,14,16,0"/>
@@ -64,35 +53,9 @@
       </Interaction.Behaviors>
 
       <shadui:NavigationBar.Footer>
-        <Button
-          x:Name="UserProfileButton" Classes="Ghost"
-          Margin="8" Padding="0"
-          HorizontalAlignment="Left" HorizontalContentAlignment="Center"
-          CornerRadius="{DynamicResource FullCornerRadius}"
-          ToolTip.Placement="Right"
-          ToolTip.Tip="{Binding CloudClient.CurrentUser.Name, FallbackValue=未登录}">
-          <Button.Flyout>
-            <Flyout
-              HorizontalOffset="{Binding $self.Target.(Flyout.HorizontalOffset), FallbackValue=0}"
-              Placement="{Binding $self.Target.(Flyout.Placement), FallbackValue=Right}"
-              VerticalOffset="{Binding $self.Target.(Flyout.VerticalOffset), FallbackValue=0}">
-              <v:UserProfileFlyoutContent/>
-            </Flyout>
-          </Button.Flyout>
-          <Panel>
-            <Border
-              Width="36" Height="36"
-              Background="{DynamicResource BorderColor}">
-              <LucideIcon
-                Kind="User" Size="16"/>
-            </Border>
-            <Image
-              Width="36" Height="36"
-              md:AsyncImageLoader.SizeToContent="Manual"
-              md:AsyncImageLoader.Source="{Binding CloudClient.CurrentUser.AvatarUrl, FallbackValue={x:Null}}"
-              RenderOptions.BitmapInterpolationMode="HighQuality" RenderOptions.EdgeMode="Antialias"/>
-          </Panel>
-        </Button>
+        <v:UserProfilePresenter
+          Margin="8" HorizontalAlignment="Left"
+          UserProfile="{Binding CloudClient.CurrentUser}"/>
       </shadui:NavigationBar.Footer>
     </shadui:NavigationBar>
 

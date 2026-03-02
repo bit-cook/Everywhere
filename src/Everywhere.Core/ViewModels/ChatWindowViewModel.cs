@@ -18,6 +18,7 @@ using DynamicData.Binding;
 using Everywhere.AI;
 using Everywhere.Chat;
 using Everywhere.Chat.Plugins;
+using Everywhere.Cloud;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
@@ -43,6 +44,8 @@ public sealed partial class ChatWindowViewModel :
     public PersistentState PersistentState { get; }
 
     public IChatContextManager ChatContextManager { get; }
+
+    public ICloudClient CloudClient { get; }
 
     public bool IsOpened
     {
@@ -152,6 +155,7 @@ public sealed partial class ChatWindowViewModel :
         Settings settings,
         PersistentState persistentState,
         IChatContextManager chatContextManager,
+        ICloudClient cloudClient,
         IChatPluginManager chatPluginManager,
         IChatService chatService,
         IVisualElementContext visualElementContext,
@@ -163,6 +167,7 @@ public sealed partial class ChatWindowViewModel :
         PersistentState = persistentState;
         ChatContextManager = chatContextManager;
         ChatContextManager.PropertyChanged += HandleChatContextManagerPropertyChanged;
+        CloudClient = cloudClient;
 
         _chatService = chatService;
         _visualElementContext = visualElementContext;

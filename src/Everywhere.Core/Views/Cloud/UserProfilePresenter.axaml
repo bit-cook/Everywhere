@@ -1,0 +1,375 @@
+﻿<ResourceDictionary
+  xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:cloud="clr-namespace:Everywhere.Cloud;assembly=Everywhere.Abstractions" xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
+  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="using:Everywhere.Views"
+  xmlns:vc="clr-namespace:Everywhere.ValueConverters">
+  <Design.PreviewWith>
+    <v:UserProfilePresenter/>
+  </Design.PreviewWith>
+
+  <ControlTheme
+    x:Key="{x:Type v:UserProfilePresenter}"
+    TargetType="v:UserProfilePresenter">
+    <Setter Property="Size" Value="32"/>
+    <Setter Property="FontSize" Value="16"/>
+    <Setter Property="ClipToBounds" Value="False"/>
+    <Setter Property="Template">
+      <ControlTemplate>
+        <Panel
+          Width="{TemplateBinding Size}"
+          Height="{TemplateBinding Size}">
+          <Button
+            Padding="0" HorizontalAlignment="Left"
+            HorizontalContentAlignment="Center"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            CornerRadius="{DynamicResource FullCornerRadius}"
+            ToolTip.Placement="Right"
+            ToolTip.Tip="{Binding UserProfile.Name, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}">
+            <Button.Flyout>
+              <Flyout VerticalOffset="-8">
+                <Panel Width="240">
+                  <Panel.Styles>
+                    <Style Selector="ProgressBar.Compact">
+                      <Setter Property="MinHeight" Value="6"/>
+                      <Setter Property="Height" Value="6"/>
+                      <Setter Property="Template">
+                        <ControlTemplate TargetType="ProgressBar">
+                          <Grid>
+                            <Border
+                              Background="{DynamicResource GhostColor}"
+                              CornerRadius="3">
+                              <Panel>
+                                <Border
+                                  Name="PART_Indicator"
+                                  Background="{TemplateBinding Foreground}"
+                                  CornerRadius="3"
+                                  IsVisible="{Binding !IsIndeterminate, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <Border
+                                  Name="PART_IndeterminateIndicator"
+                                  Background="{TemplateBinding Foreground}"
+                                  CornerRadius="3"
+                                  IsVisible="{Binding IsIndeterminate, RelativeSource={RelativeSource TemplatedParent}}"/>
+                              </Panel>
+                            </Border>
+                          </Grid>
+                        </ControlTemplate>
+                      </Setter>
+                    </Style>
+                  </Panel.Styles>
+
+                  <!--  Logged Out State  -->
+                  <StackPanel
+                    IsVisible="{TemplateBinding UserProfile, Converter={x:Static ObjectConverters.IsNull}}"
+                    Spacing="16">
+                    <!--  App Logo and Branding  -->
+                    <StackPanel
+                      HorizontalAlignment="Center" Spacing="4">
+                      <Image
+                        Width="56" Height="56"
+                        HorizontalAlignment="Center" Source="avares://Everywhere.Core/Assets/Everywhere.png"/>
+                      <TextBlock
+                        Classes="Large" HorizontalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Text="{I18N {x:Static LocaleKey.UserProfilePresenter_LoginToCloudTextBlock_Text}}"/>
+                      <TextBlock
+                        Classes="Caption Muted" HorizontalAlignment="Center"
+                        Text="{I18N {x:Static LocaleKey.UserProfilePresenter_CloudDescriptionTextBlock_Text}}"
+                        TextAlignment="Center"/>
+                    </StackPanel>
+
+                    <Button
+                      Classes="Primary" HorizontalAlignment="Stretch"
+                      shadui:ButtonAssist.Icon="{LucideIconContent LogIn}"
+                      Command="{Binding LoginCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                      Content="{I18N {x:Static LocaleKey.UserProfilePresenter_LoginButton_Content}}"
+                      IsVisible="{Binding !LoginCommand.IsRunning, RelativeSource={RelativeSource TemplatedParent}}"/>
+
+                    <Button
+                      Classes="Secondary" HorizontalAlignment="Stretch"
+                      shadui:ButtonAssist.Icon="{LucideIconContent LogIn}"
+                      shadui:ButtonAssist.ShowProgress="True"
+                      Command="{Binding LoginCommand.Cancel, RelativeSource={RelativeSource TemplatedParent}}"
+                      Content="{I18N {x:Static LocaleKey.UserProfilePresenter_CancelLoginButton_Content}}"
+                      IsVisible="{Binding LoginCommand.IsRunning, RelativeSource={RelativeSource TemplatedParent}}"/>
+                  </StackPanel>
+
+                  <!--  Logged In State  -->
+                  <StackPanel
+                    IsVisible="{Binding UserProfile, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}}"
+                    Spacing="4">
+                    <!--  Unpaid warning  -->
+                    <shadui:Toast
+                      MinWidth="0" Margin="0"
+                      Padding="12,8" HorizontalAlignment="Stretch"
+                      CanDismiss="False" CanDismissByClicking="False"
+                      Content="{I18N {x:Static LocaleKey.UserProfilePresenter_UnpaidToast_Title}}"
+                      IsVisible="{Binding UserProfile.Subscription.Status, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static cloud:SubscriptionStatus.Unpaid}, FallbackValue={x:False}, RelativeSource={RelativeSource TemplatedParent}}"
+                      Notification="Error"/>
+
+                    <!--  User Info Header  -->
+                    <StackPanel
+                      Margin="12,0" Spacing="2">
+                      <StackPanel
+                        Orientation="Horizontal" Spacing="4">
+                        <TextBlock
+                          Classes="Small" HorizontalAlignment="Center"
+                          FontWeight="SemiBold"
+                          Text="{Binding UserProfile.Name, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
+                          TextTrimming="CharacterEllipsis"/>
+                        <shadui:Badge
+                          Classes="Secondary" Padding="4,2"
+                          HorizontalAlignment="Center"
+                          Background="{Binding UserProfile.Subscription.Plan, Converter={x:Static v:SubscriptionPlanToBrushValueConverter.Shared}, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
+                          Content="{Binding UserProfile.Subscription.Plan, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"/>
+                      </StackPanel>
+
+                      <TextBlock
+                        Classes="Caption Muted"
+                        Text="{Binding UserProfile.Email, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
+                        TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+
+                    <Separator/>
+
+                    <!--  Quota Display  -->
+                    <StackPanel
+                      Margin="12,4" Spacing="8">
+                      <StackPanel
+                        x:Name="PlanCreditsPanel"
+                        IsVisible="{Binding UserProfile.Subscription.Plan, Converter={x:Static ObjectConverters.NotEqual}, ConverterParameter={x:Static cloud:SubscriptionPlan.Free}, FallbackValue={x:False}, RelativeSource={RelativeSource TemplatedParent}}"
+                        Spacing="4">
+                        <Grid
+                          ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
+                          <TextBlock
+                            Classes="Caption" Grid.Column="0"
+                            Text="{I18N {x:Static LocaleKey.UserProfilePresenter_PlanCreditsTextBlock_Text}}"/>
+                          <TextBlock
+                            Classes="Caption Muted" Grid.Column="1">
+                            <TextBlock.Text>
+                              <I18N Key="{x:Static LocaleKey.UserProfilePresenter_PlanCreditsUsagePercentageTextBlock_Text}">
+                                <Binding
+                                  FallbackValue="0%" Path="UserProfile.Subscription.PlanCreditsUsagePercentage"
+                                  RelativeSource="{RelativeSource TemplatedParent}"
+                                  StringFormat="{}{0:P0}"/>
+                              </I18N>
+                            </TextBlock.Text>
+                          </TextBlock>
+                          <LucideIcon
+                            Grid.Column="2" Kind="CircleAlert"
+                            Size="{DynamicResource FontSizeS}"
+                            ToolTip.Placement="Top">
+                            <ToolTip.Tip>
+                              <TextBlock Grid.Column="1">
+                                <Run Text="{Binding UserProfile.Subscription.PlanCredits, StringFormat={}{0:N0}, FallbackValue=0, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <Run Text="/"/>
+                                <Run Text="{Binding UserProfile.Subscription.TotalPlanCredits, StringFormat={}{0:N0}, FallbackValue=0, RelativeSource={RelativeSource TemplatedParent}}"/>
+                              </TextBlock>
+                            </ToolTip.Tip>
+                          </LucideIcon>
+                        </Grid>
+                        <ProgressBar
+                          Classes="Compact"
+                          Maximum="{Binding UserProfile.Subscription.TotalPlanCredits, FallbackValue=1, RelativeSource={RelativeSource TemplatedParent}}"
+                          Value="{Binding UserProfile.Subscription.PlanCredits, FallbackValue=0, RelativeSource={RelativeSource TemplatedParent}}"/>
+                      </StackPanel>
+
+                      <Grid
+                        ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
+                        <TextBlock
+                          Classes="Caption" Grid.Column="0"
+                          Text="{I18N {x:Static LocaleKey.UserProfilePresenter_BonusCreditsTextBlock_Text}}"/>
+                        <TextBlock
+                          Classes="Caption Muted" Grid.Column="1"
+                          Text="{Binding UserProfile.Subscription.BonusCredits, Converter={x:Static vc:TokenCountHumanizationConverter.Shared}, FallbackValue=N/A, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        <LucideIcon
+                          Grid.Column="2" Kind="CircleAlert"
+                          Size="{DynamicResource FontSizeS}"
+                          ToolTip.Placement="Top">
+                          <ToolTip.Tip>
+                            <TextBlock
+                              Grid.Column="1"
+                              Text="{Binding UserProfile.Subscription.BonusCredits, StringFormat={}{0:N0}, FallbackValue=N/A, RelativeSource={RelativeSource TemplatedParent}}"/>
+                          </ToolTip.Tip>
+                        </LucideIcon>
+                      </Grid>
+
+                      <v:LazyContentControl
+                        ContentDataContext="{Binding UserProfile, RelativeSource={RelativeSource TemplatedParent}}"
+                        ItemIndex="{Binding UserProfile.Subscription.Status, Converter={x:Static vc:Int32Converters.FromEnum}, FallbackValue=-1, RelativeSource={RelativeSource TemplatedParent}}">
+                        <v:LazyContentControl.IsVisible>
+                          <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding
+                              Converter="{x:Static ObjectConverters.IsNotNull}"
+                              FallbackValue="{x:False}"
+                              Path="UserProfile.Subscription.Status"
+                              RelativeSource="{RelativeSource TemplatedParent}"/>
+                            <Binding
+                              Converter="{x:Static ObjectConverters.NotEqual}"
+                              ConverterParameter="{x:Static cloud:SubscriptionStatus.Unpaid}"
+                              FallbackValue="{x:False}"
+                              Path="UserProfile.Subscription.Status"
+                              RelativeSource="{RelativeSource TemplatedParent}"/>
+                          </MultiBinding>
+                        </v:LazyContentControl.IsVisible>
+
+                        <!--  Active  -->
+                        <ControlTemplate x:DataType="cloud:UserProfile">
+                          <TextBlock Classes="Caption">
+                            <TextBlock.Text>
+                              <I18N Key="{x:Static LocaleKey.UserProfilePresenter_RenewsOnTextBlock_Text}">
+                                <Binding
+                                  FallbackValue="{x:Null}"
+                                  Path="Subscription.PeriodEnd" StringFormat="{}{0:g}"/>
+                              </I18N>
+                            </TextBlock.Text>
+                          </TextBlock>
+                        </ControlTemplate>
+
+                        <!--  Trialing  -->
+                        <ControlTemplate x:DataType="cloud:UserProfile">
+                          <TextBlock Classes="Caption">
+                            <TextBlock.Text>
+                              <I18N Key="{x:Static LocaleKey.UserProfilePresenter_TrialUntilTextBlock_Text}">
+                                <Binding
+                                  FallbackValue="{x:Null}"
+                                  Path="Subscription.PeriodEnd" StringFormat="{}{0:g}"/>
+                              </I18N>
+                            </TextBlock.Text>
+                          </TextBlock>
+                        </ControlTemplate>
+
+                        <!--  Cancelling  -->
+                        <ControlTemplate x:DataType="cloud:UserProfile">
+                          <TextBlock Classes="Caption">
+                            <TextBlock.Text>
+                              <I18N Key="{x:Static LocaleKey.UserProfilePresenter_EndsOnTextBlock_Text}">
+                                <Binding
+                                  FallbackValue="{x:Null}"
+                                  Path="Subscription.PeriodEnd" StringFormat="{}{0:g}"/>
+                              </I18N>
+                            </TextBlock.Text>
+                          </TextBlock>
+                        </ControlTemplate>
+
+                        <!--  Unpaid  -->
+                        <x:Null/>
+
+                        <!--  Expired  -->
+                        <ControlTemplate x:DataType="cloud:UserProfile">
+                          <TextBlock Classes="Caption">
+                            <TextBlock.Text>
+                              <I18N Key="{x:Static LocaleKey.UserProfilePresenter_ExpiredDaysAgoTextBlock_Text}">
+                                <Binding
+                                  FallbackValue="0" Path="Subscription.ExpiredDaysAgo"/>
+                              </I18N>
+                            </TextBlock.Text>
+                          </TextBlock>
+                        </ControlTemplate>
+                      </v:LazyContentControl>
+                    </StackPanel>
+
+                    <StackPanel
+                      IsVisible="{TemplateBinding ShowActionsButton}"
+                      Spacing="4">
+                      <Separator/>
+
+                      <!--  Quick Actions  -->
+                      <StackPanel>
+                        <Button
+                          Classes="Ghost" HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Left"
+                          Command="{Binding ManageSubscriptionCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                          Content="{I18N {x:Static LocaleKey.UserProfilePresenter_ManageSubscriptionButton_Content}}">
+                          <shadui:ButtonAssist.Icon>
+                            <Image>
+                              <Image.Source>
+                                <DrawingImage>
+                                  <DrawingImage.Drawing>
+                                    <DrawingGroup ClipGeometry="M0,0 V1024 H1024 V0 H0 Z">
+                                      <GeometryDrawing Geometry="F1 M1024,1024z M0,0z M640,192C640,201.6,646,210.2,655,213.6L768,256 810.4,369C813.8,378 822.4,384 832,384 841.6,384 850.2,378 853.6,369L896,256 1009,213.6C1018,210.2 1024,201.6 1024,192 1024,182.4 1018,173.8 1009,170.4L896,128 853.6,15C850.2,6 841.6,0 832,0 822.4,0 813.8,6 810.4,15L768,128 655,170.4C646,173.8,640,182.4,640,192z M640,832C640,841.6,646,850.2,655,853.6L768,896 810.4,1009C813.8,1018 822.4,1024 832,1024 841.6,1024 850.2,1018 853.6,1009L896,896 1009,853.6C1018,850.2 1024,841.6 1024,832 1024,822.4 1018,813.8 1009,810.4L896,768 853.6,655C850.2,646 841.6,640 832,640 822.4,640 813.8,646 810.4,655L768,768 655,810.4C646,813.8,640,822.4,640,832z">
+                                        <GeometryDrawing.Brush>
+                                          <ConicGradientBrush Center="100%,-50%">
+                                            <GradientStop Offset="0.5" Color="#FF4EADFC"/>
+                                            <GradientStop Offset="0.6" Color="#FFEE4BB5"/>
+                                            <GradientStop Offset="0.73" Color="#FFDFDF62"/>
+                                          </ConicGradientBrush>
+                                        </GeometryDrawing.Brush>
+                                      </GeometryDrawing>
+                                      <GeometryDrawing Geometry="F1 M1024,1024z M0,0z M410.2,146.6C405,135.2 393.6,128 381.2,128 368.8,128 357.4,135.2 352.2,146.6L246.8,374.8 18.6,480C7.2,485.2 0,496.6 0,509.2 0,521.8 7.2,533 18.6,538.2L246.8,643.6 352,871.6C357.2,883 368.6,890.2 381,890.2 393.4,890.2 404.8,883 410,871.6L515.4,643.4 743.6,538C755,532.8 762.2,521.4 762.2,509 762.2,496.6 755,485.2 743.6,480L515.6,374.8 410.2,146.6z">
+                                        <GeometryDrawing.Brush>
+                                          <ConicGradientBrush Center="100%,-50%">
+                                            <GradientStop Offset="0.5" Color="#FF4EADFC"/>
+                                            <GradientStop Offset="0.6" Color="#FFEE4BB5"/>
+                                            <GradientStop Offset="0.73" Color="#FFDFDF62"/>
+                                          </ConicGradientBrush>
+                                        </GeometryDrawing.Brush>
+                                      </GeometryDrawing>
+                                    </DrawingGroup>
+                                  </DrawingImage.Drawing>
+                                </DrawingImage>
+                              </Image.Source>
+                            </Image>
+                          </shadui:ButtonAssist.Icon>
+                        </Button>
+
+                        <Button
+                          Classes="Ghost" HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Left"
+                          shadui:ButtonAssist.Icon="{LucideIconContent House}"
+                          Command="{Binding OpenDashboardCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                          Content="{I18N {x:Static LocaleKey.UserProfilePresenter_OpenDashboardButton_Content}}"/>
+
+                        <Button
+                          Classes="Ghost" HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Left"
+                          shadui:ButtonAssist.Icon="{LucideIconContent MessageCircleQuestionMark}"
+                          Command="{Binding GetSupportCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                          Content="{I18N {x:Static LocaleKey.UserProfilePresenter_GetSupportButton_Content}}"/>
+                      </StackPanel>
+
+                      <Separator/>
+
+                      <!--  Logout Button  -->
+                      <Button
+                        Classes="Destructive" HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        shadui:ButtonAssist.Icon="{LucideIconContent LogOut}"
+                        Command="{Binding LogoutCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                        Content="{I18N {x:Static LocaleKey.UserProfilePresenter_LogoutButton_Content}}"/>
+                    </StackPanel>
+                  </StackPanel>
+                </Panel>
+              </Flyout>
+            </Button.Flyout>
+
+            <Panel
+              Width="{TemplateBinding Size}"
+              Height="{TemplateBinding Size}">
+              <Border
+                Background="{DynamicResource BorderColor}"
+                IsVisible="{Binding #AvatarImage.Bounds.Width, Converter={x:Static vc:DoubleConverters.NotGreaterThan}, ConverterParameter=0}">
+                <LucideIcon
+                  Kind="User"
+                  Size="{TemplateBinding FontSize}"/>
+              </Border>
+              <Image
+                x:Name="AvatarImage" md:AsyncImageLoader.SizeToContent="Manual"
+                md:AsyncImageLoader.Source="{Binding UserProfile.AvatarUrl, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
+                RenderOptions.BitmapInterpolationMode="HighQuality" RenderOptions.EdgeMode="Antialias"/>
+            </Panel>
+          </Button>
+
+          <shadui:Badge
+            Width="16" Height="16"
+            Margin="0,-8,-8,0" Padding="0"
+            HorizontalAlignment="Right" VerticalAlignment="Top"
+            Background="{DynamicResource ErrorColor}"
+            Content="!" CornerRadius="8"
+            FontSize="10"
+            IsVisible="{Binding UserProfile.Subscription.Status, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static cloud:SubscriptionStatus.Unpaid}, FallbackValue={x:False}, RelativeSource={RelativeSource TemplatedParent}}"/>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

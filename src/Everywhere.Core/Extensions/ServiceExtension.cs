@@ -43,8 +43,6 @@ public static class ServiceExtension
                 .AddSingleton<IMainViewPage, ChatPluginPage>()
                 .AddSingleton<AboutPageViewModel>()
                 .AddSingleton<IMainViewPage, AboutPage>()
-                .AddSingleton<UserProfileFlyoutViewModel>()
-                .AddTransient<UserProfileFlyoutContent>()
                 .AddTransient<WelcomeViewModel>()
                 .AddTransient<WelcomeView>()
                 .AddTransient<ChangeLogViewModel>()

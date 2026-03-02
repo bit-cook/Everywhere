@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using Everywhere.Common;
 using Everywhere.Database;
@@ -35,10 +36,6 @@ public static class ServiceExtension
                     client =>
                     {
                         client.Timeout = TimeSpan.FromSeconds(30);
-                        var version = typeof(ServiceExtension).Assembly.GetName().Version ?? new Version(0, 0, 0, 0);
-                        client.DefaultRequestHeaders.Add(
-                            "User-Agent",
-                            $"Everywhere/{version}");
                     })
                 .ConfigurePrimaryHttpMessageHandler(serviceProvider =>
                     new HttpClientHandler
@@ -47,9 +44,27 @@ public static class ServiceExtension
                         UseProxy = true,
                         AllowAutoRedirect = true,
                     })
-                .AddHttpMessageHandler(x => x.GetRequiredService<ICloudClient>().CreateAuthenticationHandler());
+                .AddHttpMessageHandler(x => x.GetRequiredService<ICloudClient>().CreateAuthenticationHandler())
+                .AddHttpMessageHandler(_ => new UserAgentHandler());
 
             return services;
+        }
+    }
+
+    /// <summary>
+    /// Force override the User-Agent before send
+    /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+    private sealed class UserAgentHandler : DelegatingHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            request.Headers.Remove("User-Agent");
+            request.Headers.Add(
+                "User-Agent",
+                $"Everywhere/{App.Version}");
+
+            return base.SendAsync(request, cancellationToken);
         }
     }
 }

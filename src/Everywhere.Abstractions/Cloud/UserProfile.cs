@@ -22,5 +22,9 @@ public partial class UserProfile : ObservableObject
 
     [ObservableProperty]
     [JsonPropertyName("subscription")]
-    public partial SubscriptionDetails? Subscription { get; set; }
+    public partial SubscriptionInformation? Subscription { get; set; }
+
+    [JsonSerializable(typeof(UserProfile))]
+    [JsonSerializable(typeof(ApiPayload<SubscriptionInformation>))]
+    public sealed partial class JsonSerializerContext : System.Text.Json.Serialization.JsonSerializerContext;
 }

@@ -370,6 +370,12 @@
                 Kind="Settings"
                 Size="{DynamicResource FontSizeL}"/>
             </Button>
+
+            <v:UserProfilePresenter
+              BorderBrush="{DynamicResource BorderColor}"
+              BorderThickness="1" ShowActionsButton="False"
+              Size="30"
+              UserProfile="{TemplateBinding UserProfile}"/>
           </StackPanel>
 
           <StackPanel

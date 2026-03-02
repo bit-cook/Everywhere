@@ -451,6 +451,7 @@
             SelectedCustomAssistant="{Binding Settings.Model.SelectedCustomAssistant, Mode=TwoWay}"
             Text="{Binding ChatInputAreaText, Mode=TwoWay}"
             TextWrapping="Wrap"
+            UserProfile="{Binding CloudClient.CurrentUser}"
             Watermark="{Binding ChatInputAreaWatermarkKey^, FallbackValue={x:Null}}">
             <v:ChatInputArea.Transitions>
               <Transitions>

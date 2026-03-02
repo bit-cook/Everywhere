@@ -2139,38 +2139,27 @@
     <data name="BuiltInChatPlugin_VisualContext_GetVisualTree_Description" xml:space="preserve">
         <value>读取屏幕上窗口或元素的视觉树。</value>
     </data>
-    <data name="UserProfile_NotLoggedIn" xml:space="preserve">
-        <value>未登录</value>
+    <data name="UserProfilePresenter_CloudDescriptionTextBlock_Text" xml:space="preserve">
+        <value>注册即享免费积分，获得开箱即用的官方模型。更有云同步等功能持续上线中……</value>
     </data>
-    <data name="UserProfile_LoginPrompt" xml:space="preserve">
-        <value>登录以使用云端功能</value>
-    </data>
-    <data name="UserProfile_CloudDescription" xml:space="preserve">
-        <value>同步数据、使用 AI 模型等</value>
-    </data>
-    <data name="UserProfile_Login" xml:space="preserve">
+    <data name="UserProfilePresenter_LoginButton_Content" xml:space="preserve">
         <value>登录</value>
     </data>
-    <data name="UserProfile_LoginToCloud" xml:space="preserve">
-        <value>登录到 Everywhere Cloud</value>
+    <data name="UserProfilePresenter_LoginToCloudTextBlock_Text" xml:space="preserve">
+        <value>登录 Everywhere 云服务
+</value>
     </data>
-    <data name="UserProfile_Logout" xml:space="preserve">
+    <data name="UserProfilePresenter_LogoutButton_Content" xml:space="preserve">
         <value>退出登录</value>
     </data>
-    <data name="UserProfile_TokenQuota" xml:space="preserve">
-        <value>Token 配额</value>
+    <data name="UserProfilePresenter_PlanCreditsTextBlock_Text" xml:space="preserve">
+        <value>订阅积分</value>
     </data>
-    <data name="UserProfile_ManageSubscription" xml:space="preserve">
+    <data name="UserProfilePresenter_ManageSubscriptionButton_Content" xml:space="preserve">
         <value>管理订阅</value>
     </data>
-    <data name="UserProfile_UpgradePlan" xml:space="preserve">
-        <value>升级计划</value>
-    </data>
-    <data name="UserProfile_HelpCenter" xml:space="preserve">
-        <value>帮助中心</value>
-    </data>
-    <data name="UserProfile_Feedback" xml:space="preserve">
-        <value>反馈</value>
+    <data name="UserProfilePresenter_GetSupportButton_Content" xml:space="preserve">
+        <value>获取支持</value>
     </data>
     <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
         <value>原生模式</value>
@@ -2206,7 +2195,31 @@
     <data name="CustomAssistant_OutputLimit_Description" xml:space="preserve">
         <value>对话的最大上下文长度。此项会影响模型请求的参数（尤其是 Anthropic），请尽可能设为真实值。</value>
     </data>
-    <data name="UserProfile_CancelLogin" xml:space="preserve">
+    <data name="UserProfilePresenter_CancelLoginButton_Content" xml:space="preserve">
         <value>登录中</value>
+    </data>
+    <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
+        <value>{0} 续订并重置订阅积分</value>
+    </data>
+    <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
+        <value>试用至 {0}</value>
+    </data>
+    <data name="UserProfilePresenter_EndsOnTextBlock_Text" xml:space="preserve">
+        <value>有效至 {0}</value>
+    </data>
+    <data name="UserProfilePresenter_ExpiredDaysAgoTextBlock_Text" xml:space="preserve">
+        <value>已过期 {0} 天</value>
+    </data>
+    <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
+        <value>加量包积分</value>
+    </data>
+    <data name="UserProfilePresenter_PlanCreditsUsagePercentageTextBlock_Text" xml:space="preserve">
+        <value>剩余 {0}</value>
+    </data>
+    <data name="UserProfilePresenter_UnpaidToast_Title" xml:space="preserve">
+        <value>有未完成的支付，请尽快处理</value>
+    </data>
+    <data name="UserProfilePresenter_OpenDashboardButton_Content" xml:space="preserve">
+        <value>个人主页</value>
     </data>
 </root>

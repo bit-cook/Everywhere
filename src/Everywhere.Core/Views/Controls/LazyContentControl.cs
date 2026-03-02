@@ -62,7 +62,7 @@ public class LazyContentControl : ContentControl
     }
 
     [Content]
-    public IAvaloniaList<IControlTemplate> ItemTemplates { get; }
+    public IAvaloniaList<IControlTemplate?> ItemTemplates { get; }
 
     /// <summary>
     /// Initializes the static members of the <see cref="LazyContentControl"/> class.
@@ -99,7 +99,7 @@ public class LazyContentControl : ContentControl
     /// </summary>
     public LazyContentControl()
     {
-        ItemTemplates = new AvaloniaList<IControlTemplate>();
+        ItemTemplates = new AvaloniaList<IControlTemplate?>();
         ItemTemplates.CollectionChanged += OnItemTemplatesChanged;
     }
 
@@ -146,7 +146,7 @@ public class LazyContentControl : ContentControl
         var index = ItemIndex;
         if (index >= 0 && index < ItemTemplates.Count)
         {
-            var control = ItemTemplates[index].Build(this)?.Result;
+            var control = ItemTemplates[index]?.Build(this)?.Result;
             control?.DataContext = ContentDataContext ?? DataContext;
             Content = control;
         }

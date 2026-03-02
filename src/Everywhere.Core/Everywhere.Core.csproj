@@ -3,6 +3,7 @@
     <RootNamespace>Everywhere</RootNamespace>
     <IsDeploymentTarget>true</IsDeploymentTarget>
     <NoWarn>$(NoWarn);SCME0001;SENTRY0001</NoWarn>
+    <AvaloniaAccessUnstablePrivateApis>true</AvaloniaAccessUnstablePrivateApis>
   </PropertyGroup>
 
   <ItemGroup>

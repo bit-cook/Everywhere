@@ -10,6 +10,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.AI;
 using Everywhere.Chat;
+using Everywhere.Cloud;
 using Everywhere.Utilities;
 
 namespace Everywhere.Views;
@@ -48,11 +49,6 @@ public partial class ChatInputArea : TextBox
             nameof(AddChatAttachmentMenuItems),
             o => o.AddChatAttachmentMenuItems);
 
-    public static readonly DirectProperty<ChatInputArea, IEnumerable?> SettingsMenuItemsSourceProperty =
-        AvaloniaProperty.RegisterDirect<ChatInputArea, IEnumerable?>(
-            nameof(SettingsMenuItemsSource),
-            o => o.SettingsMenuItemsSource);
-
     public static readonly StyledProperty<bool> IsToolCallSupportedProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsToolCallSupported));
 
@@ -61,6 +57,14 @@ public partial class ChatInputArea : TextBox
 
     public static readonly StyledProperty<Flyout?> ToolCallButtonFlyoutProperty =
         AvaloniaProperty.Register<ChatInputArea, Flyout?>(nameof(ToolCallButtonFlyout));
+
+    public static readonly DirectProperty<ChatInputArea, IEnumerable?> SettingsMenuItemsSourceProperty =
+        AvaloniaProperty.RegisterDirect<ChatInputArea, IEnumerable?>(
+            nameof(SettingsMenuItemsSource),
+            o => o.SettingsMenuItemsSource);
+
+    public static readonly StyledProperty<UserProfile?> UserProfileProperty =
+        AvaloniaProperty.Register<UserProfilePresenter, UserProfile?>(nameof(UserProfile));
 
     public static readonly StyledProperty<bool> IsSendButtonEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsSendButtonEnabled), true);
@@ -125,12 +129,6 @@ public partial class ChatInputArea : TextBox
         set => SetAndRaise(AddChatAttachmentMenuItemsProperty, ref field, value);
     } = new AvaloniaList<MenuItem>();
 
-    public IEnumerable? SettingsMenuItemsSource
-    {
-        get;
-        set => SetAndRaise(SettingsMenuItemsSourceProperty, ref field, value);
-    } = new AvaloniaList<object>();
-
     public bool IsToolCallSupported
     {
         get => GetValue(IsToolCallSupportedProperty);
@@ -147,6 +145,18 @@ public partial class ChatInputArea : TextBox
     {
         get => GetValue(ToolCallButtonFlyoutProperty);
         set => SetValue(ToolCallButtonFlyoutProperty, value);
+    }
+
+    public IEnumerable? SettingsMenuItemsSource
+    {
+        get;
+        set => SetAndRaise(SettingsMenuItemsSourceProperty, ref field, value);
+    } = new AvaloniaList<object>();
+
+    public UserProfile? UserProfile
+    {
+        get => GetValue(UserProfileProperty);
+        set => SetValue(UserProfileProperty, value);
     }
 
     public bool IsSendButtonEnabled
