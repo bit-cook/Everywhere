@@ -522,26 +522,12 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
                     {
                         case StreamingChatMessageContent { Content.Length: > 0 } chatMessageContent:
                         {
-                            if (streamingContent.IsReasoning || chatMessageContent.IsReasoning)
-                            {
-                                await HandleReasoningMessageAsync(chatMessageContent.Content);
-                            }
-                            else
-                            {
-                                await HandleTextMessageAsync(chatMessageContent.Content);
-                            }
+                            await HandleTextMessageAsync(chatMessageContent.Content);
                             break;
                         }
                         case StreamingTextContent { Text.Length: > 0 } textContent:
                         {
-                            if (streamingContent.IsReasoning || textContent.IsReasoning)
-                            {
-                                await HandleReasoningMessageAsync(textContent.Text);
-                            }
-                            else
-                            {
-                                await HandleTextMessageAsync(textContent.Text);
-                            }
+                            await HandleTextMessageAsync(textContent.Text);
                             break;
                         }
                         case StreamingReasoningContent reasoningContent:
@@ -984,9 +970,11 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             {
                 usage.Update(content);
 
-                if (content.Role == AuthorRole.Assistant && !content.IsReasoning)
+                if (content.Role != AuthorRole.Assistant) continue;
+
+                foreach (var item in content.Items.AsValueEnumerable().OfType<TextContent>())
                 {
-                    titleBuilder.Append(content.Content);
+                    titleBuilder.Append(item);
                 }
             }
 

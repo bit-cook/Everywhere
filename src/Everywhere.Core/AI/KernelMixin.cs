@@ -1,5 +1,4 @@
 ﻿using Everywhere.Common;
-using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
@@ -48,26 +47,6 @@ public abstract class KernelMixin(CustomAssistant customAssistant, ModelConnecti
     protected double? TopP => customAssistant.TopP.IsCustomValueSet ? customAssistant.TopP.ActualValue : null;
 
     public abstract IChatCompletionService ChatCompletionService { get; }
-
-    /// <summary>
-    /// indicates whether the model is reasoning
-    /// </summary>
-    protected static readonly AdditionalPropertiesDictionary ReasoningProperties = new()
-    {
-        ["reasoning"] = true
-    };
-
-    /// <summary>
-    /// Applies reasoning properties to the given dictionary. Indicating current chat message contains reasoning content.
-    /// </summary>
-    /// <param name="dictionary"></param>
-    /// <returns></returns>
-    protected static AdditionalPropertiesDictionary ApplyReasoningProperties(AdditionalPropertiesDictionary? dictionary)
-    {
-        if (dictionary is null) return ReasoningProperties;
-        dictionary["reasoning"] = true;
-        return dictionary;
-    }
 
     public virtual bool IsPersistentMessageMetadataKey(string key) => false;
 

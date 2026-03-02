@@ -777,13 +777,7 @@ internal sealed class GeminiChatCompletionClient : ClientBase
         {
             if (!string.IsNullOrEmpty(thinkingPart.Text))
             {
-                message.Items.Add(new TextContent(
-                    text: thinkingPart.Text,
-                    modelId: this._modelId,
-                    metadata: new Dictionary<string, object?>
-                    {
-                        ["reasoning"] = true
-                    }));
+                message.Items.Add(new ReasoningContent(thinkingPart.Text));
             }
         }
 
@@ -865,14 +859,9 @@ internal sealed class GeminiChatCompletionClient : ClientBase
         // Copy thinking & image content items from message to streaming content
         foreach (var item in message.Items)
         {
-            if (item is TextContent textContent &&
-                textContent.Metadata?.TryGetValue("reasoning", out var reasoning) == true &&
-                reasoning is true)
+            if (item is ReasoningContent reasoningContent)
             {
-                streamingContent.Items.Add(new StreamingTextContent(
-                    text: textContent.Text,
-                    modelId: this._modelId,
-                    metadata: textContent.Metadata));
+                streamingContent.Items.Add(new StreamingReasoningContent(reasoningContent.Text));
             }
 
             if (item is BinaryContent binaryContent)

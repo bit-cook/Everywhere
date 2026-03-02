@@ -122,33 +122,13 @@ public sealed class AnthropicKernelMixin : KernelMixin
             return base.GetResponseAsync(messages, options, cancellationToken);
         }
 
-        public override async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
+        public override IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
             IEnumerable<ChatMessage> messages,
             ChatOptions? options = null,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             BuildOptions(ref options);
-
-            // Extract reasoning contents since SK didn't convert them from MEAI
-            await foreach (var update in base.GetStreamingResponseAsync(messages, options, cancellationToken))
-            {
-                for (var i = 0; i < update.Contents.Count; i++)
-                {
-                    if (update.Contents[i] is TextReasoningContent textReasoningContent)
-                    {
-                        update.Contents[i] = new TextContent(textReasoningContent.Text)
-                        {
-                            // This line actually takes no effect because
-                            // Microsoft.Extensions.AI.ChatResponseUpdateExtensions.ToStreamingChatMessageContent
-                            // forget to include item's AdditionalProperties in Metadata
-                            AdditionalProperties = ReasoningProperties
-                        };
-                        update.AdditionalProperties = ApplyReasoningProperties(update.AdditionalProperties);
-                    }
-                }
-
-                yield return update;
-            }
+            return base.GetStreamingResponseAsync(messages, options, cancellationToken);
         }
     }
 }

@@ -6,7 +6,6 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using OpenAI;
 using OpenAI.Responses;
 using FunctionCallContent = Microsoft.Extensions.AI.FunctionCallContent;
-using TextContent = Microsoft.Extensions.AI.TextContent;
 
 namespace Everywhere.AI;
 
@@ -60,27 +59,13 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
                 for (var i = 0; i < update.Contents.Count; i++)
                 {
                     var content = update.Contents[i];
-                    switch (content)
+                    if (content is FunctionCallContent { Name.Length: > 0, CallId: null or { Length: 0 } } missingIdContent)
                     {
-                        case FunctionCallContent { Name.Length: > 0, CallId: null or { Length: 0 } } missingIdContent:
-                        {
-                            // Generate a unique ToolCallId for the function call update.
-                            update.Contents[i] = new FunctionCallContent(
-                                Guid.CreateVersion7().ToString("N"),
-                                missingIdContent.Name,
-                                missingIdContent.Arguments);
-                            break;
-                        }
-                        case TextReasoningContent reasoningContent:
-                        {
-                            // Semantic Kernel won't handle TextReasoningContent, convert it to TextContent with reasoning properties
-                            update.Contents[i] = new TextContent(reasoningContent.Text)
-                            {
-                                AdditionalProperties = ReasoningProperties
-                            };
-                            update.AdditionalProperties = ApplyReasoningProperties(update.AdditionalProperties);
-                            break;
-                        }
+                        // Generate a unique ToolCallId for the function call update.
+                        update.Contents[i] = new FunctionCallContent(
+                            Guid.CreateVersion7().ToString("N"),
+                            missingIdContent.Name,
+                            missingIdContent.Arguments);
                     }
                 }
 

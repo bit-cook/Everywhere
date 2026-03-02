@@ -11,7 +11,6 @@ using OpenAI.Chat;
 using ZLinq;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using FunctionCallContent = Microsoft.Extensions.AI.FunctionCallContent;
-using TextContent = Microsoft.Extensions.AI.TextContent;
 
 #pragma warning disable SCME0001 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 
@@ -170,12 +169,7 @@ public class OpenAIKernelMixin : KernelMixin
                         continue;
                     }
 
-                    update.Contents.Add(
-                        new TextContent(reasoningContent)
-                        {
-                            AdditionalProperties = ReasoningProperties
-                        });
-                    update.AdditionalProperties = ApplyReasoningProperties(update.AdditionalProperties);
+                    update.Contents.Add(new TextReasoningContent(reasoningContent));
                 }
 
                 // Ensure that all FunctionCallContent items have a unique CallId.

@@ -7,11 +7,13 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Lib.Harmony"/>
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions"/>
   </ItemGroup>
 
   <ItemGroup>
     <IgnoresAccessChecksTo Include="Avalonia.Base"/>
     <IgnoresAccessChecksTo Include="Avalonia.Controls"/>
+    <IgnoresAccessChecksTo Include="Microsoft.SemanticKernel.Abstractions"/>
   </ItemGroup>
 
 </Project>
