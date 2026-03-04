@@ -81,7 +81,7 @@
     <PackageVersion Include="HotAvalonia" Version="3.0.0" />
     <PackageVersion Include="LiveMarkdown.Avalonia" Version="$(LiveMarkdownVersion)" />
     <PackageVersion Include="LiveMarkdown.Avalonia.Math" Version="$(LiveMarkdownVersion)" />
-    <PackageVersion Include="Lucide.Avalonia" Version="0.1.44" />
+    <PackageVersion Include="Lucide.Avalonia" Version="0.1.61" />
     <PackageVersion Include="SkiaSharp" Version="$(SkiaSharpVersion)" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="$(SkiaSharpVersion)" />
     <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="$(SkiaSharpVersion)" />
