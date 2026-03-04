@@ -43,7 +43,6 @@ public class CloudChatDbSynchronizer(
                 (user, enabled) => user.Value is not null && enabled.Value)
             .StartWith(cloudClient.CurrentUser is not null && persistentState.IsCloudSyncEnabled)
             .DistinctUntilChanged()
-            .Throttle(TimeSpan.FromSeconds(3))
             .Select(isReady => Observable.FromAsync(cancellationToken => isReady ? StartSyncAsync(cancellationToken) : Task.CompletedTask))
             .Switch() // Only allow one active synchronization task at a time, cancel previous if new value comes in
             .Subscribe();
@@ -54,11 +53,22 @@ public class CloudChatDbSynchronizer(
     private Task StartSyncAsync(CancellationToken cancellationToken) => Task.Run(
         async () =>
         {
+            try
+            {
+                // Throttle, wait for a few seconds before starting the first synchronization
+                // But cancel immediately if cancellation is requested to avoid unnecessary waiting when user quickly toggles the sync setting.
+                await Task.Delay(TimeSpan.FromSeconds(3d), cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                // Ignored
+            }
+
             while (true)
             {
                 try
                 {
-                    await SynchronizeAsync(cancellationToken);
+                    await SynchronizeAsync(cancellationToken).ConfigureAwait(false);
 
                     persistentState.LastCloudSynchronizationErrorMessageKey = null;
                     persistentState.LastCloudSynchronized = DateTimeOffset.UtcNow;
@@ -83,7 +93,7 @@ public class CloudChatDbSynchronizer(
 
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(1d), cancellationToken);
+                    await Task.Delay(TimeSpan.FromMinutes(1d), cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
