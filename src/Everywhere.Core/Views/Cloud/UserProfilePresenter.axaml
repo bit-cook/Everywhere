@@ -109,7 +109,7 @@
 
                     <!--  User Info Header  -->
                     <StackPanel
-                      Margin="12,0" Spacing="2">
+                      Margin="12,8,12,0" Spacing="2">
                       <StackPanel
                         Orientation="Horizontal" Spacing="4">
                         <TextBlock
@@ -156,7 +156,7 @@
                             </TextBlock.Text>
                           </TextBlock>
                           <LucideIcon
-                            Grid.Column="2" Kind="CircleAlert"
+                            Grid.Column="2" Kind="CircleQuestionMark"
                             Size="{DynamicResource FontSizeS}"
                             ToolTip.Placement="Top">
                             <ToolTip.Tip>
@@ -183,7 +183,7 @@
                           Classes="Caption Muted" Grid.Column="1"
                           Text="{Binding UserProfile.Subscription.BonusCredits, Converter={x:Static vc:TokenCountHumanizationConverter.Shared}, FallbackValue=N/A, RelativeSource={RelativeSource TemplatedParent}}"/>
                         <LucideIcon
-                          Grid.Column="2" Kind="CircleAlert"
+                          Grid.Column="2" Kind="CircleQuestionMark"
                           Size="{DynamicResource FontSizeS}"
                           ToolTip.Placement="Top">
                           <ToolTip.Tip>
@@ -219,6 +219,7 @@
                             <TextBlock.Text>
                               <I18N Key="{x:Static LocaleKey.UserProfilePresenter_RenewsOnTextBlock_Text}">
                                 <Binding
+                                  Converter="{x:Static vc:DateTimeOffsetLocalizeConverter.Shared}"
                                   FallbackValue="{x:Null}"
                                   Path="Subscription.PeriodEnd" StringFormat="{}{0:g}"/>
                               </I18N>
@@ -232,6 +233,7 @@
                             <TextBlock.Text>
                               <I18N Key="{x:Static LocaleKey.UserProfilePresenter_TrialUntilTextBlock_Text}">
                                 <Binding
+                                  Converter="{x:Static vc:DateTimeOffsetLocalizeConverter.Shared}"
                                   FallbackValue="{x:Null}"
                                   Path="Subscription.PeriodEnd" StringFormat="{}{0:g}"/>
                               </I18N>
@@ -245,6 +247,7 @@
                             <TextBlock.Text>
                               <I18N Key="{x:Static LocaleKey.UserProfilePresenter_EndsOnTextBlock_Text}">
                                 <Binding
+                                  Converter="{x:Static vc:DateTimeOffsetLocalizeConverter.Shared}"
                                   FallbackValue="{x:Null}"
                                   Path="Subscription.PeriodEnd" StringFormat="{}{0:g}"/>
                               </I18N>
@@ -326,6 +329,65 @@
                           shadui:ButtonAssist.Icon="{LucideIconContent MessageCircleQuestionMark}"
                           Command="{Binding GetSupportCommand, RelativeSource={RelativeSource TemplatedParent}}"
                           Content="{I18N {x:Static LocaleKey.UserProfilePresenter_GetSupportButton_Content}}"/>
+                      </StackPanel>
+
+                      <Separator/>
+
+                      <Grid
+                        Margin="12,0" ColumnDefinitions="Auto,*,Auto,Auto"
+                        ColumnSpacing="6">
+                        <LucideIcon
+                          Grid.Column="0" Kind="CloudSync"
+                          Size="{DynamicResource FontSizeL}"
+                          ToolTip.Placement="Top"
+                          ToolTip.Tip="{I18N {x:Static LocaleKey.UserProfilePresenter_CloudSyncToggle_Tip}}"/>
+                        <TextBlock
+                          Grid.Column="1" VerticalAlignment="Center"
+                          Text="{I18N {x:Static LocaleKey.UserProfilePresenter_CloudSyncToggleTextBlock_Text}}"/>
+                        <ToggleSwitch
+                          Grid.Column="2" DockPanel.Dock="Right"
+                          VerticalAlignment="Center"
+                          IsChecked="{Binding Path=PersistentState.IsCloudSyncEnabled, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        <LucideIcon
+                          Grid.Column="3" Kind="CircleQuestionMark"
+                          Size="{DynamicResource FontSizeS}"
+                          ToolTip.Placement="Top"
+                          ToolTip.Tip="{I18N {x:Static LocaleKey.UserProfilePresenter_CloudSyncToggle_Tip}}"/>
+                      </Grid>
+
+                      <StackPanel
+                        x:Name="SyncStatusPanel" Margin="12,0"
+                        IsVisible="{Binding Path=PersistentState.IsCloudSyncEnabled, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                        Spacing="4">
+                        <TextBlock
+                          Classes="Caption Muted"
+                          IsVisible="{Binding Path=PersistentState.LastCloudSynchronized, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}}">
+                          <TextBlock.Text>
+                            <I18N Key="{x:Static LocaleKey.UserProfilePresenter_LastSynchronizedTextBlock_Text}">
+                              <Binding
+                                Converter="{x:Static vc:DateTimeOffsetLocalizeConverter.Shared}"
+                                Path="PersistentState.LastCloudSynchronized"
+                                RelativeSource="{RelativeSource TemplatedParent}"
+                                StringFormat="{}{0:g}"/>
+                            </I18N>
+                          </TextBlock.Text>
+                        </TextBlock>
+
+                        <StackPanel
+                          Orientation="Horizontal" Spacing="4">
+                          <TextBlock
+                            Classes="Caption"
+                            Foreground="{DynamicResource WarningColor}"
+                            IsVisible="{Binding Path=PersistentState.LastCloudSynchronizationErrorMessageKey, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}}"
+                            Text="{I18N {x:Static LocaleKey.UserProfilePresenter_LastSynchronizationErrorTextBlock_Text}}"/>
+                          <LucideIcon
+                            Foreground="{DynamicResource WarningColor}"
+                            IsVisible="{Binding Path=PersistentState.LastCloudSynchronizationErrorMessageKey, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}}"
+                            Kind="CircleQuestionMark"
+                            Size="{DynamicResource FontSizeS}"
+                            ToolTip.Placement="Top"
+                            ToolTip.Tip="{Binding Path=PersistentState.LastCloudSynchronizationErrorMessageKey^, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        </StackPanel>
                       </StackPanel>
 
                       <Separator/>

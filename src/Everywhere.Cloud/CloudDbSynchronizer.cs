@@ -1,9 +1,8 @@
-﻿#if DEBUG
-using System.Net.Http.Headers;
-#endif
-
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
+using System.Reactive.Linq;
+using DynamicData.Binding;
 using Everywhere.Common;
+using Everywhere.Configuration;
 using Everywhere.Database;
 using Everywhere.Extensions;
 using MessagePack;
@@ -11,16 +10,21 @@ using MessagePack.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
+#if DEBUG
+using System.Net.Http.Headers;
+#endif
 
 namespace Everywhere.Cloud;
 
 public class CloudChatDbSynchronizer(
     IDbContextFactory<ChatDbContext> dbFactory,
     IHttpClientFactory httpClientFactory,
+    ICloudClient cloudClient,
+    PersistentState persistentState,
     ILogger<CloudChatDbSynchronizer> logger
 ) : IChatDbSynchronizer, IAsyncInitializer
 {
-    public AsyncInitializerIndex Index => AsyncInitializerIndex.Database + 1;
+    public AsyncInitializerIndex Index => AsyncInitializerIndex.Settings + 1; // after persistentState initialization
 
     private readonly AsyncLock _syncLock = new();
     private const int PushBytesLimit = 5 * 1024 * 1024; // 5 MB
@@ -30,13 +34,34 @@ public class CloudChatDbSynchronizer(
         // If the cloud sync base URL is not configured, skip synchronization.
         if (CloudConstants.CloudSyncBaseUrl.IsNullOrEmpty()) return Task.CompletedTask;
 
-        Task.Run(async () =>
+        // Use System.Reactive to observe changes
+        // If cloudClient.CurrentUser is not null && persistentState.IsCloudSyncEnabled, start synchronization.
+        // Otherwise, cancel the token
+        cloudClient.WhenPropertyChanged(x => x.CurrentUser)
+            .CombineLatest(
+                persistentState.WhenPropertyChanged(x => x.IsCloudSyncEnabled),
+                (user, enabled) => user.Value is not null && enabled.Value)
+            .StartWith(cloudClient.CurrentUser is not null && persistentState.IsCloudSyncEnabled)
+            .DistinctUntilChanged()
+            .Throttle(TimeSpan.FromSeconds(3))
+            .Select(isReady => Observable.FromAsync(cancellationToken => isReady ? StartSyncAsync(cancellationToken) : Task.CompletedTask))
+            .Switch() // Only allow one active synchronization task at a time, cancel previous if new value comes in
+            .Subscribe();
+
+        return Task.CompletedTask;
+    }
+
+    private Task StartSyncAsync(CancellationToken cancellationToken) => Task.Run(
+        async () =>
         {
             while (true)
             {
                 try
                 {
-                    await SynchronizeAsync();
+                    await SynchronizeAsync(cancellationToken);
+
+                    persistentState.LastCloudSynchronizationErrorMessageKey = null;
+                    persistentState.LastCloudSynchronized = DateTimeOffset.UtcNow;
                 }
                 catch (OperationCanceledException)
                 {
@@ -45,19 +70,28 @@ public class CloudChatDbSynchronizer(
                 catch (HttpRequestException ex) when (ex.InnerException is SocketException)
                 {
                     // Network-related errors
+                    persistentState.LastCloudSynchronizationErrorMessageKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
+
                     logger.LogInformation(ex, "Network error occurred during cloud database synchronization.");
                 }
                 catch (Exception ex)
                 {
+                    persistentState.LastCloudSynchronizationErrorMessageKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
+
                     logger.LogError(ex, "Error occurred during cloud database synchronization.");
                 }
 
-                await Task.Delay(TimeSpan.FromMinutes(1d));
+                try
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(1d), cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ignored
+                }
             }
-        }).Detach(logger.ToExceptionHandler());
-
-        return Task.CompletedTask;
-    }
+        },
+        cancellationToken);
 
     public async Task SynchronizeAsync(CancellationToken cancellationToken = default)
     {

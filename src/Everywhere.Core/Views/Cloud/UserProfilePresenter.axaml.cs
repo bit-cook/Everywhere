@@ -6,6 +6,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.Cloud;
 using Everywhere.Common;
+using Everywhere.Configuration;
 
 namespace Everywhere.Views;
 
@@ -37,6 +38,8 @@ public partial class UserProfilePresenter : TemplatedControl
         get => GetValue(ShowActionsButtonProperty);
         set => SetValue(ShowActionsButtonProperty, value);
     }
+
+    public PersistentState PersistentState { get; } = ServiceLocator.Resolve<PersistentState>();
 
     private readonly ICloudClient _cloudClient = ServiceLocator.Resolve<ICloudClient>();
 

@@ -295,35 +295,24 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
     {
         if (CurrentUser is not { } currentUser) return;
 
-        currentUser.Subscription = new SubscriptionInformation
-        {
-            Plan = SubscriptionPlan.Starter,
-            BonusCredits = 500000,
-            TotalPlanCredits = 1000000,
-            PlanCredits = 200000,
-            PeriodStart = DateTimeOffset.UtcNow.AddDays(-15),
-            PeriodEnd = DateTimeOffset.UtcNow.AddDays(15),
-            Status = SubscriptionStatus.Trialing
-        };
+        using var httpClient = _httpClientFactory.CreateClient(nameof(ICloudClient));
 
-        // using var httpClient = _httpClientFactory.CreateClient(nameof(ICloudClient));
-        //
-        // try
-        // {
-        //     var request = new HttpRequestMessage(HttpMethod.Get, SubscriptionEndpoint);
-        //
-        //     var response = await httpClient.SendAsync(request, cancellationToken);
-        //     var payload = await ApiPayload<SubscriptionInformation>.EnsureSuccessFromHttpResponseJsonAsync(
-        //         response,
-        //         UserProfile.JsonSerializerContext.Default.ApiPayloadSubscriptionInformation.Options,
-        //         cancellationToken);
-        //
-        //     currentUser.Subscription = payload.EnsureData();
-        // }
-        // catch (Exception ex)
-        // {
-        //     _logger.LogError(ex, "Failed to get user profile");
-        // }
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, SubscriptionEndpoint);
+
+            var response = await httpClient.SendAsync(request, cancellationToken);
+            var payload = await ApiPayload<SubscriptionInformation>.EnsureSuccessFromHttpResponseJsonAsync(
+                response,
+                UserProfile.JsonSerializerContext.Default.ApiPayloadSubscriptionInformation.Options,
+                cancellationToken);
+
+            currentUser.Subscription = payload.EnsureData();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get user profile");
+        }
     }
 
     public async Task<bool> TryRefreshTokenAsync(CancellationToken cancellationToken)

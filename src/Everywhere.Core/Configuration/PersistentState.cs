@@ -75,6 +75,24 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
         set => Set(value);
     }
 
+    public bool IsCloudSyncEnabled
+    {
+        get => Get(false);
+        set => Set(value);
+    }
+
+    public DateTimeOffset? LastCloudSynchronized
+    {
+        get => Get<DateTimeOffset?>();
+        set => Set(value);
+    }
+
+    public DynamicResourceKeyBase? LastCloudSynchronizationErrorMessageKey
+    {
+        get => Get<DynamicResourceKeyBase?>();
+        set => Set(value);
+    }
+
     private T? Get<T>(T? defaultValue = default, [CallerMemberName] string key = "")
     {
         return storage.Get(key, defaultValue);
