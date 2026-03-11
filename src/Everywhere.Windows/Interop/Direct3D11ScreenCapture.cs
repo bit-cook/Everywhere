@@ -27,22 +27,20 @@ using Visual = Windows.UI.Composition.Visual;
 
 namespace Everywhere.Windows.Interop;
 
-public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
+public sealed partial class Direct3D11ScreenCapture : IDisposable
 {
-    private readonly DispatcherQueueController _dispatcherQueueController;
     private readonly IDCompositionDevice2 _dCompositionDevice2;
-    private readonly ID3D11Device _d3d11Device;
-    private readonly IDirect3DDevice _direct3dDevice;
+    private readonly ID3D11Device _d3D11Device;
+    private readonly IDirect3DDevice _direct3DDevice;
     private readonly ID3D11Texture2D _stagingTexture;
     private readonly Direct3D11CaptureFramePool _framePool;
     private readonly GraphicsCaptureSession _session;
     private readonly IDCompositionVisual2 _dCompositionVisual;
 
-    // https://blog.adeltax.com/dwm-thumbnails-but-with-idcompositionvisual/
-    // https://gist.github.com/ADeltaX/aea6aac248604d0cb7d423a61b06e247
-    private Direct3D11ScreenCapture(nint sourceHWnd, nint targetHWnd, PixelRect relativeRect)
+    private static readonly DispatcherQueueController DispatcherQueueController;
+
+    static Direct3D11ScreenCapture()
     {
-        // 1. Create and hold the DispatcherQueueController
         PInvoke.CreateDispatcherQueueController(
             new DispatcherQueueOptions
             {
@@ -50,9 +48,14 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
                 threadType = DISPATCHERQUEUE_THREAD_TYPE.DQTYPE_THREAD_CURRENT,
                 dwSize = (uint)Unsafe.SizeOf<DispatcherQueueOptions>()
             },
-            out _dispatcherQueueController).ThrowOnFailure();
+            out DispatcherQueueController).ThrowOnFailure();
+    }
 
-        // 2. Create the composition device
+    // https://blog.adeltax.com/dwm-thumbnails-but-with-idcompositionvisual/
+    // https://gist.github.com/ADeltaX/aea6aac248604d0cb7d423a61b06e247
+    private Direct3D11ScreenCapture(nint sourceHWnd, nint targetHWnd, PixelRect relativeRect)
+    {
+        // Create the composition device
         var interopCompositorFactory = Compositor.As<IInteropCompositorFactoryPartner>();
         var pInteropCompositor = interopCompositorFactory.CreateInteropCompositor(0, 0, typeof(IDCompositionDevice2).GUID);
         _dCompositionDevice2 = ComObject.As<IDCompositionDevice2>(pInteropCompositor);
@@ -63,7 +66,7 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
             throw new InvalidOperationException("Failed to query thumbnail source size.");
         }
 
-        // 3. Create and update the DWM thumbnail
+        // Create and update the DWM thumbnail
         var thumbProperties = new DWM_THUMBNAIL_PROPERTIES
         {
             dwFlags =
@@ -80,7 +83,7 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
         };
         DwmUpdateThumbnailProperties((HWND)sourceHWnd, ref thumbProperties);
 
-        // 4. Create the shared thumbnail visual
+        // Create the shared thumbnail visual
         DwmpCreateSharedThumbnailVisual(
             (HWND)targetHWnd,
             (HWND)sourceHWnd,
@@ -91,7 +94,7 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
             out _).ThrowOnFailure();
         _dCompositionVisual = new IDCompositionVisual2(pDCompositionVisual);
 
-        // 5. Transform and crop the visual using relativeRect
+        // Transform and crop the visual using relativeRect
         using var containerVisual = _dCompositionDevice2.CreateVisual();
         containerVisual.AddVisual(_dCompositionVisual, true, null);
 
@@ -107,9 +110,9 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
         var visual = Visual.FromAbi(containerVisual.NativePointer);
         visual.Size = new Vector2(relativeRect.Width, relativeRect.Height);
 
-        // 6. Create D3D device and frame pool
-        _d3d11Device = D3D11.D3D11CreateDevice(DriverType.Hardware, DeviceCreationFlags.BgraSupport);
-        _stagingTexture = _d3d11Device.CreateTexture2D(
+        // Create D3D device and frame pool
+        _d3D11Device = D3D11.D3D11CreateDevice(DriverType.Hardware, DeviceCreationFlags.BgraSupport);
+        _stagingTexture = _d3D11Device.CreateTexture2D(
             new Texture2DDescription
             {
                 Width = (uint)relativeRect.Width,
@@ -124,12 +127,12 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
                 MiscFlags = ResourceOptionFlags.None
             });
 
-        using var dxgiDevice = _d3d11Device.QueryInterface<IDXGIDevice>();
-        Marshal.ThrowExceptionForHR(CreateDirect3D11DeviceFromDXGIDevice(dxgiDevice.NativePointer, out var pD3d11Device));
-        _direct3dDevice = MarshalInterface<IDirect3DDevice>.FromAbi(pD3d11Device);
+        using var dxgiDevice = _d3D11Device.QueryInterface<IDXGIDevice>();
+        Marshal.ThrowExceptionForHR(CreateDirect3D11DeviceFromDXGIDevice(dxgiDevice.NativePointer, out var pD3D11Device));
+        _direct3DDevice = MarshalInterface<IDirect3DDevice>.FromAbi(pD3D11Device);
 
         _framePool = Direct3D11CaptureFramePool.CreateFreeThreaded(
-            _direct3dDevice,
+            _direct3DDevice,
             DirectXPixelFormat.B8G8R8A8UIntNormalized,
             2, // Use a buffer of 2 to avoid capture lag
             new SizeInt32(relativeRect.Width, relativeRect.Height));
@@ -138,6 +141,9 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
         var item = GraphicsCaptureItem.CreateFromVisual(visual);
         _session = _framePool.CreateCaptureSession(item);
         _session.IsCursorCaptureEnabled = false;
+
+        // Do nothing but keep the DispatcherQueueController alive
+        GC.KeepAlive(DispatcherQueueController);
     }
 
     private async Task<Bitmap> CaptureFrameAsync(CancellationToken cancellationToken)
@@ -159,7 +165,7 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
                 var pTexture = access.GetInterface(textureGuid);
                 using var sourceTexture = new ID3D11Texture2D(pTexture);
 
-                var immediateContext = _d3d11Device.ImmediateContext;
+                var immediateContext = _d3D11Device.ImmediateContext;
                 immediateContext.CopyResource(_stagingTexture, sourceTexture);
                 var mapBox = immediateContext.Map(_stagingTexture, 0);
 
@@ -201,14 +207,13 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
         _session.Dispose();
         _framePool.Dispose();
         _dCompositionVisual.Dispose();
         _dCompositionDevice2.Dispose();
-        _direct3dDevice.Dispose();
-        await _dispatcherQueueController.ShutdownQueueAsync();
+        _direct3DDevice.Dispose();
     }
 
     public static Task<Bitmap> CaptureAsync(nint sourceHWnd, PixelRect relativeRect, CancellationToken cancellationToken = default)
@@ -223,7 +228,7 @@ public sealed partial class Direct3D11ScreenCapture : IAsyncDisposable
 
         return Dispatcher.UIThread.InvokeAsync(async () =>
         {
-            await using var screenCapture = new Direct3D11ScreenCapture(sourceHWnd, targetHWnd, relativeRect);
+            using var screenCapture = new Direct3D11ScreenCapture(sourceHWnd, targetHWnd, relativeRect);
             return await screenCapture.CaptureFrameAsync(cancellationToken);
         });
     }
