@@ -204,12 +204,12 @@ public class CloudChatDbSynchronizer(
                 }
                 else
                 {
-                    CloudSyncableEntity entity;
+                    EntityData entityData;
                     try
                     {
-                        entity = MessagePackSerializer.Deserialize<CloudSyncableEntity>(
+                        entityData = MessagePackSerializer.Deserialize<EntityData>(
                             entityWrapper.Data,
-                            cancellationToken: cancellationToken);
+                            cancellationToken: cancellationToken).NotNull();
                     }
                     catch (Exception ex)
                     {
@@ -223,7 +223,17 @@ public class CloudChatDbSynchronizer(
                         continue;
                     }
 
+                    if (entityData.EncryptionType != CloudSyncEncryptionType.None)
+                    {
+                        // Not supported encryption type, skip it.
+                        logger.LogWarning(
+                            "Received an entity with unsupported encryption type {EncryptionType} from cloud, skipping it.",
+                            entityData.EncryptionType);
+                        continue;
+                    }
+
                     // entity.Id is not serialized/deserialized, so we need to set it manually.
+                    var entity = entityData.Entity;
                     entity.Id = entityWrapper.Id;
                     entity.LocalSyncVersion = ICloudSyncable.UnmodifiedFromCloud;
 
@@ -309,7 +319,9 @@ public class CloudChatDbSynchronizer(
             }
             else
             {
-                var data = MessagePackSerializer.Serialize(entity, cancellationToken: cancellationToken);
+                var data = MessagePackSerializer.Serialize(
+                    new EntityData(CloudSyncEncryptionType.None, entity),
+                    cancellationToken: cancellationToken);
                 if (data.Length > PushBytesLimit)
                 {
                     logger.LogWarning(
@@ -363,13 +375,19 @@ public class CloudChatDbSynchronizer(
     }
 }
 
+[MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
+public sealed partial record EntityData(
+    [property: Key(0)] CloudSyncEncryptionType EncryptionType,
+    [property: Key(1)] CloudSyncableEntity Entity
+);
+
 /// <summary>
 /// Wrapper for an entity to be synchronized.
 /// </summary>
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
 public sealed partial record EntityWrapper(
     [property: Key(0), MessagePackFormatter(typeof(NativeGuidFormatter))] Guid Id,
-    [property: Key(1)] byte[]? Data
+    [property: Key(1)] byte[]? Data // Serialized EntityData
 );
 
 /// <summary>
