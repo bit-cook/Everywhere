@@ -273,7 +273,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         }
         catch (Exception e)
         {
-            e = HandledChatException.Handle(e);
+            e = HandledChatException.Handle(e, null);
             activity?.SetStatus(ActivityStatusCode.Error, e.Message.Trim());
             analyzingContextMessage.ErrorMessageKey = e.GetFriendlyMessage();
             _logger.LogError(e, "Error analyzing visual tree");
@@ -367,12 +367,13 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         using var activity = StartChatActivity("chat", customAssistant);
         activity?.SetTag("id", chatContext.Metadata.Id);
 
+        KernelMixin? kernelMixin = null;
         try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var kernelMixin = _kernelMixinFactory.GetOrCreate(customAssistant);
+            kernelMixin = _kernelMixinFactory.GetOrCreate(customAssistant);
             var kernel = await BuildKernelAsync(kernelMixin, chatContext, customAssistant, isSubagent, cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             // Because the custom assistant maybe changed, we need to re-render the system prompt.
             // But we only do this once per generation, even if the system time may change during function calls.
@@ -432,7 +433,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         }
         catch (Exception e)
         {
-            e = HandledChatException.Handle(e);
+            e = HandledChatException.Handle(e, kernelMixin);
             activity?.SetStatus(ActivityStatusCode.Error, e.Message.Trim());
             assistantChatMessage.ErrorMessageKey = e.GetFriendlyMessage();
             _logger.LogError(e, "Error generating chat response");
@@ -997,7 +998,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         }
         catch (Exception e)
         {
-            e = HandledChatException.Handle(e);
+            e = HandledChatException.Handle(e, kernelMixin);
             activity?.SetStatus(ActivityStatusCode.Error, e.Message);
             _logger.LogError(e, "Failed to generate chat title");
         }

@@ -875,7 +875,7 @@
     <data name="ChatWindowSettings_AllowRunInBackground_Description" xml:space="preserve">
         <value>활성화되면, 채팅 창을 닫아도 현재 작업이 종료되지 않습니다.</value>
     </data>
-    <data name="HandledChatException_OperationCancelled" xml:space="preserve">
+    <data name="HandledChatException_OperationCanceled" xml:space="preserve">
         <value>작업이 취소되었습니다.</value>
     </data>
     <data name="ChatPluginPage_SelectToViewDetails" xml:space="preserve">

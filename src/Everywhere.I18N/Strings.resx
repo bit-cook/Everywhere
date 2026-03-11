@@ -881,8 +881,8 @@ My intelligence is powered by large language models, and I need your help to con
     <data name="ChatWindowSettings_AllowRunInBackground_Description" xml:space="preserve">
         <value>When enabled, closing the chat window will not terminate the current task.</value>
     </data>
-    <data name="HandledChatException_OperationCancelled" xml:space="preserve">
-        <value>Operation cancelled.</value>
+    <data name="HandledChatException_OperationCanceled" xml:space="preserve">
+        <value>Operation canceled.</value>
     </data>
     <data name="ChatPluginPage_SelectToViewDetails" xml:space="preserve">
         <value>Select an item on the left to view details</value>
@@ -2230,5 +2230,11 @@ Use scroll wheel or number keys to switch selection mode</value>
     </data>
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value />
+    </data>
+    <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
+        <value>Service does not support requests from current region or location.</value>
+    </data>
+    <data name="HandledChatException_JsonError" xml:space="preserve">
+        <value>An error occurred while parsing the response from the service, indicating an unexpected JSON format or content.</value>
     </data>
 </root>

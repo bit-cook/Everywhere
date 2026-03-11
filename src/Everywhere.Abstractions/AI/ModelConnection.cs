@@ -14,4 +14,5 @@ namespace Everywhere.AI;
 public readonly record struct ModelConnection(
     ModelProviderSchema Schema,
     string Endpoint,
-    string? ApiKey);
+    string? ApiKey,
+    Func<Exception, Exception>? ChatExceptionTransformer);

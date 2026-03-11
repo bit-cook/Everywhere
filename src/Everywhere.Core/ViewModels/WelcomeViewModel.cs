@@ -167,7 +167,7 @@ public sealed partial class WelcomeViewModelSoftLoginStep(WelcomeViewModel viewM
         {
             Log.ForContext<WelcomeViewModelHardLoginStep>().Error(e, "Failed to login user in welcome flow");
 
-            e = HandledChatException.Handle(e);
+            e = HandledSystemException.Handle(e);
             ToastManager
                 .CreateToast("failed")
                 .WithContent(e.GetFriendlyMessage().ToTextBlock())
@@ -221,7 +221,7 @@ public sealed partial class WelcomeViewModelHardLoginStep(WelcomeViewModel viewM
         {
             Log.ForContext<WelcomeViewModelHardLoginStep>().Error(e, "Failed to login user in welcome flow");
 
-            e = HandledChatException.Handle(e);
+            e = HandledSystemException.Handle(e);
             ToastManager
                 .CreateToast("failed")
                 .WithContent(e.GetFriendlyMessage().ToTextBlock())
@@ -257,16 +257,17 @@ public sealed partial class WelcomeViewModelAssistantStep(WelcomeViewModel viewM
         return ExecuteBusyTaskAsync(
             async cancellationToken =>
             {
+                KernelMixin? kernelMixin = null;
                 try
                 {
-                    var kernelMixin = _kernelMixinFactory.GetOrCreate(ViewModel.Assistant);
+                    kernelMixin = _kernelMixinFactory.GetOrCreate(ViewModel.Assistant);
                     await kernelMixin.CheckConnectivityAsync(cancellationToken);
                     StrongReferenceMessenger.Default.Send(new ShowConfettiEffectMessage());
                     ViewModel.IsConnectivityChecked = true;
                 }
                 catch (Exception ex)
                 {
-                    ex = HandledChatException.Handle(ex);
+                    ex = HandledChatException.Handle(ex, kernelMixin);
                     _logger.LogError(ex, "Failed to validate assistant connectivity");
                     ToastManager
                         .CreateToast(LocaleResolver.WelcomeViewModel_ValidateApiKey_FailedToast_Title)

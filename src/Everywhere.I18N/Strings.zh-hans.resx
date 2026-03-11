@@ -843,7 +843,7 @@
         <value>提供的服务端点无效。</value>
     </data>
     <data name="HandledChatException_EmptyResponse" xml:space="preserve">
-        <value>服务提供商返回了空响应，这可能表示存在网络或服务问题。</value>
+        <value>服务提供商返回了空响应，通常意味着存在网络或服务问题。</value>
     </data>
     <data name="HandledChatException_FeatureNotSupport" xml:space="preserve">
         <value>所选模型不支持所请求的功能。</value>
@@ -881,7 +881,7 @@
     <data name="ChatWindowSettings_AllowRunInBackground_Description" xml:space="preserve">
         <value>开启后，关闭聊天窗口不会终止当前的任务。</value>
     </data>
-    <data name="HandledChatException_OperationCancelled" xml:space="preserve">
+    <data name="HandledChatException_OperationCanceled" xml:space="preserve">
         <value>操作已取消。</value>
     </data>
     <data name="ChatPluginPage_SelectToViewDetails" xml:space="preserve">
@@ -2233,5 +2233,11 @@
     </data>
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>最近一次同步出错</value>
+    </data>
+    <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
+        <value>服务不支持当前所在地区或位置的请求。</value>
+    </data>
+    <data name="HandledChatException_JsonError" xml:space="preserve">
+        <value>解析服务器响应时出错，通常意味着意料之外的 JSON 格式或内容。</value>
     </data>
 </root>

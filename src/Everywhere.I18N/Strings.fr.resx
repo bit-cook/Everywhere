@@ -875,7 +875,7 @@ Mon intelligence est alimentée par un grand modèle de langage, et j'ai besoin 
     <data name="ChatWindowSettings_AllowRunInBackground_Description" xml:space="preserve">
         <value>Lorsqu'elle est activée, la fermeture de la fenêtre de chat ne mettra pas fin à la tâche en cours.</value>
     </data>
-    <data name="HandledChatException_OperationCancelled" xml:space="preserve">
+    <data name="HandledChatException_OperationCanceled" xml:space="preserve">
         <value>Opération annulée.</value>
     </data>
     <data name="ChatPluginPage_SelectToViewDetails" xml:space="preserve">

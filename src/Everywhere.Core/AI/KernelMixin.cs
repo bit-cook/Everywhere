@@ -1,4 +1,5 @@
-﻿using Everywhere.Common;
+﻿using System.Diagnostics.CodeAnalysis;
+using Everywhere.Common;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
@@ -109,6 +110,15 @@ public abstract class KernelMixin(CustomAssistant customAssistant, ModelConnecti
             return;
         }
     }
+
+    /// <summary>
+    /// Transform exceptions thrown by the chat completion service.
+    /// This allows us to convert exceptions from the underlying SDK into HandledChatException with specific types,
+    /// so that the UI can show more user-friendly error messages and take different actions based on the exception type.
+    /// </summary>
+    /// <param name="exception"></param>
+    /// <returns></returns>
+    public virtual Exception TransformChatException(Exception exception) => exception;
 
     public virtual void Dispose()
     {

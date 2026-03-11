@@ -875,7 +875,7 @@
     <data name="ChatWindowSettings_AllowRunInBackground_Description" xml:space="preserve">
         <value>啟用時，關閉聊天窗口不會終止當前任務。</value>
     </data>
-    <data name="HandledChatException_OperationCancelled" xml:space="preserve">
+    <data name="HandledChatException_OperationCanceled" xml:space="preserve">
         <value>操作已取消。</value>
     </data>
     <data name="ChatPluginPage_SelectToViewDetails" xml:space="preserve">

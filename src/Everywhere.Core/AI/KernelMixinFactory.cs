@@ -88,7 +88,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
         // Official mode uses OAuth via the named HttpClient — no user API key needed.
         // Some SDKs require a non-null credential, so we pass null and let each mixin handle it
         // (e.g. OpenAIKernelMixin uses NoneAuthenticationPolicy, others use "official" placeholder).
-        var connection = new ModelConnection(schema, endpoint, ApiKey: null);
+        var connection = new ModelConnection(schema, endpoint, ApiKey: null, null);
         var httpClient = httpClientFactory.CreateClient(nameof(ICloudClient));
 
         return (connection, httpClient);
@@ -112,7 +112,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
                 HandledChatExceptionType.InvalidEndpoint);
 
         var apiKey = Configuration.ApiKey.GetKey(customAssistant.ApiKey);
-        var connection = new ModelConnection(customAssistant.Schema, endpoint, apiKey);
+        var connection = new ModelConnection(customAssistant.Schema, endpoint, apiKey, null);
 
         // Create an HttpClient instance using the factory.
         // It will have the configured settings (timeout and proxy).

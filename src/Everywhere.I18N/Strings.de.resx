@@ -872,7 +872,7 @@ Meine Intelligenz wird von einem großen Sprachmodell bereitgestellt, und ich be
     <data name="ChatWindowSettings_AllowRunInBackground_Description" xml:space="preserve">
         <value>Wenn aktiviert, beendet das Schließen des Chatfensters nicht die aktuelle Aufgabe.</value>
     </data>
-    <data name="HandledChatException_OperationCancelled" xml:space="preserve">
+    <data name="HandledChatException_OperationCanceled" xml:space="preserve">
         <value>Vorgang abgebrochen.</value>
     </data>
     <data name="ChatPluginPage_SelectToViewDetails" xml:space="preserve">
