@@ -80,6 +80,11 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
+    - name: Install Inno Setup
+      shell: pwsh
+      run: |
+        choco install innosetup
+
     - name: Install SimplySignDesktop
       shell: pwsh
       run: |
@@ -128,7 +133,7 @@ jobs:
       run: |
         dotnet publish src/Everywhere.Windows/Everywhere.Windows.csproj -c Release --self-contained true -p:Version="$env:VERSION" -p:SentryDsn="$env:SENTRY_DSN" -o ./publish --no-restore
 
-    - name: Login and Sign
+    - name: Login, Compile, and Sign
       shell: pwsh
       env:
         SIGN_USERNAME: ${{ secrets.CERTUM_USERNAME }}
@@ -136,21 +141,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pyotp
-        python -u tools/sign_windows/sign.py ./publish
-
-    - name: Install Inno Setup
-      shell: pwsh
-      run: |
-        choco install innosetup
-
-    - name: Compile .ISS to .EXE Installer
-      shell: pwsh
-      run: |
-        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "tools/installer.iss" /O+
-        if ($LASTEXITCODE -ne 0) {
-          Write-Error "Inno Setup compilation failed with exit code $LASTEXITCODE"
-          exit $LASTEXITCODE
-        }
+        python -u tools/sign_windows/sign.py ./publish tools/installer.iss
 
     - name: Create release zip
       shell: pwsh
