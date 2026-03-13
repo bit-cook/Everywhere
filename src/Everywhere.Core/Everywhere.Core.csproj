@@ -25,6 +25,8 @@
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="JetBrains.Profiler.Api"/>
     <PackageReference Include="LiveMarkdown.Avalonia"/>
     <PackageReference Include="LiveMarkdown.Avalonia.Math"/>
+    <PackageReference Include="LiveMarkdown.Avalonia.Mermaid" />
+    <PackageReference Include="LiveMarkdown.Avalonia.Svg.Skia" />
     <PackageReference Include="Microsoft.EntityFrameworkCore"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite"/>
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Microsoft.EntityFrameworkCore.Tools">

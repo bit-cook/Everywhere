@@ -9,7 +9,7 @@
     <SentryVersion>6.1.0</SentryVersion>
     <AvaloniaVersion>11.3.12</AvaloniaVersion>
     <AvaloniaEditVersion>11.4.1</AvaloniaEditVersion>
-    <LiveMarkdownVersion>1.7.0</LiveMarkdownVersion>
+    <LiveMarkdownVersion>1.8.0</LiveMarkdownVersion>
     <SkiaSharpVersion>3.119.2</SkiaSharpVersion>
     <XamlBehaviorsVersion>11.3.9.5</XamlBehaviorsVersion>
   </PropertyGroup>
@@ -81,6 +81,8 @@
     <PackageVersion Include="HotAvalonia" Version="3.0.0" />
     <PackageVersion Include="LiveMarkdown.Avalonia" Version="$(LiveMarkdownVersion)" />
     <PackageVersion Include="LiveMarkdown.Avalonia.Math" Version="$(LiveMarkdownVersion)" />
+    <PackageVersion Include="LiveMarkdown.Avalonia.Mermaid" Version="$(LiveMarkdownVersion)-alpha" />
+    <PackageVersion Include="LiveMarkdown.Avalonia.Svg.Skia" Version="$(LiveMarkdownVersion)" />
     <PackageVersion Include="Lucide.Avalonia" Version="0.1.61" />
     <PackageVersion Include="SkiaSharp" Version="$(SkiaSharpVersion)" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="$(SkiaSharpVersion)" />

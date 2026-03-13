@@ -91,6 +91,9 @@ public class App : Application, IRecipient<ApplicationCommand>
         MarkdownNode.Register<MathInlineNode>();
         MarkdownNode.Register<MathBlockNode>();
 
+        MarkdownRenderer.ConfigurePipeline += x => x.UseMermaid();
+        MarkdownNode.Register<MermaidBlockNode>();
+
         try
         {
             foreach (var group in ServiceLocator

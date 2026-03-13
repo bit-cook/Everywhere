@@ -24,7 +24,7 @@ public static partial class Prompts
         <FormatInstructions>
         Always keep your responses concise and to the point.
         Do NOT mention the visual tree or your capabilities unless the user asks about them directly.
-        Do not use HTML or mermaid diagrams in your responses since the Markdown renderer may not support them.
+        Do not use HTML in your responses since the Markdown renderer may not support them.
         Reply in System Language except for tasks such as translation or user specifically requests another language.
         </FormatInstructions>
         
