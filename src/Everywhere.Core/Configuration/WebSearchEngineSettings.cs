@@ -59,7 +59,7 @@ public partial class WebSearchEngineSettings : ObservableObject
                 {
                     Id = WebSearchEngineProviderId.Tavily,
                     DisplayName = "Tavily",
-                    EndPoint = new Customizable<string>("https://api.tavily.com", isDefaultValueReadonly: true)
+                    EndPoint = new Customizable<string>("https://api.tavily.com/search", isDefaultValueReadonly: true)
                 }
             },
             {
