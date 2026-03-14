@@ -260,3 +260,122 @@ public sealed partial class AggregateDynamicResourceKey(IReadOnlyList<IDynamicRe
         return hash.ToHashCode();
     }
 }
+
+[MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
+[MessagePackFormatter(typeof(MessagePackFormatter))]
+public sealed partial class JsonDynamicResourceKey : Dictionary<string, string>, IDynamicResourceKey, IRecipient<LocaleChangedMessage>
+{
+    [JsonIgnore]
+    [IgnoreMember]
+    public IDynamicResourceKey Self => this;
+
+    [IgnoreMember] private readonly Dictionary<int, IObserver<object?>> _observers = new(1); // usually only one subscriber
+
+    /// <summary>
+    /// ZhHantHk -> ["zh-hant-hk", "zh-hant", "zh"]
+    /// En -> ["en"]
+    /// </summary>
+    private static readonly Dictionary<LocaleName, string[]> FallbackCache;
+
+    static JsonDynamicResourceKey()
+    {
+        FallbackCache = new Dictionary<LocaleName, string[]>();
+        foreach (var locale in Enum.GetValues<LocaleName>())
+        {
+            // ZhHantHk -> zh-hant-hk
+            var hyphenated = PascalCaseRegex().Replace(locale.ToString(), "-").ToLowerInvariant();
+            var fallbacks = new List<string> { hyphenated };
+
+            // zh-hant-hk -> zh-hant -> zh
+            var lastHyphen = hyphenated.LastIndexOf('-');
+            while (lastHyphen > 0)
+            {
+                hyphenated = hyphenated[..lastHyphen];
+                fallbacks.Add(hyphenated);
+                lastHyphen = hyphenated.LastIndexOf('-');
+            }
+
+            FallbackCache[locale] = fallbacks.ToArray();
+        }
+    }
+
+    public JsonDynamicResourceKey() { }
+
+    public JsonDynamicResourceKey(int capacity) : base(capacity) { }
+
+    public JsonDynamicResourceKey(IEnumerable<KeyValuePair<string, string>> init) : base(init) { }
+
+    /// <summary>
+    /// Subscribes an observer to receive updates when the locale changes.
+    /// </summary>
+    /// <remarks>
+    /// The Avalonia's implementation of IObservable (GetResourceObservable) has issues which can cause memory leaks.
+    /// It holds strong references to observers, preventing them from being garbage collected.
+    /// This implementation uses weak references to avoid memory leaks.
+    /// Also brings better performance by avoiding unnecessary resource lookups when there are no subscribers.
+    /// </remarks>
+    /// <param name="observer"></param>
+    /// <returns></returns>
+    public IDisposable Subscribe(IObserver<object?> observer)
+    {
+        // Only allow subscription on UI thread
+        Dispatcher.UIThread.VerifyAccess();
+
+        var id = _observers.Count;
+        if (id == 0)
+        {
+            WeakReferenceMessenger.Default.Register(this); // register for locale change messages
+        }
+
+        while (_observers.ContainsKey(id)) id++; // ensure unique id
+
+        _observers.Add(id, observer);
+        observer.OnNext(ToString());
+
+        return Disposable.Create(() =>
+        {
+            _observers.Remove(id);
+            if (_observers.Count == 0)
+            {
+                WeakReferenceMessenger.Default.Unregister<LocaleChangedMessage>(this);
+            }
+        });
+    }
+
+    public void Receive(LocaleChangedMessage message)
+    {
+        foreach (var observer in _observers.Values.AsValueEnumerable())
+        {
+            observer.OnNext(ToString());
+        }
+    }
+
+    public override string? ToString()
+    {
+        // 1. Try match target locales
+        if (FallbackCache.TryGetValue(LocaleManager.CurrentLocale, out var fallbacks))
+        {
+            foreach (var key in fallbacks)
+            {
+                if (TryGetValue(key, out var value))
+                {
+                    return value;
+                }
+            }
+        }
+
+        // 2. Fallback to "en" and first value
+        return TryGetValue("en", out var enValue) ? enValue : Values.FirstOrDefault();
+    }
+
+    [GeneratedRegex(@"(?<=[a-z])(?=[A-Z])")]
+    private static partial Regex PascalCaseRegex();
+
+    public class MessagePackFormatter : DictionaryFormatterBase<string, string, JsonDynamicResourceKey>
+    {
+        protected override JsonDynamicResourceKey Create(int count, MessagePackSerializerOptions options) => new(count);
+
+        protected override void Add(JsonDynamicResourceKey collection, int index, string key, string value, MessagePackSerializerOptions options) =>
+            collection.Add(key, value);
+    }
+}
