@@ -129,14 +129,14 @@ public sealed partial class CustomAssistant : ObservableValidator, IModelDefinit
     [DynamicResourceKey(
         LocaleKey.CustomAssistant_Temperature_Header,
         LocaleKey.CustomAssistant_Temperature_Description)]
-    [SettingsDoubleItem(Min = 0.0, Max = 2.0, Step = 0.1)]
+    [SettingsDoubleItem(Min = 0.0, Max = 2.0, Step = 0.01)]
     public partial Customizable<double> Temperature { get; set; } = 1.0;
 
     [ObservableProperty]
     [DynamicResourceKey(
         LocaleKey.CustomAssistant_TopP_Header,
         LocaleKey.CustomAssistant_TopP_Description)]
-    [SettingsDoubleItem(Min = 0.0, Max = 1.0, Step = 0.1)]
+    [SettingsDoubleItem(Min = 0.0, Max = 1.0, Step = 0.01)]
     public partial Customizable<double> TopP { get; set; } = 0.9;
 
     private readonly OfficialModelProviderConfigurator _officialConfigurator;

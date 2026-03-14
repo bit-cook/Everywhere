@@ -102,7 +102,11 @@
                       <TextBox
                         MinHeight="32" VerticalAlignment="Center"
                         IsVisible="{Binding IsTextBoxVisible}"
-                        Text="{Binding Value, Mode=TwoWay, StringFormat={}{0:F1}, UpdateSourceTrigger=PropertyChanged}"/>
+                        Text="{Binding ValueText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}">
+                        <Interaction.Behaviors>
+                          <LoseFocusOnEnterBehavior/>
+                        </Interaction.Behaviors>
+                      </TextBox>
                     </StackPanel>
                   </DataTemplate>
 

@@ -258,6 +258,52 @@ public class SettingsDoubleItem : SettingsItem
         get => GetValue(IsTextBoxVisibleProperty);
         set => SetValue(IsTextBoxVisibleProperty, value);
     }
+
+    public static readonly DirectProperty<SettingsDoubleItem, string?> ValueTextProperty =
+        AvaloniaProperty.RegisterDirect<SettingsDoubleItem, string?>(
+        nameof(ValueText),
+        o => o.ValueText,
+        (o, v) => o.ValueText = v);
+
+    public string? ValueText
+    {
+        get
+        {
+            // Get the value and use step to determine the number of decimal places to show
+            double value;
+            try
+            {
+                value = Convert.ToDouble(Value);
+            }
+            catch
+            {
+                value = 0d;
+            }
+
+            var step = Step > 0 ? Step : 0.1; // default to 1 decimal places if step is not set
+            var decimalPlaces = (int)Math.Ceiling(-Math.Log10(step));
+            return value.ToString($"F{decimalPlaces}");
+        }
+        set
+        {
+            if (double.TryParse(value, out var result))
+            {
+                Value = Math.Clamp(result, MinValue, MaxValue);
+            }
+
+            RaisePropertyChanged(ValueTextProperty, null, value);
+        }
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == ValueProperty)
+        {
+            RaisePropertyChanged(ValueTextProperty, null, ValueText);
+        }
+    }
 }
 
 public class SettingsSelectionItem : SettingsItem
