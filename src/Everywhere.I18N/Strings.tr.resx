@@ -547,13 +547,7 @@
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>Derin Düşünme Desteği</value>
     </data>
-    <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
-        <value>Sohbetin maksimum bağlam uzunluğu. Bu, görsel bağlam oluşturma stratejisini etkiler, mümkünse gerçek bir değer olarak ayarlayın.</value>
-    </data>
-    <data name="CustomAssistant_ContextLimit_Header" xml:space="preserve">
-        <value>Maksimum Bağlam Uzunluğu (context_limit)</value>
-    </data>
-    <data name="SettingsPage_Reset_Button_ToolTip" xml:space="preserve">
+    <data name="Common_Reset" xml:space="preserve">
         <value>Sıfırla</value>
     </data>
     <data name="CustomAssistant_Schema_Header" xml:space="preserve">
@@ -714,9 +708,6 @@
     </data>
     <data name="WelcomeView_LetsStartButton_Content" xml:space="preserve">
         <value>Hadi Başlayalım!</value>
-    </data>
-    <data name="WelcomeView_SkipButton_Content" xml:space="preserve">
-        <value>Atla</value>
     </data>
     <data name="WelcomeView_PreviousStepButton_Content" xml:space="preserve">
         <value>Önceki adım</value>

@@ -547,13 +547,10 @@
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>Unterstützung für tiefes Denken</value>
     </data>
-    <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
-        <value>Die maximale Kontextlänge des Gesprächs. Dies beeinflusst die Strategie zum Erstellen des visuellen Baums, bitte setze es so realistisch wie möglich.</value>
-    </data>
     <data name="CustomAssistant_ContextLimit_Header" xml:space="preserve">
-        <value>Maximale Kontextlänge (context_limit)</value>
+        <value>Maximale Kontextlänge</value>
     </data>
-    <data name="SettingsPage_Reset_Button_ToolTip" xml:space="preserve">
+    <data name="Common_Reset" xml:space="preserve">
         <value>Standard</value>
     </data>
     <data name="CustomAssistant_Schema_Header" xml:space="preserve">
@@ -714,9 +711,6 @@
     </data>
     <data name="WelcomeView_LetsStartButton_Content" xml:space="preserve">
         <value>Los geht's!</value>
-    </data>
-    <data name="WelcomeView_SkipButton_Content" xml:space="preserve">
-        <value>Überspringen</value>
     </data>
     <data name="WelcomeView_PreviousStepButton_Content" xml:space="preserve">
         <value>Vorheriger Schritt</value>

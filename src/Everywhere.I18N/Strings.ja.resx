@@ -548,13 +548,10 @@
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>深い思考サポート</value>
     </data>
-    <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
-        <value>対話の最大コンテキスト長。これは視覚コンテキストの構築戦略に影響を与えますので、できるだけ実際の値に設定してください。</value>
-    </data>
     <data name="CustomAssistant_ContextLimit_Header" xml:space="preserve">
-        <value>最大コンテキスト長 (context_limit)</value>
+        <value>最大コンテキスト長</value>
     </data>
-    <data name="SettingsPage_Reset_Button_ToolTip" xml:space="preserve">
+    <data name="Common_Reset" xml:space="preserve">
         <value>リセット</value>
     </data>
     <data name="CustomAssistant_Schema_Header" xml:space="preserve">
@@ -717,9 +714,6 @@
     </data>
     <data name="WelcomeView_LetsStartButton_Content" xml:space="preserve">
         <value>始めましょう！</value>
-    </data>
-    <data name="WelcomeView_SkipButton_Content" xml:space="preserve">
-        <value>スキップ</value>
     </data>
     <data name="WelcomeView_PreviousStepButton_Content" xml:space="preserve">
         <value>前のステップ</value>

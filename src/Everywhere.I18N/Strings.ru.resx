@@ -548,13 +548,7 @@
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>Поддержка глубокого мышления</value>
     </data>
-    <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
-        <value>Максимальная длина контекста диалога. Это влияет на стратегию построения визуального контекста, пожалуйста, установите максимально возможное значение.</value>
-    </data>
-    <data name="CustomAssistant_ContextLimit_Header" xml:space="preserve">
-        <value>Максимальная длина контекста (context_limit)</value>
-    </data>
-    <data name="SettingsPage_Reset_Button_ToolTip" xml:space="preserve">
+    <data name="Common_Reset" xml:space="preserve">
         <value>Сброс</value>
     </data>
     <data name="CustomAssistant_Schema_Header" xml:space="preserve">
@@ -717,9 +711,6 @@
     </data>
     <data name="WelcomeView_LetsStartButton_Content" xml:space="preserve">
         <value>Начнем!</value>
-    </data>
-    <data name="WelcomeView_SkipButton_Content" xml:space="preserve">
-        <value>Пропустить</value>
     </data>
     <data name="WelcomeView_PreviousStepButton_Content" xml:space="preserve">
         <value>Предыдущий шаг</value>

@@ -1,11 +1,12 @@
-﻿using MessagePack;
+﻿using Everywhere.I18N;
+using MessagePack;
 
 namespace Everywhere.AI;
 
 /// <summary>
 /// Defines the properties of an AI model.
 /// </summary>
-[MessagePackObject(OnlyIncludeKeyedMembers = true)]
+[MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
 public sealed partial record ModelDefinitionTemplate : IModelDefinition
 {
     [Key(0)]
@@ -40,6 +41,12 @@ public sealed partial record ModelDefinitionTemplate : IModelDefinition
 
     [Key(10)]
     public required int OutputLimit { get; init; }
+
+    [Key(11)]
+    public string? IconUrl { get; init; }
+
+    [Key(12)]
+    public IDynamicResourceKey? DescriptionKey { get; init; }
 
     /// <summary>
     /// Gets or sets the default model in a model provider.

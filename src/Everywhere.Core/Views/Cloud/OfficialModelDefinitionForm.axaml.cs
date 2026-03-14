@@ -33,11 +33,14 @@ public partial class OfficialModelDefinitionForm : TemplatedControl
         }
     }
 
+    public ICloudClient CloudClient { get; }
+
     private readonly IOfficialModelProvider _officialModelProvider;
     private readonly CustomAssistant _customAssistant;
 
     public OfficialModelDefinitionForm(IServiceProvider serviceProvider, CustomAssistant customAssistant)
     {
+        CloudClient = serviceProvider.GetRequiredService<ICloudClient>();
         _officialModelProvider = serviceProvider.GetRequiredService<IOfficialModelProvider>();
         _customAssistant = customAssistant;
 

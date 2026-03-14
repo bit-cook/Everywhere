@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop"/>
-    <PackageReference Include="HotAvalonia" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="HotAvalonia"/>
     <PackageReference Include="Microsoft.Windows.CsWin32">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\3rd\EverythingNetCore\EverythingNet\EverythingNet.csproj"/>
-    <ProjectReference Include="..\Everywhere.Cloud\Everywhere.Cloud.csproj" />
+    <ProjectReference Include="..\Everywhere.Cloud\Everywhere.Cloud.csproj"/>
     <ProjectReference Include="..\Everywhere.Core\Everywhere.Core.csproj"/>
     <ProjectReference Include="..\Everywhere.Windows.PowerShell\Everywhere.Windows.PowerShell.csproj"/>
   </ItemGroup>
@@ -49,12 +49,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Assets\Icons\Everything.svg" />
-    <AvaloniaResource Include="Assets\Icons\Everything.svg" />
-    <None Remove="Assets\Icons\PowerShell.svg" />
-    <AvaloniaResource Include="Assets\Icons\PowerShell.svg" />
-    <None Remove="Assets\Icons\Windows11.svg" />
-    <AvaloniaResource Include="Assets\Icons\Windows11.svg" />
+    <None Remove="Assets\Icons\Everything.svg"/>
+    <AvaloniaResource Include="Assets\Icons\Everything.svg"/>
+    <None Remove="Assets\Icons\PowerShell.svg"/>
+    <AvaloniaResource Include="Assets\Icons\PowerShell.svg"/>
+    <None Remove="Assets\Icons\Windows11.svg"/>
+    <AvaloniaResource Include="Assets\Icons\Windows11.svg"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -116,9 +116,9 @@
 
   <Target Name="RunDeleteAfterPublishScript"
           AfterTargets="Publish">
-    <Message Text="Pruning publish output via $(DeleteAfterPublishScript) on $(DeleteAfterPublishOutputEscaped)" Importance="High" />
+    <Message Text="Pruning publish output via $(DeleteAfterPublishScript) on $(DeleteAfterPublishOutputEscaped)" Importance="High"/>
     <Exec WorkingDirectory="$(MSBuildProjectDirectory)"
-          Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(DeleteAfterPublishScript)&quot; -PublishDir &quot;$(PublishDir)\&quot; -PruneListFile &quot;$(DeleteAfterPublishList)&quot;" />
+          Command="pwsh -NoProfile -ExecutionPolicy Bypass -File &quot;$(DeleteAfterPublishScript)&quot; -PublishDir &quot;$(PublishDir)\&quot; -PruneListFile &quot;$(DeleteAfterPublishList)&quot;"/>
   </Target>
 
 </Project>

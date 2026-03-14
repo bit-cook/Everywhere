@@ -548,13 +548,7 @@
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>Soporte de Pensamiento Profundo</value>
     </data>
-    <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
-        <value>La longitud máxima del contexto de la conversación. Esto afectará la estrategia para construir el árbol visual, por favor configúralo con un valor real si es posible.</value>
-    </data>
-    <data name="CustomAssistant_ContextLimit_Header" xml:space="preserve">
-        <value>Longitud Máxima del Contexto (context_limit)</value>
-    </data>
-    <data name="SettingsPage_Reset_Button_ToolTip" xml:space="preserve">
+    <data name="Common_Reset" xml:space="preserve">
         <value>Restablecer</value>
     </data>
     <data name="CustomAssistant_Schema_Header" xml:space="preserve">
@@ -717,9 +711,6 @@ Consejo: Puedes reabrir este mensaje haciendo clic en “Acerca de - Novedades�
     </data>
     <data name="WelcomeView_LetsStartButton_Content" xml:space="preserve">
         <value>¡Empecemos!</value>
-    </data>
-    <data name="WelcomeView_SkipButton_Content" xml:space="preserve">
-        <value>Omitir</value>
     </data>
     <data name="WelcomeView_PreviousStepButton_Content" xml:space="preserve">
         <value>Paso anterior</value>

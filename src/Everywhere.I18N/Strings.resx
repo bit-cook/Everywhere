@@ -555,12 +555,12 @@
         <value>Deep Thinking Support</value>
     </data>
     <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
-        <value>The maximum context length for the conversation. This will affect the strategy for building the visual tree, so please set it to a realistic value.</value>
+        <value />
     </data>
     <data name="CustomAssistant_ContextLimit_Header" xml:space="preserve">
-        <value>Maximum Context Length (context_limit)</value>
+        <value>Context Length</value>
     </data>
-    <data name="SettingsPage_Reset_Button_ToolTip" xml:space="preserve">
+    <data name="Common_Reset" xml:space="preserve">
         <value>Reset</value>
     </data>
     <data name="CustomAssistant_Schema_Header" xml:space="preserve">
@@ -725,7 +725,7 @@ Tip: You can reopen this message by clicking “About - What's new”.</value>
         <value>Let's start!</value>
     </data>
     <data name="WelcomeView_SkipButton_Content" xml:space="preserve">
-        <value>Skip</value>
+        <value />
     </data>
     <data name="WelcomeView_PreviousStepButton_Content" xml:space="preserve">
         <value>Previous step</value>
@@ -2231,10 +2231,40 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value />
     </data>
+    <data name="WelcomeView_SoftLoginStep_Message1" xml:space="preserve">
+        <value />
+    </data>
+    <data name="WelcomeView_SoftLoginStep_Message2" xml:space="preserve">
+        <value />
+    </data>
+    <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
+        <value />
+    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>Service does not support requests from current region or location.</value>
     </data>
     <data name="HandledChatException_JsonError" xml:space="preserve">
         <value>An error occurred while parsing the response from the service, indicating an unexpected JSON format or content.</value>
+    </data>
+    <data name="Common_Refresh" xml:space="preserve">
+        <value />
+    </data>
+    <data name="CustomAssistant_OutputModalities_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="CustomAssistant_ReleaseDate_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="CustomAssistant_KnowledgeCutoff_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="CustomAssistant_InputPrice_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="CustomAssistant_OutputPrice_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="OfficialModelDefinitionForm_TotalContextLimitRun_Text" xml:space="preserve">
+        <value />
     </data>
 </root>

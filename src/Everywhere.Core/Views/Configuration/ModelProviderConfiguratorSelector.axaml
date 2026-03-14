@@ -11,6 +11,8 @@
           <ListBox
             x:Name="PART_ListBox"
             Width="{Binding $parent[DockPanel].Bounds.Width}"
+            Background="{DynamicResource CardBackgroundColor}"
+            CornerRadius="{DynamicResource XlCornerRadius}"
             ItemsSource="{Binding ConfiguratorModels, RelativeSource={RelativeSource TemplatedParent}}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled"
             SelectedValue="{Binding CustomAssistant.ConfiguratorType, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
@@ -28,6 +30,7 @@
                 TargetType="ListBoxItem">
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                <Setter Property="CornerRadius" Value="{DynamicResource LgCornerRadius}"/>
               </ControlTheme>
             </ListBox.ItemContainerTheme>
 
@@ -36,7 +39,7 @@
                 <Panel>
                   <Border
                     Margin="-12,-8"
-                    CornerRadius="{DynamicResource MdCornerRadius}">
+                    CornerRadius="{DynamicResource LgCornerRadius}">
                     <Border.Background>
                       <ConicGradientBrush Center="100%,-50%">
                         <GradientStop Offset="0.5" Color="#FF4EADFC"/>

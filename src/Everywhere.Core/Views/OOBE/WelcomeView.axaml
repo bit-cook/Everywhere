@@ -25,8 +25,7 @@
     <TransitioningContentControl
       Grid.Row="1" Grid.Column="1"
       Margin="0,8,24,0"
-      Content="{Binding CurrentStep}"
-      IsTransitionReversed="{Binding IsPageTransitionReversed}">
+      Content="{Binding CurrentStep}">
       <TransitioningContentControl.Styles>
         <Style Selector="ListBox.AssistantMessage">
           <Style Selector="^ TextBlock">
@@ -51,6 +50,7 @@
               </ItemsPanelTemplate>
             </Setter.Value>
           </Setter>
+
           <Setter Property="ItemContainerTheme">
             <Setter.Value>
               <ControlTheme TargetType="ListBoxItem">
@@ -61,18 +61,27 @@
                     </BehaviorCollection>
                   </BehaviorCollectionTemplate>
                 </Setter>
-                <Setter Property="IsVisible" Value="{ReflectionBinding $self.Content.(Visual.IsVisible), FallbackValue=True}"/>
+                <Setter Property="IsVisible" Value="{Binding $self.Content.(Visual.IsVisible), FallbackValue=True}"/>
                 <Setter Property="Template">
                   <Setter.Value>
                     <ControlTemplate>
-                      <Border
-                        Padding="10,6" HorizontalAlignment="Left"
-                        Background="{DynamicResource BorderColor}"
-                        CornerRadius="8">
-                        <ContentControl
-                          ClipToBounds="False"
-                          Content="{TemplateBinding Content}"/>
-                      </Border>
+                      <ContentControl
+                        ClipToBounds="False"
+                        Content="{TemplateBinding Content}">
+                        <ContentControl.DataTemplates>
+                          <DataTemplate x:DataType="TextBlock">
+                            <Border
+                              Padding="10,6" HorizontalAlignment="Left"
+                              Background="{DynamicResource BorderColor}"
+                              CornerRadius="8">
+                              <ContentPresenter
+                                ClipToBounds="False"
+                                Content="{Binding}"/>
+                            </Border>
+                          </DataTemplate>
+
+                        </ContentControl.DataTemplates>
+                      </ContentControl>
                     </ControlTemplate>
                   </Setter.Value>
                 </Setter>
@@ -126,9 +135,24 @@
 
         <DataTemplate DataType="vm:WelcomeViewModelSoftLoginStep">
           <ListBox Classes="AssistantMessage">
-            <TextBlock Text="Soft_1"/>
-            <TextBlock Text="Soft_2"/>
-            <Button Command="{Binding LoginCommand}" Content="This is a login button"></Button>
+            <TextBlock Text="{I18N {x:Static LocaleKey.UserProfilePresenter_LoginToCloudTextBlock_Text}}"/>
+            <TextBlock Text="{I18N {x:Static LocaleKey.UserProfilePresenter_CloudDescriptionTextBlock_Text}}"/>
+
+            <Panel>
+              <Button
+                Classes="Primary" HorizontalAlignment="Stretch"
+                shadui:ButtonAssist.Icon="{LucideIconContent LogIn}"
+                Command="{Binding LoginCommand}"
+                Content="{I18N {x:Static LocaleKey.UserProfilePresenter_LoginButton_Content}}"
+                IsVisible="{Binding !LoginCommand.IsRunning}"/>
+              <Button
+                Classes="Secondary" HorizontalAlignment="Stretch"
+                shadui:ButtonAssist.Icon="{LucideIconContent LogIn}"
+                shadui:ButtonAssist.ShowProgress="True"
+                Command="{Binding LoginCommand.Cancel}"
+                Content="{I18N {x:Static LocaleKey.UserProfilePresenter_CancelLoginButton_Content}}"
+                IsVisible="{Binding LoginCommand.IsRunning}"/>
+            </Panel>
           </ListBox>
         </DataTemplate>
 
@@ -146,7 +170,9 @@
           <ListBox Classes="AssistantMessage">
             <TextBlock Text="Hard_1"/>
             <TextBlock Text="Hard_2"/>
-            <Button Command="{Binding LoginCommand}" Content="This is a login button"></Button>
+            <Button
+              Command="{Binding LoginCommand}"
+              Content="This is a login button"/>
           </ListBox>
         </DataTemplate>
 
@@ -209,7 +235,8 @@
     <TransitioningContentControl
       Grid.Row="2" Grid.Column="0"
       Grid.ColumnSpan="2" Margin="32,8,32,0"
-      Content="{Binding CurrentStep}">
+      Content="{Binding CurrentStep}"
+      IsTransitionReversed="{Binding IsPageTransitionReversed}">
       <TransitioningContentControl.PageTransition>
         <CompositePageTransition>
           <PageSlide
@@ -233,11 +260,11 @@
             <Button
               Classes="Secondary" Grid.Column="0"
               Command="{Binding ViewModel.MoveNextCommand}"
-              Content="Soft_Skip_Next"/>
+              Content="{I18N {x:Static LocaleKey.WelcomeView_SoftLoginStep_SkipButton_Content}}"/>
             <Button
               Classes="Primary" Grid.Column="1"
               Command="{Binding ViewModel.MoveNextCommand}"
-              Content="Soft_Login_Next"
+              Content="{I18N {x:Static LocaleKey.WelcomeView_NextStepButton_Content}}"
               IsEnabled="{Binding ViewModel.CloudClient.CurrentUser, Converter={x:Static ObjectConverters.IsNotNull}}"/>
           </Grid>
         </DataTemplate>

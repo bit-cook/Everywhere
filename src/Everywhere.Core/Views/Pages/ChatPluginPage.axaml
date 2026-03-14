@@ -140,42 +140,33 @@
       <TabControl>
         <TabControl.Template>
           <ControlTemplate TargetType="TabControl">
-            <Border
-              HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
-              VerticalAlignment="{TemplateBinding VerticalAlignment}"
-              Background="{TemplateBinding Background}"
-              BorderBrush="{TemplateBinding BorderBrush}"
-              BorderThickness="{TemplateBinding BorderThickness}"
-              CornerRadius="{TemplateBinding CornerRadius}">
-              <Grid
-                RowDefinitions="Auto,*" RowSpacing="8">
-                <DockPanel
-                  Grid.Row="0" HorizontalSpacing="8"
-                  LastChildFill="True">
-                  <LayoutTransformControl
-                    Name="LayoutTransform"
-                    DockPanel.Dock="{TemplateBinding TabStripPlacement}"
-                    HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
-                    <Border
-                      Padding="2,4,2,0" HorizontalAlignment="Left"
-                      Background="{DynamicResource CardBackgroundColor}"
-                      CornerRadius="{DynamicResource LgCornerRadius}">
-                      <ItemsPresenter
-                        Name="PART_ItemsPresenter"
-                        ItemsPanel="{TemplateBinding ItemsPanel}"/>
-                    </Border>
-                  </LayoutTransformControl>
-                </DockPanel>
+            <Grid
+              RowDefinitions="Auto,*" RowSpacing="8">
+              <DockPanel
+                Grid.Row="0" HorizontalSpacing="8"
+                LastChildFill="True">
+                <LayoutTransformControl
+                  Name="LayoutTransform" DockPanel.Dock="Top"
+                  HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
+                  <Border
+                    Padding="2,4,2,0" HorizontalAlignment="Left"
+                    Background="{DynamicResource CardBackgroundColor}"
+                    CornerRadius="{DynamicResource LgCornerRadius}">
+                    <ItemsPresenter
+                      Name="PART_ItemsPresenter"
+                      ItemsPanel="{TemplateBinding ItemsPanel}"/>
+                  </Border>
+                </LayoutTransformControl>
+              </DockPanel>
 
-                <ContentPresenter
-                  Name="PART_SelectedContentHost" Grid.Row="1"
-                  Margin="0,4,0,0"
-                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                  Content="{TemplateBinding SelectedContent}"
-                  ContentTemplate="{TemplateBinding SelectedContentTemplate}"/>
-              </Grid>
-            </Border>
+              <ContentPresenter
+                Name="PART_SelectedContentHost" Grid.Row="1"
+                Margin="0,4,0,0"
+                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                Content="{TemplateBinding SelectedContent}"
+                ContentTemplate="{TemplateBinding SelectedContentTemplate}"/>
+            </Grid>
           </ControlTemplate>
         </TabControl.Template>
 

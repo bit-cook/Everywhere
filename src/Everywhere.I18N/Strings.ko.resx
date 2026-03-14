@@ -548,13 +548,7 @@
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>심층 사고 지원</value>
     </data>
-    <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
-        <value>대화의 최대 맥락 길이. 이 항목은 시각적 맥락을 구축하는 전략에 영향을 미치므로 가능한 실제 값으로 설정하십시오.</value>
-    </data>
-    <data name="CustomAssistant_ContextLimit_Header" xml:space="preserve">
-        <value>최대 컨텍스트 길이 (context_limit)</value>
-    </data>
-    <data name="SettingsPage_Reset_Button_ToolTip" xml:space="preserve">
+    <data name="Common_Reset" xml:space="preserve">
         <value>초기화</value>
     </data>
     <data name="CustomAssistant_Schema_Header" xml:space="preserve">
@@ -717,9 +711,6 @@
     </data>
     <data name="WelcomeView_LetsStartButton_Content" xml:space="preserve">
         <value>시작합시다!</value>
-    </data>
-    <data name="WelcomeView_SkipButton_Content" xml:space="preserve">
-        <value>건너뛰기</value>
     </data>
     <data name="WelcomeView_PreviousStepButton_Content" xml:space="preserve">
         <value>이전 단계</value>

@@ -537,7 +537,7 @@
         <value>如果是在线模型，需要从对应的官方获取，详情请参考指南。</value>
     </data>
     <data name="CustomAssistant_InputModalities_Header" xml:space="preserve">
-        <value>模型输入模态</value>
+        <value>输入模态</value>
     </data>
     <data name="CustomAssistant_InputModalities_Description" xml:space="preserve">
         <value>模型支持的输入模态，选择错误可能导致调用失败。</value>
@@ -555,12 +555,12 @@
         <value>支持深度思考</value>
     </data>
     <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
-        <value>对话的最大上下文长度。此项会影响构建视觉上下文的策略，请尽可能设为真实值。</value>
+        <value>对话的最大上下文长度 (context_limit)。此项会影响构建视觉上下文的策略，请尽可能设为真实值。</value>
     </data>
     <data name="CustomAssistant_ContextLimit_Header" xml:space="preserve">
-        <value>最大上下文长度 (context_limit)</value>
+        <value>最大上下文</value>
     </data>
-    <data name="SettingsPage_Reset_Button_ToolTip" xml:space="preserve">
+    <data name="Common_Reset" xml:space="preserve">
         <value>重置</value>
     </data>
     <data name="CustomAssistant_Schema_Header" xml:space="preserve">
@@ -725,7 +725,7 @@
         <value>让我们开始吧！</value>
     </data>
     <data name="WelcomeView_SkipButton_Content" xml:space="preserve">
-        <value>跳过</value>
+        <value>跳过全部引导</value>
     </data>
     <data name="WelcomeView_PreviousStepButton_Content" xml:space="preserve">
         <value>上一步</value>
@@ -2140,14 +2140,13 @@
         <value>读取屏幕上窗口或元素的视觉树。</value>
     </data>
     <data name="UserProfilePresenter_CloudDescriptionTextBlock_Text" xml:space="preserve">
-        <value>注册即享免费积分，获得开箱即用的官方模型。更有云同步等功能持续上线中……</value>
+        <value>注册即享免费积分，获得开箱即用的主流模型。更有云同步等功能持续上线中……</value>
     </data>
     <data name="UserProfilePresenter_LoginButton_Content" xml:space="preserve">
         <value>登录</value>
     </data>
     <data name="UserProfilePresenter_LoginToCloudTextBlock_Text" xml:space="preserve">
-        <value>登录 Everywhere 云服务
-</value>
+        <value>登录 Everywhere 云服务</value>
     </data>
     <data name="UserProfilePresenter_LogoutButton_Content" xml:space="preserve">
         <value>退出登录</value>
@@ -2190,13 +2189,13 @@
         <value>视频</value>
     </data>
     <data name="CustomAssistant_OutputLimit_Header" xml:space="preserve">
-        <value>最大输出长度 (output_limit)</value>
+        <value>最大输出长度</value>
     </data>
     <data name="CustomAssistant_OutputLimit_Description" xml:space="preserve">
-        <value>对话的最大上下文长度。此项会影响模型请求的参数（尤其是 Anthropic），请尽可能设为真实值。</value>
+        <value>对话的最大输出长度 (output_limit)。此项会影响模型请求的参数（尤其是 Anthropic），请尽可能设为真实值。</value>
     </data>
     <data name="UserProfilePresenter_CancelLoginButton_Content" xml:space="preserve">
-        <value>登录中</value>
+        <value>请在浏览器继续</value>
     </data>
     <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
         <value>{0} 续订并重置订阅积分</value>
@@ -2234,10 +2233,34 @@
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>最近一次同步出错</value>
     </data>
+    <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
+        <value>不用了</value>
+    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>服务不支持当前所在地区或位置的请求。</value>
     </data>
     <data name="HandledChatException_JsonError" xml:space="preserve">
         <value>解析服务器响应时出错，通常意味着意料之外的 JSON 格式或内容。</value>
+    </data>
+    <data name="Common_Refresh" xml:space="preserve">
+        <value>刷新</value>
+    </data>
+    <data name="CustomAssistant_OutputModalities_Header" xml:space="preserve">
+        <value>输出模态</value>
+    </data>
+    <data name="CustomAssistant_ReleaseDate_Header" xml:space="preserve">
+        <value>发布日期</value>
+    </data>
+    <data name="CustomAssistant_KnowledgeCutoff_Header" xml:space="preserve">
+        <value>知识截止日期</value>
+    </data>
+    <data name="CustomAssistant_InputPrice_Header" xml:space="preserve">
+        <value>输入价格</value>
+    </data>
+    <data name="CustomAssistant_OutputPrice_Header" xml:space="preserve">
+        <value>输出价格</value>
+    </data>
+    <data name="OfficialModelDefinitionForm_TotalContextLimitRun_Text" xml:space="preserve">
+        <value>总上下文长度</value>
     </data>
 </root>

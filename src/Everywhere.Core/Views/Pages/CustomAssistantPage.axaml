@@ -7,22 +7,22 @@
   <shadui:NavigationView
     MaxWidth="1600"
     PageTransition="{x:Null}"
-    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+    PaneWidth="240" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
     SelectedItem="{Binding SelectedCustomAssistant, Mode=TwoWay}">
     <shadui:NavigationView.PaneHeader>
       <DockPanel Margin="0,0,0,8">
-        <TextBlock
-          Classes="h4" DockPanel.Dock="Left"
-          VerticalAlignment="Center"
-          Text="{I18N {x:Static LocaleKey.CustomAssistantPage_Title}}"/>
-
         <Button
-          Classes="Secondary" HorizontalAlignment="Right"
+          Classes="Secondary" DockPanel.Dock="Right"
           VerticalAlignment="Center"
           shadui:ButtonAssist.Icon="{LucideIconContent Plus}"
           Command="{Binding CreateNewCustomAssistantCommand}"
           Content="{I18N {x:Static LocaleKey.CustomAssistantPage_CreateNewCustomAssistantButton_Content}}"
           ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistantPage_CreateNewCustomAssistantButton_ToolTip}}"/>
+
+        <TextBlock
+          Classes="h4" VerticalAlignment="Center"
+          Text="{I18N {x:Static LocaleKey.CustomAssistantPage_Title}}"
+          TextTrimming="CharacterEllipsis"/>
       </DockPanel>
     </shadui:NavigationView.PaneHeader>
 
