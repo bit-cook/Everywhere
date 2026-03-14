@@ -10,7 +10,6 @@ public static class Patcher
     {
         var harmony = new Harmony("com.sylinko.everywhere");
         TextLeadingPrefixCharacterEllipsis_Collapse.Patch(harmony);
-        Grid_MeasureCellsGroup.Patch(harmony);
         ChatResponseUpdateExtensions_ToStreamingChatMessageContent.Patch(harmony);
     }
 }
