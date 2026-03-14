@@ -2,8 +2,9 @@
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:aai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions" xmlns:c="clr-namespace:Everywhere.Configuration"
   xmlns:common="clr-namespace:Everywhere.Common" xmlns:interop="clr-namespace:Everywhere.Interop"
-  xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:plugins="clr-namespace:Everywhere.Chat.Plugins"
-  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="clr-namespace:Everywhere.Views">
+  xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:mdSkia="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia.Svg.Skia"
+  xmlns:plugins="clr-namespace:Everywhere.Chat.Plugins" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
+  xmlns:v="clr-namespace:Everywhere.Views">
   <DataTemplate
     x:Key="{x:Type aai:ModelProviderTemplate}"
     x:DataType="aai:ModelProviderTemplate">
@@ -16,7 +17,8 @@
               Width="{DynamicResource FontSizeXl}"
               Height="{DynamicResource FontSizeXl}"
               md:AsyncImageLoader.SizeToContent="Manual"
-              md:AsyncImageLoader.Source="{Binding DarkIconUrl, FallbackValue={x:Null}}"/>
+              md:AsyncImageLoader.Source="{Binding DarkIconUrl, FallbackValue={x:Null}}"
+              mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"/>
           </ControlTemplate>
         </shadui:ThemeToggleBlock.DarkContent>
         <shadui:ThemeToggleBlock.LightContent>
@@ -25,7 +27,8 @@
               Width="{DynamicResource FontSizeXl}"
               Height="{DynamicResource FontSizeXl}"
               md:AsyncImageLoader.SizeToContent="Manual"
-              md:AsyncImageLoader.Source="{Binding LightIconUrl, FallbackValue={x:Null}}"/>
+              md:AsyncImageLoader.Source="{Binding LightIconUrl, FallbackValue={x:Null}}"
+              mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"/>
           </ControlTemplate>
         </shadui:ThemeToggleBlock.LightContent>
       </shadui:ThemeToggleBlock>
