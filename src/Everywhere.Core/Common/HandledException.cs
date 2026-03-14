@@ -22,7 +22,7 @@ public class HandledException : Exception
     /// <summary>
     /// Gets the key for a localized, user-friendly error message.
     /// </summary>
-    public virtual DynamicResourceKeyBase FriendlyMessageKey { get; }
+    public virtual IDynamicResourceKey FriendlyMessageKey { get; }
 
     /// <summary>
     /// Gets a value indicating whether the error is a general, non-technical error that can be shown to the user.
@@ -47,7 +47,7 @@ public class HandledException : Exception
 
     public HandledException(
         Exception originalException,
-        DynamicResourceKeyBase friendlyMessageKey,
+        IDynamicResourceKey friendlyMessageKey,
         bool isExpected = true,
         bool showDetails = true
     ) : base(null, originalException)
@@ -278,7 +278,7 @@ public class HandledSystemException : HandledException
     public HandledSystemException(
         Exception originalException,
         HandledSystemExceptionType type,
-        DynamicResourceKeyBase? customFriendlyMessageKey = null,
+        IDynamicResourceKey? customFriendlyMessageKey = null,
         bool isExpected = true
     ) : base(
         originalException,
@@ -717,7 +717,7 @@ public class HandledChatException(
     /// </summary>
     public override bool IsExpected => ExceptionType != HandledChatExceptionType.Unknown;
 
-    public override DynamicResourceKeyBase FriendlyMessageKey { get; } = new AggregateDynamicResourceKey(
+    public override IDynamicResourceKey FriendlyMessageKey { get; } = new AggregateDynamicResourceKey(
         [
             customFriendlyMessageKey ?? new DynamicResourceKey(
                 type switch
@@ -1136,7 +1136,7 @@ public sealed partial class HandledFunctionInvokingException : HandledSystemExce
         Exception originalException,
         HandledFunctionInvokingExceptionType subType,
         HandledSystemExceptionType type,
-        DynamicResourceKeyBase? customFriendlyMessageKey = null,
+        IDynamicResourceKey? customFriendlyMessageKey = null,
         bool isExpected = true) : base(originalException, type, customFriendlyMessageKey, isExpected)
     {
         SubExceptionType = subType;
@@ -1146,7 +1146,7 @@ public sealed partial class HandledFunctionInvokingException : HandledSystemExce
         HandledFunctionInvokingExceptionType type,
         string name,
         Exception? customException = null,
-        DynamicResourceKeyBase? customFriendlyMessageKey = null) : this(
+        IDynamicResourceKey? customFriendlyMessageKey = null) : this(
         customException ?? MakeException(type, name),
         type,
         HandledSystemExceptionType.FunctionInvoking,

@@ -17,14 +17,14 @@ public class ModelProviderConfiguratorSelector : TemplatedControl
 
     public record ConfiguratorModel(
         ModelProviderConfiguratorType Type,
-        DynamicResourceKeyBase HeaderKey,
-        DynamicResourceKeyBase DescriptionKey
+        IDynamicResourceKey HeaderKey,
+        IDynamicResourceKey DescriptionKey
     );
 
     public sealed record OfficialConfiguratorModel(
         ModelProviderConfiguratorType Type,
-        DynamicResourceKeyBase HeaderKey,
-        DynamicResourceKeyBase DescriptionKey
+        IDynamicResourceKey HeaderKey,
+        IDynamicResourceKey DescriptionKey
     ) : ConfiguratorModel(Type, HeaderKey, DescriptionKey);
 
     public IReadOnlyList<ConfiguratorModel> ConfiguratorModels { get; } =

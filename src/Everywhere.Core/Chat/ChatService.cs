@@ -1066,7 +1066,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
     public async Task<bool> RequestConsentAsync(
         string? id,
-        DynamicResourceKeyBase headerKey,
+        IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content = null,
         CancellationToken cancellationToken = default)
     {
@@ -1132,7 +1132,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         }
     }
 
-    public Task<string> RequestInputAsync(DynamicResourceKeyBase message, CancellationToken cancellationToken = default)
+    public Task<string> RequestInputAsync(IDynamicResourceKey message, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

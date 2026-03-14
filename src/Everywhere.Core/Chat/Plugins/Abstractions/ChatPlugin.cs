@@ -19,10 +19,10 @@ public abstract partial class ChatPlugin : KernelPlugin, IDisposable
     public abstract string Key { get; }
 
     [JsonIgnore]
-    public abstract DynamicResourceKeyBase HeaderKey { get; }
+    public abstract IDynamicResourceKey HeaderKey { get; }
 
     [JsonIgnore]
-    public abstract DynamicResourceKeyBase DescriptionKey { get; }
+    public abstract IDynamicResourceKey DescriptionKey { get; }
 
     [JsonIgnore]
     public virtual LucideIconKind? Icon => null;

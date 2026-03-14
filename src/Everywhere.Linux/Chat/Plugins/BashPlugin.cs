@@ -14,9 +14,9 @@ namespace Everywhere.Linux.Chat.Plugins;
 
 public class BashPlugin : BuiltInChatPlugin
 {
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_Bash_Header);
+    public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_Bash_Header);
 
-    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_Bash_Description);
+    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_Bash_Description);
 
     public override LucideIconKind? Icon => LucideIconKind.SquareTerminal;
 

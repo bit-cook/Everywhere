@@ -18,9 +18,9 @@ namespace Everywhere.Windows.Chat.Plugins;
 
 public class PowerShellPlugin : BuiltInChatPlugin
 {
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_Header);
+    public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_Header);
 
-    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_Description);
+    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_Description);
 
     public override LucideIconKind? Icon => LucideIconKind.SquareTerminal;
 

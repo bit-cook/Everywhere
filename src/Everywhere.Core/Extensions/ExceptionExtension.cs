@@ -12,7 +12,7 @@ public static class ExceptionExtension
     /// 将Exception转换为用户友好的消息
     /// </summary>
     /// <returns></returns>
-    public static DynamicResourceKeyBase GetFriendlyMessage(this Exception e)
+    public static IDynamicResourceKey GetFriendlyMessage(this Exception e)
     {
         switch (e)
         {
@@ -36,7 +36,7 @@ public static class ExceptionExtension
                 var innerMessages = ae
                     .InnerExceptions
                     .AsValueEnumerable()
-                    .Select(DynamicResourceKeyBase (i) => i.GetFriendlyMessage())
+                    .Select(IDynamicResourceKey (i) => i.GetFriendlyMessage())
                     .Distinct()
                     .ToList();
 

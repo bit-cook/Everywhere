@@ -14,9 +14,9 @@ namespace Everywhere.Chat.Plugins;
     DynamicallyAccessedMemberTypes.PublicProperties)]
 public abstract partial class ChatFunction : ObservableObject
 {
-    public virtual DynamicResourceKeyBase HeaderKey => new DirectResourceKey(KernelFunction.Name);
+    public virtual IDynamicResourceKey HeaderKey => new DirectResourceKey(KernelFunction.Name);
 
-    public virtual DynamicResourceKeyBase DescriptionKey => new DirectResourceKey(KernelFunction.Description);
+    public virtual IDynamicResourceKey DescriptionKey => new DirectResourceKey(KernelFunction.Description);
 
     public LucideIconKind? Icon { get; set; }
 
@@ -50,9 +50,9 @@ public abstract partial class ChatFunction : ObservableObject
 
 public sealed class NativeChatFunction : ChatFunction
 {
-    public override DynamicResourceKeyBase HeaderKey { get; }
+    public override IDynamicResourceKey HeaderKey { get; }
 
-    public override DynamicResourceKeyBase DescriptionKey => _descriptionKey ?? base.DescriptionKey;
+    public override IDynamicResourceKey DescriptionKey => _descriptionKey ?? base.DescriptionKey;
 
     public override ChatFunctionPermissions Permissions { get; }
 

@@ -87,9 +87,9 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
         set => Set(value);
     }
 
-    public DynamicResourceKeyBase? LastCloudSynchronizationErrorMessageKey
+    public IDynamicResourceKey? LastCloudSynchronizationErrorMessageKey
     {
-        get => Get<DynamicResourceKeyBase?>();
+        get => Get<IDynamicResourceKey?>();
         set => Set(value);
     }
 

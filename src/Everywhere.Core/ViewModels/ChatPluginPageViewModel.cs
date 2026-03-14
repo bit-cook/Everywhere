@@ -397,26 +397,26 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
 
     public interface IContentTabItem
     {
-        DynamicResourceKeyBase Header { get; }
+        IDynamicResourceKey Header { get; }
     }
 
     public class SettingsTabItem(IReadOnlyList<SettingsItem> settingsItems) : IContentTabItem
     {
-        public DynamicResourceKeyBase Header => new DynamicResourceKey(LocaleKey.ChatPluginPage_TabItem_Settings_Header);
+        public IDynamicResourceKey Header => new DynamicResourceKey(LocaleKey.ChatPluginPage_TabItem_Settings_Header);
 
         public IReadOnlyList<SettingsItem> SettingsItems { get; } = settingsItems;
     }
 
     public class FunctionsTabItem(ChatPlugin plugin) : IContentTabItem
     {
-        public DynamicResourceKeyBase Header => new DynamicResourceKey(LocaleKey.ChatPluginPage_TabItem_Functions_Header);
+        public IDynamicResourceKey Header => new DynamicResourceKey(LocaleKey.ChatPluginPage_TabItem_Functions_Header);
 
         public ChatPlugin Plugin { get; } = plugin;
     }
 
     public partial class LogsTabItem(ReadOnlyObservableCollection<McpChatPlugin.LogEntry> logEntries) : ObservableObject, IContentTabItem
     {
-        public DynamicResourceKeyBase Header => new DynamicResourceKey(LocaleKey.ChatPluginPage_TabItem_Logs_Header);
+        public IDynamicResourceKey Header => new DynamicResourceKey(LocaleKey.ChatPluginPage_TabItem_Logs_Header);
 
         public ReadOnlyObservableCollection<McpChatPlugin.LogEntry> LogEntries { get; } = logEntries;
 

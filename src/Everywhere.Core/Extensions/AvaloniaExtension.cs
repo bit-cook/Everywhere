@@ -19,7 +19,7 @@ public static class AvaloniaExtension
             .DismissOnClick()
             .ShowError());
 
-    public static TextBlock ToTextBlock(this DynamicResourceKeyBase dynamicResourceKey)
+    public static TextBlock ToTextBlock(this IDynamicResourceKey dynamicResourceKey)
     {
         return new TextBlock
         {

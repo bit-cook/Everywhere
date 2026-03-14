@@ -57,13 +57,13 @@ public class I18NExtension : MarkupExtension
 
         var dynamicResourceKey = Key switch
         {
-            DynamicResourceKeyBase key => key,
+            IDynamicResourceKey key => key,
             _ when Arguments is { Count: > 0 } args => new FormattedDynamicResourceKey(
                 Key,
                 args.AsValueEnumerable().Select(arg => arg switch
                 {
                     IBinding b => new BindingResourceKey(b, target?.TargetObject as AvaloniaObject, target?.TargetProperty as AvaloniaProperty),
-                    DynamicResourceKeyBase key => key,
+                    IDynamicResourceKey key => key,
                     _ => new DynamicResourceKey(arg)
                 }).ToList()),
             _ => new DynamicResourceKey(Key)
@@ -72,7 +72,7 @@ public class I18NExtension : MarkupExtension
             dynamicResourceKey.ToString() ?? string.Empty :
             new Binding
             {
-                Path = $"{nameof(DynamicResourceKeyBase.Self)}^",
+                Path = $"{nameof(IDynamicResourceKey.Self)}^",
                 Source = dynamicResourceKey,
                 Converter = Converter,
                 ConverterParameter = ConverterParameter,
@@ -96,7 +96,7 @@ public class I18NExtension : MarkupExtension
         public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
         {
             _subscription?.Dispose();
-            if (values is not [DynamicResourceKeyBase key]) return null;
+            if (values is not [IDynamicResourceKey key]) return null;
 
             _subscription = key.Subscribe(this);
             return key.ToString(); // return resolved string immediately. If it changes, OnNext will be called to update the target.
@@ -123,8 +123,10 @@ public class I18NExtension : MarkupExtension
     /// <param name="target"></param>
     /// <param name="property"></param>
     private sealed class BindingResourceKey(IBinding binding, AvaloniaObject? target, AvaloniaProperty? property)
-        : DynamicResourceKeyBase, IObserver<object?>
+        : IDynamicResourceKey, IObserver<object?>
     {
+        public IDynamicResourceKey Self => this;
+
 #pragma warning disable CS0618
         private readonly InstancedBinding? _bindingInstance = binding.Initiate(target ?? new AvaloniaObject(), property);
 #pragma warning restore CS0618
@@ -132,7 +134,7 @@ public class I18NExtension : MarkupExtension
         private IDisposable? _selfSubscription;
         private object? _value;
 
-        public override IDisposable Subscribe(IObserver<object?> observer)
+        public IDisposable Subscribe(IObserver<object?> observer)
         {
             DisposeCollector.DisposeToDefault(ref _selfSubscription);
             _selfSubscription = _bindingInstance?.Source.Subscribe(this); // Subscribe to the binding so that we can get updates.

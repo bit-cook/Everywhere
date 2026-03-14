@@ -15,8 +15,8 @@ namespace Everywhere.Linux.Chat.Plugins;
 /// </summary>
 public class FdFindPlugin : BuiltInChatPlugin
 {
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_FdFind_Header);
-    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_FdFind_Description);
+    public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_FdFind_Header);
+    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_FdFind_Description);
     public override LucideIconKind? Icon => LucideIconKind.Search;
     public override bool IsDefaultEnabled => false;
 

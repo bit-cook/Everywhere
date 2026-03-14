@@ -66,7 +66,7 @@ public sealed partial class AssistantChatMessage :
 
     [Key(1)]
     [ObservableProperty]
-    public partial DynamicResourceKeyBase? ErrorMessageKey { get; set; }
+    public partial IDynamicResourceKey? ErrorMessageKey { get; set; }
 
     [Key(2)]
     [ObservableProperty]
@@ -281,7 +281,7 @@ public partial class ActionChatMessage : ChatMessage
 
     [Key(4)]
     [ObservableProperty]
-    public partial DynamicResourceKeyBase? ErrorMessageKey { get; set; }
+    public partial IDynamicResourceKey? ErrorMessageKey { get; set; }
 
     [Key(5)]
     [ObservableProperty]
@@ -336,7 +336,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
 
     [Key(4)]
     [ObservableProperty]
-    public partial DynamicResourceKeyBase? ErrorMessageKey { get; set; }
+    public partial IDynamicResourceKey? ErrorMessageKey { get; set; }
 
     [Key(5)]
     [ObservableProperty]
@@ -361,7 +361,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
 
     [Key(9)]
     [ObservableProperty]
-    public partial DynamicResourceKeyBase? HeaderKey { get; set; }
+    public partial IDynamicResourceKey? HeaderKey { get; set; }
 
     [Key(10)]
     private IEnumerable<ChatPluginDisplayBlock> SerializableDisplayBlocks
@@ -420,7 +420,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
         // The pipeline is set up in the primary constructor.
     }
 
-    public FunctionCallChatMessage(LucideIconKind icon, DynamicResourceKeyBase? headerKey)
+    public FunctionCallChatMessage(LucideIconKind icon, IDynamicResourceKey? headerKey)
     {
         Icon = icon;
         HeaderKey = headerKey;

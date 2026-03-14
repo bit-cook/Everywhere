@@ -15,9 +15,9 @@ namespace Everywhere.Mac.Chat.Plugin;
 
 public class SystemPlugin : BuiltInChatPlugin
 {
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_Header);
+    public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_Header);
 
-    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_Description);
+    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_Description);
 
     public override LucideIconKind? Icon => LucideIconKind.AppWindowMac;
 

@@ -77,11 +77,11 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
 
     /// <summary>
     /// Resource key for the busy message to show when waiting for a response.
-    /// This can be set temporarily using <see cref="SetBusyMessage(DynamicResourceKeyBase?)"/>.
+    /// This can be set temporarily using <see cref="SetBusyMessage(IDynamicResourceKey?)"/>.
     /// </summary>
     [IgnoreMember]
     [ObservableProperty]
-    public partial DynamicResourceKeyBase? BusyMessage { get; private set; }
+    public partial IDynamicResourceKey? BusyMessage { get; private set; }
 
     /// <summary>
     /// Backing store for MessagePack (de)serialization: nodes are persisted as a collection, and linked by Ids.
@@ -213,7 +213,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// </summary>
     /// <param name="busyMessage"></param>
     /// <returns></returns>
-    public IDisposable SetBusyMessage(DynamicResourceKeyBase? busyMessage)
+    public IDisposable SetBusyMessage(IDynamicResourceKey? busyMessage)
     {
         var previous = BusyMessage;
         BusyMessage = busyMessage;

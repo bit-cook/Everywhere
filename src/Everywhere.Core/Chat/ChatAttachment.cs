@@ -15,12 +15,12 @@ namespace Everywhere.Chat;
 [Union(1, typeof(ChatTextSelectionAttachment))]
 [Union(2, typeof(ChatTextAttachment))]
 [Union(3, typeof(ChatFileAttachment))]
-public abstract partial class ChatAttachment(DynamicResourceKeyBase headerKey) : ObservableObject
+public abstract partial class ChatAttachment(IDynamicResourceKey headerKey) : ObservableObject
 {
     public abstract LucideIconKind Icon { get; }
 
     [Key(0)]
-    public virtual DynamicResourceKeyBase HeaderKey => headerKey;
+    public virtual IDynamicResourceKey HeaderKey => headerKey;
 
     /// <summary>
     /// Indicates whether the attachment is presently focused in the UI.
@@ -54,12 +54,12 @@ public partial class ChatVisualElementAttachment : ChatAttachment
     public bool IsElementValid => Element?.Target is not null;
 
     [SerializationConstructor]
-    protected ChatVisualElementAttachment(DynamicResourceKeyBase headerKey, LucideIconKind icon) : base(headerKey)
+    protected ChatVisualElementAttachment(IDynamicResourceKey headerKey, LucideIconKind icon) : base(headerKey)
     {
         Icon = icon;
     }
 
-    public ChatVisualElementAttachment(DynamicResourceKeyBase headerKey, LucideIconKind icon, IVisualElement? element) : base(headerKey)
+    public ChatVisualElementAttachment(IDynamicResourceKey headerKey, LucideIconKind icon, IVisualElement? element) : base(headerKey)
     {
         Icon = icon;
         Element = element is null ? null : new ResilientReference<IVisualElement>(element);
@@ -73,7 +73,7 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
     /// Override to prevent serialization of HeaderKey.
     /// </summary>
     [IgnoreMember]
-    public override DynamicResourceKeyBase HeaderKey => base.HeaderKey;
+    public override IDynamicResourceKey HeaderKey => base.HeaderKey;
 
     [IgnoreMember]
     public override LucideIconKind Icon => LucideIconKind.TextCursorInput;
@@ -153,7 +153,7 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class ChatTextAttachment(DynamicResourceKeyBase headerKey, string text) : ChatAttachment(headerKey)
+public partial class ChatTextAttachment(IDynamicResourceKey headerKey, string text) : ChatAttachment(headerKey)
 {
     public override LucideIconKind Icon => LucideIconKind.TextInitial;
 
@@ -171,7 +171,7 @@ public partial class ChatTextAttachment(DynamicResourceKeyBase headerKey, string
 /// <param name="mimeType"></param>
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
 public partial class ChatFileAttachment(
-    DynamicResourceKeyBase headerKey,
+    IDynamicResourceKey headerKey,
     string filePath,
     string sha256,
     string mimeType,

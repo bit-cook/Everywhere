@@ -21,9 +21,9 @@ namespace Everywhere.Windows.Chat.Plugins;
 /// </summary>
 public class EverythingPlugin : BuiltInChatPlugin
 {
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_Everything_Header);
+    public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_Everything_Header);
 
-    public override DynamicResourceKeyBase DescriptionKey { get; } =
+    public override IDynamicResourceKey DescriptionKey { get; } =
         new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_Everything_Description);
 
     public override LucideIconKind? Icon => LucideIconKind.Search;

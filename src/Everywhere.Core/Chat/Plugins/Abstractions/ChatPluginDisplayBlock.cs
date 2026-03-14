@@ -98,10 +98,10 @@ public sealed partial class ChatPluginTextDisplayBlock(string text, string? clas
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public sealed partial class ChatPluginDynamicResourceKeyDisplayBlock(DynamicResourceKeyBase key, string? className = null) : ChatPluginDisplayBlock
+public sealed partial class ChatPluginDynamicResourceKeyDisplayBlock(IDynamicResourceKey key, string? className = null) : ChatPluginDisplayBlock
 {
     [Key(0)]
-    public DynamicResourceKeyBase Key { get; } = key;
+    public IDynamicResourceKey Key { get; } = key;
 
     [Key(1)]
     public string? ClassName { get; } = className;
@@ -121,13 +121,13 @@ public sealed partial class ChatPluginMarkdownDisplayBlock : ChatPluginDisplayBl
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public sealed partial class ChatPluginProgressDisplayBlock(DynamicResourceKeyBase headerKey) : ChatPluginDisplayBlock
+public sealed partial class ChatPluginProgressDisplayBlock(IDynamicResourceKey headerKey) : ChatPluginDisplayBlock
 {
     [field: AllowNull, MaybeNull]
     public Progress<double> ProgressReporter => field ??= new Progress<double>(value => Progress = value);
 
     [Key(0)]
-    public DynamicResourceKeyBase HeaderKey { get; } = headerKey;
+    public IDynamicResourceKey HeaderKey { get; } = headerKey;
 
     [Key(1)]
     [ObservableProperty]
@@ -138,13 +138,13 @@ public sealed partial class ChatPluginProgressDisplayBlock(DynamicResourceKeyBas
 /// Represents a reference to a file or folder in a chat plugin display block.
 /// </summary>
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class ChatPluginFileReference(string fullPath, DynamicResourceKeyBase? displayNameKey = null)
+public partial class ChatPluginFileReference(string fullPath, IDynamicResourceKey? displayNameKey = null)
 {
     [Key(0)]
     public string FullPath { get; } = fullPath;
 
     [Key(1)]
-    public DynamicResourceKeyBase? DisplayNameKey { get; } = displayNameKey;
+    public IDynamicResourceKey? DisplayNameKey { get; } = displayNameKey;
 
     [IgnoreMember]
     public Task<LucideIconKind> IconAsync => Task.Run(() =>
@@ -219,13 +219,13 @@ public sealed partial class ChatPluginFileDifferenceDisplayBlock(TextDifference 
 /// <param name="url"></param>
 /// <param name="displayNameKey"></param>
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public sealed partial class ChatPluginUrl(string url, DynamicResourceKeyBase displayNameKey)
+public sealed partial class ChatPluginUrl(string url, IDynamicResourceKey displayNameKey)
 {
     [Key(0)]
     public string Url { get; } = url;
 
     [Key(1)]
-    public DynamicResourceKeyBase DisplayNameKey { get; } = displayNameKey;
+    public IDynamicResourceKey DisplayNameKey { get; } = displayNameKey;
 
     /// <summary>
     /// The index of this URL in the original list, if applicable.

@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Text.Json.Serialization;
-using Avalonia.Reactive;
+using System.Text.RegularExpressions;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
-using Everywhere.Utilities;
 using MessagePack;
+using MessagePack.Formatters;
 using ZLinq;
 
 namespace Everywhere.I18N;
@@ -14,21 +15,16 @@ namespace Everywhere.I18N;
 /// <summary>
 /// MessagePack serializable base class for dynamic resource keys. Make them happy.
 /// </summary>
-[MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
 [Union(0, typeof(DynamicResourceKey))]
 [Union(1, typeof(DirectResourceKey))]
 [Union(2, typeof(FormattedDynamicResourceKey))]
 [Union(3, typeof(AggregateDynamicResourceKey))]
-public abstract partial class DynamicResourceKeyBase : IObservable<object?>
+public partial interface IDynamicResourceKey : IObservable<object?>
 {
     /// <summary>
-    /// so why axaml DOES NOT SUPPORT {Binding .^} ???????
+    /// Just returns this, since Avalonia do not support {Binding .^} nor default implement of interface
     /// </summary>
-    [JsonIgnore]
-    [IgnoreMember]
-    public DynamicResourceKeyBase Self => this;
-
-    public abstract IDisposable Subscribe(IObserver<object?> observer);
+    IDynamicResourceKey Self { get; }
 }
 
 /// <summary>
@@ -36,12 +32,15 @@ public abstract partial class DynamicResourceKeyBase : IObservable<object?>
 /// </summary>
 /// <param name="key"></param>
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public partial class DynamicResourceKey(object? key) : DynamicResourceKeyBase, IRecipient<LocaleChangedMessage>
+public partial class DynamicResourceKey(object? key) : IDynamicResourceKey, IRecipient<LocaleChangedMessage>
 {
+    [JsonIgnore]
+    [IgnoreMember]
+    public IDynamicResourceKey Self => this;
+
     [Key(0)]
     public object Key { get; } = key ?? string.Empty; // avoid null key (especially for MessagePack)
 
-    // TODO: Check whether Memory leak occurs here
     [IgnoreMember] private readonly Dictionary<int, IObserver<object?>> _observers = new(1); // usually only one subscriber
 
     /// <summary>
@@ -55,7 +54,7 @@ public partial class DynamicResourceKey(object? key) : DynamicResourceKeyBase, I
     /// </remarks>
     /// <param name="observer"></param>
     /// <returns></returns>
-    public override IDisposable Subscribe(IObserver<object?> observer)
+    public virtual IDisposable Subscribe(IObserver<object?> observer)
     {
         // Only allow subscription on UI thread
         Dispatcher.UIThread.VerifyAccess();
@@ -129,7 +128,7 @@ public partial class DynamicResourceKey(object? key) : DynamicResourceKeyBase, I
 /// </summary>
 /// <param name="key"></param>
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public partial class DirectResourceKey(object key) : DynamicResourceKey(key)
+public sealed partial class DirectResourceKey(object key) : DynamicResourceKey(key)
 {
     public static DirectResourceKey Empty { get; } = new(string.Empty);
 
@@ -160,18 +159,18 @@ public partial class DirectResourceKey(object key) : DynamicResourceKey(key)
 /// <param name="key"></param>
 /// <param name="args"></param>
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public partial class FormattedDynamicResourceKey(object key, params IReadOnlyList<DynamicResourceKeyBase> args) : DynamicResourceKey(key)
+public sealed partial class FormattedDynamicResourceKey(object key, params IReadOnlyList<IDynamicResourceKey> args) : DynamicResourceKey(key)
 {
     [Key(1)]
-    private IReadOnlyList<DynamicResourceKeyBase> Args { get; } = args;
+    private IReadOnlyList<IDynamicResourceKey> Args { get; } = args;
 
     public override IDisposable Subscribe(IObserver<object?> observer)
     {
         var formatter = new AnonymousObserver<object?>(_ => observer.OnNext(ToString()));
-        var disposeCollector = new DisposeCollector();
-        disposeCollector.Add(base.Subscribe(formatter));
-        Args.ForEach(arg => disposeCollector.Add(arg.Subscribe(formatter)));
-        return disposeCollector;
+        var disposables = new CompositeDisposable();
+        disposables.Add(base.Subscribe(formatter));
+        foreach (var arg in Args.AsValueEnumerable()) disposables.Add(arg.Subscribe(formatter));
+        return disposables;
     }
 
     public override string ToString()
@@ -212,20 +211,24 @@ public partial class FormattedDynamicResourceKey(object key, params IReadOnlyLis
 /// </summary>
 /// <param name="keys"></param>
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public partial class AggregateDynamicResourceKey(IReadOnlyList<DynamicResourceKeyBase> keys, string separator = ", ") : DynamicResourceKeyBase
+public sealed partial class AggregateDynamicResourceKey(IReadOnlyList<IDynamicResourceKey> keys, string separator = ", ") : IDynamicResourceKey
 {
+    [JsonIgnore]
+    [IgnoreMember]
+    public IDynamicResourceKey Self => this;
+
     [Key(0)]
-    private IReadOnlyList<DynamicResourceKeyBase> Keys { get; } = keys;
+    private IReadOnlyList<IDynamicResourceKey> Keys { get; } = keys;
 
     [Key(1)]
     private string Separator { get; } = separator;
 
-    public override IDisposable Subscribe(IObserver<object?> observer)
+    public IDisposable Subscribe(IObserver<object?> observer)
     {
         var formatter = new AnonymousObserver<object?>(_ => observer.OnNext(ToString()));
-        var disposeCollector = new DisposeCollector();
-        Keys.OfType<DynamicResourceKey>().ForEach(key => disposeCollector.Add(key.Subscribe(formatter)));
-        return disposeCollector;
+        var disposables = new CompositeDisposable();
+        foreach (var key in Keys.AsValueEnumerable().OfType<IDynamicResourceKey>()) disposables.Add(key.Subscribe(formatter));
+        return disposables;
     }
 
     public override string ToString()

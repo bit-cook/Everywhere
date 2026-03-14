@@ -11,7 +11,7 @@ public interface ISettingsCategory
     /// <summary>
     /// The display name of the settings category.
     /// </summary>
-    DynamicResourceKeyBase DisplayNameKey { get; }
+    IDynamicResourceKey DisplayNameKey { get; }
 
     /// <summary>
     /// The Icon of the settings category.

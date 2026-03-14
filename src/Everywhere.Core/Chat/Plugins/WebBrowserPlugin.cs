@@ -25,8 +25,8 @@ namespace Everywhere.Chat.Plugins;
 
 public partial class WebBrowserPlugin : BuiltInChatPlugin
 {
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_Header);
-    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_Description);
+    public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_Header);
+    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_Description);
     public override LucideIconKind? Icon => LucideIconKind.Globe;
 
     public override IReadOnlyList<SettingsItem> SettingsItems => _webSearchEngineSettings.SettingsItems;

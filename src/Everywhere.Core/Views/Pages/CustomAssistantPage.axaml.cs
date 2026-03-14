@@ -6,7 +6,7 @@ public partial class CustomAssistantPage : ReactiveUserControl<CustomAssistantPa
 {
     public int Index => 9;
 
-    public DynamicResourceKeyBase Title => new DynamicResourceKey(LocaleKey.CustomAssistantPage_Title);
+    public IDynamicResourceKey Title => new DynamicResourceKey(LocaleKey.CustomAssistantPage_Title);
 
     public LucideIconKind Icon => LucideIconKind.Bot;
 

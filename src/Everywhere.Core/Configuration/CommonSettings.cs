@@ -18,7 +18,7 @@ public partial class CommonSettings : ObservableObject, ISettingsCategory
     private static INativeHelper NativeHelper => ServiceLocator.Resolve<INativeHelper>();
 
     [HiddenSettingsItem]
-    public DynamicResourceKeyBase DisplayNameKey => new DynamicResourceKey(LocaleKey.SettingsCategory_Common_Header);
+    public IDynamicResourceKey DisplayNameKey => new DynamicResourceKey(LocaleKey.SettingsCategory_Common_Header);
 
     [HiddenSettingsItem]
     public LucideIconKind Icon => LucideIconKind.Box;

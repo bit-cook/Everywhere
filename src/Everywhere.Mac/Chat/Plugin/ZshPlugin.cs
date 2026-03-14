@@ -14,9 +14,9 @@ namespace Everywhere.Mac.Chat.Plugin;
 
 public class ZshPlugin : BuiltInChatPlugin
 {
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_Header);
+    public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_Header);
 
-    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_Description);
+    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_Description);
 
     public override LucideIconKind? Icon => LucideIconKind.SquareTerminal;
 

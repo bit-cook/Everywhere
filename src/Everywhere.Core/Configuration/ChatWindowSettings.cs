@@ -10,7 +10,7 @@ namespace Everywhere.Configuration;
 public partial class ChatWindowSettings : ObservableObject, ISettingsCategory
 {
     [HiddenSettingsItem]
-    public DynamicResourceKeyBase DisplayNameKey => new DynamicResourceKey(LocaleKey.SettingsCategory_ChatWindow_Header);
+    public IDynamicResourceKey DisplayNameKey => new DynamicResourceKey(LocaleKey.SettingsCategory_ChatWindow_Header);
 
     [HiddenSettingsItem]
     public LucideIconKind Icon => LucideIconKind.MessageCircle;

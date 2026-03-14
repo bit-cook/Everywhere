@@ -19,8 +19,8 @@ namespace Everywhere.Chat.Plugins;
 
 public class VisualContextPlugin : BuiltInChatPlugin
 {
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualContext_Header);
-    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualContext_Description);
+    public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualContext_Header);
+    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualContext_Description);
     public override LucideIconKind? Icon => LucideIconKind.Component;
     public override bool IsDefaultEnabled => true;
 

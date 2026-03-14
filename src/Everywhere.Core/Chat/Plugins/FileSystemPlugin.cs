@@ -16,8 +16,8 @@ public class FileSystemPlugin : BuiltInChatPlugin
 {
     private static TimeSpan RegexTimeout => TimeSpan.FromSeconds(3);
 
-    public override DynamicResourceKeyBase HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_FileSystem_Header);
-    public override DynamicResourceKeyBase DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_FileSystem_Description);
+    public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_FileSystem_Header);
+    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_FileSystem_Description);
     public override LucideIconKind? Icon => LucideIconKind.FileBox;
 
     private readonly ILogger<FileSystemPlugin> _logger;

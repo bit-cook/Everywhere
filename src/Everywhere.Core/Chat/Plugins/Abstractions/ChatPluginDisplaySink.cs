@@ -41,7 +41,7 @@ public sealed class ChatPluginDisplaySink : IReadOnlyList<ChatPluginDisplayBlock
         _itemsSource.Add(new ChatPluginTextDisplayBlock(text, className));
     }
 
-    public void AppendDynamicResourceKey(DynamicResourceKeyBase resourceKey, string? className = null)
+    public void AppendDynamicResourceKey(IDynamicResourceKey resourceKey, string? className = null)
     {
         _itemsSource.Add(new ChatPluginDynamicResourceKeyDisplayBlock(resourceKey, className));
     }
@@ -53,7 +53,7 @@ public sealed class ChatPluginDisplaySink : IReadOnlyList<ChatPluginDisplayBlock
         return markdownBlock.MarkdownBuilder;
     }
 
-    public IProgress<double> AppendProgress(DynamicResourceKeyBase headerKey)
+    public IProgress<double> AppendProgress(IDynamicResourceKey headerKey)
     {
         var progressBlock = new ChatPluginProgressDisplayBlock(headerKey);
         _itemsSource.Add(progressBlock);

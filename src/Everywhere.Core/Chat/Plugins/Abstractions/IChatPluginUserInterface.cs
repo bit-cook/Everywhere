@@ -4,7 +4,7 @@ namespace Everywhere.Chat.Plugins;
 
 public record ChatPluginConsentRequest(
     TaskCompletionSource<ConsentDecision> Promise,
-    DynamicResourceKeyBase HeaderKey,
+    IDynamicResourceKey HeaderKey,
     ChatPluginDisplayBlock? Content,
     bool CanRemember,
     CancellationToken CancellationToken
@@ -37,7 +37,7 @@ public interface IChatPluginUserInterface
     /// <returns></returns>
     Task<bool> RequestConsentAsync(
         string? id,
-        DynamicResourceKeyBase headerKey,
+        IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content = null,
         CancellationToken cancellationToken = default);
 
@@ -47,5 +47,5 @@ public interface IChatPluginUserInterface
     /// <param name="message"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<string> RequestInputAsync(DynamicResourceKeyBase message, CancellationToken cancellationToken = default);
+    Task<string> RequestInputAsync(IDynamicResourceKey message, CancellationToken cancellationToken = default);
 }

@@ -133,7 +133,7 @@ public sealed partial class ChatWindowViewModel :
     /// Can be set to one of greetings or instructions based on the chat context, or a default value.
     /// </summary>
     [ObservableProperty]
-    public partial DynamicResourceKeyBase ChatInputAreaWatermarkKey { get; private set; }
+    public partial IDynamicResourceKey ChatInputAreaWatermarkKey { get; private set; }
 
     private readonly IChatService _chatService;
     private readonly IVisualElementContext _visualElementContext;

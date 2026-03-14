@@ -12,7 +12,7 @@ public partial class SettingsCategoryPage : UserControl, IMainViewPage
 {
     public int Index { get; }
 
-    public DynamicResourceKeyBase Title { get; }
+    public IDynamicResourceKey Title { get; }
 
     public LucideIconKind Icon { get; }
 

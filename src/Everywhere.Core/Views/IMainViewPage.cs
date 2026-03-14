@@ -6,7 +6,7 @@ public interface IMainViewPage
 {
     int Index { get; }
 
-    DynamicResourceKeyBase Title { get; }
+    IDynamicResourceKey Title { get; }
 
     LucideIconKind Icon { get; }
 }

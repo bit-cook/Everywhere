@@ -18,10 +18,10 @@ public partial class SoftwareUpdateControl(
 
     public ISoftwareUpdater SoftwareUpdater { get; } = softwareUpdater;
 
-    public static readonly StyledProperty<DynamicResourceKeyBase?> UpdateOrCheckTitleProperty = AvaloniaProperty.Register<SoftwareUpdateControl, DynamicResourceKeyBase?>(
+    public static readonly StyledProperty<IDynamicResourceKey?> UpdateOrCheckTitleProperty = AvaloniaProperty.Register<SoftwareUpdateControl, IDynamicResourceKey?>(
         nameof(UpdateOrCheckTitle));
 
-    public DynamicResourceKeyBase? UpdateOrCheckTitle
+    public IDynamicResourceKey? UpdateOrCheckTitle
     {
         get => GetValue(UpdateOrCheckTitleProperty);
         set => SetValue(UpdateOrCheckTitleProperty, value);
