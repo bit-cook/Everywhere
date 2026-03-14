@@ -7,6 +7,7 @@ using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Views;
 using Lucide.Avalonia;
+using ZLinq;
 
 namespace Everywhere.AI;
 
@@ -283,11 +284,10 @@ public abstract class ModelProviderConfigurator : ObservableValidator
 [GeneratedSettingsItems]
 public sealed partial class OfficialModelProviderConfigurator : ModelProviderConfigurator
 {
-    [DynamicResourceKey("123")]
+    [DynamicResourceKey(LocaleKey.Empty)]
     public SettingsControl<OfficialModelDefinitionForm> ModelDefinitionForm { get; }
 
     private readonly CustomAssistant _owner;
-    private readonly OfficialModelDefinitionForm _form;
 
     /// <summary>
     /// Configurator for the Everywhere official model provider.
@@ -296,8 +296,7 @@ public sealed partial class OfficialModelProviderConfigurator : ModelProviderCon
     {
         _owner = owner;
 
-        ModelDefinitionForm = new SettingsControl<OfficialModelDefinitionForm>(x => new OfficialModelDefinitionForm(x, owner));
-        _form = (OfficialModelDefinitionForm)ModelDefinitionForm.CreateControl();
+        ModelDefinitionForm = new SettingsControl<OfficialModelDefinitionForm>(x => new OfficialModelDefinitionForm(x, owner), false);
     }
 
     public override void Backup()
@@ -336,7 +335,7 @@ public sealed partial class PresetBasedModelProviderConfigurator(CustomAssistant
             owner.ModelProviderTemplateId = value;
 
             owner.ApplyTemplate(ModelProviderTemplate);
-            ModelDefinitionTemplateId = null;
+            ModelDefinitionTemplate = ModelDefinitionTemplates.AsValueEnumerable().FirstOrDefault(m => m.IsDefault);
 
             OnPropertyChanged();
             OnPropertyChanged(nameof(ModelProviderTemplate));
