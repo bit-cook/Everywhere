@@ -2051,9 +2051,6 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>Derin Düşünme</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Description" xml:space="preserve">
-        <value>Görsel bağlamın uzunluk sınırı, birim token. Bu bir tahmindir, kesin bir sınır garanti edilmez. Basit bağlamlar için harcanan token genellikle bu sayıdan daha azdır; karmaşık bağlamlar için fazlası kesilecektir.</value>
-    </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>Araç Çağrısını Aç</value>
     </data>

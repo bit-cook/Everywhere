@@ -1,6 +1,8 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:cloud="clr-namespace:Everywhere.Cloud;assembly=Everywhere.Abstractions" xmlns:v="using:Everywhere.Views"
+  xmlns:ai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions" xmlns:cloud="clr-namespace:Everywhere.Cloud;assembly=Everywhere.Abstractions"
+  xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:mdSkia="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia.Svg.Skia"
+  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="using:Everywhere.Views"
   xmlns:vc="clr-namespace:Everywhere.ValueConverters">
   <ControlTheme
     x:Key="{x:Type v:OfficialModelDefinitionForm}"
@@ -19,9 +21,16 @@
             </Style>
           </Panel.Styles>
 
-          <StackPanel Classes.Disabled="{Binding CloudClient.CurrentUser, Converter={x:Static ObjectConverters.IsNull}, RelativeSource={RelativeSource TemplatedParent}}">
+          <StackPanel
+            Classes.Disabled="{Binding CloudClient.CurrentUser, Converter={x:Static ObjectConverters.IsNull}, RelativeSource={RelativeSource TemplatedParent}}"
+            Spacing="8">
+            <TextBlock
+              Classes="Large"
+              Text="{I18N {x:Static LocaleKey.OfficialModelDefinitionForm_SelectModelTextBlock_Text}}"
+              TextTrimming="CharacterEllipsis"/>
             <DockPanel
-              HorizontalSpacing="8" LastChildFill="True">
+              HorizontalAlignment="Left" HorizontalSpacing="8"
+              LastChildFill="True">
               <Button
                 Classes="Ghost" DockPanel.Dock="Right"
                 Width="36" Padding="0"
@@ -33,14 +42,108 @@
               </Button>
 
               <ComboBox
-                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                MinWidth="480" HorizontalAlignment="Left"
+                HorizontalContentAlignment="Stretch" shadui:ControlAssist.MinHeight="40"
                 ItemsSource="{TemplateBinding ItemsSource}"
-                SelectedItem="{TemplateBinding SelectedItem, Mode=TwoWay}"/>
+                SelectedItem="{TemplateBinding SelectedItem, Mode=TwoWay}">
+                <ComboBox.Styles>
+                  <Style Selector="ComboBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                  </Style>
+                </ComboBox.Styles>
+
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="ai:ModelDefinitionTemplate">
+                    <Grid
+                      Margin="0,0,12,0" ColumnSpacing="4">
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition
+                          Width="Auto" SharedSizeGroup="Badges"/>
+                      </Grid.ColumnDefinitions>
+
+                      <Image
+                        Grid.Column="0"
+                        Width="{DynamicResource FontSizeXl}"
+                        Height="{DynamicResource FontSizeXl}"
+                        VerticalAlignment="Center" md:AsyncImageLoader.SizeToContent="Manual"
+                        md:AsyncImageLoader.Source="{Binding IconUrl}"
+                        mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"
+                        IsVisible="{Binding IconUrl, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                      <TextBlock
+                        Grid.Column="1" Margin="4,0,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding Name}"
+                        TextTrimming="CharacterEllipsis"
+                        ToolTip.Tip="{Binding DescriptionKey^, FallbackValue={x:Null}}"/>
+
+                      <StackPanel
+                        Grid.Column="2" Margin="16,0,0,0"
+                        HorizontalAlignment="Right" Orientation="Horizontal"
+                        Spacing="2">
+                        <StackPanel.Styles>
+                          <Style Selector="shadui|Badge">
+                            <Setter Property="Height" Value="{DynamicResource FontSizeXl}"/>
+                            <Setter Property="CornerRadius" Value="4"/>
+                            <Style Selector="^ LucideIcon">
+                              <Setter Property="Size" Value="{DynamicResource FontSizeL}"/>
+                            </Style>
+                          </Style>
+                        </StackPanel.Styles>
+
+                        <shadui:Badge
+                          Background="Chocolate"
+                          IsVisible="{Binding InputModalities, Converter={x:Static vc:ModalitiesConverters.SupportsImage}}"
+                          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsReasoning_Header}}">
+                          <LucideIcon Kind="Eye"/>
+                        </shadui:Badge>
+                        <shadui:Badge
+                          Background="CadetBlue"
+                          IsVisible="{Binding SupportsToolCall}"
+                          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsToolCall_Header}}">
+                          <LucideIcon Kind="Hammer"/>
+                        </shadui:Badge>
+                        <shadui:Badge
+                          Background="ForestGreen"
+                          IsVisible="{Binding SupportsReasoning}"
+                          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsReasoning_Header}}">
+                          <LucideIcon Kind="Brain"/>
+                        </shadui:Badge>
+                        <shadui:Badge
+                          Padding="6,0" Background="MediumSlateBlue">
+                          <ToolTip.Tip>
+                            <TextBlock>
+                              <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_ContextLimit_Header}}"/>
+                              <Run Text="{Binding ContextLimit, StringFormat=' {0:N0}', FallbackValue={x:Null}}"/>
+                              <LineBreak/>
+                              <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputLimit_Header}}"/>
+                              <Run Text="{Binding OutputLimit, StringFormat=' {0:N0}', FallbackValue={x:Null}}"/>
+                            </TextBlock>
+                          </ToolTip.Tip>
+
+                          <TextBlock
+                            FontSize="{DynamicResource FontSizeS}"
+                            Text="{Binding ContextLimit, Converter={x:Static vc:TokenCountHumanizationConverter.Shared}}"/>
+                        </shadui:Badge>
+                      </StackPanel>
+                    </Grid>
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
             </DockPanel>
 
-            <StackPanel IsVisible="{Binding Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}}">
+            <StackPanel
+              Margin="0,8,0,0"
+              IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}}"
+              Spacing="8">
               <TextBlock
-                Margin="0,8"
+                Classes="Large"
+                Text="{I18N {x:Static LocaleKey.OfficialModelDefinitionForm_DetailsTextBlock_Text}}"
+                TextTrimming="CharacterEllipsis"/>
+              <TextBlock
+                Margin="4"
+                IsVisible="{Binding SelectedItem.DescriptionKey, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
                 Text="{Binding SelectedItem.DescriptionKey^, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
                 TextWrapping="Wrap"/>
 
@@ -62,7 +165,7 @@
                   <Interaction.Behaviors>
                     <AdaptiveBehavior SourceControl="{Binding #TableGrid}">
                       <AdaptiveClassSetter
-                        MinWidth="0" MaxWidth="640"
+                        MinWidth="0" MaxWidth="720"
                         ClassName="narrow"/>
                     </AdaptiveBehavior>
                   </Interaction.Behaviors>
@@ -76,6 +179,10 @@
                       <Style Selector="^.Header">
                         <Setter Property="Background" Value="{DynamicResource CardBackgroundColor}"/>
                       </Style>
+                    </Style>
+
+                    <Style Selector="TextBlock">
+                      <Setter Property="VerticalAlignment" Value="Center"/>
                     </Style>
                   </UniformGrid.Styles>
 
@@ -98,11 +205,11 @@
                     <Border
                       Classes="Header" Grid.Row="1"
                       Grid.Column="0">
-                      <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputModalities_Header}}"/>
+                      <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_SupportsReasoning_Header}}"/>
                     </Border>
                     <Border
                       Grid.Row="1" Grid.Column="1">
-                      <TextBlock Text="{Binding SelectedItem.OutputModalities, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                      <TextBlock Text="{Binding SelectedItem.SupportsReasoning, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
                     </Border>
                     <Border
                       Classes="Header" Grid.Row="2"
@@ -116,11 +223,11 @@
                     <Border
                       Classes="Header" Grid.Row="3"
                       Grid.Column="0">
-                      <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_KnowledgeCutoff_Header}}"/>
+                      <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_InputPrice_Header}}"/>
                     </Border>
                     <Border
                       Grid.Row="3" Grid.Column="1">
-                      <TextBlock Text="{Binding SelectedItem.KnowledgeCutoff, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                      <TextBlock Text="{Binding SelectedItem.Pricing.InputDescriptionKey, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
                     </Border>
                   </Grid>
 
@@ -134,11 +241,11 @@
                     <Border
                       Classes="Header" Grid.Row="0"
                       Grid.Column="0">
-                      <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_SupportsReasoning_Header}}"/>
+                      <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputModalities_Header}}"/>
                     </Border>
                     <Border
                       Grid.Row="0" Grid.Column="1">
-                      <TextBlock Text="{Binding SelectedItem.SupportsReasoning, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                      <TextBlock Text="{Binding SelectedItem.OutputModalities, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
                     </Border>
                     <Border
                       Classes="Header" Grid.Row="1"
@@ -153,10 +260,10 @@
                         <LucideIcon
                           Kind="CircleQuestionMark"
                           Size="{DynamicResource FontSizeS}"
-                          ToolTip.Placement="Right">
+                          ToolTip.Placement="Top">
                           <ToolTip.Tip>
                             <TextBlock>
-                              <Run Text="{I18N {x:Static LocaleKey.OfficialModelDefinitionForm_TotalContextLimitRun_Text}}"/>
+                              <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_ContextLimit_Header}}"/>
                               <Run Text="{Binding SelectedItem.ContextLimit, RelativeSource={RelativeSource TemplatedParent}, StringFormat=' {0:N0}', FallbackValue={x:Null}}"/>
                               <LineBreak/>
                               <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputLimit_Header}}"/>
@@ -169,20 +276,28 @@
                     <Border
                       Classes="Header" Grid.Row="2"
                       Grid.Column="0">
-                      <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_InputPrice_Header}}"/>
+                      <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_KnowledgeCutoff_Header}}"/>
                     </Border>
                     <Border
                       Grid.Row="2" Grid.Column="1">
-                      <TextBlock Text="{Binding SelectedItem.ReleaseDate, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                      <TextBlock Text="{Binding SelectedItem.KnowledgeCutoff, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
                     </Border>
                     <Border
                       Classes="Header" Grid.Row="3"
                       Grid.Column="0">
-                      <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputPrice_Header}}"/>
+                      <StackPanel
+                        Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputPrice_Header}}"/>
+                        <LucideIcon
+                          Kind="CircleQuestionMark"
+                          Size="{DynamicResource FontSizeS}"
+                          ToolTip.Placement="Top"
+                          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_OutputPrice_ToolTip}}"/>
+                      </StackPanel>
                     </Border>
                     <Border
                       Grid.Row="3" Grid.Column="1">
-                      <TextBlock Text="{Binding SelectedItem.KnowledgeCutoff, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                      <TextBlock Text="{Binding SelectedItem.Pricing.OutputDescriptionKey, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
                     </Border>
                   </Grid>
                 </UniformGrid>

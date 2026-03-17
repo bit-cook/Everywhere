@@ -17,7 +17,7 @@
               Width="{DynamicResource FontSizeXl}"
               Height="{DynamicResource FontSizeXl}"
               md:AsyncImageLoader.SizeToContent="Manual"
-              md:AsyncImageLoader.Source="{Binding DarkIconUrl, FallbackValue={x:Null}}"
+              md:AsyncImageLoader.Source="{Binding DarkIconUrl}"
               mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"/>
           </ControlTemplate>
         </shadui:ThemeToggleBlock.DarkContent>
@@ -27,7 +27,7 @@
               Width="{DynamicResource FontSizeXl}"
               Height="{DynamicResource FontSizeXl}"
               md:AsyncImageLoader.SizeToContent="Manual"
-              md:AsyncImageLoader.Source="{Binding LightIconUrl, FallbackValue={x:Null}}"
+              md:AsyncImageLoader.Source="{Binding LightIconUrl}"
               mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"/>
           </ControlTemplate>
         </shadui:ThemeToggleBlock.LightContent>
@@ -35,14 +35,14 @@
 
       <TextBlock
         VerticalAlignment="Center"
-        Text="{Binding DisplayName, FallbackValue={x:Null}}"/>
+        Text="{Binding DisplayName}"/>
     </StackPanel>
   </DataTemplate>
 
   <DataTemplate
     x:Key="{x:Type aai:ModelDefinitionTemplate}"
     x:DataType="aai:ModelDefinitionTemplate">
-    <TextBlock Text="{Binding Name, FallbackValue={x:Null}}"/>
+    <TextBlock Text="{Binding Name}"/>
   </DataTemplate>
 
   <DataTemplate x:Key="{x:Type interop:KeyboardShortcut}">
@@ -85,6 +85,6 @@
   <DataTemplate
     x:Key="{x:Type plugins:WebSearchEngineProvider}"
     x:DataType="plugins:WebSearchEngineProvider">
-    <TextBlock Text="{Binding DisplayName, FallbackValue={x:Null}}"/>
+    <TextBlock Text="{Binding DisplayName}"/>
   </DataTemplate>
 </ResourceDictionary>

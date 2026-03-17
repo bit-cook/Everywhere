@@ -48,6 +48,9 @@ public sealed partial record ModelDefinitionTemplate : IModelDefinition
     [Key(12)]
     public IDynamicResourceKey? DescriptionKey { get; init; }
 
+    [Key(13)]
+    public ModelPricing? Pricing { get; init; }
+
     /// <summary>
     /// Gets or sets the default model in a model provider.
     /// This indicates the best (powerful but economical) model in the provider.

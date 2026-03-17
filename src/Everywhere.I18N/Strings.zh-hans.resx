@@ -2071,7 +2071,7 @@
         <value>深度思考</value>
     </data>
     <data name="PersistentState_VisualTreeLengthLimit_Description" xml:space="preserve">
-        <value>采集视觉上下文的长度上限，单位为 token。此项为估算，无法保证精确限制。对于简单的上下文，消耗的 token 往往会小于这个数；对于复杂的上下文，超出的部分会被截断。</value>
+        <value>采集视觉上下文的长度上限，单位为词元。此项为估算，无法保证精确限制。对于简单的上下文，消耗的词元往往会小于这个数；对于复杂的上下文，超出的部分会被截断。</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>开启工具调用</value>
@@ -2260,7 +2260,34 @@
     <data name="CustomAssistant_OutputPrice_Header" xml:space="preserve">
         <value>输出价格</value>
     </data>
-    <data name="OfficialModelDefinitionForm_TotalContextLimitRun_Text" xml:space="preserve">
-        <value>总上下文长度</value>
+    <data name="OfficialModelDefinitionForm_SelectModelTextBlock_Text" xml:space="preserve">
+        <value>选择模型</value>
+    </data>
+    <data name="OfficialModelDefinitionForm_DetailsTextBlock_Text" xml:space="preserve">
+        <value>模型详情</value>
+    </data>
+    <data name="CustomAssistant_OutputPrice_ToolTip" xml:space="preserve">
+        <value>包含思考词元</value>
+    </data>
+    <data name="ModelPricingUnit_UsdPerMToken" xml:space="preserve">
+        <value>每百万词元 {0} 美元</value>
+    </data>
+    <data name="ModelPricingUnit_CreditPerToken" xml:space="preserve">
+        <value>每词元 {0} 积分</value>
+    </data>
+    <data name="ModelPricing_NotGreaterThanTierDescription" xml:space="preserve">
+        <value>词元数 ≤ {1} 时，{0}</value>
+    </data>
+    <data name="ModelPricing_BetweenTiersDescription" xml:space="preserve">
+        <value>{1} &lt; 词元数 ≤ {2} 时，{0}</value>
+    </data>
+    <data name="ModelPricing_GreaterThanTierDescription" xml:space="preserve">
+        <value>词元数 &gt; {1} 时，{0}</value>
+    </data>
+    <data name="Common_Undo" xml:space="preserve">
+        <value>撤销</value>
+    </data>
+    <data name="ChatContextManager_DeletingToast_Content" xml:space="preserve">
+        <value>移除了 {0} 个对话</value>
     </data>
 </root>

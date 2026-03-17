@@ -2267,4 +2267,40 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="OfficialModelDefinitionForm_TotalContextLimitRun_Text" xml:space="preserve">
         <value />
     </data>
+    <data name="OfficialModelDefinitionForm_SelectModelTextBlock_Text" xml:space="preserve">
+        <value />
+    </data>
+    <data name="OfficialModelDefinitionForm_DetailsTextBlock_Text" xml:space="preserve">
+        <value />
+    </data>
+    <data name="CustomAssistant_InputPrice_ToolTip" xml:space="preserve">
+        <value />
+    </data>
+    <data name="CustomAssistant_OutputPrice_ToolTip" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ModelPricingUnit_UsdPerMToken" xml:space="preserve">
+        <value>USD</value>
+    </data>
+    <data name="ModelPricingUnit_CreditPerToken" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ModelPricing_SingleTierDescription" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ModelPricing_NotGreaterThanTierDescription" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ModelPricing_BetweenTiersDescription" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ModelPricing_GreaterThanTierDescription" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Common_Undo" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChatContextManager_DeletingToast_Content" xml:space="preserve">
+        <value />
+    </data>
 </root>

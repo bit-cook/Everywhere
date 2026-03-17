@@ -2057,9 +2057,6 @@
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>深度思考</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Description" xml:space="preserve">
-        <value>採集視覺上下文的長度上限，單位為 token。此項為估算，無法保證精確限制。對於簡單的上下文，消耗的 token 往往會小於這個數；對於複雜的上下文，超出的部分會被截斷。</value>
-    </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
         <value>開啟工具調用</value>
     </data>

@@ -118,7 +118,8 @@ public sealed partial class OfficialModelProvider : IOfficialModelProvider, IAsy
     /// <param name="cancellationToken"></param>
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
-
+        _refreshRequestSubject.OnNext(Unit.Default);
+        await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
     }
 
     public void Dispose() => _disposables.Dispose();
@@ -128,7 +129,6 @@ public sealed partial class OfficialModelProvider : IOfficialModelProvider, IAsy
     /// </summary>
     /// <param name="ModelId"></param>
     /// <param name="Name"></param>
-    /// <param name="Attachment"></param>
     /// <param name="SupportsReasoning"></param>
     /// <param name="SupportsToolCall"></param>
     /// <param name="Modalities"></param>
@@ -136,14 +136,14 @@ public sealed partial class OfficialModelProvider : IOfficialModelProvider, IAsy
     private sealed record CloudModelDefinition(
         [property: JsonPropertyName("id")] string ModelId,
         [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("attachment")] bool Attachment,
         [property: JsonPropertyName("reasoning")] bool SupportsReasoning,
         [property: JsonPropertyName("toolCall")] bool SupportsToolCall,
         [property: JsonPropertyName("knowledge")] string? KnowledgeCutoff,
         [property: JsonPropertyName("releaseDate")] string? ReleaseDate,
         [property: JsonPropertyName("deprecationDate")] string? DeprecationDate,
         [property: JsonPropertyName("modalities")] CloudModelModalities Modalities,
-        [property: JsonPropertyName("limit")] CloudModelLimitInfo LimitInfo
+        [property: JsonPropertyName("limit")] CloudModelLimitInfo LimitInfo,
+        [property: JsonPropertyName("pricing")] CloudModelPricing Pricing
     )
     {
         public ModelDefinitionTemplate ToModelDefinitionTemplate() =>
@@ -159,7 +159,8 @@ public sealed partial class OfficialModelProvider : IOfficialModelProvider, IAsy
                 InputModalities = ConvertModalities(Modalities.Input),
                 OutputModalities = ConvertModalities(Modalities.Output),
                 ContextLimit = LimitInfo.Context,
-                OutputLimit = LimitInfo.Output
+                OutputLimit = LimitInfo.Output,
+                Pricing = ConvertPricing(Pricing)
             };
 
         private static Modalities ConvertModalities(IReadOnlyList<string> modalityStrings) => modalityStrings.AsValueEnumerable().Aggregate(
@@ -173,6 +174,18 @@ public sealed partial class OfficialModelProvider : IOfficialModelProvider, IAsy
                 "pdf" => AI.Modalities.Pdf,
                 _ => AI.Modalities.None
             });
+
+        private static ModelPricing ConvertPricing(CloudModelPricing pricing)
+        {
+            const double CreditsMultiplier = 0.01d; // Convert from "per MTokens" to "per Token"
+            var tiers = pricing.AsValueEnumerable().Select(t => new PricingTier(
+                t.Threshold,
+                new TokenPricing(
+                    t.Pricing.Input * CreditsMultiplier,
+                    t.Pricing.Output * CreditsMultiplier,
+                    t.Pricing.CachedInput * CreditsMultiplier))).ToList();
+            return new ModelPricing(tiers, ModelPricingUnit.CreditPerToken);
+        }
     }
 
     private sealed record CloudModelModalities(
@@ -185,6 +198,19 @@ public sealed partial class OfficialModelProvider : IOfficialModelProvider, IAsy
         [property: JsonPropertyName("input")] int Input = 0,
         [property: JsonPropertyName("output")] int Output = 0
     );
+
+    private sealed record CloudTokenPricing(
+        [property: JsonPropertyName("input")] long Input,
+        [property: JsonPropertyName("output")] long Output,
+        [property: JsonPropertyName("cachedInput")] long CachedInput
+    );
+
+    private sealed record CloudPricingTier(
+        [property: JsonPropertyName("threshold")] long Threshold,
+        [property: JsonPropertyName("pricing")] CloudTokenPricing Pricing
+    );
+
+    private sealed class CloudModelPricing : List<CloudPricingTier>;
 
     [JsonSerializable(typeof(ApiPayload<IReadOnlyList<CloudModelDefinition>>))]
     private sealed partial class ModelsResponseJsonSerializerContext : JsonSerializerContext;
