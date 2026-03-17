@@ -474,6 +474,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
             ImmutableDictionary.CreateRange(
                 new KeyValuePair<string, Func<string>>[]
                 {
+                    new("Date", () => DateTime.Now.ToString("D")),
                     new("Time", () => DateTime.Now.ToString("F")),
                     new("OS", () => Environment.OSVersion.ToString()),
                     new("SystemLanguage", () => LocaleManager.CurrentLocale.ToEnglishName()),

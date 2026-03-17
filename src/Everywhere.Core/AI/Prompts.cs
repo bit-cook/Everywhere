@@ -16,7 +16,7 @@ public static partial class Prompts
 
         <SystemInformation>
         OS: {OS}
-        Current time: {Time}
+        Current: {Date}
         Language: {SystemLanguage}
         Working directory: {WorkingDirectory}
         </SystemInformation>
