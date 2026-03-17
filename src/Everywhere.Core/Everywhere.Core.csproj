@@ -26,8 +26,8 @@
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="JetBrains.Profiler.Api"/>
     <PackageReference Include="LiveMarkdown.Avalonia"/>
     <PackageReference Include="LiveMarkdown.Avalonia.Math"/>
-    <PackageReference Include="LiveMarkdown.Avalonia.Mermaid" />
-    <PackageReference Include="LiveMarkdown.Avalonia.Svg.Skia" />
+    <PackageReference Include="LiveMarkdown.Avalonia.Mermaid"/>
+    <PackageReference Include="LiveMarkdown.Avalonia.Svg.Skia"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore"/>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite"/>
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Microsoft.EntityFrameworkCore.Tools">
@@ -54,6 +54,7 @@
     <PackageReference Include="Serilog.Extensions.Logging"/>
     <PackageReference Include="Serilog.Sinks.Console"/>
     <PackageReference Include="Serilog.Sinks.File"/>
+    <PackageReference Include="Svg.Controls.Skia.Avalonia"/>
     <PackageReference Include="System.Drawing.Common"/>
   </ItemGroup>
 
@@ -65,7 +66,7 @@
     <ProjectReference Include="..\..\3rd\WritableJsonConfiguration\src\WritableJsonConfiguration\WritableJsonConfiguration.csproj"/>
     <ProjectReference Include="..\Everywhere.Abstractions\Everywhere.Abstractions.csproj"/>
     <ProjectReference Include="..\Everywhere.Configuration.SourceGenerator\Everywhere.Configuration.SourceGenerator.csproj" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
-    <ProjectReference Include="..\Everywhere.Patches\Everywhere.Patches.csproj" />
+    <ProjectReference Include="..\Everywhere.Patches\Everywhere.Patches.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
