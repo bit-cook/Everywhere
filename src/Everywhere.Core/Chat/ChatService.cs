@@ -973,7 +973,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
                 if (content.Role != AuthorRole.Assistant) continue;
 
-                foreach (var item in content.Items.AsValueEnumerable().OfType<TextContent>())
+                foreach (var item in content.Items.AsValueEnumerable().OfType<StreamingTextContent>())
                 {
                     titleBuilder.Append(item);
                 }
