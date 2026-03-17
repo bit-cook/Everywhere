@@ -442,7 +442,14 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
     /// If valid tokens are found and the refresh is successful, the CurrentUser will be populated.
     /// Otherwise, it will remain null, indicating that the user needs to log in interactively.
     /// </summary>
-    public async Task InitializeAsync()
+    public Task InitializeAsync()
+    {
+        // fire and forget the initialization to avoid blocking app startup.
+        InitializeInternalAsync().Detach();
+        return Task.CompletedTask;
+    }
+
+    private async Task InitializeInternalAsync()
     {
         Debug.Assert(_tokenData is null, "Token data should be null before initialization");
         Debug.Assert(CurrentUser is null, "CurrentUser should be null before initialization");
@@ -520,6 +527,20 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
                 return await base.SendAsync(request, cancellationToken);
             }
 
+            if (IsTokenExpiredOrNearingExpiry(token))
+            {
+                var refreshed = await TryRefreshTokenWithLockAsync(cloudClient, cancellationToken);
+                if (refreshed && cloudClient._tokenData?.IdToken is { Length: > 0 } newToken)
+                {
+                    token = newToken; // Use the refreshed token
+                }
+                else
+                {
+                    // Refresh failed, proceed with the old token which will likely result in a 401 and trigger the refresh logic there as well.
+                    cloudClient._logger.LogWarning("Token is expired or nearing expiry, but refresh failed. Proceeding with existing token.");
+                }
+            }
+
             // Add authorization header if we have a token
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             request.Headers.Add("ew-device-id", RuntimeConstants.DeviceId);
@@ -535,21 +556,83 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
             // If the response is not 401, return it as is
             if (response.StatusCode != HttpStatusCode.Unauthorized) return response;
 
-            // If we get a 401, try to refresh the token and retry once
-            var refreshed = await TryRefreshTokenWithLockAsync(cloudClient, cancellationToken);
-            if (!refreshed) return response;
-
-            if (cloudClient._tokenData?.IdToken is not { Length: > 0 } newToken)
             {
-                return response; // Refresh succeeded, but we don't have a new token, give up
+                // If we get a 401, try to refresh the token and retry once
+                var refreshed = await TryRefreshTokenWithLockAsync(cloudClient, cancellationToken);
+                if (!refreshed) return response;
+
+                if (cloudClient._tokenData?.IdToken is  { Length: > 0 } newToken)
+                {
+                    token = newToken;
+                }
+                else
+                {
+                    return response; // Refresh succeeded, but we don't have a new token, give up
+                }
             }
 
             // Dispose the original response before retrying
             response.Dispose();
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             response = await base.SendAsync(request, cancellationToken);
 
             return response;
+        }
+
+        private static bool IsTokenExpiredOrNearingExpiry(string token, int bufferSeconds = 60)
+        {
+            if (string.IsNullOrWhiteSpace(token)) return true;
+
+            var tokenSpan = token.AsSpan();
+            var firstDot = tokenSpan.IndexOf('.');
+            if (firstDot == -1) return true;
+
+            var secondDot = tokenSpan.LastIndexOf('.');
+            if (secondDot == -1) return true;
+
+            var payloadChars = tokenSpan[(firstDot + 1)..secondDot];
+
+            // Calculate padding and decoded length
+            var padding = (4 - (payloadChars.Length % 4)) % 4;
+            var requiredCharLength = payloadChars.Length + padding;
+            var maxByteLength = (requiredCharLength * 3) / 4;
+
+            var base64Chars = requiredCharLength <= 2048 ? stackalloc char[requiredCharLength] : new char[requiredCharLength];
+            for (var i = 0; i < payloadChars.Length; i++)
+            {
+                var c = payloadChars[i];
+                base64Chars[i] = c switch
+                {
+                    '-' => '+',
+                    '_' => '/',
+                    _ => c
+                };
+            }
+            for (var i = 0; i < padding; i++)
+            {
+                base64Chars[payloadChars.Length + i] = '=';
+            }
+
+            var decodedBytes = maxByteLength <= 2048 ? stackalloc byte[maxByteLength] : new byte[maxByteLength];
+            if (!Convert.TryFromBase64Chars(base64Chars, decodedBytes, out var bytesWritten))
+            {
+                return true; // Invalid base64
+            }
+
+            decodedBytes = decodedBytes[..bytesWritten];
+            var reader = new Utf8JsonReader(decodedBytes);
+            while (reader.Read())
+            {
+                if (reader.TokenType != JsonTokenType.PropertyName || !reader.ValueTextEquals("exp"u8)) continue;
+                if (reader.Read() && reader.TokenType == JsonTokenType.Number && reader.TryGetInt64(out var exp))
+                {
+                    var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    return now >= (exp - bufferSeconds);
+                }
+                break;
+            }
+
+            return false;
         }
 
         private static async Task<bool> TryRefreshTokenWithLockAsync(OAuthCloudClient cloudClient, CancellationToken cancellationToken)
