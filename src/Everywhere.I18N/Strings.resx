@@ -157,13 +157,13 @@
     <data name="ChatWindow_ChatMessage_Assistant_Regenerate" xml:space="preserve">
         <value>Regenerate</value>
     </data>
-    <data name="Application_TrayIcon_Menu_OpenMainWindow" xml:space="preserve">
+    <data name="MainTrayIcon_Menu_OpenMainWindow" xml:space="preserve">
         <value>Open Window</value>
     </data>
-    <data name="Application_TrayIcon_Menu_Exit" xml:space="preserve">
+    <data name="MainTrayIcon_Menu_Exit" xml:space="preserve">
         <value>Exit</value>
     </data>
-    <data name="Application_TrayIcon_Menu_OpenDebugWindow" xml:space="preserve">
+    <data name="MainTrayIcon_Menu_OpenDebugWindow" xml:space="preserve">
         <value>Open Debug Window</value>
     </data>
     <data name="ChatWindow_History_ToolTip" xml:space="preserve">
@@ -1978,7 +1978,7 @@ Scroll wheel or number keys to switch pick modes</value>
     <data name="ChatPluginPageViewModel_ImportMcpPlugin_PartialSuccessToast_Title" xml:space="preserve">
         <value>Successfully imported {0} plugins, {1} failed</value>
     </data>
-    <data name="Application_TrayIcon_Menu_OpenChatWindow" xml:space="preserve">
+    <data name="MainTrayIcon_Menu_OpenChatWindow" xml:space="preserve">
         <value>Open Chat Window</value>
     </data>
     <data name="Linux_NativeHelper_RestartAsAdministrator_DesktopNotification" xml:space="preserve">

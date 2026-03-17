@@ -11,7 +11,6 @@ using Everywhere.AttachedProperties;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
-using Everywhere.Utilities;
 using Everywhere.Views;
 using LiveMarkdown.Avalonia;
 using Serilog;
@@ -30,34 +29,12 @@ public class App : Application, IRecipient<ApplicationCommand>
 
     public TopLevel TopLevel { get; } = new Window();
 
-    private readonly DebounceExecutor<App, DispatcherTimerImpl> _trayIconClickedDebounce;
-
     private TransientWindow? _mainWindow, _debugWindow;
-    private int _trayIconClickCount;
-
-    public App()
-    {
-        _trayIconClickedDebounce = new DebounceExecutor<App, DispatcherTimerImpl>(
-            () => this,
-            app =>
-            {
-                if (app._trayIconClickCount >= 2)
-                {
-                    app.HandleOpenMainWindowMenuItemClicked(app, EventArgs.Empty);
-                }
-                else
-                {
-                    app.HandleOpenChatWindowMenuItemClicked(app, EventArgs.Empty);
-                }
-
-                app._trayIconClickCount = 0;
-            },
-            TimeSpan.FromMilliseconds(300)
-        );
-    }
 
     public override void Initialize()
     {
+        InitializeErrorHandler();
+
         AvaloniaXamlLoader.Load(this);
 
 #if DEBUG
@@ -75,6 +52,16 @@ public class App : Application, IRecipient<ApplicationCommand>
         // e.g. ShowMainWindow
         WeakReferenceMessenger.Default.Register(this);
 
+        InitializeMarkdown();
+        InitializeApp();
+
+        TrayIcon.SetIcons(this, [new MainTrayIcon(this)]);
+
+        RecordAppLaunchMetric();
+    }
+
+    private static void InitializeErrorHandler()
+    {
         Dispatcher.UIThread.UnhandledException += (_, e) =>
         {
             Log.Logger.Error(e.Exception, "UI Thread Unhandled Exception");
@@ -87,13 +74,25 @@ public class App : Application, IRecipient<ApplicationCommand>
 
             e.Handled = true;
         };
+    }
+
+    private static void InitializeMarkdown()
+    {
+        AsyncImageLoader.DefaultDecoders =
+        [
+            SvgImageDecoder.Shared,
+            DefaultBitmapDecoder.Shared
+        ];
 
         MarkdownNode.Register<MathInlineNode>();
         MarkdownNode.Register<MathBlockNode>();
 
         MarkdownRenderer.ConfigurePipeline += x => x.UseMermaid();
         MarkdownNode.Register<MermaidBlockNode>();
+    }
 
+    private static void InitializeApp()
+    {
         try
         {
             foreach (var group in ServiceLocator
@@ -114,8 +113,6 @@ public class App : Application, IRecipient<ApplicationCommand>
                 NativeMessageBoxButtons.Ok,
                 NativeMessageBoxIcon.Error);
         }
-
-        RecordAppLaunchMetric();
     }
 
     private static void RecordAppLaunchMetric()
@@ -188,38 +185,6 @@ public class App : Application, IRecipient<ApplicationCommand>
         ShowWindow<MainView>(ref _mainWindow);
     }
 
-    private void HandleTrayIconClicked(object? sender, EventArgs e)
-    {
-        _trayIconClickCount++;
-        if (_trayIconClickCount >= 2)
-        {
-            // Double click detected, open main window immediately.
-            HandleOpenMainWindowMenuItemClicked(this, EventArgs.Empty);
-            _trayIconClickCount = 0;
-            _trayIconClickedDebounce.Cancel();
-        }
-        else
-        {
-            // Start or reset the debounce timer for single click.
-            _trayIconClickedDebounce.Trigger();
-        }
-    }
-
-    private void HandleOpenChatWindowMenuItemClicked(object? sender, EventArgs e)
-    {
-        var chatWindow = ServiceLocator.Resolve<ChatWindow>();
-        chatWindow.ViewModel.ShowAsync(null).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
-    }
-
-    private void HandleOpenMainWindowMenuItemClicked(object? sender, EventArgs e)
-    {
-        ShowWindow<MainView>(ref _mainWindow);
-    }
-
-    private void HandleOpenDebugWindowMenuItemClicked(object? sender, EventArgs e)
-    {
-        ShowWindow<VisualTreeDebugger>(ref _debugWindow);
-    }
 
     /// <summary>
     /// Flag to prevent multiple calls to ShowWindow method from event loop.
@@ -261,10 +226,9 @@ public class App : Application, IRecipient<ApplicationCommand>
         }
     }
 
-    private void HandleExitMenuItemClicked(object? sender, EventArgs e)
-    {
-        Environment.Exit(0);
-    }
+    public void ShowMainWindow() => ShowWindow<MainView>(ref _mainWindow);
+
+    public void ShowDebugWindow() => ShowWindow<VisualTreeDebugger>(ref _debugWindow);
 
     public void Receive(ApplicationCommand command)
     {
