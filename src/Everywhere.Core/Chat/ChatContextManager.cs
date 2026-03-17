@@ -371,10 +371,12 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                         });
                     ServiceLocator
                         .Resolve<ToastManager>()
-                        .CreateToast($"Removed {metadataList.Count} item(s)")
+                        .CreateToast(new FormattedDynamicResourceKey(
+                            LocaleKey.ChatContextManager_DeletingToast_Content,
+                            new DirectResourceKey(metadataList.Count)).ToString())
                         .WithProgress(progress)
                         .WithDelay(5d)
-                        .WithAction("Undo", ButtonStyle.Ghost)
+                        .WithAction(DynamicResourceKey.Resolve(LocaleKey.Common_Undo), ButtonStyle.Ghost)
                         .ShowInfoAsync()
                         .ContinueWith(t =>
                         {
@@ -398,7 +400,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                                 OnPropertyChanged(nameof(RecentHistory));
                                 RemoveCommand.NotifyCanExecuteChanged();
                             }
-                        });
+                        }, TaskContinuationOptions.ExecuteSynchronously);
 
                     OnPropertyChanged(nameof(AllHistory));
                     OnPropertyChanged(nameof(RecentHistory));
