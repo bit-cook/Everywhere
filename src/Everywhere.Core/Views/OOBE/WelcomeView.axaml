@@ -65,23 +65,14 @@
                 <Setter Property="Template">
                   <Setter.Value>
                     <ControlTemplate>
-                      <ContentControl
-                        ClipToBounds="False"
-                        Content="{TemplateBinding Content}">
-                        <ContentControl.DataTemplates>
-                          <DataTemplate x:DataType="TextBlock">
-                            <Border
-                              Padding="10,6" HorizontalAlignment="Left"
-                              Background="{DynamicResource BorderColor}"
-                              CornerRadius="8">
-                              <ContentPresenter
-                                ClipToBounds="False"
-                                Content="{Binding}"/>
-                            </Border>
-                          </DataTemplate>
-
-                        </ContentControl.DataTemplates>
-                      </ContentControl>
+                      <Border
+                        Padding="10,6" HorizontalAlignment="Left"
+                        Background="{DynamicResource BorderColor}"
+                        ClipToBounds="False" CornerRadius="8">
+                        <ContentControl
+                          ClipToBounds="False"
+                          Content="{TemplateBinding Content}"/>
+                      </Border>
                     </ControlTemplate>
                   </Setter.Value>
                 </Setter>
@@ -121,12 +112,12 @@
               <HyperlinkButton
                 VerticalAlignment="Center"
                 Content="{I18N {x:Static LocaleKey.WelcomeView_DiscordHyperlinkButton_Content}}"
-                NavigateUri="https://discord.gg/5fyg6nE3yn"
+                NavigateUri="https://aka.sylinko.com/everywhere-discord"
                 TextElement.Foreground="{DynamicResource InfoColor}"/>
               <HyperlinkButton
                 VerticalAlignment="Center"
                 Content="{I18N {x:Static LocaleKey.WelcomeView_QQGroupHyperlinkButton_Content}}"
-                NavigateUri="https://qm.qq.com/cgi-bin/qm/qr?k=wp9aDBBnLc7pYATqT99tB-N2ZP2ETmJC&amp;jump_from=webapi&amp;authKey=97qUJfsQoI70dUNcgBZ0C3HCZeiEn8inLT7pzg8x+KinbQwfIrHFu3dB2+aHMbRD"
+                NavigateUri="https://aka.sylinko.com/everywhere-qq-group"
                 TextElement.Foreground="{DynamicResource InfoColor}"/>
             </StackPanel>
             <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_IntroStep_Message6}}"/>
@@ -138,21 +129,10 @@
             <TextBlock Text="{I18N {x:Static LocaleKey.UserProfilePresenter_LoginToCloudTextBlock_Text}}"/>
             <TextBlock Text="{I18N {x:Static LocaleKey.UserProfilePresenter_CloudDescriptionTextBlock_Text}}"/>
 
-            <Panel>
-              <Button
-                Classes="Primary" HorizontalAlignment="Stretch"
-                shadui:ButtonAssist.Icon="{LucideIconContent LogIn}"
-                Command="{Binding LoginCommand}"
-                Content="{I18N {x:Static LocaleKey.UserProfilePresenter_LoginButton_Content}}"
-                IsVisible="{Binding !LoginCommand.IsRunning}"/>
-              <Button
-                Classes="Secondary" HorizontalAlignment="Stretch"
-                shadui:ButtonAssist.Icon="{LucideIconContent LogIn}"
-                shadui:ButtonAssist.ShowProgress="True"
-                Command="{Binding LoginCommand.Cancel}"
-                Content="{I18N {x:Static LocaleKey.UserProfilePresenter_CancelLoginButton_Content}}"
-                IsVisible="{Binding LoginCommand.IsRunning}"/>
-            </Panel>
+            <v:UserProfileCard
+              Width="240" Margin="8"
+              HorizontalAlignment="Left"
+              UserProfile="{Binding ViewModel.CloudClient.CurrentUser}"/>
           </ListBox>
         </DataTemplate>
 
@@ -170,9 +150,10 @@
           <ListBox Classes="AssistantMessage">
             <TextBlock Text="Hard_1"/>
             <TextBlock Text="Hard_2"/>
-            <Button
-              Command="{Binding LoginCommand}"
-              Content="This is a login button"/>
+            <v:UserProfileCard
+              Width="240" Margin="8"
+              HorizontalAlignment="Left"
+              UserProfile="{Binding ViewModel.CloudClient.CurrentUser}"/>
           </ListBox>
         </DataTemplate>
 

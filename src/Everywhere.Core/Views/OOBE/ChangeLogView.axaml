@@ -60,12 +60,12 @@
       <HyperlinkButton
         VerticalAlignment="Center"
         Content="{I18N {x:Static LocaleKey.WelcomeView_DiscordHyperlinkButton_Content}}"
-        NavigateUri="https://discord.gg/5fyg6nE3yn"
+        NavigateUri="https://aka.sylinko.com/everywhere-discord"
         TextElement.Foreground="{DynamicResource InfoColor}"/>
       <HyperlinkButton
         VerticalAlignment="Center"
         Content="{I18N {x:Static LocaleKey.WelcomeView_QQGroupHyperlinkButton_Content}}"
-        NavigateUri="https://qm.qq.com/cgi-bin/qm/qr?k=wp9aDBBnLc7pYATqT99tB-N2ZP2ETmJC&amp;jump_from=webapi&amp;authKey=97qUJfsQoI70dUNcgBZ0C3HCZeiEn8inLT7pzg8x+KinbQwfIrHFu3dB2+aHMbRD"
+        NavigateUri="https://aka.sylinko.com/everywhere-qq-group"
         TextElement.Foreground="{DynamicResource InfoColor}"/>
     </StackPanel>
   </StackPanel>
