@@ -4,6 +4,9 @@ namespace Everywhere.Cloud;
 
 public enum SubscriptionPlan
 {
+    [JsonPropertyName("banned")]
+    Banned = -1,
+
     [JsonPropertyName("free")]
     Free = 0,
 

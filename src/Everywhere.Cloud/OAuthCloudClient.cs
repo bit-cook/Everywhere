@@ -308,6 +308,11 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
                 cancellationToken);
 
             currentUser.Subscription = payload.EnsureData();
+
+            if (currentUser.Subscription.Plan == SubscriptionPlan.Banned)
+            {
+                await LogoutAsync(CancellationToken.None); // Cannot be canceled by user since we want to enforce the ban as soon as we detect it
+            }
         }
         catch (Exception ex)
         {
