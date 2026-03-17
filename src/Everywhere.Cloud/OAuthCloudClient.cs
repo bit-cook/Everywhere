@@ -12,6 +12,7 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
+using Everywhere.Configuration;
 using Everywhere.Extensions;
 using GnomeStack.Os.Secrets;
 using Microsoft.Extensions.Logging;
@@ -521,6 +522,7 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
 
             // Add authorization header if we have a token
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Add("ew-device-id", RuntimeConstants.DeviceId);
 
             // Before first send, ensure content is buffered for potential retry
             if (request.Content != null)

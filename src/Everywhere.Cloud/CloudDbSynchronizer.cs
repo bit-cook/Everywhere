@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Nito.AsyncEx;
 #if DEBUG
-using System.Net.Http.Headers;
 #endif
 
 namespace Everywhere.Cloud;
@@ -114,15 +113,7 @@ public class CloudChatDbSynchronizer(
         if (metadata is null) return;
 
         // Use named HttpClient for ICloudClient to ensure proper configuration (e.g., authentication, proxy).
-#if DEBUG
-        using var httpClient = httpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer",
-            "dev-user-pro");
-        httpClient.DefaultRequestHeaders.Add("X-Device-Name", Environment.MachineName);
-#else
         using var httpClient = httpClientFactory.CreateClient(nameof(ICloudClient));
-#endif
         httpClient.Timeout = TimeSpan.FromMinutes(5); // Set a reasonable timeout for sync operations
 
         try
