@@ -203,6 +203,16 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
         {
             if (_tokenData is null) return; // Already logged out
 
+            try
+            {
+                OsSecretVault.DeleteSecret(ServiceName, TokenDataKey);
+            }
+            catch (Exception ex)
+            {
+                // Not a critical failure, just log it
+                _logger.LogWarning(ex, "Failed to delete token data from secure storage");
+            }
+
             using var httpClient = _httpClientFactory.CreateClient();
 
             // Revoke Access Token if exists
@@ -219,16 +229,6 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
 
             _tokenData = null;
             CurrentUser = null;
-
-            try
-            {
-                OsSecretVault.DeleteSecret(ServiceName, TokenDataKey);
-            }
-            catch (Exception ex)
-            {
-                // Not a critical failure, just log it
-                _logger.LogWarning(ex, "Failed to delete token data from secure storage");
-            }
 
             async Task RevokeTokenAsync(string token, string tokenTypeHint)
             {
@@ -489,6 +489,8 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
             // This exception is expected to happen if the user has never logged in before or if the stored tokens are invalid/expired.
             // Log it for debugging but don't treat it as an error.
             _logger.LogInformation(ex, "Silent login failed");
+
+            OsSecretVault.DeleteSecret(ServiceName, TokenDataKey);
         }
         finally
         {
