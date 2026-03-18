@@ -2,13 +2,13 @@
 
 namespace Everywhere.Views.Pages;
 
-public partial class ChatPluginPage : ReactiveUserControl<ChatPluginPageViewModel>, IMainViewPage
+public partial class ChatPluginPage : ReactiveUserControl<ChatPluginPageViewModel>, IMainViewNavigationTopLevelItem
 {
     public int Index => 10;
 
-    public IDynamicResourceKey Title => new DynamicResourceKey(LocaleKey.ChatPluginPage_Title);
-
     public LucideIconKind Icon => LucideIconKind.Hammer;
+
+    public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.ChatPluginPage_Title);
 
     public ChatPluginPage()
     {

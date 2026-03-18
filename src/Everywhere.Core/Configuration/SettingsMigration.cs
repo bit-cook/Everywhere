@@ -99,4 +99,74 @@ public abstract class SettingsMigration
         obj[propertyName] = null;
         return true;
     }
+
+    /// <summary>
+    /// Helper to move a property from source path to destination path.
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="sourcePath"></param>
+    /// <param name="destinationPath"></param>
+    /// <returns></returns>
+    /// <example>
+    /// TryMoveProperty(root, "Common.Proxy", "Proxy")
+    /// </example>
+    /// <example>
+    /// TryMoveProperty(root, "ChatWindow.Shortcut", "Shortcut.ChatWindow")
+    /// </example>
+    protected static bool TryMoveProperty(JsonObject root, string sourcePath, string destinationPath)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath) || string.IsNullOrWhiteSpace(destinationPath))
+        {
+            return false;
+        }
+
+        if (sourcePath == destinationPath)
+        {
+            return false;
+        }
+
+        var srcSegments = sourcePath.Split('.');
+        var currentSrcParent = root;
+
+        for (var i = 0; i < srcSegments.Length - 1; i++)
+        {
+            if (!currentSrcParent.TryGetPropertyValue(srcSegments[i], out var nextNode) || nextNode is not JsonObject nextObj)
+            {
+                return false; // Source is not found
+            }
+
+            currentSrcParent = nextObj;
+        }
+
+        var srcProp = srcSegments[^1];
+        if (!currentSrcParent.ContainsKey(srcProp))
+        {
+            return false; // Source is not found
+        }
+
+        var nodeToMove = currentSrcParent[srcProp];
+        currentSrcParent.Remove(srcProp);
+
+        var destSegments = destinationPath.Split('.');
+        var currentDestParent = root;
+        for (var i = 0; i < destSegments.Length - 1; i++)
+        {
+            var segment = destSegments[i];
+            if (currentDestParent.TryGetPropertyValue(segment, out var existingNode) && existingNode is JsonObject existingObj)
+            {
+                currentDestParent = existingObj;
+            }
+            else
+            {
+                var newObject = new JsonObject();
+                currentDestParent[segment] = newObject;
+                currentDestParent = newObject;
+            }
+        }
+
+        var destProperty = destSegments[^1];
+        currentDestParent[destProperty] = nodeToMove;
+
+        return true;
+    }
 }

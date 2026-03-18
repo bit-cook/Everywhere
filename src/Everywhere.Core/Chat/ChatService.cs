@@ -941,7 +941,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         using var activity = StartChatActivity("invoke_agent", kernelMixin);
         try
         {
-            var language = _settings.Common.Language.ToEnglishName();
+            var language = _settings.Display.Language.ToEnglishName();
             activity?.SetTag("id", metadata.Id);
             activity?.SetTag("user_message.length", userMessage.Length);
             activity?.SetTag("system_language", language);

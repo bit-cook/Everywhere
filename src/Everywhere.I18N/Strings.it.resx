@@ -16,16 +16,10 @@
     <data name="SettingsPage_Saved_Toast_Title" xml:space="preserve">
         <value>Impostazioni Salvate</value>
     </data>
-    <data name="CommonSettings_Language_Header" xml:space="preserve">
+    <data name="DisplaySettings_Language_Header" xml:space="preserve">
         <value>Lingua</value>
     </data>
-    <data name="SettingsCategory_Common_Header" xml:space="preserve">
-        <value>Impostazioni Generali</value>
-    </data>
-    <data name="SettingsCategory_Network_Header" xml:space="preserve">
-        <value>Impostazioni di Rete</value>
-    </data>
-    <data name="CommonSettings_Language_Description" xml:space="preserve">
+    <data name="DisplaySettings_Language_Description" xml:space="preserve">
         <value>Seleziona la lingua di visualizzazione per il software.</value>
     </data>
     <data name="LocaleName_ZhHans" xml:space="preserve">
@@ -34,7 +28,7 @@
     <data name="LocaleName_En" xml:space="preserve">
         <value>English (United States)</value>
     </data>
-    <data name="CommonSettings_Theme_Description" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Description" xml:space="preserve">
         <value>Seleziona il tema di visualizzazione per il software.</value>
     </data>
     <data name="ThemeMode_System" xml:space="preserve">
@@ -88,17 +82,11 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>Password per il server proxy.</value>
     </data>
-    <data name="SettingsCategory_ChatWindow_Header" xml:space="preserve">
-        <value>Impostazioni Chat</value>
-    </data>
-    <data name="ChatWindowSettings_Shortcut_Header" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>Scorciatoia</value>
     </data>
-    <data name="ChatWindowSettings_Shortcut_Description" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Imposta una scorciatoia per richiamare la finestra di chat in qualsiasi momento.</value>
-    </data>
-    <data name="SettingsCategory_Model_Header" xml:space="preserve">
-        <value>Impostazioni AI</value>
     </data>
     <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
         <value>Creatività (temperature)</value>
@@ -410,7 +398,7 @@
     <data name="LocaleName_Ru" xml:space="preserve">
         <value>Русский</value>
     </data>
-    <data name="CommonSettings_Theme_Header" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Header" xml:space="preserve">
         <value>Tema</value>
     </data>
     <data name="LocaleName_ZhHant" xml:space="preserve">
@@ -569,31 +557,31 @@
     <data name="CustomAssistant_Schema_Description" xml:space="preserve">
         <value>Seleziona il protocollo API. Tieni presente che questo non è sempre associato al modello, ad esempio Gemini fornirà un protocollo compatibile con OpenAI, per dettagli consulta le istruzioni ufficiali del modello corrispondente.</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Header" xml:space="preserve">
         <value>Esegui all'avvio</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere verrà eseguito automaticamente dopo l'avvio. Se “Avvio come amministratore” è abilitato, l'opzione corrente può essere disabilitata solo in modalità amministratore.</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
         <value>Avvio come amministratore</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere si avvierà automaticamente come amministratore. Puoi attivare o disattivare questa opzione solo in modalità amministratore.</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Description" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>A causa delle restrizioni del sistema operativo, quando si esegue un'applicazione come amministratore (permessi elevati), Everywhere potrebbe non funzionare correttamente quando le applicazioni elevate sono in primo piano o tentano di interagire con una funzione di Everywhere come &quot;Seleziona elemento&quot;. Questo può essere risolto eseguendo Everywhere come amministratore.</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Header" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>Riavvia come amministratore</value>
     </data>
     <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
         <value>Riavvia</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
         <value>Funzionalità di Debug</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Description" xml:space="preserve">
         <value>Accedi e gestisci il file delle impostazioni dell'applicazione e i log.</value>
     </data>
     <data name="DebugFeaturesControl_EditSettingsFileButton_Content" xml:space="preserve">
@@ -617,16 +605,16 @@
     <data name="Common_Unknown" xml:space="preserve">
         <value>Sconosciuto</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Header" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Header" xml:space="preserve">
         <value>Aggiornamento software</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Description" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Description" xml:space="preserve">
         <value>Se è disponibile un aggiornamento, clicca su Aggiorna e Everywhere scaricherà e installerà automaticamente l'ultima versione. Potrebbe essere necessario selezionare “Sì” nella finestra pop-up durante il processo.</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
         <value>Aggiornamento automatico</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
         <value>Se abilitato, Everywhere controllerà periodicamente la disponibilità di aggiornamenti (solo quando Everywhere è in esecuzione, senza aggiungere carico extra al sistema).</value>
     </data>
     <data name="CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate" xml:space="preserve">
@@ -800,10 +788,10 @@ La mia intelligenza è fornita da un grande modello linguistico e ho bisogno del
     <data name="WelcomeView_EnableTelemetryButton_Content" xml:space="preserve">
         <value>Partecipa</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Header" xml:space="preserve">
         <value>Partecipa al programma di esperienza utente</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Description" xml:space="preserve">
         <value>Per aiutarci a migliorare, ti invitiamo a partecipare al programma di esperienza utente. Raccoglieremo i tuoi dati di utilizzo, che saranno utilizzati solo per analisi e non conterranno né potranno essere utilizzati per dedurre informazioni personali. Se non partecipi, verranno inviati solo i dati necessari. Questa scelta non influenzerà le funzionalità principali.</value>
     </data>
     <data name="ChatWindowSettings_ShowChatStatistics_Header" xml:space="preserve">
@@ -940,9 +928,6 @@ La mia intelligenza è fornita da un grande modello linguistico e ho bisogno del
     </data>
     <data name="CustomAssistant_Name_Default" xml:space="preserve">
         <value>Assistente Predefinito</value>
-    </data>
-    <data name="CustomAssistantPage_Title" xml:space="preserve">
-        <value>Assistente Personalizzato</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_Content" xml:space="preserve">
         <value>Crea</value>
@@ -1302,12 +1287,6 @@ Nel prompt possono essere utilizzati segnaposto, racchiusi in {}, che verranno s
     <data name="ChatWindow_BackAllHistoryButton_Content" xml:space="preserve">
         <value>Indietro</value>
     </data>
-    <data name="ProxySettings_Header" xml:space="preserve">
-        <value>Proxy</value>
-    </data>
-    <data name="ProxySettings_Description" xml:space="preserve">
-        <value>Impostazione del proxy di rete.</value>
-    </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ErrorMessage" xml:space="preserve">
         <value>Esecuzione dello script PowerShell non riuscita: {0}</value>
     </data>
@@ -1462,10 +1441,10 @@ Rotellina o tasti numerici per cambiare modalità di selezione</value>
     <data name="ChatFileAttachment_Create_FileTooLarge" xml:space="preserve">
         <value>La dimensione del file ({0}) supera la dimensione massima consentita ({1}).</value>
     </data>
-    <data name="CommonSettings_FontSize_Header" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Header" xml:space="preserve">
         <value>Dimensione del carattere</value>
     </data>
-    <data name="CommonSettings_FontSize_Description" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Description" xml:space="preserve">
         <value>Regola la dimensione globale del carattere.</value>
     </data>
     <data name="CustomAssistantPage_DuplicateCustomAssistantButton_Content" xml:space="preserve">
@@ -2015,10 +1994,10 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value>Questa è una funzionalità sperimentale e potrebbe causare errori e risultati imprevisti.</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Header" xml:space="preserve">
         <value>Avvio Automatico</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere si avvierà automaticamente all'accensione.</value>
     </data>
     <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">

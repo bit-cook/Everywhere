@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Everywhere.Configuration;
@@ -16,9 +15,21 @@ public partial class Settings : ObservableObject
     [ObservableProperty]
     public partial string? Version { get; set; }
 
+    #region Common
+
     public CommonSettings Common { get; set; } = new();
 
+    public DisplaySettings Display { get; set; } = new();
+
+    public ShortcutSettings Shortcut { get; set; } = new();
+
+    public ProxySettings Proxy { get; set; } = new();
+
+    #endregion
+
     public ModelSettings Model { get; set; } = new();
+
+    public SystemAssistantSettings SystemAssistant { get; set; } = new();
 
     public ChatWindowSettings ChatWindow { get; set; } = new();
 

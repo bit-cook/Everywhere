@@ -26,7 +26,7 @@ public sealed class NetworkInitializer : IAsyncInitializer
 
     public NetworkInitializer(Settings settings, DynamicWebProxy dynamicWebProxy, ILogger<NetworkInitializer> logger)
     {
-        _proxySettings = settings.Common.Proxy;
+        _proxySettings = settings.Proxy;
         _dynamicWebProxy = dynamicWebProxy;
         _logger = logger;
         _applyProxyDebounceExecutor = new DebounceExecutor<NetworkInitializer, ThreadingTimerImpl>(

@@ -8,7 +8,6 @@ using Everywhere.Configuration;
 using Everywhere.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Serilog;
 
 namespace Everywhere.ViewModels;
 
@@ -154,28 +153,7 @@ public sealed partial class WelcomeViewModelIntroStep(WelcomeViewModel viewModel
     }
 }
 
-public sealed partial class WelcomeViewModelSoftLoginStep(WelcomeViewModel viewModel) : WelcomeViewModelStep(viewModel)
-{
-    [RelayCommand]
-    private async Task LoginAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            await ViewModel.CloudClient.LoginAsync(cancellationToken);
-        }
-        catch (Exception e)
-        {
-            Log.ForContext<WelcomeViewModelHardLoginStep>().Error(e, "Failed to login user in welcome flow");
-
-            e = HandledSystemException.Handle(e);
-            ToastManager
-                .CreateToast("failed")
-                .WithContent(e.GetFriendlyMessage().ToTextBlock())
-                .DismissOnClick()
-                .ShowError();
-        }
-    }
-}
+public sealed class WelcomeViewModelSoftLoginStep(WelcomeViewModel viewModel) : WelcomeViewModelStep(viewModel);
 
 public sealed partial class WelcomeViewModelConfiguratorStep(WelcomeViewModel viewModel) : WelcomeViewModelStep(viewModel)
 {
@@ -208,28 +186,7 @@ public sealed partial class WelcomeViewModelConfiguratorStep(WelcomeViewModel vi
     }
 }
 
-public sealed partial class WelcomeViewModelHardLoginStep(WelcomeViewModel viewModel) : WelcomeViewModelStep(viewModel)
-{
-    [RelayCommand]
-    private async Task LoginAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            await ViewModel.CloudClient.LoginAsync(cancellationToken);
-        }
-        catch (Exception e)
-        {
-            Log.ForContext<WelcomeViewModelHardLoginStep>().Error(e, "Failed to login user in welcome flow");
-
-            e = HandledSystemException.Handle(e);
-            ToastManager
-                .CreateToast("failed")
-                .WithContent(e.GetFriendlyMessage().ToTextBlock())
-                .DismissOnClick()
-                .ShowError();
-        }
-    }
-}
+public sealed class WelcomeViewModelHardLoginStep(WelcomeViewModel viewModel) : WelcomeViewModelStep(viewModel);
 
 /// <summary>
 /// Message to trigger confetti effect in the UI.

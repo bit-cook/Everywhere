@@ -39,25 +39,22 @@ public class ChatWindowInitializer(
         // Preload ChatWindow to avoid delay on first open
         chatWindow.Initialize();
 
-        // initialize hotkey listener
+        settings.Shortcut.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(ShortcutSettings.ChatWindow))
+            {
+                HandleChatShortcutChanged(chatWindow, chatWindowHandle, settings.Shortcut.ChatWindow);
+            }
+        };
         settings.ChatWindow.PropertyChanged += (_, args) =>
         {
-            switch (args.PropertyName)
+            if (args.PropertyName == nameof(ChatWindowSettings.AutomaticallyAddTextSelection))
             {
-                case nameof(ChatWindowSettings.Shortcut):
-                {
-                    HandleChatShortcutChanged(chatWindow, chatWindowHandle, settings.ChatWindow.Shortcut);
-                    break;
-                }
-                case nameof(ChatWindowSettings.AutomaticallyAddTextSelection):
-                {
-                    HandleTextSelectionChanged(chatWindowViewModel, settings.ChatWindow.AutomaticallyAddTextSelection);
-                    break;
-                }
+                HandleTextSelectionChanged(chatWindowViewModel, settings.ChatWindow.AutomaticallyAddTextSelection);
             }
         };
 
-        HandleChatShortcutChanged(chatWindow, chatWindowHandle, settings.ChatWindow.Shortcut);
+        HandleChatShortcutChanged(chatWindow, chatWindowHandle, settings.Shortcut.ChatWindow);
         HandleTextSelectionChanged(chatWindowViewModel, settings.ChatWindow.AutomaticallyAddTextSelection);
 
         return Task.CompletedTask;

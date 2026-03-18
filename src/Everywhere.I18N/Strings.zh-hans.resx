@@ -16,16 +16,13 @@
     <data name="SettingsPage_Saved_Toast_Title" xml:space="preserve">
         <value>设置已保存</value>
     </data>
-    <data name="CommonSettings_Language_Header" xml:space="preserve">
+    <data name="DisplaySettings_Language_Header" xml:space="preserve">
         <value>语言</value>
     </data>
-    <data name="SettingsCategory_Common_Header" xml:space="preserve">
-        <value>通用设置</value>
+    <data name="SettingsCategory_Settings_Header" xml:space="preserve">
+        <value>设置</value>
     </data>
-    <data name="SettingsCategory_Network_Header" xml:space="preserve">
-        <value>网络设置</value>
-    </data>
-    <data name="CommonSettings_Language_Description" xml:space="preserve">
+    <data name="DisplaySettings_Language_Description" xml:space="preserve">
         <value>选择软件界面语言。</value>
     </data>
     <data name="LocaleName_ZhHans" xml:space="preserve">
@@ -34,7 +31,7 @@
     <data name="LocaleName_En" xml:space="preserve">
         <value>English (United States)</value>
     </data>
-    <data name="CommonSettings_Theme_Description" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Description" xml:space="preserve">
         <value>选择软件界面主题。</value>
     </data>
     <data name="ThemeMode_System" xml:space="preserve">
@@ -88,17 +85,14 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>代理服务器的密码。</value>
     </data>
-    <data name="SettingsCategory_ChatWindow_Header" xml:space="preserve">
-        <value>聊天设置</value>
+    <data name="SettingsCategory_Settings_ChatWindow_Header" xml:space="preserve">
+        <value>聊天窗口</value>
     </data>
-    <data name="ChatWindowSettings_Shortcut_Header" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>快捷键</value>
     </data>
-    <data name="ChatWindowSettings_Shortcut_Description" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>设置一个快捷键，在任何时候按下即可唤出聊天窗口。</value>
-    </data>
-    <data name="SettingsCategory_Model_Header" xml:space="preserve">
-        <value>AI 设置</value>
     </data>
     <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
         <value>创意活跃度 (temperature)</value>
@@ -410,7 +404,7 @@
     <data name="LocaleName_Ru" xml:space="preserve">
         <value>Русский</value>
     </data>
-    <data name="CommonSettings_Theme_Header" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Header" xml:space="preserve">
         <value>主题</value>
     </data>
     <data name="LocaleName_ZhHant" xml:space="preserve">
@@ -569,31 +563,31 @@
     <data name="CustomAssistant_Schema_Description" xml:space="preserve">
         <value>选择 API 协议。请注意此项并不总是和模型相关联，例如 Gemini 会提供 OpenAI 兼容协议，具体请详阅对应模型的官方使用说明。</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Header" xml:space="preserve">
         <value>开机时启动</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere 会在开机后自动运行。如果开启了“以管理员方式启动”，则只有在管理员模式下才能关闭当前选项。</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
         <value>以管理员方式启动</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere 会以管理员方式自启动。只有在管理员模式下才能开关当前选项。</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Description" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>由于操作系统限制，当以管理员身份运行任何应用程序（提升权限）时，如果提升权限的应用程序处于活动状态或试图与 Everywhere 的某个功能（如“选择元素”）交互，Everywhere 可能无法正常工作。可以通过以管理员身份运行 Everywhere 来解决此问题。</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Header" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>以管理员身份重启</value>
     </data>
     <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
         <value>重启</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
         <value>调试功能</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Description" xml:space="preserve">
         <value>访问和管理应用程序设置文件和日志。</value>
     </data>
     <data name="DebugFeaturesControl_EditSettingsFileButton_Content" xml:space="preserve">
@@ -617,16 +611,16 @@
     <data name="Common_Unknown" xml:space="preserve">
         <value>未知</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Header" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Header" xml:space="preserve">
         <value>软件更新</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Description" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Description" xml:space="preserve">
         <value>如果有更新，点击更新之后 Everywhere 会自动下载并安装最新版本。过程中可能需要你在弹出窗口中选择“是”。</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
         <value>自动更新</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
         <value>开启后，Everywhere 会定期检查更新 (仅在 Everywhere 运行时，不会给系统增加额外负担)。</value>
     </data>
     <data name="CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate" xml:space="preserve">
@@ -800,10 +794,10 @@
     <data name="WelcomeView_EnableTelemetryButton_Content" xml:space="preserve">
         <value>加入</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Header" xml:space="preserve">
         <value>加入用户体验计划</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Description" xml:space="preserve">
         <value>为了帮助我们改进，我们诚邀您加入用户体验计划。我们会收集您的使用数据，这些数据仅用于分析，不包含也无法从中推断出任何和您个人有关的数据。如果不加入，将只会发送必要数据。此选择不会影响核心功能。</value>
     </data>
     <data name="ChatWindowSettings_ShowChatStatistics_Header" xml:space="preserve">
@@ -942,7 +936,7 @@
         <value>默认助手</value>
     </data>
     <data name="CustomAssistantPage_Title" xml:space="preserve">
-        <value>自定义助手</value>
+        <value>助手配置</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_Content" xml:space="preserve">
         <value>创建</value>
@@ -1303,11 +1297,8 @@
     <data name="ChatWindow_BackAllHistoryButton_Content" xml:space="preserve">
         <value>返回</value>
     </data>
-    <data name="ProxySettings_Header" xml:space="preserve">
-        <value>代理</value>
-    </data>
-    <data name="ProxySettings_Description" xml:space="preserve">
-        <value>设置网络代理。</value>
+    <data name="SettingsCategory_Settings_Proxy_Header" xml:space="preserve">
+        <value>网络代理</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ErrorMessage" xml:space="preserve">
         <value>PowerShell 脚本执行失败: {0}</value>
@@ -1463,10 +1454,10 @@
     <data name="ChatFileAttachment_Create_FileTooLarge" xml:space="preserve">
         <value>文件大小 ({0}) 超出允许上限 ({1})。</value>
     </data>
-    <data name="CommonSettings_FontSize_Header" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Header" xml:space="preserve">
         <value>字体大小</value>
     </data>
-    <data name="CommonSettings_FontSize_Description" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Description" xml:space="preserve">
         <value>调整全局的字体显示大小。</value>
     </data>
     <data name="CustomAssistantPage_DuplicateCustomAssistantButton_Content" xml:space="preserve">
@@ -2016,10 +2007,10 @@
     <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value>此项为实验性功能，可能会导致意外的错误和结果</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Header" xml:space="preserve">
         <value>开机时启动</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere 会在开机后自动运行。</value>
     </data>
     <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
@@ -2289,5 +2280,38 @@
     </data>
     <data name="ChatContextManager_DeletingToast_Content" xml:space="preserve">
         <value>移除了 {0} 个对话</value>
+    </data>
+    <data name="SettingsCategory_Settings_Display_Header" xml:space="preserve">
+        <value>显示</value>
+    </data>
+    <data name="SettingsCategory_Settings_Common_Header" xml:space="preserve">
+        <value>通用</value>
+    </data>
+    <data name="SettingsCategory_Settings_Shortcut_Header" xml:space="preserve">
+        <value>快捷键</value>
+    </data>
+    <data name="SettingsCategory_Settings_SystemAssistant_Header" xml:space="preserve">
+        <value>系统助手</value>
+    </data>
+    <data name="SettingsCategory_Settings_SystemAssistant_Description" xml:space="preserve">
+        <value>配置 Everywhere 所需的关键助手，用于标题总结、上下文压缩等。如果没有配置，Everywhere 会使用当前最佳模型作为所需助手。</value>
+    </data>
+    <data name="SettingsCategory_Settings_Display_Description" xml:space="preserve">
+        <value>配置 Everywhere 如何显示界面内容，如语言、主题、字体大小等。</value>
+    </data>
+    <data name="SettingsCategory_Settings_Proxy_Description" xml:space="preserve">
+        <value>配置网络代理，配置之后 Everywhere 的所有网络请求都会经过此代理。</value>
+    </data>
+    <data name="SettingsCategory_Settings_Shortcut_Description" xml:space="preserve">
+        <value>配置 Everywhere 所使用的全局快捷键，自定义符合个人习惯的体验。</value>
+    </data>
+    <data name="SettingsCategory_Settings_Common_Description" xml:space="preserve">
+        <value>配置和 Everywhere 运行相关的设置。</value>
+    </data>
+    <data name="SettingsCategory_Settings_Header" xml:space="preserve">
+        <value>设置</value>
+    </data>
+    <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
+        <value>配置聊天窗口的行为。</value>
     </data>
 </root>

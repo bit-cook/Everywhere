@@ -15,7 +15,7 @@
         <Setter Property="DockPanel.Dock" Value="Bottom"/>
         <Setter Property="Orientation" Value="Horizontal"/>
         <Setter Property="Margin" Value="0,8"/>
-        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Left"/>
         <Setter Property="VerticalAlignment" Value="Bottom"/>
       </Style>
       <Style Selector="^ &gt; TransitioningContentControl">
@@ -42,7 +42,7 @@
       Margin="12,8"
       IsExpanded="{Binding PersistentState.IsMainViewSidebarExpanded, Mode=TwoWay}"
       ItemsSource="{Binding Items}"
-      SelectedItem="{Binding CurrentItem, Mode=TwoWay}"
+      SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
       ZIndex="1">
       <Interaction.Behaviors>
         <shadui:ImplicitCompositionAnimationBehavior>
@@ -55,13 +55,14 @@
       <shadui:NavigationBar.Footer>
         <v:UserProfilePresenter
           Margin="8" HorizontalAlignment="Left"
+          Size="36"
           UserProfile="{Binding CloudClient.CurrentUser}"/>
       </shadui:NavigationBar.Footer>
     </shadui:NavigationBar>
 
     <TransitioningContentControl
       x:Name="TransitioningContentControl" ClipToBounds="False"
-      Content="{Binding CurrentItem.Route, FallbackValue={x:Null}}">
+      Content="{Binding SelectedItem.Route, FallbackValue={x:Null}}">
       <TransitioningContentControl.PageTransition>
         <shadui:BetterPageSlide
           FadeDuration="0:0:0.4" FadeEasing="CubicEaseInOut"

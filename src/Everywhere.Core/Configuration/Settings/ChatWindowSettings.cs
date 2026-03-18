@@ -1,26 +1,27 @@
-﻿using Avalonia.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Chat;
-using Everywhere.Interop;
+using Everywhere.Views;
 using Lucide.Avalonia;
 
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class ChatWindowSettings : ObservableObject, ISettingsCategory
+public partial class ChatWindowSettings : ObservableObject, IMainViewNavigationSubItem
 {
     [HiddenSettingsItem]
-    public IDynamicResourceKey DisplayNameKey => new DynamicResourceKey(LocaleKey.SettingsCategory_ChatWindow_Header);
+    public int Index => 3;
 
     [HiddenSettingsItem]
     public LucideIconKind Icon => LucideIconKind.MessageCircle;
 
-    [ObservableProperty]
-    [DynamicResourceKey(
-        LocaleKey.ChatWindowSettings_Shortcut_Header,
-        LocaleKey.ChatWindowSettings_Shortcut_Description)]
-    [SettingsTemplatedItem]
-    public partial KeyboardShortcut Shortcut { get; set; } = new(Key.E, KeyModifiers.Control | KeyModifiers.Shift);
+    [HiddenSettingsItem]
+    public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_ChatWindow_Header);
+
+    [HiddenSettingsItem]
+    public Type GroupType => typeof(SettingsCategory);
+
+    [HiddenSettingsItem]
+    public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_ChatWindow_Description);
 
     [ObservableProperty]
     [DynamicResourceKey(

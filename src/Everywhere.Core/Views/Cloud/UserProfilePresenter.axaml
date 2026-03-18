@@ -15,12 +15,13 @@
     <Setter Property="ClipToBounds" Value="False"/>
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel
-          Width="{TemplateBinding Size}"
-          Height="{TemplateBinding Size}">
+        <Panel>
           <Button
-            Classes="Outline" Padding="0"
-            HorizontalAlignment="Left" HorizontalContentAlignment="Center"
+            Classes="Outline"
+            Width="{TemplateBinding Size}"
+            Height="{TemplateBinding Size}"
+            Padding="0" HorizontalAlignment="Left"
+            HorizontalContentAlignment="Center"
             BorderBrush="{TemplateBinding BorderBrush}"
             BorderThickness="{TemplateBinding BorderThickness}"
             CornerRadius="{DynamicResource FullCornerRadius}"
@@ -35,18 +36,21 @@
               </Flyout>
             </Button.Flyout>
 
-            <Panel
-              Width="{TemplateBinding Size}"
-              Height="{TemplateBinding Size}">
-              <LucideIcon
-                IsVisible="{Binding #AvatarImage.Bounds.Width, Converter={x:Static vc:DoubleConverters.NotGreaterThan}, ConverterParameter=0}"
-                Kind="User"
-                Size="{TemplateBinding FontSize}"/>
-              <Image
-                x:Name="AvatarImage" md:AsyncImageLoader.SizeToContent="Manual"
-                md:AsyncImageLoader.Source="{Binding UserProfile.AvatarUrl, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
-                RenderOptions.BitmapInterpolationMode="HighQuality" RenderOptions.EdgeMode="Antialias"/>
-            </Panel>
+            <Border
+              Margin="1" ClipToBounds="True"
+              CornerRadius="{DynamicResource FullCornerRadius}">
+              <Panel Margin="-1">
+                <LucideIcon
+                  IsVisible="{Binding #AvatarImage.Bounds.Width, Converter={x:Static vc:DoubleConverters.NotGreaterThan}, ConverterParameter=0}"
+                  Kind="User"
+                  Size="{TemplateBinding FontSize}"/>
+                <Image
+                  x:Name="AvatarImage" md:AsyncImageLoader.SizeToContent="Manual"
+                  md:AsyncImageLoader.Source="{Binding UserProfile.AvatarUrl, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
+                  RenderOptions.BitmapInterpolationMode="HighQuality" RenderOptions.EdgeMode="Antialias"
+                  Stretch="UniformToFill"/>
+              </Panel>
+            </Border>
           </Button>
 
           <shadui:Badge

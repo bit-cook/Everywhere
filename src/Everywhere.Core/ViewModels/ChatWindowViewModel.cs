@@ -219,7 +219,7 @@ public sealed partial class ChatWindowViewModel :
                 LocaleKey.ChatWindowViewModel_QuickActions_Translate,
                 null,
                 SendMessageCommand,
-                $"Please translate the focal elements and related content into {Settings.Common.Language.ToEnglishName()}. " +
+                $"Please translate the focal elements and related content into {Settings.Display.Language.ToEnglishName()}. " +
                 $"If it's already in target language, translate it to English. " +
                 $"Provide only the translation, do not include any other text or explanation."
             ),

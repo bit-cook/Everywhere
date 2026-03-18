@@ -16,16 +16,10 @@
     <data name="SettingsPage_Saved_Toast_Title" xml:space="preserve">
         <value>Ayarlar Kaydedildi</value>
     </data>
-    <data name="CommonSettings_Language_Header" xml:space="preserve">
+    <data name="DisplaySettings_Language_Header" xml:space="preserve">
         <value>Dil</value>
     </data>
-    <data name="SettingsCategory_Common_Header" xml:space="preserve">
-        <value>Genel Ayarlar</value>
-    </data>
-    <data name="SettingsCategory_Network_Header" xml:space="preserve">
-        <value>Ağ Ayarları</value>
-    </data>
-    <data name="CommonSettings_Language_Description" xml:space="preserve">
+    <data name="DisplaySettings_Language_Description" xml:space="preserve">
         <value>Yazılım için görüntüleme dilini seçin.</value>
     </data>
     <data name="LocaleName_ZhHans" xml:space="preserve">
@@ -34,7 +28,7 @@
     <data name="LocaleName_En" xml:space="preserve">
         <value>English (United States)</value>
     </data>
-    <data name="CommonSettings_Theme_Description" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Description" xml:space="preserve">
         <value>Yazılım için ekran temasını seçin.</value>
     </data>
     <data name="ThemeMode_System" xml:space="preserve">
@@ -88,17 +82,11 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>Proxy sunucusu için şifre.</value>
     </data>
-    <data name="SettingsCategory_ChatWindow_Header" xml:space="preserve">
-        <value>Sohbet Ayarları</value>
-    </data>
-    <data name="ChatWindowSettings_Shortcut_Header" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>Kısayollar</value>
     </data>
-    <data name="ChatWindowSettings_Shortcut_Description" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Sohbet penceresini istediğiniz zaman çağırmak için bir kısayol ayarlayın.</value>
-    </data>
-    <data name="SettingsCategory_Model_Header" xml:space="preserve">
-        <value>Yapay Zeka Ayarları</value>
     </data>
     <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
         <value>Yaratıcılık (sıcaklık)</value>
@@ -409,7 +397,7 @@
     <data name="LocaleName_Ru" xml:space="preserve">
         <value>Русский</value>
     </data>
-    <data name="CommonSettings_Theme_Header" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Header" xml:space="preserve">
         <value>Tema</value>
     </data>
     <data name="LocaleName_ZhHant" xml:space="preserve">
@@ -568,31 +556,31 @@
     <data name="CustomAssistant_Schema_Description" xml:space="preserve">
         <value>API protokolünü seçin. Bu seçeneğin her zaman modelle ilişkili olmadığını unutmayın; örneğin, Gemini OpenAI uyumlu protokol sunar, detaylar için ilgili modelin resmi kullanım kılavuzuna bakın.</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Header" xml:space="preserve">
         <value>Başlangıçta Çalıştır</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere başlatıldığında otomatik olarak çalışacak. “Yönetici Olarak Başlangıç” etkinse, mevcut seçenek yalnızca yönetici modunda devre dışı bırakılabilir.</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
         <value>Yönetici Olarak Başlat</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere yönetici olarak otomatik başlatılacak. Bu seçeneği yalnızca yönetici modunda açıp kapatabilirsiniz.</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Description" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>İşletim sistemi kısıtlamaları nedeniyle herhangi bir uygulamayı yönetici olarak çalıştırdığınızda (yükseltilmiş izinler), Everywhere yükseltilmiş uygulamalar odakta olduğunda veya “Öğe Seç” gibi bir Everywhere özelliğiyle etkileşime geçmeye çalışırken düzgün çalışmayabilir. Bu sorun, Everywhere'ı yönetici olarak çalıştırarak çözülebilir.</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Header" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>Yönetici Olarak Yeniden Başlat</value>
     </data>
     <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
         <value>Yeniden Başlat</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
         <value>Hata Ayıklama Özellikleri</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Description" xml:space="preserve">
         <value>Uygulama ayarları dosyasına ve günlüklerine erişin ve yönetin.</value>
     </data>
     <data name="DebugFeaturesControl_EditSettingsFileButton_Content" xml:space="preserve">
@@ -616,16 +604,16 @@
     <data name="Common_Unknown" xml:space="preserve">
         <value>Bilinmeyen</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Header" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Header" xml:space="preserve">
         <value>Yazılım Güncelleme</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Description" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Description" xml:space="preserve">
         <value>Bir güncelleme mevcutsa Güncelle'ye tıklayın ve Everywhere en son sürümü otomatik olarak indirecek ve kuracaktır. İşlem sırasında açılan pencerede “Evet” seçeneğini seçmeniz gerekebilir.</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
         <value>Otomatik Güncelleme</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
         <value>Etkinleştirildiğinde Everywhere, sistem üzerinde ek yük oluşturmadan aralıklarla güncellemeleri kontrol edecektir.</value>
     </data>
     <data name="CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate" xml:space="preserve">
@@ -797,10 +785,10 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     <data name="WelcomeView_EnableTelemetryButton_Content" xml:space="preserve">
         <value>Katılıyorum</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Header" xml:space="preserve">
         <value>Kullanıcı deneyimi programına katılın</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Description" xml:space="preserve">
         <value>Gelişmemize yardımcı olmak için sizi kullanıcı deneyimi programına katılmaya davet ediyoruz. Kullanım verilerinizi toplayacağız, bu veriler yalnızca analiz için kullanılacak ve sizinle ilgili herhangi bir kişisel bilgi içermeyecek veya çıkarım yapılamayacaktır. Katılmazsanız yalnızca gerekli veriler gönderilecektir. Bu seçim temel işlevleri etkilemeyecektir.</value>
     </data>
     <data name="ChatWindowSettings_ShowChatStatistics_Header" xml:space="preserve">
@@ -937,9 +925,6 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     </data>
     <data name="CustomAssistant_Name_Default" xml:space="preserve">
         <value>Varsayılan Asistan</value>
-    </data>
-    <data name="CustomAssistantPage_Title" xml:space="preserve">
-        <value>Özelleştirilebilir Asistan</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_Content" xml:space="preserve">
         <value>Oluştur</value>
@@ -1299,12 +1284,6 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     <data name="ChatWindow_BackAllHistoryButton_Content" xml:space="preserve">
         <value>Geri</value>
     </data>
-    <data name="ProxySettings_Header" xml:space="preserve">
-        <value>Vekil Sunucu</value>
-    </data>
-    <data name="ProxySettings_Description" xml:space="preserve">
-        <value>Ağ vekil sunucusunu ayarlama.</value>
-    </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ErrorMessage" xml:space="preserve">
         <value>PowerShell betiği yürütme hatası: {0}</value>
     </data>
@@ -1459,10 +1438,10 @@ Seçim modlarını değiştirmek için kaydırma tekerleğini veya sayı tuşlar
     <data name="ChatFileAttachment_Create_FileTooLarge" xml:space="preserve">
         <value>Dosya boyutu ({0}), izin verilen maksimum boyutu ({1}) aşıyor.</value>
     </data>
-    <data name="CommonSettings_FontSize_Header" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Header" xml:space="preserve">
         <value>Yazı Tipi Boyutu</value>
     </data>
-    <data name="CommonSettings_FontSize_Description" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Description" xml:space="preserve">
         <value>Küresel yazı tipi görüntü boyutunu ayarlayın.</value>
     </data>
     <data name="CustomAssistantPage_DuplicateCustomAssistantButton_Content" xml:space="preserve">
@@ -2012,10 +1991,10 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value>Bu özellik deneysel olup, beklenmedik hatalara ve sonuçlara yol açabilir.</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Header" xml:space="preserve">
         <value>Başlangıçta Çalıştır</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere, bilgisayar açıldığında otomatik olarak çalışacaktır.</value>
     </data>
     <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">

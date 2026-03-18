@@ -1,0 +1,70 @@
+﻿<ResourceDictionary
+  xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:v="using:Everywhere.Views">
+  <ControlTheme
+    x:Key="{x:Type v:SettingsCategoryPage}"
+    TargetType="v:SettingsCategoryPage">
+    <Setter Property="Template">
+      <ControlTemplate>
+        <DockPanel
+          MaxWidth="1080" LastChildFill="True"
+          VerticalSpacing="16">
+          <TextBlock
+            Classes="h4" DockPanel.Dock="Top"
+            VerticalAlignment="Center" ClipToBounds="False"
+            Text="{TemplateBinding Title}"/>
+
+          <ScrollViewer
+            HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <ItemsControl
+              HorizontalAlignment="Stretch"
+              ItemsSource="{TemplateBinding Items}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="8"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="v:SettingsCategoryPage+Item">
+                  <Button
+                    Classes="Outline" Padding="16"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                    Command="{Binding $parent[v:SettingsCategoryPage].Command}"
+                    CommandParameter="{Binding Route}">
+                    <Grid
+                      ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
+                      RowDefinitions="Auto,*" RowSpacing="4">
+                      <LucideIcon
+                        Grid.Row="0" Grid.RowSpan="2"
+                        Grid.Column="0" DockPanel.Dock="Right"
+                        VerticalAlignment="Center"
+                        Kind="{Binding Icon}"
+                        Size="{DynamicResource FontSize2Xl}"/>
+
+                      <TextBlock
+                        Grid.Row="0" Grid.Column="1"
+                        Text="{Binding TitleKey^}"
+                        TextWrapping="Wrap"/>
+                      <TextBlock
+                        Classes="Muted Small" Grid.Row="1"
+                        Grid.Column="1"
+                        Text="{Binding DescriptionKey^, FallbackValue={x:Null}}"
+                        TextWrapping="Wrap"/>
+
+                      <LucideIcon
+                        Grid.Row="0" Grid.RowSpan="2"
+                        Grid.Column="2" DockPanel.Dock="Right"
+                        VerticalAlignment="Center" Kind="ChevronRight"
+                        Size="{DynamicResource FontSize2Xl}"/>
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

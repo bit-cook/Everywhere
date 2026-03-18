@@ -16,16 +16,10 @@
     <data name="SettingsPage_Saved_Toast_Title" xml:space="preserve">
         <value>設定已儲存</value>
     </data>
-    <data name="CommonSettings_Language_Header" xml:space="preserve">
+    <data name="DisplaySettings_Language_Header" xml:space="preserve">
         <value>語言</value>
     </data>
-    <data name="SettingsCategory_Common_Header" xml:space="preserve">
-        <value>一般設定</value>
-    </data>
-    <data name="SettingsCategory_Network_Header" xml:space="preserve">
-        <value>網絡設定</value>
-    </data>
-    <data name="CommonSettings_Language_Description" xml:space="preserve">
+    <data name="DisplaySettings_Language_Description" xml:space="preserve">
         <value>選擇軟件的顯示語言。</value>
     </data>
     <data name="LocaleName_ZhHans" xml:space="preserve">
@@ -34,7 +28,7 @@
     <data name="LocaleName_En" xml:space="preserve">
         <value>English (United States)</value>
     </data>
-    <data name="CommonSettings_Theme_Description" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Description" xml:space="preserve">
         <value>選擇軟件的顯示主題。</value>
     </data>
     <data name="ThemeMode_System" xml:space="preserve">
@@ -88,17 +82,11 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>代理伺服器的密碼。</value>
     </data>
-    <data name="SettingsCategory_ChatWindow_Header" xml:space="preserve">
-        <value>聊天設定</value>
-    </data>
-    <data name="ChatWindowSettings_Shortcut_Header" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>快捷鍵</value>
     </data>
-    <data name="ChatWindowSettings_Shortcut_Description" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>設定快捷鍵以隨時調出聊天視窗。</value>
-    </data>
-    <data name="SettingsCategory_Model_Header" xml:space="preserve">
-        <value>AI 設定</value>
     </data>
     <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
         <value>創意度（temperature）</value>
@@ -410,7 +398,7 @@
     <data name="LocaleName_Ru" xml:space="preserve">
         <value>Русский</value>
     </data>
-    <data name="CommonSettings_Theme_Header" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Header" xml:space="preserve">
         <value>主題</value>
     </data>
     <data name="LocaleName_ZhHant" xml:space="preserve">
@@ -569,31 +557,31 @@
     <data name="CustomAssistant_Schema_Description" xml:space="preserve">
         <value>選擇 API 協議。請注意此項並不總是和模型相關聯，例如 Gemini 會提供 OpenAI 兼容協議，具體請詳閱對應模型的官方使用說明。</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Header" xml:space="preserve">
         <value>開機時啟動</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere 會在開機後自動運行。如果啟用了「以管理員身份啟動」，則只能在管理員模式下禁用此選項。</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
         <value>以管理員身份啟動</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere 將自動以管理員身份啟動。您只能在管理員模式下開啟或關閉此選項。</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Description" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>由於操作系統的限制，當以管理員（提升權限）運行任何應用程式時，Everywhere 可能在提升權限的應用程式聚焦或嘗試與 Everywhere 功能（如「選擇元素」）互動時無法正常運作。這可以通過以管理員身份運行 Everywhere 來解決。</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Header" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>以管理員身份重新啟動</value>
     </data>
     <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
         <value>重新啟動</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
         <value>除錯功能</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Description" xml:space="preserve">
         <value>訪問和管理應用程式設置文件和日誌。</value>
     </data>
     <data name="DebugFeaturesControl_EditSettingsFileButton_Content" xml:space="preserve">
@@ -617,16 +605,16 @@
     <data name="Common_Unknown" xml:space="preserve">
         <value>未知</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Header" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Header" xml:space="preserve">
         <value>軟件更新</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Description" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Description" xml:space="preserve">
         <value>如果有更新可用，請點擊更新，Everywhere 將自動下載並安裝最新版本。在過程中，您可能需要在彈出窗口中選擇「是」。</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
         <value>自動更新</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
         <value>如果啟用，Everywhere 將定期檢查更新（僅在 Everywhere 運行時，不會增加系統負擔）。</value>
     </data>
     <data name="CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate" xml:space="preserve">
@@ -800,10 +788,10 @@
     <data name="WelcomeView_EnableTelemetryButton_Content" xml:space="preserve">
         <value>加入</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Header" xml:space="preserve">
         <value>加入用戶體驗計劃</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Description" xml:space="preserve">
         <value>為了幫助我們改進，我們誠邀您加入用戶體驗計劃。我們會收集您的使用數據，這些數據僅用於分析，不包含也無法從中推斷出任何和您個人有關的數據。如果不加入，將只會發送必要數據。此選擇不會影響核心功能。</value>
     </data>
     <data name="ChatWindowSettings_ShowChatStatistics_Header" xml:space="preserve">
@@ -940,9 +928,6 @@
     </data>
     <data name="CustomAssistant_Name_Default" xml:space="preserve">
         <value>預設助手</value>
-    </data>
-    <data name="CustomAssistantPage_Title" xml:space="preserve">
-        <value>自訂助手</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_Content" xml:space="preserve">
         <value>建立</value>
@@ -1302,12 +1287,6 @@
     <data name="ChatWindow_BackAllHistoryButton_Content" xml:space="preserve">
         <value>返回</value>
     </data>
-    <data name="ProxySettings_Header" xml:space="preserve">
-        <value>代理伺服器</value>
-    </data>
-    <data name="ProxySettings_Description" xml:space="preserve">
-        <value>設定網絡代理。</value>
-    </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ErrorMessage" xml:space="preserve">
         <value>PowerShell 腳本執行失敗: {0}</value>
     </data>
@@ -1462,10 +1441,10 @@
     <data name="ChatFileAttachment_Create_FileTooLarge" xml:space="preserve">
         <value>檔案大小 ({0}) 超過了允許的最大大小 ({1})。</value>
     </data>
-    <data name="CommonSettings_FontSize_Header" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Header" xml:space="preserve">
         <value>字體大小</value>
     </data>
-    <data name="CommonSettings_FontSize_Description" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Description" xml:space="preserve">
         <value>調整全局字體顯示大小。</value>
     </data>
     <data name="CustomAssistantPage_DuplicateCustomAssistantButton_Content" xml:space="preserve">
@@ -2015,10 +1994,10 @@
     <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value>此項為實驗性功能，可能會導致意外的錯誤和結果。</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Header" xml:space="preserve">
         <value>開機時啟動</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere 會在開機後自動運行。</value>
     </data>
     <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">

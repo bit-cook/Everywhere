@@ -16,16 +16,10 @@
     <data name="SettingsPage_Saved_Toast_Title" xml:space="preserve">
         <value>設定が保存されました</value>
     </data>
-    <data name="CommonSettings_Language_Header" xml:space="preserve">
+    <data name="DisplaySettings_Language_Header" xml:space="preserve">
         <value>言語</value>
     </data>
-    <data name="SettingsCategory_Common_Header" xml:space="preserve">
-        <value>一般設定</value>
-    </data>
-    <data name="SettingsCategory_Network_Header" xml:space="preserve">
-        <value>ネットワーク設定</value>
-    </data>
-    <data name="CommonSettings_Language_Description" xml:space="preserve">
+    <data name="DisplaySettings_Language_Description" xml:space="preserve">
         <value>ソフトウェアの表示言語を選択します。</value>
     </data>
     <data name="LocaleName_ZhHans" xml:space="preserve">
@@ -34,7 +28,7 @@
     <data name="LocaleName_En" xml:space="preserve">
         <value>English (United States)</value>
     </data>
-    <data name="CommonSettings_Theme_Description" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Description" xml:space="preserve">
         <value>ソフトウェアの表示テーマを選択します。</value>
     </data>
     <data name="ThemeMode_System" xml:space="preserve">
@@ -88,17 +82,11 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>プロキシサーバーのパスワード。</value>
     </data>
-    <data name="SettingsCategory_ChatWindow_Header" xml:space="preserve">
-        <value>チャット設定</value>
-    </data>
-    <data name="ChatWindowSettings_Shortcut_Header" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>ショートカット</value>
     </data>
-    <data name="ChatWindowSettings_Shortcut_Description" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>いつでもチャットウィンドウを呼び出すためのショートカットを設定します。</value>
-    </data>
-    <data name="SettingsCategory_Model_Header" xml:space="preserve">
-        <value>AI設定</value>
     </data>
     <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
         <value>創造性（temperature）</value>
@@ -410,7 +398,7 @@
     <data name="LocaleName_Ru" xml:space="preserve">
         <value>Русский</value>
     </data>
-    <data name="CommonSettings_Theme_Header" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Header" xml:space="preserve">
         <value>テーマ</value>
     </data>
     <data name="LocaleName_ZhHant" xml:space="preserve">
@@ -569,31 +557,31 @@
     <data name="CustomAssistant_Schema_Description" xml:space="preserve">
         <value>APIプロトコルを選択します。この項目はモデルに常に関連付けられているわけではないことに注意してください。たとえば、GeminiはOpenAI互換プロトコルを提供します。詳細については、対応するモデルの公式使用説明を参照してください。</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Header" xml:space="preserve">
         <value>スタートアップ時に実行</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhereはスタートアップ後に自動的に実行されます。「管理者としてスタートアップ」が有効な場合、このオプションは管理者モードでのみ無効にできます。</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
         <value>管理者としてスタートアップ</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
         <value>Everywhereは管理者として自動的に起動します。このオプションのオン/オフは管理者モードでのみ行えます。</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Description" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>オペレーティングシステムの制限により、管理者としてアプリケーションを実行している場合（権限が昇格している場合）、Everywhereがフォーカスされている昇格されたアプリケーションや「要素を選択」などのEverywhereの機能と相互作用しようとする際に正しく動作しないことがあります。これを解決するには、Everywhereを管理者として実行してください。</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Header" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>管理者として再起動</value>
     </data>
     <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
         <value>再起動</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
         <value>デバッグ機能</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Description" xml:space="preserve">
         <value>アプリケーション設定ファイルとログにアクセスして管理します。</value>
     </data>
     <data name="DebugFeaturesControl_EditSettingsFileButton_Content" xml:space="preserve">
@@ -617,16 +605,16 @@
     <data name="Common_Unknown" xml:space="preserve">
         <value>不明</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Header" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Header" xml:space="preserve">
         <value>ソフトウェア更新</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Description" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Description" xml:space="preserve">
         <value>更新が利用可能な場合、「更新」をクリックすると、Everywhereが自動的に最新バージョンをダウンロードしてインストールします。プロセス中にポップアップウィンドウで「はい」を選択する必要があるかもしれません。</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
         <value>自動更新</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
         <value>有効にすると、Everywhereは定期的に更新を確認します（Everywhereが実行中の場合のみで、システムに余分な負荷をかけません）。</value>
     </data>
     <data name="CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate" xml:space="preserve">
@@ -800,10 +788,10 @@
     <data name="WelcomeView_EnableTelemetryButton_Content" xml:space="preserve">
         <value>参加する</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Header" xml:space="preserve">
         <value>ユーザーエクスペリエンスプログラムに参加する</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Description" xml:space="preserve">
         <value>私たちが改善するために、ユーザーエクスペリエンスプログラムに参加していただくことをお勧めします。使用データを収集しますが、これらのデータは分析のみに使用され、個人に関する情報は含まれず、推測することもできません。参加しない場合は、必要なデータのみが送信されます。この選択はコア機能に影響を与えません。</value>
     </data>
     <data name="ChatWindowSettings_ShowChatStatistics_Header" xml:space="preserve">
@@ -940,9 +928,6 @@
     </data>
     <data name="CustomAssistant_Name_Default" xml:space="preserve">
         <value>デフォルトアシスタント</value>
-    </data>
-    <data name="CustomAssistantPage_Title" xml:space="preserve">
-        <value>カスタムアシスタント</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_Content" xml:space="preserve">
         <value>作成</value>
@@ -1302,12 +1287,6 @@
     <data name="ChatWindow_BackAllHistoryButton_Content" xml:space="preserve">
         <value>戻る</value>
     </data>
-    <data name="ProxySettings_Header" xml:space="preserve">
-        <value>プロキシ</value>
-    </data>
-    <data name="ProxySettings_Description" xml:space="preserve">
-        <value>ネットワークプロキシの設定。</value>
-    </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ErrorMessage" xml:space="preserve">
         <value>PowerShellスクリプトの実行に失敗しました: {0}</value>
     </data>
@@ -1462,10 +1441,10 @@
     <data name="ChatFileAttachment_Create_FileTooLarge" xml:space="preserve">
         <value>ファイルサイズ ({0}) が許可されている最大サイズ ({1}) を超えています。</value>
     </data>
-    <data name="CommonSettings_FontSize_Header" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Header" xml:space="preserve">
         <value>フォントサイズ</value>
     </data>
-    <data name="CommonSettings_FontSize_Description" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Description" xml:space="preserve">
         <value>グローバルフォント表示サイズを調整します。</value>
     </data>
     <data name="CustomAssistantPage_DuplicateCustomAssistantButton_Content" xml:space="preserve">
@@ -2015,10 +1994,10 @@
     <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value>これは実験的な機能であり、予期しないエラーや結果を引き起こす可能性があります。</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Header" xml:space="preserve">
         <value>起動時に開始</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Description" xml:space="preserve">
         <value>Everywhereは、起動後に自動的に実行されます。</value>
     </data>
     <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">

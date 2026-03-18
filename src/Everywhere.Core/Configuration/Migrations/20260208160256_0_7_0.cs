@@ -5,11 +5,17 @@ namespace Everywhere.Configuration.Migrations;
 
 /// <summary>
 /// This migration handles 0.7.0 settings changes.
-/// It migrates to the new model definition structure. For each CustomAssistant,
-/// 1. Rename "MaxTokens"  to "ContextLimit"
-/// 2. Rename "IsDeepThinkingSupported" to "SupportsReasoning"
-/// 3. Rename "IsFunctionCallingSupported" to "SupportsToolCall"
-/// 4. Process "Modalities" node to extract "InputModalities" and "OutputModalities".
+/// Task1 migrates to the new model definition structure. For each CustomAssistant,
+///   1. Rename "MaxTokens" to "ContextLimit"
+///   2. Rename "IsDeepThinkingSupported" to "SupportsReasoning"
+///   3. Rename "IsFunctionCallingSupported" to "SupportsToolCall"
+///   4. Process "Modalities" node to extract "InputModalities" and "OutputModalities".
+/// Task2 migrates settings
+///   1. Move "$.Common.Proxy" to "$.Proxy" if exists
+///   2. Move "$.Common.Language" to "$.Display.Language" if exists
+///   3. Move "$.Common.Theme" to "$.Display.Theme" if exists
+///   4. Move "$.Common.FontSize" to "$.Display.FontSize" if exists
+///   5. Move "$.ChatWindow.Shortcut" to "$.Shortcut.ChatWindow" if exists
 /// </summary>
 public class _20260208160256_0_7_0 : SettingsMigration
 {
@@ -17,7 +23,8 @@ public class _20260208160256_0_7_0 : SettingsMigration
 
     protected override IEnumerable<Func<JsonObject, bool>> MigrationTasks =>
     [
-        MigrateTask1
+        MigrateTask1,
+        MigrateTask2,
     ];
 
     private static bool MigrateTask1(JsonObject root)
@@ -66,6 +73,17 @@ public class _20260208160256_0_7_0 : SettingsMigration
             assistantObj["OutputModalities"] = JsonValue.Create(Modalities.Text);
         }
 
+        return modified;
+    }
+
+    private static bool MigrateTask2(JsonObject root)
+    {
+        var modified = false;
+        modified |= TryMoveProperty(root, "Common.Proxy", "Proxy");
+        modified |= TryMoveProperty(root, "Common.Language", "Display.Language");
+        modified |= TryMoveProperty(root, "Common.Theme", "Display.Theme");
+        modified |= TryMoveProperty(root, "Common.FontSize", "Display.FontSize");
+        modified |= TryMoveProperty(root, "ChatWindow.Shortcut", "Shortcut.ChatWindow");
         return modified;
     }
 }

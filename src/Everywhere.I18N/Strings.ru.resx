@@ -16,16 +16,10 @@
     <data name="SettingsPage_Saved_Toast_Title" xml:space="preserve">
         <value>Настройки сохранены</value>
     </data>
-    <data name="CommonSettings_Language_Header" xml:space="preserve">
+    <data name="DisplaySettings_Language_Header" xml:space="preserve">
         <value>Язык</value>
     </data>
-    <data name="SettingsCategory_Common_Header" xml:space="preserve">
-        <value>Основные настройки</value>
-    </data>
-    <data name="SettingsCategory_Network_Header" xml:space="preserve">
-        <value>Сетевые настройки</value>
-    </data>
-    <data name="CommonSettings_Language_Description" xml:space="preserve">
+    <data name="DisplaySettings_Language_Description" xml:space="preserve">
         <value>Выберите язык отображения для программы.</value>
     </data>
     <data name="LocaleName_ZhHans" xml:space="preserve">
@@ -34,7 +28,7 @@
     <data name="LocaleName_En" xml:space="preserve">
         <value>English (United States)</value>
     </data>
-    <data name="CommonSettings_Theme_Description" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Description" xml:space="preserve">
         <value>Выберите тему отображения для программы.</value>
     </data>
     <data name="ThemeMode_System" xml:space="preserve">
@@ -88,17 +82,11 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>Пароль для прокси-сервера.</value>
     </data>
-    <data name="SettingsCategory_ChatWindow_Header" xml:space="preserve">
-        <value>Настройки чата</value>
-    </data>
-    <data name="ChatWindowSettings_Shortcut_Header" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>Горячая клавиша</value>
     </data>
-    <data name="ChatWindowSettings_Shortcut_Description" xml:space="preserve">
+    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Установите горячую клавишу для вызова окна чата в любое время.</value>
-    </data>
-    <data name="SettingsCategory_Model_Header" xml:space="preserve">
-        <value>Настройки ИИ</value>
     </data>
     <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
         <value>Креативность (temperature)</value>
@@ -410,7 +398,7 @@
     <data name="LocaleName_Ru" xml:space="preserve">
         <value>Русский</value>
     </data>
-    <data name="CommonSettings_Theme_Header" xml:space="preserve">
+    <data name="DisplaySettings_Theme_Header" xml:space="preserve">
         <value>Тема</value>
     </data>
     <data name="LocaleName_ZhHant" xml:space="preserve">
@@ -569,31 +557,31 @@
     <data name="CustomAssistant_Schema_Description" xml:space="preserve">
         <value>Выберите API протокол. Обратите внимание, что это не всегда связано с моделью, например, Gemini предоставляет совместимый с OpenAI протокол, подробности смотрите в официальной документации соответствующей модели.</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Header" xml:space="preserve">
         <value>Запуск при старте</value>
     </data>
-    <data name="CommonSettings_IsStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere будет запускаться автоматически после старта системы. Если включена опция «Запуск от имени администратора», текущую опцию можно отключить только в режиме администратора.</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
         <value>Запуск от имени администратора</value>
     </data>
-    <data name="CommonSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere будет запускаться автоматически от имени администратора. Вы можете включить или отключить эту опцию только в режиме администратора.</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Description" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>Из-за ограничений операционной системы, при запуске любого приложения от имени администратора (с повышенными правами) Everywhere может работать некорректно, если приложения с повышенными правами находятся в фокусе или пытаются взаимодействовать с функцией Everywhere, такой как «Выбор элемента». Это можно исправить, запустив Everywhere от имени администратора.</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Header" xml:space="preserve">
+    <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>Перезапуск от имени администратора</value>
     </data>
     <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
         <value>Перезапустить</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
         <value>Отладочные функции</value>
     </data>
-    <data name="CommonSettings_DebugFeatures_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DebugFeatures_Description" xml:space="preserve">
         <value>Доступ к файлу настроек приложения и журналам.</value>
     </data>
     <data name="DebugFeaturesControl_EditSettingsFileButton_Content" xml:space="preserve">
@@ -617,16 +605,16 @@
     <data name="Common_Unknown" xml:space="preserve">
         <value>Неизвестно</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Header" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Header" xml:space="preserve">
         <value>Обновление программного обеспечения</value>
     </data>
-    <data name="CommonSettings_SoftwareUpdate_Description" xml:space="preserve">
+    <data name="SoftwareSettings_SoftwareUpdate_Description" xml:space="preserve">
         <value>Если обновление доступно, нажмите «Обновить», и Everywhere автоматически загрузит и установит последнюю версию. Возможно, вам потребуется выбрать «Да» в всплывающем окне в процессе.</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Header" xml:space="preserve">
         <value>Автоматическое обновление</value>
     </data>
-    <data name="CommonSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
         <value>Если включено, Everywhere будет периодически проверять наличие обновлений (только когда Everywhere запущен, без дополнительной нагрузки на систему).</value>
     </data>
     <data name="CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate" xml:space="preserve">
@@ -800,10 +788,10 @@
     <data name="WelcomeView_EnableTelemetryButton_Content" xml:space="preserve">
         <value>Присоединиться</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Header" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Header" xml:space="preserve">
         <value>Присоединиться к программе пользовательского опыта</value>
     </data>
-    <data name="CommonSettings_DiagnosticData_Description" xml:space="preserve">
+    <data name="SoftwareSettings_DiagnosticData_Description" xml:space="preserve">
         <value>Чтобы помочь нам улучшить, мы приглашаем вас присоединиться к программе пользовательского опыта. Мы будем собирать ваши данные использования, которые будут использоваться только для анализа и не будут содержать и не смогут быть использованы для вывода каких-либо данных, относящихся к вам лично. Если вы не присоединитесь, будут отправляться только необходимые данные. Этот выбор не повлияет на основные функции.</value>
     </data>
     <data name="ChatWindowSettings_ShowChatStatistics_Header" xml:space="preserve">
@@ -940,9 +928,6 @@
     </data>
     <data name="CustomAssistant_Name_Default" xml:space="preserve">
         <value>Ассистент по умолчанию</value>
-    </data>
-    <data name="CustomAssistantPage_Title" xml:space="preserve">
-        <value>Настройка помощника</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_Content" xml:space="preserve">
         <value>Создать</value>
@@ -1302,12 +1287,6 @@
     <data name="ChatWindow_BackAllHistoryButton_Content" xml:space="preserve">
         <value>Назад</value>
     </data>
-    <data name="ProxySettings_Header" xml:space="preserve">
-        <value>Прокси</value>
-    </data>
-    <data name="ProxySettings_Description" xml:space="preserve">
-        <value>Настройка сетевого прокси.</value>
-    </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ErrorMessage" xml:space="preserve">
         <value>Ошибка выполнения скрипта PowerShell: {0}</value>
     </data>
@@ -1462,10 +1441,10 @@
     <data name="ChatFileAttachment_Create_FileTooLarge" xml:space="preserve">
         <value>Размер файла ({0}) превышает максимально допустимый размер ({1}).</value>
     </data>
-    <data name="CommonSettings_FontSize_Header" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Header" xml:space="preserve">
         <value>Размер шрифта</value>
     </data>
-    <data name="CommonSettings_FontSize_Description" xml:space="preserve">
+    <data name="DisplaySettings_FontSize_Description" xml:space="preserve">
         <value>Настройте общий размер отображения шрифта.</value>
     </data>
     <data name="CustomAssistantPage_DuplicateCustomAssistantButton_Content" xml:space="preserve">
@@ -2015,10 +1994,10 @@
     <data name="ExperimentalBadge_ToolTip" xml:space="preserve">
         <value>Эта функция является экспериментальной и может привести к неожиданным ошибкам и результатам.</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Header" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Header" xml:space="preserve">
         <value>Запуск При Включении</value>
     </data>
-    <data name="CommonSettings_IsUserStartupEnabled_Description" xml:space="preserve">
+    <data name="SoftwareSettings_IsUserStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere будет автоматически запускаться при включении компьютера.</value>
     </data>
     <data name="ModelProviderSchema_DeepSeek" xml:space="preserve">
