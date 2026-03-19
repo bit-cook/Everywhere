@@ -2317,4 +2317,10 @@
     <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
         <value>所选助手不支持当前文件类型</value>
     </data>
+    <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
+        <value>总是置顶</value>
+    </data>
+    <data name="ChatWindowPinMode_TopmostOnInput" xml:space="preserve">
+        <value>输入时置顶</value>
+    </data>
 </root>

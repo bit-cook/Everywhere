@@ -287,9 +287,14 @@ public partial class ChatWindow :
                         IsWindowPinned = _persistentState.IsChatWindowPinned;
                         break;
                     }
-                    case ChatWindowPinMode.AlwaysPinned:
+                    case ChatWindowPinMode.AlwaysTopmost:
                     {
                         IsWindowPinned = true;
+                        break;
+                    }
+                    case ChatWindowPinMode.AlwaysPinned:
+                    {
+                        IsWindowPinned = null;
                         break;
                     }
                     case ChatWindowPinMode.AlwaysUnpinned:
@@ -309,9 +314,14 @@ public partial class ChatWindow :
 
     private void HandleChatInputAreaTextChanged(object? sender, TextChangedEventArgs e)
     {
-        if (_settings.ChatWindow.WindowPinMode == ChatWindowPinMode.PinOnInput)
+        if (IsWindowPinned == false)
         {
-            IsWindowPinned = true;
+            IsWindowPinned = _settings.ChatWindow.WindowPinMode switch
+            {
+                ChatWindowPinMode.PinOnInput => null,
+                ChatWindowPinMode.TopmostOnInput => true,
+                _ => IsWindowPinned
+            };
         }
     }
 
