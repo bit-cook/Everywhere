@@ -1,11 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Everywhere.Views;
 using Lucide.Avalonia;
 
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class SystemAssistantSettings : ObservableObject, IMainViewNavigationSubItem
+public partial class SystemAssistantSettings : ObservableObject, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 4;
@@ -15,9 +14,6 @@ public partial class SystemAssistantSettings : ObservableObject, IMainViewNaviga
 
     [HiddenSettingsItem]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_SystemAssistant_Header);
-
-    [HiddenSettingsItem]
-    public Type GroupType => typeof(SettingsCategory);
 
     [HiddenSettingsItem]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_SystemAssistant_Description);

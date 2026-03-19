@@ -1,12 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Chat;
-using Everywhere.Views;
 using Lucide.Avalonia;
 
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class ChatWindowSettings : ObservableObject, IMainViewNavigationSubItem
+public partial class ChatWindowSettings : ObservableObject, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 3;
@@ -16,9 +15,6 @@ public partial class ChatWindowSettings : ObservableObject, IMainViewNavigationS
 
     [HiddenSettingsItem]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_ChatWindow_Header);
-
-    [HiddenSettingsItem]
-    public Type GroupType => typeof(SettingsCategory);
 
     [HiddenSettingsItem]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_ChatWindow_Description);

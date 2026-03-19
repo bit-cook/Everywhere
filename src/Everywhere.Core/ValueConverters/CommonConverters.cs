@@ -14,15 +14,19 @@ public static class CommonConverters
         convert: (x, parameter) => x?.GetType() == parameter as Type
     );
 
+    public new static IValueConverter GetType { get; } = new FuncValueConverter<object?, object?>(
+        convert: x => x?.GetType()
+    );
+
     public static IValueConverter StringToUri { get; } = new BidirectionalFuncValueConverter<string?, Uri?>(
         convert: (x, _) => Uri.TryCreate(x, UriKind.RelativeOrAbsolute, out var uri) ? uri : null,
         convertBack: (x, _) => x?.ToString()
     );
 
     public static IValueConverter DateTimeOffsetToString { get; } = new BidirectionalFuncValueConverter<DateTimeOffset, string>(
-            convert: (x, p) => x.DateTime.ToLocalTime().ToString(p?.ToString()),
-            convertBack: (x, p) => DateTimeOffset.ParseExact(x, p?.ToString() ?? "o", null)
-        );
+        convert: (x, p) => x.DateTime.ToLocalTime().ToString(p?.ToString()),
+        convertBack: (x, p) => DateTimeOffset.ParseExact(x, p?.ToString() ?? "o", null)
+    );
 
     public static IValueConverter FullPathToFileName { get; } = new FuncValueConverter<string, string?>(
         convert: x => Path.GetFileName(x) is { Length: > 0 } fileName ? fileName : x // return original if no file name found (e.g. Path root)

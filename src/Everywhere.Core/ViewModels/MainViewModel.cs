@@ -69,28 +69,34 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
 
     private void InitializeNavigationBarItems()
     {
-        var allPages = _serviceProvider
-            .GetServices<IMainViewNavigationItemFactory>()
-            .AsValueEnumerable()
-            .SelectMany(f => f.CreateItems())
-            .Concat(_serviceProvider.GetServices<IMainViewNavigationItem>())
-            .ToList();
-        var topLevelPages = allPages.AsValueEnumerable().OfType<IMainViewNavigationTopLevelItem>();
-        var subPagesGroups = allPages.AsValueEnumerable().OfType<IMainViewNavigationSubItem>().GroupBy(p => p.GroupType);
+        var allPages = _serviceProvider.GetServices<IMainViewNavigationItem>().AsValueEnumerable();
+        var topLevelPages = allPages.OfType<IMainViewNavigationTopLevelItem>();
+        var subPagesGroups = allPages.OfType<IMainViewNavigationSubItem>().GroupBy(p => p.GroupType);
         var rootItems = new List<(int Index, NavigationBarItem Item)>();
 
         foreach (var page in topLevelPages)
         {
-            rootItems.Add((page.Index, new NavigationBarItem
+            NavigationBarItem item;
+            rootItems.Add((page.Index, item = new NavigationBarItem
             {
                 Icon = page.Icon,
                 [!ContentControl.ContentProperty] = page.TitleKey.ToBinding(),
                 [!NavigationBarItem.ToolTipProperty] = page.TitleKey.ToBinding(),
                 Route = page,
             }));
+
+            if (page is IMainViewNavigationTopLevelItemWithSubItems factory)
+            {
+                item.Children.AddRange(factory.CreateSubItems().Select(i => new NavigationBarItem
+                {
+                    Icon = i.Icon,
+                    [!ContentControl.ContentProperty] = i.TitleKey.ToBinding(),
+                    [!NavigationBarItem.ToolTipProperty] = i.TitleKey.ToBinding(),
+                    Route = i
+                }));
+            }
         }
 
-        SettingsCategoryPage? categoryPage = null;
         foreach (var group in subPagesGroups)
         {
             if (rootItems.AsValueEnumerable().FirstOrDefault(r => r.Item.Route?.GetType() == group.Key) is not (_, { } groupItem))
@@ -101,16 +107,9 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
                     Icon = topLevelItem.Icon,
                     [!ContentControl.ContentProperty] = topLevelItem.TitleKey.ToBinding(),
                     [!NavigationBarItem.ToolTipProperty] = topLevelItem.TitleKey.ToBinding(),
+                    Route = topLevelItem
                 };
                 rootItems.Add((topLevelItem.Index, groupItem));
-            }
-            else
-            {
-                groupItem.Route = categoryPage = new SettingsCategoryPage
-                {
-                    [!SettingsCategoryPage.TitleProperty] = groupItem[!ContentControl.ContentProperty],
-                    Command = new RelayCommand<NavigationBarItem>(i => SelectedItem = i)
-                };
             }
 
             foreach (var subPage in group.AsValueEnumerable().OrderBy(p => p.Index))
@@ -122,25 +121,26 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
                     Route = subPage,
                 };
                 groupItem.Children.Add(item);
-                categoryPage?.Items.Add(new SettingsCategoryPage.Item(subPage.Icon, subPage.TitleKey, subPage.DescriptionKey, item));
             }
         }
 
         _itemsSource.AddRange(rootItems.OrderBy(x => x.Index).Select(x => x.Item));
 
-        SelectedItem = FindFirstRoutableItem(_itemsSource.Items);
+        SelectedItem = FindNavigationBarItem(_itemsSource.Items, i => i.Route is not null);
+    }
 
-        NavigationBarItem? FindFirstRoutableItem(IEnumerable<NavigationBarItem> items)
+    private static NavigationBarItem? FindNavigationBarItem(IEnumerable<NavigationBarItem> items, Predicate<NavigationBarItem> match)
+    {
+        foreach (var item in items)
         {
-            foreach (var item in items)
-            {
-                if (item.Route != null) return item;
-                if (item.Children.Count <= 0) continue;
-                var childItem = FindFirstRoutableItem(item.Children);
-                if (childItem != null) return childItem;
-            }
-            return null;
+            if (match(item)) return item;
+            if (item.Children.Count <= 0) continue;
+
+            var child = FindNavigationBarItem(item.Children, match);
+            if (child != null) return child;
         }
+
+        return null;
     }
 
     /// <summary>
@@ -165,6 +165,20 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
         }
 
         PersistentState.PreviousLaunchVersion = version?.ToString();
+    }
+
+    [RelayCommand]
+    private void NavigateToType(Type routeType)
+    {
+        var item = FindNavigationBarItem(_itemsSource.Items, i => i.Route?.GetType() == routeType);
+        if (item != null) SelectedItem = item;
+    }
+
+    [RelayCommand]
+    private void NavigateTo(object route)
+    {
+        var item = FindNavigationBarItem(_itemsSource.Items, i => i.Route == route);
+        if (item != null) SelectedItem = item;
     }
 
     protected internal override Task ViewUnloaded()

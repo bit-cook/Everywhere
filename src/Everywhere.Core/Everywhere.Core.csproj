@@ -95,6 +95,13 @@
     </AvaloniaResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Views\Pages\SettingsPage.axaml.cs">
+      <DependentUpon>SettingsHubPage.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+
   <Import Project="..\Build.Generate.Telemetry.targets"/>
   <Import Project="..\Build.Generate.Cloud.targets"/>
 

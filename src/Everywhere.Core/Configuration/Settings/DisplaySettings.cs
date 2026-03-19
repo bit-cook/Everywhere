@@ -1,14 +1,13 @@
 ﻿using System.ComponentModel;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Everywhere.Views;
 using Lucide.Avalonia;
 using ShadUI;
 
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public sealed partial class DisplaySettings : ObservableObject, IMainViewNavigationSubItem
+public sealed partial class DisplaySettings : ObservableObject, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 1;
@@ -18,9 +17,6 @@ public sealed partial class DisplaySettings : ObservableObject, IMainViewNavigat
 
     [HiddenSettingsItem]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Display_Header);
-
-    [HiddenSettingsItem]
-    public Type GroupType => typeof(SettingsCategory);
 
     [HiddenSettingsItem]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Display_Description);

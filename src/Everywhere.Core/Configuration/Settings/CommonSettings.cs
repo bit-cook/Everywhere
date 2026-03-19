@@ -11,7 +11,7 @@ using ShadUI;
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public sealed partial class CommonSettings : ObservableObject, IMainViewNavigationSubItem
+public sealed partial class CommonSettings : ObservableObject, ISettingsCategory
 {
     private static INativeHelper NativeHelper => ServiceLocator.Resolve<INativeHelper>();
 
@@ -23,9 +23,6 @@ public sealed partial class CommonSettings : ObservableObject, IMainViewNavigati
 
     [HiddenSettingsItem]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Common_Header);
-
-    [HiddenSettingsItem]
-    public Type GroupType => typeof(SettingsCategory);
 
     [HiddenSettingsItem]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Common_Description);

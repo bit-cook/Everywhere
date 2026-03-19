@@ -1,11 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using Everywhere.Views;
 using Lucide.Avalonia;
 
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class ProxySettings : ObservableObject, IMainViewNavigationSubItem
+public partial class ProxySettings : ObservableObject, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 3;
@@ -15,9 +14,6 @@ public partial class ProxySettings : ObservableObject, IMainViewNavigationSubIte
 
     [HiddenSettingsItem]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Proxy_Header);
-
-    [HiddenSettingsItem]
-    public Type GroupType => typeof(SettingsCategory);
 
     [HiddenSettingsItem]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Proxy_Description);

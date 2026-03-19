@@ -1,13 +1,12 @@
 ﻿using Avalonia.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Interop;
-using Everywhere.Views;
 using Lucide.Avalonia;
 
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class ShortcutSettings : ObservableObject, IMainViewNavigationSubItem
+public partial class ShortcutSettings : ObservableObject, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 2;
@@ -17,9 +16,6 @@ public partial class ShortcutSettings : ObservableObject, IMainViewNavigationSub
 
     [HiddenSettingsItem]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Shortcut_Header);
-
-    [HiddenSettingsItem]
-    public Type GroupType => typeof(SettingsCategory);
 
     [HiddenSettingsItem]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Shortcut_Description);
