@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
@@ -62,12 +63,7 @@ public class ChatWindowInitializer(
 
     private void HandleChatShortcutChanged(ChatWindow chatWindow, nint chatWindowHandle, KeyboardShortcut shortcut)
     {
-        using var _ = _syncLock.EnterScope();
-
-        _chatShortcutSubscription?.Dispose();
-        if (!shortcut.IsValid) return;
-
-        _chatShortcutSubscription = shortcutListener.Register(
+        RegisterShortcutListener(
             shortcut,
             () => ThreadPool.QueueUserWorkItem(_ =>
             {
@@ -91,14 +87,25 @@ public class ChatWindowInitializer(
                 {
                     if (chatWindow.IsFocused || chatWindowHandle == hWnd)
                     {
-                        chatWindow.ViewModel.IsOpened = false; // Hide chat window if it's already focused
+                        WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true)); // Hide chat window if it's already focused
                     }
                     else
                     {
-                        chatWindow.ViewModel.ShowAsync(element).Detach(logger.ToExceptionHandler());
+                        WeakReferenceMessenger.Default.Send(new ActivateChatSessionMessage(element));
                     }
                 });
-            }));
+            }),
+            ref _chatShortcutSubscription);
+    }
+
+    private void RegisterShortcutListener(KeyboardShortcut shortcut, Action callback, ref IDisposable? subscription)
+    {
+        using var _ = _syncLock.EnterScope();
+
+        subscription?.Dispose();
+        if (!shortcut.IsValid) return;
+
+        subscription = shortcutListener.Register(shortcut, callback);
     }
 
     private void HandleTextSelectionChanged(ChatWindowViewModel chatWindowViewModel, bool isEnabled)

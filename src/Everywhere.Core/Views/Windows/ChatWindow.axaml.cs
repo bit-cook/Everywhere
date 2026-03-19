@@ -1,13 +1,15 @@
-﻿using System.ComponentModel;
-using Avalonia.Automation.Peers;
+﻿using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.AttachedProperties;
 using Everywhere.Chat;
+using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Utilities;
@@ -18,20 +20,15 @@ using ShadUI;
 
 namespace Everywhere.Views;
 
-public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReactiveHost
+public partial class ChatWindow :
+    ReactiveShadWindow<ChatWindowViewModel>,
+    IReactiveHost,
+    IRecipient<CloakChatWindowMessage>,
+    IRecipient<ApplicationCommand>
 {
     public DialogHost DialogHost => PART_DialogHost;
 
     public ToastHost ToastHost => PART_ToastHost;
-
-    public static readonly DirectProperty<ChatWindow, bool> IsOpenedProperty =
-        AvaloniaProperty.RegisterDirect<ChatWindow, bool>(nameof(IsOpened), o => o.IsOpened);
-
-    public bool IsOpened
-    {
-        get;
-        private set => SetAndRaise(IsOpenedProperty, ref field, value);
-    }
 
     /// <summary>
     /// Defines the <see cref="IsWindowPinned"/> property.
@@ -82,11 +79,12 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
         InitializeComponent();
         AddHandler(KeyDownEvent, HandleKeyDown, RoutingStrategies.Tunnel, true);
 
-        ViewModel.PropertyChanged += HandleViewModelPropertyChanged;
         ChatInputArea.TextChanged += HandleChatInputAreaTextChanged;
         ChatInputArea.PastingFromClipboard += HandleChatInputAreaPastingFromClipboard;
 
         SetupDragDropHandlers();
+
+        WeakReferenceMessenger.Default.Register<CloakChatWindowMessage>(this);
     }
 
     private void SetupDragDropHandlers()
@@ -126,7 +124,7 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
                 }
                 else
                 {
-                    IsOpened = false;
+                    SetCloaked(true);
                 }
 
                 e.Handled = true;
@@ -157,7 +155,7 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
 
         if (change.Property == IsVisibleProperty)
         {
-            IsOpened = change.NewValue is true;
+            ViewModel.IsOpened = change.NewValue is true;
         }
         else if (change.Property == IsWindowPinnedProperty)
         {
@@ -242,7 +240,7 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
 
         if (!ViewModel.IsPickingFiles && !IsActive && IsWindowPinned is false && !_windowHelper.AnyModelDialogOpened(this))
         {
-            IsOpened = false;
+            SetCloaked(true);
         }
     }
 
@@ -258,41 +256,54 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
             BeginMoveDrag(e);
     }
 
-    private void HandleViewModelPropertyChanged(object? sender, PropertyChangedEventArgs args)
+    public void Receive(CloakChatWindowMessage message)
     {
-        if (args.PropertyName != nameof(ViewModel.IsOpened)) return;
+        Dispatcher.UIThread.InvokeOnDemand(() => SetCloaked(message.IsCloaked));
+    }
 
-        IsOpened = ViewModel.IsOpened;
-        if (IsOpened)
+    public void Receive(ApplicationCommand command)
+    {
+        if (command is ShowWindowCommand { Name: nameof(ChatWindowViewModel) })
         {
-            switch (_settings.ChatWindow.WindowPinMode)
+            Dispatcher.UIThread.InvokeOnDemand(() => SetCloaked(false));
+        }
+    }
+
+    private void SetCloaked(bool value)
+    {
+        if (value)
+        {
+            ShowInTaskbar = false;
+            _windowHelper.SetCloaked(this, true);
+        }
+        else
+        {
+            if (!IsVisible)
             {
-                case ChatWindowPinMode.RememberLast:
+                switch (_settings.ChatWindow.WindowPinMode)
                 {
-                    IsWindowPinned = _persistentState.IsChatWindowPinned;
-                    break;
-                }
-                case ChatWindowPinMode.AlwaysPinned:
-                {
-                    IsWindowPinned = true;
-                    break;
-                }
-                case ChatWindowPinMode.AlwaysUnpinned:
-                case ChatWindowPinMode.PinOnInput:
-                {
-                    IsWindowPinned = false;
-                    break;
+                    case ChatWindowPinMode.RememberLast:
+                    {
+                        IsWindowPinned = _persistentState.IsChatWindowPinned;
+                        break;
+                    }
+                    case ChatWindowPinMode.AlwaysPinned:
+                    {
+                        IsWindowPinned = true;
+                        break;
+                    }
+                    case ChatWindowPinMode.AlwaysUnpinned:
+                    case ChatWindowPinMode.PinOnInput:
+                    {
+                        IsWindowPinned = false;
+                        break;
+                    }
                 }
             }
 
             ShowInTaskbar = IsWindowPinned is true or null;
             _windowHelper.SetCloaked(this, false);
             ChatInputArea.Focus();
-        }
-        else
-        {
-            ShowInTaskbar = false;
-            _windowHelper.SetCloaked(this, true);
         }
     }
 
@@ -304,11 +315,6 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
         }
     }
 
-    /// <summary>
-    /// TODO: Avalonia says they will support this in 12.0
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
     private void HandleChatInputAreaPastingFromClipboard(object? sender, RoutedEventArgs e)
     {
         if (!ViewModel.AddClipboardCommand.CanExecute(null)) return;
@@ -329,7 +335,7 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
 
         // do not allow closing, just hide the window
         e.Cancel = true;
-        IsOpened = false;
+        SetCloaked(true);
 
         base.OnClosing(e);
     }
@@ -523,5 +529,4 @@ public partial class ChatWindow : ReactiveShadWindow<ChatWindowViewModel>, IReac
 
         return false;
     }
-
 }

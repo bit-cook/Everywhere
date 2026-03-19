@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
 using Everywhere.Utilities;
 
@@ -52,11 +53,8 @@ public class MainTrayIcon : TrayIcon
         }
     }
 
-    private void HandleOpenChatWindowMenuItemClicked(object? sender, EventArgs e)
-    {
-        var chatWindow = ServiceLocator.Resolve<ChatWindow>();
-        chatWindow.ViewModel.ShowAsync(null).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
-    }
+    private void HandleOpenChatWindowMenuItemClicked(object? sender, EventArgs e) =>
+        WeakReferenceMessenger.Default.Send(new ActivateChatSessionMessage());
 
     private void HandleOpenMainWindowMenuItemClicked(object? sender, EventArgs e) => _app.ShowMainWindow();
 

@@ -31,11 +31,15 @@ using ZLinq;
 
 namespace Everywhere.ViewModels;
 
+public sealed record ActivateChatSessionMessage(IVisualElement? TargetElement = null);
+
+public sealed record CloakChatWindowMessage(bool IsCloaked);
+
 public sealed partial class ChatWindowViewModel :
     BusyViewModelBase,
+    IRecipient<ActivateChatSessionMessage>,
     IRecipient<ChatPluginConsentRequest>,
     IRecipient<ChatContextMetadataChangedMessage>,
-    IRecipient<ApplicationCommand>,
     IObserver<TextSelectionData>,
     IDisposable
 {
@@ -52,12 +56,10 @@ public sealed partial class ChatWindowViewModel :
         get;
         set
         {
+            if (field == value) return;
             field = value;
-            _activeChatWindowsGauge.Record(value ? 1 : 0);
 
-            // notify property changed even if the value is the same
-            // so that the view can update its visibility and topmost
-            OnPropertyChanged();
+            _activeChatWindowsGauge.Record(value ? 1 : 0);
         }
     }
 
@@ -181,9 +183,10 @@ public sealed partial class ChatWindowViewModel :
         ChatPlugins = chatPluginManager.BuiltInPlugins
             .ToObservableChangeSet()
             .Transform(ChatPlugin (x) => x, transformOnRefresh: true)
-            .Or(chatPluginManager.McpPlugins
-                .ToObservableChangeSet()
-                .Transform(ChatPlugin (x) => x, transformOnRefresh: true))
+            .Or(
+                chatPluginManager.McpPlugins
+                    .ToObservableChangeSet()
+                    .Transform(ChatPlugin (x) => x, transformOnRefresh: true))
             .BindEx(_disposables);
 
         // Initialize chat plugins
@@ -206,7 +209,6 @@ public sealed partial class ChatWindowViewModel :
     {
         _disposables.Dispose();
         _cancellationTokenSource.Dispose();
-        _targetElementChangedTokenSource?.Dispose();
         ChatContextManager.PropertyChanged -= HandleChatContextManagerPropertyChanged;
     }
 
@@ -249,34 +251,28 @@ public sealed partial class ChatWindowViewModel :
         ];
     }
 
-    private CancellationTokenSource? _targetElementChangedTokenSource;
-
-    /// <summary>
-    /// Show the chat window and float to the target element.
-    /// </summary>
-    /// <param name="targetElement"></param>
-    public async Task ShowAsync(IVisualElement? targetElement)
+    public void Receive(ActivateChatSessionMessage message)
     {
-        // debouncing
-        if (_targetElementChangedTokenSource is not null) await _targetElementChangedTokenSource.CancelAsync();
-        _targetElementChangedTokenSource = new CancellationTokenSource();
-        var cancellationToken = _targetElementChangedTokenSource.Token;
-        try
-        {
-            await Task.Delay(100, cancellationToken);
-        }
-        catch (OperationCanceledException) { }
+        HandleActivateChatSessionMessageCommand.Execute(message);
+    }
 
+    [RelayCommand]
+    private async Task HandleActivateChatSessionMessageAsync(ActivateChatSessionMessage message)
+    {
         try
         {
-            if (Settings.ChatWindow.AlwaysStartNewChat && ChatContextManager.CreateNewCommand.CanExecute(null))
+            if (!IsOpened)
             {
-                ChatContextManager.CreateNewCommand.Execute(null);
+                if (Settings.ChatWindow.AlwaysStartNewChat && ChatContextManager.CreateNewCommand.CanExecute(null))
+                {
+                    ChatContextManager.CreateNewCommand.Execute(null);
+                }
             }
 
-            IsOpened = true;
+            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
 
             // Avoid adding duplicate attachments
+            var targetElement = message.TargetElement;
             if (_chatAttachmentsSource.Items.Any(a => a is ChatVisualElementAttachment vea && Equals(vea.Element?.Target, targetElement))) return;
 
             if (targetElement == null)
@@ -293,8 +289,8 @@ public sealed partial class ChatWindowViewModel :
 
             var createElement = Settings.ChatWindow.AutomaticallyAddElement;
             var attachment = await Task
-                .Run(() => createElement ? CreateFromVisualElement(targetElement) : null, cancellationToken)
-                .WaitAsync(TimeSpan.FromSeconds(1), cancellationToken);
+                .Run(() => createElement ? CreateFromVisualElement(targetElement) : null)
+                .WaitAsync(TimeSpan.FromSeconds(1));
 
             if (attachment is not null)
             {
@@ -305,52 +301,66 @@ public sealed partial class ChatWindowViewModel :
                 });
             }
         }
+        catch (OperationCanceledException) { }
+        catch (TimeoutException) { }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to float to target element.");
+            _logger.LogError(ex, "Failed to process ActivateChatSessionMessage");
         }
     }
 
-    [RelayCommand(CanExecute = nameof(IsNotBusy))]
-    private Task PickElementAsync() => ExecuteBusyTaskAsync(
-        async cancellationToken =>
+    [RelayCommand]
+    private async Task PickElementAsync(CancellationToken cancellationToken)
+    {
+        try
         {
             if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
 
             // Hide the chat window to avoid picking itself
-            var chatWindow = ServiceLocator.Resolve<ChatWindow>();
-            var windowHelper = ServiceLocator.Resolve<IWindowHelper>();
-            windowHelper.SetCloaked(chatWindow, true);
+            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true));
             var element = await _visualElementContext.PickElementAsync(null);
-            windowHelper.SetCloaked(chatWindow, false);
+            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
 
             if (element is null) return;
             if (_chatAttachmentsSource.Items.OfType<ChatVisualElementAttachment>().Any(a => Equals(a.Element?.Target, element))) return;
-            _chatAttachmentsSource.Add(await Task.Run(() => CreateFromVisualElement(element), cancellationToken));
-        },
-        _logger.ToExceptionHandler());
+            _chatAttachmentsSource.Add(
+                await Task.Run(() => CreateFromVisualElement(element), cancellationToken).WaitAsync(TimeSpan.FromSeconds(3), cancellationToken));
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to pick visual element");
+            ToastExceptionHandler.HandleException(ex);
+        }
+    }
 
-    [RelayCommand(CanExecute = nameof(IsNotBusy))]
-    private Task ScreenshotAsync() => ExecuteBusyTaskAsync(
-        async cancellationToken =>
+    [RelayCommand]
+    private async Task ScreenshotAsync(CancellationToken cancellationToken)
+    {
+        try
         {
             if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
 
             // Hide the chat window to avoid picking itself
-            var chatWindow = ServiceLocator.Resolve<ChatWindow>();
-            var windowHelper = ServiceLocator.Resolve<IWindowHelper>();
-            windowHelper.SetCloaked(chatWindow, true);
+            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true));
             var bitmap = await _visualElementContext.ScreenshotAsync(null);
-            windowHelper.SetCloaked(chatWindow, false);
+            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
 
             if (bitmap is null) return;
             _chatAttachmentsSource.Add(await Task.Run(() => CreateFromBitmapAsync(bitmap, cancellationToken), cancellationToken));
-        },
-        _logger.ToExceptionHandler());
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to take screenshot");
+            ToastExceptionHandler.HandleException(HandledSystemException.Handle(ex));
+        }
+    }
 
-    [RelayCommand(CanExecute = nameof(IsNotBusy))]
-    private Task AddClipboardAsync() => ExecuteBusyTaskAsync(
-        async cancellationToken =>
+    [RelayCommand]
+    private async Task AddClipboardAsync(CancellationToken cancellationToken)
+    {
+        try
         {
             if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
 
@@ -390,68 +400,83 @@ public sealed partial class ChatWindowViewModel :
             //
             //     chatAttachments.Add(new ChatTextAttachment(new DirectResourceKey(text.SafeSubstring(0, 10)), text));
             // }
-        },
-        _logger.ToExceptionHandler());
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add attachment from clipboard");
+            ToastExceptionHandler.HandleException(HandledSystemException.Handle(ex));
+        }
+    }
 
-    [RelayCommand(CanExecute = nameof(IsNotBusy))]
-    private async Task AddFileAsync()
+    [RelayCommand]
+    private async Task AddFileAsync(CancellationToken cancellationToken)
     {
-        if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
-
-        IReadOnlyList<IStorageFile> files;
-        IsPickingFiles = true;
         try
         {
-            files = await StorageProvider.OpenFilePickerAsync(
-                new FilePickerOpenOptions
-                {
-                    AllowMultiple = true,
-                    FileTypeFilter =
-                    [
-                        new FilePickerFileType(LocaleResolver.FilePickerFileType_SupportedFiles)
-                        {
-                            Patterns = FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Image)
-                                .AsValueEnumerable()
-                                .Concat(FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Document))
-                                .Concat(FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Script))
-                                .Select(x => '*' + x)
-                                .ToList()
-                        },
-                        new FilePickerFileType(LocaleResolver.ChatWindowViewModel_AddFile_FilePickerFileType_Images)
-                        {
-                            Patterns = FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Image)
-                                .AsValueEnumerable()
-                                .Select(x => '*' + x)
-                                .ToList()
-                        },
-                        new FilePickerFileType(LocaleResolver.ChatWindowViewModel_AddFile_FilePickerFileType_Documents)
-                        {
-                            Patterns = FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Document)
-                                .AsValueEnumerable()
-                                .Concat(FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Script))
-                                .Select(x => '*' + x)
-                                .ToList()
-                        },
-                        new FilePickerFileType(LocaleResolver.FilePickerFileType_AllFiles)
-                        {
-                            Patterns = ["*"]
-                        }
-                    ]
-                });
-        }
-        finally
-        {
-            IsPickingFiles = false;
-        }
+            if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
 
-        if (files.Count <= 0) return;
-        if (files[0].TryGetLocalPath() is not { } filePath)
-        {
-            _logger.LogWarning("File path is not available.");
-            return;
-        }
+            IReadOnlyList<IStorageFile> files;
+            IsPickingFiles = true;
+            try
+            {
+                files = await StorageProvider.OpenFilePickerAsync(
+                    new FilePickerOpenOptions
+                    {
+                        AllowMultiple = true,
+                        FileTypeFilter =
+                        [
+                            new FilePickerFileType(LocaleResolver.FilePickerFileType_SupportedFiles)
+                            {
+                                Patterns = FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Image)
+                                    .AsValueEnumerable()
+                                    .Concat(FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Document))
+                                    .Concat(FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Script))
+                                    .Select(x => '*' + x)
+                                    .ToList()
+                            },
+                            new FilePickerFileType(LocaleResolver.ChatWindowViewModel_AddFile_FilePickerFileType_Images)
+                            {
+                                Patterns = FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Image)
+                                    .AsValueEnumerable()
+                                    .Select(x => '*' + x)
+                                    .ToList()
+                            },
+                            new FilePickerFileType(LocaleResolver.ChatWindowViewModel_AddFile_FilePickerFileType_Documents)
+                            {
+                                Patterns = FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Document)
+                                    .AsValueEnumerable()
+                                    .Concat(FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Script))
+                                    .Select(x => '*' + x)
+                                    .ToList()
+                            },
+                            new FilePickerFileType(LocaleResolver.FilePickerFileType_AllFiles)
+                            {
+                                Patterns = ["*"]
+                            }
+                        ]
+                    });
+            }
+            finally
+            {
+                IsPickingFiles = false;
+            }
 
-        await AddFileUncheckAsync(filePath, cancellationToken: _cancellationTokenSource.Token);
+            if (files.Count <= 0) return;
+            if (files[0].TryGetLocalPath() is not { } filePath)
+            {
+                _logger.LogWarning("File path is not available.");
+                return;
+            }
+
+            await AddFileUncheckAsync(filePath, cancellationToken: _cancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add file");
+            ToastExceptionHandler.HandleException(HandledSystemException.Handle(ex));
+        }
     }
 
     /// <summary>
@@ -464,42 +489,26 @@ public sealed partial class ChatWindowViewModel :
     {
         if (string.IsNullOrWhiteSpace(filePath)) return;
 
-        try
-        {
-            var attachment = await ChatFileAttachment.CreateAsync(
-                filePath,
-                description: description,
-                cancellationToken: cancellationToken);
+        var attachment = await ChatFileAttachment.CreateAsync(
+            filePath,
+            description: description,
+            cancellationToken: cancellationToken);
 
-            if (Settings.Model.SelectedCustomAssistant?.InputModalities is { } modalities)
+        if (Settings.Model.SelectedCustomAssistant?.InputModalities is { } modalities)
+        {
+            if (!modalities.SupportsMimeType(attachment.MimeType))
             {
-                if (!modalities.SupportsMimeType(attachment.MimeType))
-                {
-                    // TODO: add toast message
-                    // ToastManager
-                    //     .CreateToast(LocaleResolver.Common_UnsupportedAttachment)
-                    //     .WithContent(LocaleResolver.Common_UnsupportedAttachment_Content.With("file", attachment.FilePath))
-                    //     .DismissOnClick()
-                    //     .OnBottomRight()
-                    //     .ShowWarning();
-                    return;
-                }
+                ToastManager
+                    .CreateToast(LocaleResolver.ChatWindowViewModel_UnsupportedAttachment)
+                    .WithContent(attachment.FilePath)
+                    .DismissOnClick()
+                    .OnBottomRight()
+                    .ShowWarning();
+                return;
             }
-
-            _chatAttachmentsSource.Add(attachment);
         }
-        catch (Exception ex)
-        {
-            ex = HandledSystemException.Handle(ex);
 
-            _logger.LogError(ex, "Failed to load image from file: {FilePath}", filePath);
-            ToastManager
-                .CreateToast(LocaleResolver.Common_Error)
-                .WithContent(ex.GetFriendlyMessage())
-                .DismissOnClick()
-                .OnBottomRight()
-                .ShowError();
-        }
+        _chatAttachmentsSource.Add(attachment);
     }
 
     /// <summary>
@@ -509,9 +518,18 @@ public sealed partial class ChatWindowViewModel :
     /// <param name="filePath">The file path to add.</param>
     public async Task AddFileFromDragDropAsync(string filePath)
     {
-        if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
+        try
+        {
+            if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
 
-        await AddFileUncheckAsync(filePath, "from drag&drop", _cancellationTokenSource.Token);
+            await AddFileUncheckAsync(filePath, "from drag&drop", _cancellationTokenSource.Token);
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add file from drag&drop");
+            ToastExceptionHandler.HandleException(HandledSystemException.Handle(ex));
+        }
     }
 
     private static ChatVisualElementAttachment CreateFromVisualElement(IVisualElement element)
@@ -907,7 +925,7 @@ public sealed partial class ChatWindowViewModel :
     [RelayCommand]
     private void Close()
     {
-        IsOpened = false;
+        WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true));
         if (!Settings.ChatWindow.AllowRunInBackground) _cancellationTokenSource.Cancel();
     }
 
@@ -915,10 +933,6 @@ public sealed partial class ChatWindowViewModel :
     {
         base.OnIsBusyChanged();
 
-        PickElementCommand.NotifyCanExecuteChanged();
-        ScreenshotCommand.NotifyCanExecuteChanged();
-        AddClipboardCommand.NotifyCanExecuteChanged();
-        AddFileCommand.NotifyCanExecuteChanged();
         SendMessageCommand.NotifyCanExecuteChanged();
         EditCommand.NotifyCanExecuteChanged();
         RetryCommand.NotifyCanExecuteChanged();
@@ -959,7 +973,7 @@ public sealed partial class ChatWindowViewModel :
                     .ShowDesktopNotificationAsync(message.HeaderKey.ToString() ?? LocaleResolver.Common_Info)
                     .ContinueWith(r =>
                     {
-                        if (r is { IsFaulted: false, Result: true }) Dispatcher.UIThread.Invoke(() => IsOpened = true);
+                        if (r is { IsFaulted: false, Result: true }) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
                     });
             }
         });
@@ -987,12 +1001,4 @@ public sealed partial class ChatWindowViewModel :
     }
 
     #endregion
-
-    public void Receive(ApplicationCommand command)
-    {
-        if (command is ShowWindowCommand { Name: nameof(ChatWindowViewModel) })
-        {
-            Dispatcher.UIThread.Invoke(() => IsOpened = true);
-        }
-    }
 }

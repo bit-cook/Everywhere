@@ -2313,4 +2313,7 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value />
     </data>
+    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
+        <value />
+    </data>
 </root>
