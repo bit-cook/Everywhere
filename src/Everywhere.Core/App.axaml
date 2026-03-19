@@ -29,6 +29,7 @@
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/CreateApiKeyForm.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/CustomAssistantInformationForm.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/DebugFeaturesControl.axaml"/>
+        <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/KeyboardShortcutInputBox.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/ManageApiKeyForm.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/McpImportForm.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/McpTransportConfigurationForm.axaml"/>
