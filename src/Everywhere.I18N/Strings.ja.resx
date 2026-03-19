@@ -560,12 +560,6 @@
     <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhereはスタートアップ後に自動的に実行されます。「管理者としてスタートアップ」が有効な場合、このオプションは管理者モードでのみ無効にできます。</value>
     </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
-        <value>管理者としてスタートアップ</value>
-    </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
-        <value>Everywhereは管理者として自動的に起動します。このオプションのオン/オフは管理者モードでのみ行えます。</value>
-    </data>
     <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>オペレーティングシステムの制限により、管理者としてアプリケーションを実行している場合（権限が昇格している場合）、Everywhereがフォーカスされている昇格されたアプリケーションや「要素を選択」などのEverywhereの機能と相互作用しようとする際に正しく動作しないことがあります。これを解決するには、Everywhereを管理者として実行してください。</value>
     </data>

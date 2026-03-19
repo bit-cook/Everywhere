@@ -559,12 +559,6 @@
     <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere başlatıldığında otomatik olarak çalışacak. “Yönetici Olarak Başlangıç” etkinse, mevcut seçenek yalnızca yönetici modunda devre dışı bırakılabilir.</value>
     </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
-        <value>Yönetici Olarak Başlat</value>
-    </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
-        <value>Everywhere yönetici olarak otomatik başlatılacak. Bu seçeneği yalnızca yönetici modunda açıp kapatabilirsiniz.</value>
-    </data>
     <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>İşletim sistemi kısıtlamaları nedeniyle herhangi bir uygulamayı yönetici olarak çalıştırdığınızda (yükseltilmiş izinler), Everywhere yükseltilmiş uygulamalar odakta olduğunda veya “Öğe Seç” gibi bir Everywhere özelliğiyle etkileşime geçmeye çalışırken düzgün çalışmayabilir. Bu sorun, Everywhere'ı yönetici olarak çalıştırarak çözülebilir.</value>
     </data>

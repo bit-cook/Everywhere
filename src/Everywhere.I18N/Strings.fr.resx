@@ -560,12 +560,6 @@
     <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere se lancera automatiquement après le démarrage. Si « Démarrer en tant qu'administrateur » est activé, cette option ne peut être désactivée qu'en mode administrateur.</value>
     </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
-        <value>Démarrer en tant qu'administrateur</value>
-    </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
-        <value>Everywhere démarrera automatiquement en tant qu'administrateur. Vous pouvez activer ou désactiver cette option uniquement en mode administrateur.</value>
-    </data>
     <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>En raison des restrictions du système d'exploitation, lorsque vous exécutez une application en tant qu'administrateur (permissions élevées), Everywhere peut ne pas fonctionner correctement lorsque les applications élevées sont au premier plan ou tentent d'interagir avec une fonctionnalité d'Everywhere comme « Sélectionner un élément ». Cela peut être résolu en exécutant Everywhere en tant qu'administrateur.</value>
     </data>

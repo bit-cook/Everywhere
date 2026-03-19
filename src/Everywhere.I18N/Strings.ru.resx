@@ -560,12 +560,6 @@
     <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere будет запускаться автоматически после старта системы. Если включена опция «Запуск от имени администратора», текущую опцию можно отключить только в режиме администратора.</value>
     </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
-        <value>Запуск от имени администратора</value>
-    </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
-        <value>Everywhere будет запускаться автоматически от имени администратора. Вы можете включить или отключить эту опцию только в режиме администратора.</value>
-    </data>
     <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>Из-за ограничений операционной системы, при запуске любого приложения от имени администратора (с повышенными правами) Everywhere может работать некорректно, если приложения с повышенными правами находятся в фокусе или пытаются взаимодействовать с функцией Everywhere, такой как «Выбор элемента». Это можно исправить, запустив Everywhere от имени администратора.</value>
     </data>

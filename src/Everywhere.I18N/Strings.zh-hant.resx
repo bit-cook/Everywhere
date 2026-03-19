@@ -560,12 +560,6 @@
     <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere 會在開機後自動運行。如果啟用了「以管理員身份啟動」，則只能在管理員模式下禁用當前選項。</value>
     </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
-        <value>以管理員身份啟動</value>
-    </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
-        <value>Everywhere 將自動以管理員身份啟動。您只能在管理員模式下開啟或關閉此選項。</value>
-    </data>
     <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>由於操作系統限制，當以管理員身份（提升權限）運行任何應用程式時，Everywhere 可能無法在提升的應用程式處於焦點或嘗試與 Everywhere 功能（如「選擇元素」）互動時正常運行。這可以通過以管理員身份運行 Everywhere 來解決。</value>
     </data>

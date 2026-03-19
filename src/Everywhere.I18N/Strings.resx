@@ -19,7 +19,7 @@
     <data name="DisplaySettings_Language_Header" xml:space="preserve">
         <value>Language</value>
     </data>
-    <data name="SettingsCategory_Settings_Header" xml:space="preserve">
+    <data name="SettingsPage_Title" xml:space="preserve">
         <value>Settings</value>
     </data>
     <data name="DisplaySettings_Language_Description" xml:space="preserve">
@@ -573,7 +573,7 @@
         <value>Startup as Administrator</value>
     </data>
     <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
-        <value>Everywhere will start automatically as administrator. You can only turn this option on or off in administrator mode.</value>
+        <value />
     </data>
     <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>Due to operating system restrictions, when running any application as an administrator (elevated permissions), Everywhere may not work correctly when the elevated applications are in focus or trying to interact with a Everywhere feature like &quot;Pick Element&quot;. This can be addressed by running Everywhere as administrator.</value>
@@ -1972,9 +1972,6 @@ Scroll wheel or number keys to switch pick modes</value>
     <data name="MainTrayIcon_Menu_OpenChatWindow" xml:space="preserve">
         <value>Open Chat Window</value>
     </data>
-    <data name="Linux_NativeHelper_RestartAsAdministrator_DesktopNotification" xml:space="preserve">
-        <value>Administrator privileges are usually unnecessary on Linux. If needed, please re-exec with sudo.</value>
-    </data>
     <data name="Linux_ShortcutListener_Register_FailedToGrabHotkey" xml:space="preserve">
         <value>Failed to grab the hotkey. The key combination may be already in use.</value>
     </data>
@@ -2307,7 +2304,7 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="SettingsCategory_Settings_Common_Description" xml:space="preserve">
         <value />
     </data>
-    <data name="SettingsCategory_Settings_Header" xml:space="preserve">
+    <data name="SettingsPage_Title" xml:space="preserve">
         <value />
     </data>
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">

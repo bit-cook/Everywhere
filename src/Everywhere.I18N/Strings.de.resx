@@ -559,12 +559,6 @@
     <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere startet automatisch nach dem Systemstart. Wenn „Als Administrator starten“ aktiviert ist, kann diese Option nur im Administratormodus deaktiviert werden.</value>
     </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
-        <value>Als Administrator starten</value>
-    </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
-        <value>Everywhere startet automatisch als Administrator. Diese Option können Sie nur im Administratormodus aktivieren oder deaktivieren.</value>
-    </data>
     <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>Aufgrund von Betriebssystembeschränkungen kann Everywhere nicht korrekt funktionieren, wenn Anwendungen mit Administratorrechten (erhöhte Berechtigungen) im Fokus sind oder versuchen, mit einer Everywhere-Funktion wie &quot;Element auswählen&quot; zu interagieren. Dies kann behoben werden, indem Everywhere als Administrator ausgeführt wird.</value>
     </data>

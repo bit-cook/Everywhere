@@ -19,7 +19,7 @@
     <data name="DisplaySettings_Language_Header" xml:space="preserve">
         <value>语言</value>
     </data>
-    <data name="SettingsCategory_Settings_Header" xml:space="preserve">
+    <data name="SettingsPage_Title" xml:space="preserve">
         <value>设置</value>
     </data>
     <data name="DisplaySettings_Language_Description" xml:space="preserve">
@@ -570,10 +570,10 @@
         <value>Everywhere 会在开机后自动运行。如果开启了“以管理员方式启动”，则只有在管理员模式下才能关闭当前选项。</value>
     </data>
     <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
-        <value>以管理员方式启动</value>
+        <value>以管理员方式自启动</value>
     </data>
     <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
-        <value>Everywhere 会以管理员方式自启动。只有在管理员模式下才能开关当前选项。</value>
+        <value>开机时 Everywhere 会以管理员身份自启动。只有在管理员模式下才能开关当前选项。</value>
     </data>
     <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>由于操作系统限制，当以管理员身份运行任何应用程序（提升权限）时，如果提升权限的应用程序处于活动状态或试图与 Everywhere 的某个功能（如“选择元素”）交互，Everywhere 可能无法正常工作。可以通过以管理员身份运行 Everywhere 来解决此问题。</value>
@@ -2308,7 +2308,7 @@
     <data name="SettingsCategory_Settings_Common_Description" xml:space="preserve">
         <value>配置和 Everywhere 运行相关的设置。</value>
     </data>
-    <data name="SettingsCategory_Settings_Header" xml:space="preserve">
+    <data name="SettingsPage_Title" xml:space="preserve">
         <value>设置</value>
     </data>
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">

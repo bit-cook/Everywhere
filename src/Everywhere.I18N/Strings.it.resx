@@ -560,12 +560,6 @@
     <data name="SoftwareSettings_IsStartupEnabled_Description" xml:space="preserve">
         <value>Everywhere verrà eseguito automaticamente dopo l'avvio. Se “Avvio come amministratore” è abilitato, l'opzione corrente può essere disabilitata solo in modalità amministratore.</value>
     </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Header" xml:space="preserve">
-        <value>Avvio come amministratore</value>
-    </data>
-    <data name="SoftwareSettings_IsAdministratorStartupEnabled_Description" xml:space="preserve">
-        <value>Everywhere si avvierà automaticamente come amministratore. Puoi attivare o disattivare questa opzione solo in modalità amministratore.</value>
-    </data>
     <data name="SoftwareSettings_RestartAsAdministrator_Description" xml:space="preserve">
         <value>A causa delle restrizioni del sistema operativo, quando si esegue un'applicazione come amministratore (permessi elevati), Everywhere potrebbe non funzionare correttamente quando le applicazioni elevate sono in primo piano o tentano di interagire con una funzione di Everywhere come &quot;Seleziona elemento&quot;. Questo può essere risolto eseguendo Everywhere come amministratore.</value>
     </data>
