@@ -93,7 +93,7 @@ public interface IVisualElementContext : IObservable<TextSelectionData>
     /// The initial pick mode to use. If null, it remembers the last used mode.
     /// </param>
     /// <returns></returns>
-    Task<IVisualElement?> PickElementAsync(ScreenSelectionMode? initialMode);
+    Task<IVisualElement?> PickVisualElementAsync(ScreenSelectionMode? initialMode);
 
     /// <summary>
     /// Let the user take a screenshot of a selected area.
@@ -102,5 +102,5 @@ public interface IVisualElementContext : IObservable<TextSelectionData>
     /// The initial pick mode to use. If null, it remembers the last used mode.
     /// </param>
     /// <returns></returns>
-    Task<Bitmap?> ScreenshotAsync(ScreenSelectionMode? initialMode);
+    Task<Bitmap?> TakeScreenshotAsync(ScreenSelectionMode? initialMode);
 }

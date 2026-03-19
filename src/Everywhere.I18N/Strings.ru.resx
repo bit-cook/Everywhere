@@ -82,9 +82,6 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>Пароль для прокси-сервера.</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
-        <value>Горячая клавиша</value>
-    </data>
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Установите горячую клавишу для вызова окна чата в любое время.</value>
     </data>
@@ -1972,9 +1969,6 @@
     <data name="ScreenSelectionToolTip_TipText_Free" xml:space="preserve">
         <value>Удерживайте левую кнопку мыши для выделения, правой кнопкой или Esc для выхода
 Прокрутка или цифровые клавиши для переключения режима выбора</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
-        <value>Скриншот</value>
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value>Автоматически Добавлять Выделение</value>

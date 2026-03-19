@@ -82,9 +82,6 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>プロキシサーバーのパスワード。</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
-        <value>ショートカット</value>
-    </data>
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>いつでもチャットウィンドウを呼び出すためのショートカットを設定します。</value>
     </data>
@@ -1972,9 +1969,6 @@
     <data name="ScreenSelectionToolTip_TipText_Free" xml:space="preserve">
         <value>左クリックを押しながら選択し、右クリックまたは Esc で終了
 ホイールまたは数字キーで選択モードを切り替え</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
-        <value>スクリーンショット</value>
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value>選択したテキストを自動追加</value>

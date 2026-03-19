@@ -30,4 +30,18 @@ public partial class ShortcutSettings : ObservableObject, IMainViewNavigationSub
         LocaleKey.ShortcutSettings_ChatWindow_Desription)]
     [SettingsTemplatedItem]
     public partial KeyboardShortcut ChatWindow { get; set; } = new(Key.E, KeyModifiers.Control | KeyModifiers.Shift);
+
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.ShortcutSettings_PickVisualElement_Header,
+        LocaleKey.ShortcutSettings_PickVisualElement_Desription)]
+    [SettingsTemplatedItem]
+    public partial KeyboardShortcut PickVisualElement { get; set; }
+
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.ShortcutSettings_TakeScreenshot_Header,
+        LocaleKey.ShortcutSettings_TakeScreenshot_Desription)]
+    [SettingsTemplatedItem]
+    public partial KeyboardShortcut TakeScreenshot { get; set; }
 }

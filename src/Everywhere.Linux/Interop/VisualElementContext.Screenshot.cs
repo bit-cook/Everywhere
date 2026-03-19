@@ -12,7 +12,7 @@ public partial class VisualElementContext
     private sealed class ScreenshotPicker : ScreenSelectionSession
     {
         private static ScreenSelectionMode _previousMode = ScreenSelectionMode.Element;
-        public static async Task<Bitmap?> ScreenshotAsync(
+        public static async Task<Bitmap?> TakeAsync(
             VisualElementContext context,
             IWindowBackend backend,
             ScreenSelectionMode? initialMode)

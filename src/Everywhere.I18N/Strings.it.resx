@@ -82,9 +82,6 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>Password per il server proxy.</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
-        <value>Scorciatoia</value>
-    </data>
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Imposta una scorciatoia per richiamare la finestra di chat in qualsiasi momento.</value>
     </data>
@@ -1972,9 +1969,6 @@ Rotellina o tasti numerici per cambiare modalità di selezione</value>
     <data name="ScreenSelectionToolTip_TipText_Free" xml:space="preserve">
         <value>Tieni premuto il tasto sinistro per selezionare, tasto destro o Esc per uscire
 Rotella o tasti numerici per cambiare modalità di selezione</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
-        <value>Cattura schermo</value>
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value>Aggiungi Selezione Testo Automaticamente</value>

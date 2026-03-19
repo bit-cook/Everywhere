@@ -310,17 +310,17 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [RelayCommand]
-    private async Task PickElementAsync(CancellationToken cancellationToken)
+    private async Task PickVisualElementAsync(CancellationToken cancellationToken)
     {
         try
         {
             if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
 
             // Hide the chat window to avoid picking itself
-            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true));
-            var element = await _visualElementContext.PickElementAsync(null);
-            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
-
+            var isOpened = IsOpened;
+            if (isOpened) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true));
+            var element = await _visualElementContext.PickVisualElementAsync(null);
+            if (isOpened || element is not null) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
             if (element is null) return;
             if (_chatAttachmentsSource.Items.OfType<ChatVisualElementAttachment>().Any(a => Equals(a.Element?.Target, element))) return;
             _chatAttachmentsSource.Add(
@@ -335,17 +335,17 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [RelayCommand]
-    private async Task ScreenshotAsync(CancellationToken cancellationToken)
+    private async Task TakeScreenshotAsync(CancellationToken cancellationToken)
     {
         try
         {
             if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
 
             // Hide the chat window to avoid picking itself
-            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true));
-            var bitmap = await _visualElementContext.ScreenshotAsync(null);
-            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
-
+            var isOpened = IsOpened;
+            if (isOpened) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true));
+            var bitmap = await _visualElementContext.TakeScreenshotAsync(null);
+            if (isOpened || bitmap is not null) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
             if (bitmap is null) return;
             _chatAttachmentsSource.Add(await Task.Run(() => CreateFromBitmapAsync(bitmap, cancellationToken), cancellationToken));
         }

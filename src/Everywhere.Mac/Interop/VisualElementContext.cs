@@ -71,13 +71,13 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
         return AXUIElement.ElementFromWindowId((uint)windowHandle);
     }
 
-    public Task<IVisualElement?> PickElementAsync(ScreenSelectionMode? initialMode)
+    public Task<IVisualElement?> PickVisualElementAsync(ScreenSelectionMode? initialMode)
     {
         return PickerSession.PickAsync(windowHelper, initialMode);
     }
 
-    public Task<Bitmap?> ScreenshotAsync(ScreenSelectionMode? initialMode)
+    public Task<Bitmap?> TakeScreenshotAsync(ScreenSelectionMode? initialMode)
     {
-        return ScreenshotSession.ScreenshotAsync(windowHelper, initialMode);
+        return ScreenshotSession.TakeAsync(windowHelper, initialMode);
     }
 }

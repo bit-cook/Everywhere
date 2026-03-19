@@ -82,9 +82,6 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>代理伺服器的密碼。</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
-        <value>快捷鍵</value>
-    </data>
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>設定快捷鍵以隨時調出聊天視窗。</value>
     </data>
@@ -1972,9 +1969,6 @@
     <data name="ScreenSelectionToolTip_TipText_Free" xml:space="preserve">
         <value>按住左鍵框選，右鍵或 Esc 退出
 滾輪或數字鍵切換選擇模式</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
-        <value>螢幕截圖</value>
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value>自動添加選取文字</value>

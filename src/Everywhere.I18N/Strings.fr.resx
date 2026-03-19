@@ -82,9 +82,6 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>Mot de passe pour le serveur proxy.</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
-        <value>Raccourci</value>
-    </data>
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Définissez un raccourci pour invoquer la fenêtre de chat à tout moment.</value>
     </data>
@@ -1972,9 +1969,6 @@ Molette de défilement ou touches numériques pour changer de mode de sélection
     <data name="ScreenSelectionToolTip_TipText_Free" xml:space="preserve">
         <value>Maintenez le bouton gauche enfoncé pour sélectionner, appuyez sur le bouton droit ou sur Échap pour quitter
 Utilisez la molette ou les touches numériques pour changer de mode de sélection</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
-        <value>Capture d'écran</value>
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value>Ajouter Sélection de Texte Automatiquement</value>

@@ -82,9 +82,6 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>Proxy sunucusu için şifre.</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
-        <value>Kısayollar</value>
-    </data>
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Sohbet penceresini istediğiniz zaman çağırmak için bir kısayol ayarlayın.</value>
     </data>
@@ -1969,9 +1966,6 @@ Seçim modlarını değiştirmek için kaydırma tekerleğini veya sayı tuşlar
     <data name="ScreenSelectionToolTip_TipText_Free" xml:space="preserve">
         <value>Sol tuşa basılı tutarak seçim yapın, sağ tuş veya Esc ile çıkın
 Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
-        <value>Ekran görüntüsü</value>
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value>Metin Seçimini Otomatik Ekle</value>

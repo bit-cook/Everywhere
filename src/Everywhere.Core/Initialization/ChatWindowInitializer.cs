@@ -28,7 +28,9 @@ public class ChatWindowInitializer(
 
     private readonly Lock _syncLock = new();
 
-    private IDisposable? _chatShortcutSubscription;
+    private IDisposable? _chatWindowShortcutSubscription;
+    private IDisposable? _pickElementShortcutSubscription;
+    private IDisposable? _screenshotShortcutSubscription;
     private IDisposable? _textSelectionSubscription;
 
     public Task InitializeAsync()
@@ -42,9 +44,17 @@ public class ChatWindowInitializer(
 
         settings.Shortcut.PropertyChanged += (_, args) =>
         {
-            if (args.PropertyName == nameof(ShortcutSettings.ChatWindow))
+            switch (args.PropertyName)
             {
-                HandleChatShortcutChanged(chatWindow, chatWindowHandle, settings.Shortcut.ChatWindow);
+                case nameof(ShortcutSettings.ChatWindow):
+                    HandleChatWindowShortcutChanged(chatWindow, chatWindowHandle, settings.Shortcut.ChatWindow);
+                    break;
+                case nameof(ShortcutSettings.PickVisualElement):
+                    HandlePickElementShortcutChanged(chatWindowViewModel, settings.Shortcut.PickVisualElement);
+                    break;
+                case nameof(ShortcutSettings.TakeScreenshot):
+                    HandleScreenshotShortcutChanged(chatWindowViewModel, settings.Shortcut.TakeScreenshot);
+                    break;
             }
         };
         settings.ChatWindow.PropertyChanged += (_, args) =>
@@ -55,13 +65,15 @@ public class ChatWindowInitializer(
             }
         };
 
-        HandleChatShortcutChanged(chatWindow, chatWindowHandle, settings.Shortcut.ChatWindow);
+        HandleChatWindowShortcutChanged(chatWindow, chatWindowHandle, settings.Shortcut.ChatWindow);
+        HandlePickElementShortcutChanged(chatWindowViewModel, settings.Shortcut.PickVisualElement);
+        HandleScreenshotShortcutChanged(chatWindowViewModel, settings.Shortcut.TakeScreenshot);
         HandleTextSelectionChanged(chatWindowViewModel, settings.ChatWindow.AutomaticallyAddTextSelection);
 
         return Task.CompletedTask;
     }
 
-    private void HandleChatShortcutChanged(ChatWindow chatWindow, nint chatWindowHandle, KeyboardShortcut shortcut)
+    private void HandleChatWindowShortcutChanged(ChatWindow chatWindow, nint chatWindowHandle, KeyboardShortcut shortcut)
     {
         RegisterShortcutListener(
             shortcut,
@@ -83,7 +95,7 @@ public class ChatWindowInitializer(
                     hWnd = null;
                 }
 
-                Dispatcher.UIThread.Invoke(() =>
+                Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     if (chatWindow.IsFocused || chatWindowHandle == hWnd)
                     {
@@ -95,7 +107,23 @@ public class ChatWindowInitializer(
                     }
                 });
             }),
-            ref _chatShortcutSubscription);
+            ref _chatWindowShortcutSubscription);
+    }
+
+    private void HandlePickElementShortcutChanged(ChatWindowViewModel chatWindowViewModel, KeyboardShortcut shortcut)
+    {
+        RegisterShortcutListener(
+            shortcut,
+            () => Dispatcher.UIThread.InvokeAsync(() => chatWindowViewModel.PickVisualElementCommand.Execute(null)),
+            ref _pickElementShortcutSubscription);
+    }
+
+    private void HandleScreenshotShortcutChanged(ChatWindowViewModel chatWindowViewModel, KeyboardShortcut shortcut)
+    {
+        RegisterShortcutListener(
+            shortcut,
+            () => Dispatcher.UIThread.InvokeAsync(() => chatWindowViewModel.TakeScreenshotCommand.Execute(null)),
+            ref _screenshotShortcutSubscription);
     }
 
     private void RegisterShortcutListener(KeyboardShortcut shortcut, Action callback, ref IDisposable? subscription)
@@ -105,7 +133,14 @@ public class ChatWindowInitializer(
         subscription?.Dispose();
         if (!shortcut.IsValid) return;
 
-        subscription = shortcutListener.Register(shortcut, callback);
+        try
+        {
+            subscription = shortcutListener.Register(shortcut, callback);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to register shortcut {Shortcut}", shortcut);
+        }
     }
 
     private void HandleTextSelectionChanged(ChatWindowViewModel chatWindowViewModel, bool isEnabled)

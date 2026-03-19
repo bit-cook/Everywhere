@@ -462,7 +462,7 @@
 
             <v:ChatInputArea.AddChatAttachmentMenuItems>
               <MenuItem
-                Command="{Binding PickElementCommand}"
+                Command="{Binding PickVisualElementCommand}"
                 Header="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_AddAttachmentMenuItems_PickVisualElement}}">
                 <MenuItem.Icon>
                   <LucideIcon
@@ -471,8 +471,8 @@
                 </MenuItem.Icon>
               </MenuItem>
               <MenuItem
-                Command="{Binding ScreenshotCommand}"
-                Header="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot}}">
+                Command="{Binding TakeScreenshotCommand}"
+                Header="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_AddAttachmentMenuItems_TakeScreenshot}}">
                 <MenuItem.Icon>
                   <LucideIcon
                     Kind="Fullscreen"

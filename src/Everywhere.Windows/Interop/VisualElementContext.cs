@@ -65,9 +65,9 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
         return TryCreateVisualElement(() => Automation.FromHandle(windowHandle));
     }
 
-    public Task<IVisualElement?> PickElementAsync(ScreenSelectionMode? initialMode) => PickerSession.PickAsync(windowHelper, initialMode);
+    public Task<IVisualElement?> PickVisualElementAsync(ScreenSelectionMode? initialMode) => PickerSession.PickAsync(windowHelper, initialMode);
 
-    public Task<Bitmap?> ScreenshotAsync(ScreenSelectionMode? initialMode) => ScreenshotSession.ScreenshotAsync(windowHelper, initialMode);
+    public Task<Bitmap?> TakeScreenshotAsync(ScreenSelectionMode? initialMode) => ScreenshotSession.TakeAsync(windowHelper, initialMode);
 
     private static AutomationVisualElementImpl? TryCreateVisualElement(Func<AutomationElement?> factory)
     {

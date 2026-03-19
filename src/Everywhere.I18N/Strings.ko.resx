@@ -82,9 +82,6 @@
     <data name="ProxySettings_Password_Description" xml:space="preserve">
         <value>프록시 서버의 비밀번호입니다.</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
-        <value>단축키</value>
-    </data>
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>언제든지 채팅 창을 호출할 수 있는 단축키를 설정합니다.</value>
     </data>
@@ -1972,9 +1969,6 @@
     <data name="ScreenSelectionToolTip_TipText_Free" xml:space="preserve">
         <value>왼쪽 버튼을 눌러 선택하고, 오른쪽 버튼이나 Esc로 종료
 휠 또는 숫자 키로 선택 모드 전환</value>
-    </data>
-    <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
-        <value>스크린샷</value>
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value>텍스트 선택 자동 추가</value>

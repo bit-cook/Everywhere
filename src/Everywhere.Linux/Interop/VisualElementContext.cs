@@ -83,7 +83,7 @@ public partial class VisualElementContext(
         throw new NotImplementedException();
     }
 
-    public async Task<IVisualElement?> PickElementAsync(ScreenSelectionMode? initialMode)
+    public async Task<IVisualElement?> PickVisualElementAsync(ScreenSelectionMode? initialMode)
     {
         if (Application.Current is not { ApplicationLifetime: ClassicDesktopStyleApplicationLifetime desktopLifetime })
         {
@@ -97,7 +97,7 @@ public partial class VisualElementContext(
         return result;
     }
 
-    public async Task<Bitmap?> ScreenshotAsync(ScreenSelectionMode? initialMode)
+    public async Task<Bitmap?> TakeScreenshotAsync(ScreenSelectionMode? initialMode)
     {
         if (Application.Current is not { ApplicationLifetime: ClassicDesktopStyleApplicationLifetime desktopLifetime })
         {
@@ -107,7 +107,7 @@ public partial class VisualElementContext(
         var windows = desktopLifetime.Windows.AsValueEnumerable().Where(w => w.IsVisible).ToList();
         foreach (var window in windows) window.Hide();
 
-        var result = await ScreenshotPicker.ScreenshotAsync(this, backend, initialMode);
+        var result = await ScreenshotPicker.TakeAsync(this, backend, initialMode);
 
         foreach (var window in windows) window.IsVisible = true;
         return result;

@@ -89,7 +89,7 @@
         <value>聊天窗口</value>
     </data>
     <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
-        <value>快捷键</value>
+        <value>聊天窗口</value>
     </data>
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>设置一个快捷键，在任何时候按下即可唤出聊天窗口。</value>
@@ -1986,8 +1986,8 @@
         <value>按住左键框选，右键或 Esc 退出
 滚轮或数字键切换选择模式</value>
     </data>
-    <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_Screenshot" xml:space="preserve">
-        <value>屏幕截图</value>
+    <data name="ChatWindow_ChatInputArea_AddAttachmentMenuItems_TakeScreenshot" xml:space="preserve">
+        <value>捕获屏幕截图</value>
     </data>
     <data name="ChatWindowSettings_AutomaticallyAddTextSelection_Header" xml:space="preserve">
         <value>自动添加划词</value>
@@ -2322,5 +2322,17 @@
     </data>
     <data name="ChatWindowPinMode_TopmostOnInput" xml:space="preserve">
         <value>输入时置顶</value>
+    </data>
+    <data name="ShortcutSettings_PickVisualElement_Header" xml:space="preserve">
+        <value>选择视觉元素</value>
+    </data>
+    <data name="ShortcutSettings_PickVisualElement_Desription" xml:space="preserve">
+        <value>设置一个快捷键，在任何时候按下即可选择视觉元素，之后会唤起聊天窗口。</value>
+    </data>
+    <data name="ShortcutSettings_TakeScreenshot_Header" xml:space="preserve">
+        <value>捕获屏幕截图</value>
+    </data>
+    <data name="ShortcutSettings_TakeScreenshot_Desription" xml:space="preserve">
+        <value>设置一个快捷键，在任何时候按下即可捕获屏幕截图，之后会唤起聊天窗口。</value>
     </data>
 </root>
