@@ -35,7 +35,7 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
 
     public int MaxChatAttachmentCount
     {
-        get => Get(10);
+        get => Get(50);
         set => Set(value);
     }
 
