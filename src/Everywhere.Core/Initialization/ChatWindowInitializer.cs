@@ -88,6 +88,7 @@ public class ChatWindowInitializer(
                             .GetAncestors(true)
                             .LastOrDefault();
                     hWnd = element?.NativeWindowHandle;
+                    if (chatWindowHandle == hWnd) element = null; // Don't allow to select itself
                 }
                 catch
                 {
@@ -97,7 +98,7 @@ public class ChatWindowInitializer(
 
                 Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    if (chatWindow.IsFocused || chatWindowHandle == hWnd)
+                    if (chatWindow.IsVisible && chatWindowHandle == hWnd)
                     {
                         WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true)); // Hide chat window if it's already focused
                     }
