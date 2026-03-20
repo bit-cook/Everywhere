@@ -11,10 +11,10 @@ using Serilog;
 namespace Everywhere.Chat;
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-[Union(0, typeof(ChatVisualElementAttachment))]
-[Union(1, typeof(ChatTextSelectionAttachment))]
-[Union(2, typeof(ChatTextAttachment))]
-[Union(3, typeof(ChatFileAttachment))]
+[Union(0, typeof(VisualElementAttachment))]
+[Union(1, typeof(TextSelectionAttachment))]
+[Union(2, typeof(TextAttachment))]
+[Union(3, typeof(FileAttachment))]
 public abstract partial class ChatAttachment(IDynamicResourceKey headerKey) : ObservableObject
 {
     public abstract LucideIconKind Icon { get; }
@@ -30,7 +30,7 @@ public abstract partial class ChatAttachment(IDynamicResourceKey headerKey) : Ob
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class ChatVisualElementAttachment : ChatAttachment
+public partial class VisualElementAttachment : ChatAttachment
 {
     [Key(1)]
     public override LucideIconKind Icon { get; }
@@ -54,12 +54,12 @@ public partial class ChatVisualElementAttachment : ChatAttachment
     public bool IsElementValid => Element?.Target is not null;
 
     [SerializationConstructor]
-    protected ChatVisualElementAttachment(IDynamicResourceKey headerKey, LucideIconKind icon) : base(headerKey)
+    protected VisualElementAttachment(IDynamicResourceKey headerKey, LucideIconKind icon) : base(headerKey)
     {
         Icon = icon;
     }
 
-    public ChatVisualElementAttachment(IDynamicResourceKey headerKey, LucideIconKind icon, IVisualElement? element) : base(headerKey)
+    public VisualElementAttachment(IDynamicResourceKey headerKey, LucideIconKind icon, IVisualElement? element) : base(headerKey)
     {
         Icon = icon;
         Element = element is null ? null : new ResilientReference<IVisualElement>(element);
@@ -67,7 +67,7 @@ public partial class ChatVisualElementAttachment : ChatAttachment
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
+public partial class TextSelectionAttachment : VisualElementAttachment
 {
     /// <summary>
     /// Override to prevent serialization of HeaderKey.
@@ -82,13 +82,13 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
     public string Text { get; }
 
     [SerializationConstructor]
-    private ChatTextSelectionAttachment(string text) : base(CreateHeaderKey(text), LucideIconKind.TextSelect)
+    private TextSelectionAttachment(string text) : base(CreateHeaderKey(text), LucideIconKind.TextSelect)
     {
         Text = text;
         IsPrimary = true;
     }
 
-    public ChatTextSelectionAttachment(string text, IVisualElement? element) : base(
+    public TextSelectionAttachment(string text, IVisualElement? element) : base(
         CreateHeaderKey(text),
         LucideIconKind.TextSelect,
         element)
@@ -153,7 +153,7 @@ public partial class ChatTextSelectionAttachment : ChatVisualElementAttachment
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class ChatTextAttachment(IDynamicResourceKey headerKey, string text) : ChatAttachment(headerKey)
+public partial class TextAttachment(IDynamicResourceKey headerKey, string text) : ChatAttachment(headerKey)
 {
     public override LucideIconKind Icon => LucideIconKind.TextInitial;
 
@@ -170,7 +170,7 @@ public partial class ChatTextAttachment(IDynamicResourceKey headerKey, string te
 /// <param name="sha256"></param>
 /// <param name="mimeType"></param>
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class ChatFileAttachment(
+public partial class FileAttachment(
     IDynamicResourceKey headerKey,
     string filePath,
     string sha256,
@@ -221,7 +221,7 @@ public partial class ChatFileAttachment(
                 catch (Exception ex)
                 {
                     ex = HandledSystemException.Handle(ex);
-                    Log.Logger.ForContext<ChatFileAttachment>().Error(ex, "Failed to load image from file: {FilePath}", FilePath);
+                    Log.Logger.ForContext<FileAttachment>().Error(ex, "Failed to load image from file: {FilePath}", FilePath);
                     field = null;
                 }
                 finally
@@ -257,7 +257,7 @@ public partial class ChatFileAttachment(
     }
 
     /// <summary>
-    /// Creates a new ChatFileAttachment from a file path.
+    /// Creates a new FileAttachment from a file path.
     /// </summary>
     /// <param name="filePath"></param>
     /// <param name="mimeType">null for auto-detection</param>
@@ -271,7 +271,7 @@ public partial class ChatFileAttachment(
     /// <exception cref="OverflowException">
     /// Thrown if the file size exceeds the maximum allowed size.
     /// </exception>
-    public static Task<ChatFileAttachment> CreateAsync(
+    public static Task<FileAttachment> CreateAsync(
         string filePath,
         string? mimeType = null,
         string? description = null,
@@ -285,7 +285,7 @@ public partial class ChatFileAttachment(
                 throw new HandledException(
                     new NotSupportedException($"File size exceeds the maximum allowed size of {maxBytesSize} bytes."),
                     new FormattedDynamicResourceKey(
-                        LocaleKey.ChatFileAttachment_Create_FileTooLarge,
+                        LocaleKey.FileAttachment_Create_FileTooLarge,
                         new DirectResourceKey(FileUtilities.HumanizeBytes(stream.Length)),
                         new DirectResourceKey(FileUtilities.HumanizeBytes(maxBytesSize))),
                     showDetails: false);
@@ -295,7 +295,7 @@ public partial class ChatFileAttachment(
 
             var sha256 = await SHA256.HashDataAsync(stream, cancellationToken);
             var sha256String = Convert.ToHexString(sha256).ToLowerInvariant();
-            return new ChatFileAttachment(new DirectResourceKey(Path.GetFileName(filePath)), filePath, sha256String, mimeType, description);
+            return new FileAttachment(new DirectResourceKey(Path.GetFileName(filePath)), filePath, sha256String, mimeType, description);
         },
         cancellationToken);
 

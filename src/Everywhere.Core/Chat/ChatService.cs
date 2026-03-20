@@ -212,12 +212,12 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         using var activity = _activitySource.StartActivity();
         activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
 
-        // All ChatVisualElementAttachment should be strongly referenced here.
+        // All VisualElementAttachment should be strongly referenced here.
         // So we have to need to check alive status before building visual tree XML.
         var visualElementAttachments = userChatMessage
             .Attachments
             .AsValueEnumerable()
-            .OfType<ChatVisualElementAttachment>()
+            .OfType<VisualElementAttachment>()
             .ToList();
 
         if (visualElementAttachments.Count == 0) return;
@@ -237,7 +237,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             // Building the visual tree XML includes the following steps:
             // 1. Gather required parameters, such as max tokens, detail level, etc.
             // 2. Group the visual elements and build the XML in separate tasks.
-            // 3. Populate result into ChatVisualElementAttachment.Xml
+            // 3. Populate result into VisualElementAttachment.Xml
 
             var approximateTokenLimit = _persistentState.VisualTreeLengthLimit.ToTokenLimit();
             var detailLevel = _persistentState.VisualTreeDetailLevel;
@@ -260,7 +260,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
                     foreach (var reference in userChatMessage
                                  .Attachments
                                  .AsValueEnumerable()
-                                 .OfType<ChatVisualElementAttachment>()
+                                 .OfType<VisualElementAttachment>()
                                  .Select(a => a.Element)
                                  .OfType<ResilientReference<IVisualElement>>())
                     {
@@ -544,7 +544,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
                     {
                         using var memoryStream = new MemoryStream(binaryContent.Data.Value.ToArray());
                         var blob = await _blobStorage.StorageBlobAsync(memoryStream, binaryContent.MimeType, cancellationToken);
-                        EnsureSpan<AssistantChatMessageImageSpan>(true).ImageOutput = new ChatFileAttachment(
+                        EnsureSpan<AssistantChatMessageImageSpan>(true).ImageOutput = new FileAttachment(
                             new DynamicResourceKey(string.Empty),
                             blob.LocalPath,
                             blob.Sha256,

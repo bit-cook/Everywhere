@@ -1429,7 +1429,7 @@ Rotellina o tasti numerici per cambiare modalità di selezione</value>
     <data name="DynamicWebProxy_CreateProxy_EndpointSchemeUnsupported_ErrorMessage" xml:space="preserve">
         <value>Il protocollo del server proxy '{0}' non è supportato.</value>
     </data>
-    <data name="ChatFileAttachment_Create_FileTooLarge" xml:space="preserve">
+    <data name="FileAttachment_Create_FileTooLarge" xml:space="preserve">
         <value>La dimensione del file ({0}) supera la dimensione massima consentita ({1}).</value>
     </data>
     <data name="DisplaySettings_FontSize_Header" xml:space="preserve">

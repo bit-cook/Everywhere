@@ -225,7 +225,7 @@ public partial class ChatInputArea : TextBox
                 while (element != null)
                 {
                     element = element.Parent;
-                    if (element is not { DataContext: ChatVisualElementAttachment attachment }) continue;
+                    if (element is not { DataContext: VisualElementAttachment attachment }) continue;
                     _visualElementAttachmentOverlayWindow.UpdateForVisualElement(attachment.Element?.Target);
                     return;
                 }
