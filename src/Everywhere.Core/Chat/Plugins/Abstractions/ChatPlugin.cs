@@ -65,7 +65,7 @@ public abstract partial class ChatPlugin : KernelPlugin, IDisposable
     {
         Functions = _functionsSource
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .BindEx(out _functionsConnection);
     }
 
@@ -182,7 +182,7 @@ public sealed partial class McpChatPlugin : ChatPlugin, ILogger
 
         LogEntries = _logEntriesSource
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .BindEx(out _logEntriesConnection);
     }
 

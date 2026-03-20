@@ -49,7 +49,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
 
         Items = _itemsSource
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .BindEx(_disposables);
     }
 

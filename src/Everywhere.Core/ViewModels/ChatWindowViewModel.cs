@@ -192,7 +192,7 @@ public sealed partial class ChatWindowViewModel :
         // Initialize chat plugins
         ChatAttachments = _chatAttachmentsSource
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .BindEx(_disposables);
         _disposables.Add(_chatAttachmentsSource);
 

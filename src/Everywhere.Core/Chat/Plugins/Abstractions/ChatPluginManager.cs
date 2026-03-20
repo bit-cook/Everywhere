@@ -82,20 +82,20 @@ public class ChatPluginManager : IChatPluginManager
 
         BuiltInPlugins = _builtInPluginsSource
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .BindEx(_disposables);
         _disposables.Add(_builtInPluginsSource);
 
         McpPlugins = _mcpPluginsSource
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .BindEx(_disposables);
         _disposables.Add(_mcpPluginsSource);
 
         settings.Plugin.McpChatPlugins = _mcpPluginsSource
             .Connect()
             .AutoRefresh(m => m.TransportConfiguration)
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .Transform(m => new McpChatPluginEntity(m), transformOnRefresh: true)
             .BindEx(_disposables);
 

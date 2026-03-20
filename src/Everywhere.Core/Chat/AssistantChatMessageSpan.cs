@@ -122,7 +122,7 @@ public sealed partial class AssistantChatMessageFunctionCallSpan :
     {
         FunctionCalls = _functionCallsSource
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .DisposeMany()
             .BindEx(out _functionCallsConnection);
     }

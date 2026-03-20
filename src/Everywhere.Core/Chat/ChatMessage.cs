@@ -184,7 +184,7 @@ public sealed partial class AssistantChatMessage :
     {
         Spans = _spansSource
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .DisposeMany()
             .BindEx(out _spansConnection);
     }
@@ -428,7 +428,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
         // Set up the DynamicData pipeline
         DisplayBlocks = _displaySink
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .DisposeMany()
             .BindEx(_disposables);
 

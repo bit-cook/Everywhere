@@ -62,7 +62,7 @@ public sealed partial class ChatPluginContainerDisplayBlock : ChatPluginDisplayB
         _displaySink = displaySink;
         Children = _displaySink
             .Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .BindEx(out _displaySinkConnection);
     }
 

@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
@@ -193,7 +192,7 @@ public sealed partial class TextDifference : ObservableObject, IDisposable
             .AddTo(_disposables);
 
         Changes = _changesSource.Connect()
-            .ObserveOnDispatcher()
+            .ObserveOnAvaloniaDispatcher()
             .BindEx(_disposables);
 
         _disposables.Add(_changesSource);
