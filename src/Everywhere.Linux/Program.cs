@@ -11,6 +11,7 @@ using Everywhere.Initialization;
 using Everywhere.Interop;
 using Everywhere.Linux.Chat.Plugins;
 using Everywhere.Linux.Interop;
+using Everywhere.StrategyEngine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -86,6 +87,12 @@ public static class Program
                 .AddSingleton<IChatPluginManager, ChatPluginManager>()
                 .AddSingleton<IChatService, ChatService>()
                 .AddChatContextManager()
+
+                #endregion
+
+                #region Strategy Engine
+
+                .AddStrategyEngine()
 
                 #endregion
 

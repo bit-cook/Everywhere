@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Common;
@@ -63,6 +64,53 @@ public partial class VisualElementAttachment : ChatAttachment
     {
         Icon = icon;
         Element = element is null ? null : new ResilientReference<IVisualElement>(element);
+    }
+
+    public static VisualElementAttachment FromVisualElement(IVisualElement element)
+    {
+        DynamicResourceKey headerKey;
+        var elementTypeKey = new DynamicResourceKey($"VisualElementType_{element.Type}");
+        if (element.ProcessId > 0)
+        {
+            using var process = Process.GetProcessById(element.ProcessId);
+            headerKey = new FormattedDynamicResourceKey("{0} - {1}", new DirectResourceKey(process.ProcessName), elementTypeKey);
+        }
+        else
+        {
+            headerKey = elementTypeKey;
+        }
+
+        return new VisualElementAttachment(
+            headerKey,
+            element.Type switch
+            {
+                VisualElementType.Label => LucideIconKind.Type,
+                VisualElementType.TextEdit => LucideIconKind.TextInitial,
+                VisualElementType.Document => LucideIconKind.FileText,
+                VisualElementType.Image => LucideIconKind.Image,
+                VisualElementType.CheckBox => LucideIconKind.SquareCheck,
+                VisualElementType.RadioButton => LucideIconKind.CircleCheckBig,
+                VisualElementType.ComboBox => LucideIconKind.ChevronDown,
+                VisualElementType.ListView => LucideIconKind.List,
+                VisualElementType.ListViewItem => LucideIconKind.List,
+                VisualElementType.TreeView => LucideIconKind.ListTree,
+                VisualElementType.TreeViewItem => LucideIconKind.ListTree,
+                VisualElementType.DataGrid => LucideIconKind.Table,
+                VisualElementType.DataGridItem => LucideIconKind.Table,
+                VisualElementType.TabControl or VisualElementType.TabItem => LucideIconKind.LayoutPanelTop,
+                VisualElementType.Table => LucideIconKind.Table,
+                VisualElementType.TableRow => LucideIconKind.Table,
+                VisualElementType.Menu => LucideIconKind.Menu,
+                VisualElementType.MenuItem => LucideIconKind.Menu,
+                VisualElementType.Slider => LucideIconKind.SlidersHorizontal,
+                VisualElementType.ScrollBar => LucideIconKind.Settings2,
+                VisualElementType.ProgressBar => LucideIconKind.Percent,
+                VisualElementType.Panel => LucideIconKind.Group,
+                VisualElementType.TopLevel => LucideIconKind.AppWindow,
+                VisualElementType.Screen => LucideIconKind.Monitor,
+                _ => LucideIconKind.Component
+            },
+            element);
     }
 }
 

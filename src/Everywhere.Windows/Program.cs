@@ -11,6 +11,7 @@ using Everywhere.Configuration;
 using Everywhere.Extensions;
 using Everywhere.Initialization;
 using Everywhere.Interop;
+using Everywhere.StrategyEngine;
 using Everywhere.Windows.Chat.Plugins;
 using Everywhere.Windows.Common;
 using Everywhere.Windows.Interop;
@@ -75,6 +76,12 @@ public static class Program
 
                 .AddTransient<BuiltInChatPlugin, PowerShellPlugin>()
                 .AddTransient<BuiltInChatPlugin, EverythingPlugin>()
+
+                #endregion
+
+                #region Strategy Engine
+
+                .AddStrategyEngine()
 
                 #endregion
 

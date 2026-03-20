@@ -10,6 +10,7 @@ using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Storage;
+using Everywhere.StrategyEngine;
 using Everywhere.Utilities;
 using LiveMarkdown.Avalonia;
 using Lucide.Avalonia;
@@ -190,7 +191,44 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         ChatContext chatContext,
         CustomAssistant customAssistant,
         AssistantChatMessage assistantChatMessage,
-        CancellationToken cancellationToken) => GenerateAsync(chatContext, customAssistant, assistantChatMessage, true, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        return GenerateAsync(
+            chatContext,
+            customAssistant,
+            assistantChatMessage,
+            true,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task ExecuteStrategyAsync(StrategyExecutionContext strategyExecutionContext, CancellationToken cancellationToken)
+    {
+        var chatContext = _chatContextManager.Current;
+        var customAssistant = strategyExecutionContext.CustomAssistant ?? _settings.Model.SelectedCustomAssistant;
+
+        if (customAssistant is null)
+        {
+            chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
+            return;
+        }
+
+        using var activity = _activitySource.StartActivity();
+        activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
+
+        chatContext.Add(strategyExecutionContext.UserChatMessage);
+        await ProcessUserChatMessageAsync(chatContext, strategyExecutionContext.UserChatMessage, cancellationToken);
+
+        var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
+        chatContext.Add(assistantChatMessage);
+
+        await GenerateAsync(
+            chatContext,
+            customAssistant,
+            assistantChatMessage,
+            false,
+            strategyExecutionContext.SystemPrompt,
+            cancellationToken);
+    }
 
     /// <summary>
     /// Ensures that a custom assistant is selected. If not, adds an error message to the chat context and throws an exception.
@@ -204,6 +242,12 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             FinishedAt = DateTimeOffset.UtcNow,
         };
 
+    /// <summary>
+    /// Process UserChatMessage
+    /// </summary>
+    /// <param name="chatContext"></param>
+    /// <param name="userChatMessage"></param>
+    /// <param name="cancellationToken"></param>
     private async Task ProcessUserChatMessageAsync(
         ChatContext chatContext,
         UserChatMessage userChatMessage,
@@ -304,7 +348,9 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         // Clear the function call context stack.
         _functionCallContextStack.Clear();
 
-        return Task.Run(() => GenerateAsync(chatContext, customAssistant, assistantChatMessage, false, cancellationToken), cancellationToken);
+        return Task.Run(
+            () => GenerateAsync(chatContext, customAssistant, assistantChatMessage, false, cancellationToken: cancellationToken),
+            cancellationToken);
     }
 
     /// <summary>
@@ -356,13 +402,15 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
     /// <param name="customAssistant"></param>
     /// <param name="assistantChatMessage"></param>
     /// <param name="isSubagent"></param>
+    /// <param name="systemPrompt"></param>
     /// <param name="cancellationToken"></param>
     private async Task GenerateAsync(
         ChatContext chatContext,
         CustomAssistant customAssistant,
         AssistantChatMessage assistantChatMessage,
         bool isSubagent,
-        CancellationToken cancellationToken)
+        string? systemPrompt = null,
+        CancellationToken cancellationToken = default)
     {
         using var activity = StartChatActivity("chat", customAssistant);
         activity?.SetTag("id", chatContext.Metadata.Id);
@@ -378,11 +426,13 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             // Because the custom assistant maybe changed, we need to re-render the system prompt.
             // But we only do this once per generation, even if the system time may change during function calls.
             // This can save prompt tokens because they may be cached by LLM providers.
-            var systemPrompt = _chatContextManager.RenderSystemPrompt(chatContext, customAssistant.SystemPrompt);
+            systemPrompt ??= _chatContextManager.RenderSystemPrompt(chatContext, customAssistant.SystemPrompt);
 
             while (true)
             {
-                cancellationToken.ThrowIfCancellationRequested();                // Build the chat history for the current generation.
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Build the chat history for the current generation.
                 var chatHistory = await ChatHistoryBuilder.BuildChatHistoryAsync(
                     systemPrompt,
                     chatContext

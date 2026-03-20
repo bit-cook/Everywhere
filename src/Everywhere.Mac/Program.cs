@@ -7,6 +7,7 @@ using Everywhere.Extensions;
 using Everywhere.I18N;
 using Everywhere.Initialization;
 using Everywhere.Interop;
+using Everywhere.StrategyEngine;
 using Everywhere.Mac.Chat.Plugin;
 using Everywhere.Mac.Common;
 using Everywhere.Mac.Interop;
@@ -53,6 +54,12 @@ public static class Program
                 #region Chat Plugins
                 .AddTransient<BuiltInChatPlugin, SystemPlugin>()
                 .AddTransient<BuiltInChatPlugin, ZshPlugin>()
+
+                #endregion
+                
+                #region Strategy Engine
+
+                .AddStrategyEngine()
 
                 #endregion
 

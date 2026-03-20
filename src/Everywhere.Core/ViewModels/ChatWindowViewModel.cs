@@ -1,9 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Text;
+using System.Reactive.Linq;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
@@ -22,9 +22,9 @@ using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Storage;
+using Everywhere.StrategyEngine;
 using Everywhere.Utilities;
 using Everywhere.Views;
-using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using ZLinq;
 
@@ -96,7 +96,7 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [ObservableProperty]
-    public partial IReadOnlyList<DynamicNamedCommand>? QuickActions { get; private set; }
+    public partial StrategiesSnapshot? StrategiesSnapshot { get; private set; }
 
     /// <summary>
     /// Indicates whether the file picker is currently open.
@@ -140,6 +140,7 @@ public sealed partial class ChatWindowViewModel :
     private readonly IVisualElementContext _visualElementContext;
     private readonly INativeHelper _nativeHelper;
     private readonly IBlobStorage _blobStorage;
+    private readonly IStrategyEngine _strategyEngine;
     private readonly ILogger<ChatWindowViewModel> _logger;
 
     private readonly DynamicResourceKey _defaultWatermarkKey = new(LocaleKey.ChatInputArea_Watermark);
@@ -162,6 +163,7 @@ public sealed partial class ChatWindowViewModel :
         IVisualElementContext visualElementContext,
         INativeHelper nativeHelper,
         IBlobStorage blobStorage,
+        IStrategyEngine strategyEngine,
         ILogger<ChatWindowViewModel> logger)
     {
         Settings = settings;
@@ -174,6 +176,7 @@ public sealed partial class ChatWindowViewModel :
         _visualElementContext = visualElementContext;
         _nativeHelper = nativeHelper;
         _blobStorage = blobStorage;
+        _strategyEngine = strategyEngine;
         _logger = logger;
 
         _activeChatWindowsGauge = _meter.CreateGauge<int>("app.active_chat_windows");
@@ -195,13 +198,21 @@ public sealed partial class ChatWindowViewModel :
             .BindEx(_disposables);
         _disposables.Add(_chatAttachmentsSource);
 
+        // Initialize strategy commands
+        _disposables.Add(
+            _chatAttachmentsSource
+                .Connect()
+                .Throttle(TimeSpan.FromMilliseconds(250))
+                .ToCollection()
+                .ObserveOn(TaskPoolScheduler.Default)
+                .Subscribe(HandleChatAttachmentsChanged)
+        );
+
         // Load the saved input box text
         ChatInputAreaText = PersistentState.ChatInputAreaText;
         ChatInputAreaWatermarkKey = _defaultWatermarkKey;
 
         WeakReferenceMessenger.Default.RegisterAll(this);
-
-        InitializeCommands();
     }
 
     public void Dispose()
@@ -209,45 +220,6 @@ public sealed partial class ChatWindowViewModel :
         _disposables.Dispose();
         _cancellationTokenSource.Dispose();
         ChatContextManager.PropertyChanged -= HandleChatContextManagerPropertyChanged;
-    }
-
-    private void InitializeCommands()
-    {
-        QuickActions =
-        [
-            new DynamicNamedCommand(
-                LucideIconKind.Languages,
-                LocaleKey.ChatWindowViewModel_QuickActions_Translate,
-                null,
-                SendMessageCommand,
-                $"Please translate the focal elements and related content into {Settings.Display.Language.ToEnglishName()}. " +
-                $"If it's already in target language, translate it to English. " +
-                $"Provide only the translation, do not include any other text or explanation."
-            ),
-            new DynamicNamedCommand(
-                LucideIconKind.ScrollText,
-                LocaleKey.ChatWindowViewModel_QuickActions_Summarize,
-                null,
-                SendMessageCommand,
-                "Please summarize the key elements and related content into a paragraph and extract several key points. " +
-                "Provide only the summary, do not include any other text or explanation."
-            ),
-            new DynamicNamedCommand(
-                LucideIconKind.SearchCheck,
-                LocaleKey.ChatWindowViewModel_QuickActions_Verify,
-                null,
-                SendMessageCommand,
-                "Please verify the authenticity of the focal elements and related content, and point out any suspicious or incorrect parts."
-            ),
-            new DynamicNamedCommand(
-                LucideIconKind.Sparkle,
-                LocaleKey.ChatWindowViewModel_QuickActions_Solve,
-                null,
-                SendMessageCommand,
-                "Please solve the problem described by the focal elements and related content. " +
-                "If no problem is described, provide some relevant suggestions or improvements."
-            ),
-        ];
     }
 
     public void Receive(ActivateChatSessionMessage message)
@@ -288,7 +260,7 @@ public sealed partial class ChatWindowViewModel :
 
             var createElement = Settings.ChatWindow.AutomaticallyAddElement;
             var attachment = await Task
-                .Run(() => createElement ? CreateFromVisualElement(targetElement) : null)
+                .Run(() => createElement ? VisualElementAttachment.FromVisualElement(targetElement) : null)
                 .WaitAsync(TimeSpan.FromSeconds(1));
 
             if (attachment is not null)
@@ -323,7 +295,10 @@ public sealed partial class ChatWindowViewModel :
             if (element is null) return;
             if (_chatAttachmentsSource.Items.OfType<VisualElementAttachment>().Any(a => Equals(a.Element?.Target, element))) return;
             _chatAttachmentsSource.Add(
-                await Task.Run(() => CreateFromVisualElement(element), cancellationToken).WaitAsync(TimeSpan.FromSeconds(3), cancellationToken));
+                await Task.Run(
+                    () => VisualElementAttachment.FromVisualElement(element),
+                    cancellationToken
+                ).WaitAsync(TimeSpan.FromSeconds(3), cancellationToken));
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -397,7 +372,7 @@ public sealed partial class ChatWindowViewModel :
             //     var text = await Clipboard.GetTextAsync();
             //     if (text.IsNullOrEmpty()) return;
             //
-            //     chatAttachments.Add(new TextAttachment(new DirectResourceKey(text.SafeSubstring(0, 10)), text));
+            //     chatAttachments.Add(new ChatTextAttachment(new DirectResourceKey(text.SafeSubstring(0, 10)), text));
             // }
         }
         catch (OperationCanceledException) { }
@@ -529,53 +504,6 @@ public sealed partial class ChatWindowViewModel :
             _logger.LogError(ex, "Failed to add file from drag&drop");
             ToastExceptionHandler.HandleException(HandledSystemException.Handle(ex));
         }
-    }
-
-    private static VisualElementAttachment CreateFromVisualElement(IVisualElement element)
-    {
-        DynamicResourceKey headerKey;
-        var elementTypeKey = new DynamicResourceKey($"VisualElementType_{element.Type}");
-        if (element.ProcessId > 0)
-        {
-            using var process = Process.GetProcessById(element.ProcessId);
-            headerKey = new FormattedDynamicResourceKey("{0} - {1}", new DirectResourceKey(process.ProcessName), elementTypeKey);
-        }
-        else
-        {
-            headerKey = elementTypeKey;
-        }
-
-        return new VisualElementAttachment(
-            headerKey,
-            element.Type switch
-            {
-                VisualElementType.Label => LucideIconKind.Type,
-                VisualElementType.TextEdit => LucideIconKind.TextInitial,
-                VisualElementType.Document => LucideIconKind.FileText,
-                VisualElementType.Image => LucideIconKind.Image,
-                VisualElementType.CheckBox => LucideIconKind.SquareCheck,
-                VisualElementType.RadioButton => LucideIconKind.CircleCheckBig,
-                VisualElementType.ComboBox => LucideIconKind.ChevronDown,
-                VisualElementType.ListView => LucideIconKind.List,
-                VisualElementType.ListViewItem => LucideIconKind.List,
-                VisualElementType.TreeView => LucideIconKind.ListTree,
-                VisualElementType.TreeViewItem => LucideIconKind.ListTree,
-                VisualElementType.DataGrid => LucideIconKind.Table,
-                VisualElementType.DataGridItem => LucideIconKind.Table,
-                VisualElementType.TabControl or VisualElementType.TabItem => LucideIconKind.LayoutPanelTop,
-                VisualElementType.Table => LucideIconKind.Table,
-                VisualElementType.TableRow => LucideIconKind.Table,
-                VisualElementType.Menu => LucideIconKind.Menu,
-                VisualElementType.MenuItem => LucideIconKind.Menu,
-                VisualElementType.Slider => LucideIconKind.SlidersHorizontal,
-                VisualElementType.ScrollBar => LucideIconKind.Settings2,
-                VisualElementType.ProgressBar => LucideIconKind.Percent,
-                VisualElementType.Panel => LucideIconKind.Group,
-                VisualElementType.TopLevel => LucideIconKind.AppWindow,
-                VisualElementType.Screen => LucideIconKind.Monitor,
-                _ => LucideIconKind.Component
-            },
-            element);
     }
 
     private async Task<FileAttachment> CreateFromBitmapAsync(Bitmap bitmap, CancellationToken cancellationToken)
@@ -795,6 +723,7 @@ public sealed partial class ChatWindowViewModel :
         EditCommand.NotifyCanExecuteChanged();
         RetryCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
+        RunStrategyCommand.NotifyCanExecuteChanged();
 
         if (IsBusy)
         {
@@ -859,4 +788,55 @@ public sealed partial class ChatWindowViewModel :
     }
 
     #endregion
+
+    #region Strategy Engine
+
+    private void HandleChatAttachmentsChanged(IReadOnlyCollection<ChatAttachment> attachments)
+    {
+        StrategiesSnapshot = null;
+
+        // TODO: use GetItems
+        var context = StrategyContext.FromAttachments(attachments.ToList());
+        var strategyGroups = _strategyEngine.GetStrategies(context);
+        if (strategyGroups.Count == 0) return;
+
+        StrategiesSnapshot = new StrategiesSnapshot(context, strategyGroups);
+    }
+
+    // namespace DynamicData.Kernel;
+    //
+    // internal sealed class ReadOnlyCollectionLight<T> : IReadOnlyCollection<T>
+    // {
+    //     private readonly IList<T> _items; <--
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_items")]
+    private static extern ref IList<ChatAttachment> GetItems(
+        [UnsafeAccessorType("DynamicData.Kernel.ReadOnlyCollectionLight`1[[Everywhere.Chat.ChatAttachment, Everywhere.Core]], DynamicData")]
+        object collection);
+
+    [RelayCommand(CanExecute = nameof(IsNotBusy))]
+    private Task RunStrategyAsync(StrategyCommand strategyCommand) => ExecuteBusyTaskAsync(
+        cancellationToken =>
+        {
+            if (StrategiesSnapshot is not { Context: { } strategyContext })
+            {
+                return Task.CompletedTask;
+            }
+
+            StrategiesSnapshot = null;
+            CancelEditing();
+            _chatAttachmentsSource.Clear();
+
+            return Task.Run(
+                async () =>
+                {
+                    var context = await _strategyEngine.CreateExecutionContextAsync(strategyCommand, strategyContext, cancellationToken);
+                    await _chatService.ExecuteStrategyAsync(context, cancellationToken);
+                },
+                cancellationToken);
+        },
+        _logger.ToExceptionHandler(),
+        cancellationToken: _cancellationTokenSource.Token);
+
+    #endregion
+
 }

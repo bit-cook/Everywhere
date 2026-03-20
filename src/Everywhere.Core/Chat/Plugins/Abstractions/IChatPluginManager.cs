@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Dynamic;
 
 namespace Everywhere.Chat.Plugins;
 

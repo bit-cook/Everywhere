@@ -1,8 +1,8 @@
 ﻿<v:ReactiveShadWindow
   x:Class="Everywhere.Views.ChatWindow" xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:be="clr-namespace:Everywhere.Behaviors"
-  xmlns:chat="clr-namespace:Everywhere.Chat" xmlns:common="clr-namespace:Everywhere.Common"
-  xmlns:p="clr-namespace:Everywhere.Chat.Plugins" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
+  xmlns:chat="clr-namespace:Everywhere.Chat" xmlns:p="clr-namespace:Everywhere.Chat.Plugins"
+  xmlns:se="clr-namespace:Everywhere.StrategyEngine" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
   xmlns:sys="clr-namespace:System;assembly=System.Runtime" xmlns:v="clr-namespace:Everywhere.Views"
   xmlns:vc="clr-namespace:Everywhere.ValueConverters" xmlns:vm="clr-namespace:Everywhere.ViewModels"
   Title="{I18N {x:Static LocaleKey.ChatWindow_Title}}"
@@ -295,56 +295,86 @@
           <StackPanel
             Margin="8,0,8,8"
             IsVisible="{Binding ChatContextManager.Current.DisplayItems.Count, Converter={x:Static vc:Int32Converters.NotGreaterThan}, ConverterParameter=1}"
-            Spacing="8">
+            Spacing="16">
             <ToggleSwitch
               HorizontalAlignment="Center" shadui:ToggleSwitchAssist.RightAlignedContent="True"
               IsChecked="{Binding ChatContextManager.Current.Metadata.IsTemporary, Mode=TwoWay}"
               OffContent="{I18N {x:Static LocaleKey.ChatContext_Temporary}}"
               OnContent="{I18N {x:Static LocaleKey.ChatContext_Temporary}}"/>
 
-            <ItemsControl
-              IsVisible="{Binding $self.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}"
-              ItemsSource="{Binding QuickActions}">
-              <ItemsControl.DataTemplates>
-                <DataTemplate DataType="common:DynamicNamedCommand">
-                  <Button
-                    Classes="Secondary Outline" Height="NaN"
-                    MinHeight="32" Padding="12,4"
-                    Command="{Binding Command}"
-                    CommandParameter="{Binding CommandParameter}"
-                    CornerRadius="{DynamicResource FullCornerRadius}">
-                    <StackPanel
-                      VerticalAlignment="Center" Orientation="Vertical"
-                      Spacing="4">
+            <ScrollViewer
+              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+              <ItemsControl
+                HorizontalAlignment="Center"
+                IsVisible="{Binding $self.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}"
+                ItemsSource="{Binding StrategiesSnapshot.StrategyGroups, FallbackValue={x:Null}}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Spacing="8"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="se:StrategyGroup">
+                    <DockPanel VerticalSpacing="8">
                       <StackPanel
-                        Orientation="Horizontal" Spacing="6">
-                        <LucideIcon
-                          VerticalAlignment="Center"
-                          Kind="{Binding Icon}"
-                          Size="19"/>
+                        DockPanel.Dock="Top" Spacing="4">
                         <TextBlock
-                          VerticalAlignment="Center"
-                          Text="{Binding HeaderKey^}"/>
+                          Text="{Binding Strategy.Name^, Mode=OneTime}"
+                          TextWrapping="Wrap"/>
+                        <TextBlock
+                          Classes="Muted Small"
+                          Text="{Binding Strategy.Description^, Mode=OneTime, FallbackValue={x:Null}}"
+                          TextWrapping="Wrap"/>
                       </StackPanel>
 
-                      <TextBlock
-                        IsVisible="{Binding DescriptionKey, Converter={x:Static ObjectConverters.IsNotNull}}"
-                        Text="{Binding DescriptionKey^, FallbackValue={x:Null}}"
-                        TextWrapping="Wrap"/>
-                    </StackPanel>
-                  </Button>
-                </DataTemplate>
-              </ItemsControl.DataTemplates>
+                      <ItemsControl ItemsSource="{Binding Commands, Mode=OneTime}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <WrapPanel
+                              ItemSpacing="6" LineSpacing="4"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
 
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <WrapPanel
-                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                    ItemSpacing="8" ItemsAlignment="Center"
-                    LineSpacing="6"/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-            </ItemsControl>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="se:StrategyCommand">
+                            <Button
+                              Classes="Outline" Width="240"
+                              Padding="8" HorizontalAlignment="Stretch"
+                              HorizontalContentAlignment="Stretch"
+                              Command="{Binding $parent[v:ChatWindow].ViewModel.RunStrategyCommand, Mode=OneTime}"
+                              CommandParameter="{Binding Mode=OneTime}">
+                              <Grid
+                                ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
+                                RowDefinitions="Auto,*" RowSpacing="4">
+                                <v:IconPresenter
+                                  Grid.Row="0" Grid.RowSpan="2"
+                                  Grid.Column="0" DockPanel.Dock="Right"
+                                  Width="{DynamicResource FontSize2Xl}"
+                                  Height="{DynamicResource FontSize2Xl}"
+                                  VerticalAlignment="Center"
+                                  Icon="{Binding Icon}"
+                                  IconSize="{DynamicResource FontSizeL}"/>
+
+                                <TextBlock
+                                  Grid.Row="0" Grid.Column="1"
+                                  Text="{Binding Name^}"
+                                  TextWrapping="Wrap"/>
+                                <TextBlock
+                                  Classes="Muted Small" Grid.Row="1"
+                                  Grid.Column="1"
+                                  Text="{Binding Description^, Mode=OneTime, FallbackValue={x:Null}}"
+                                  TextWrapping="Wrap"/>
+                              </Grid>
+                            </Button>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </DockPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
           </StackPanel>
 
           <v:ChatMessageItemsControl
@@ -784,8 +814,8 @@
                 </StackPanel>
 
                 <TextBlock
-                  Classes="Muted" VerticalAlignment="Center"
-                  Height="16"
+                  Classes="Muted" Height="16"
+                  VerticalAlignment="Center"
                   FontSize="{DynamicResource FontSizeS}">
                   <TextBlock.Text>
                     <I18N Key="{Binding PersistentState.MaxContextRounds, Converter={x:Static vc:MaxContextRoundsConverters.ToDisplayKey}}"/>
