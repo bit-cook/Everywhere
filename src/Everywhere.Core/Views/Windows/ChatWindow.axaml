@@ -306,6 +306,7 @@
               HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
               <ItemsControl
                 HorizontalAlignment="Center"
+                IsEnabled="{Binding IsNotBusy}"
                 IsVisible="{Binding $self.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}"
                 ItemsSource="{Binding StrategiesSnapshot.StrategyGroups, FallbackValue={x:Null}}">
                 <ItemsControl.ItemsPanel>

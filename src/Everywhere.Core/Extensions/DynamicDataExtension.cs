@@ -1,4 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
 using DynamicData;
 
 namespace Everywhere.Extensions;
@@ -45,5 +47,28 @@ public static class DynamicDataExtension
             disposables.Add(subscription);
             return collection;
         }
+    }
+
+    /// <summary>
+    /// Leading and tailing throttle
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="delay"></param>
+    /// <param name="scheduler"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static IObservable<T> ThrottleWithLeadingEdge<T>(
+        this IObservable<T> source,
+        TimeSpan delay,
+        IScheduler? scheduler = null)
+    {
+        scheduler ??= DefaultScheduler.Instance;
+
+        return source.Publish(shared =>
+        {
+            var debounce = shared.Throttle(delay, scheduler);
+            var leading = shared.Window(() => debounce).SelectMany(w => w.TakeLast(1));
+            return leading.Merge(debounce).DistinctUntilChanged();
+        });
     }
 }

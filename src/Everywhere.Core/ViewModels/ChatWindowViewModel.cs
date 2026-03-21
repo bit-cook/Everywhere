@@ -202,11 +202,12 @@ public sealed partial class ChatWindowViewModel :
         _disposables.Add(
             _chatAttachmentsSource
                 .Connect()
-                .Throttle(TimeSpan.FromMilliseconds(250))
                 .ToCollection()
+                .ThrottleWithLeadingEdge(TimeSpan.FromMilliseconds(250))
                 .ObserveOn(TaskPoolScheduler.Default)
                 .Subscribe(HandleChatAttachmentsChanged)
         );
+        Task.Run(() => HandleChatAttachmentsChanged([])).Detach();
 
         // Load the saved input box text
         ChatInputAreaText = PersistentState.ChatInputAreaText;
@@ -793,14 +794,18 @@ public sealed partial class ChatWindowViewModel :
 
     private void HandleChatAttachmentsChanged(IReadOnlyCollection<ChatAttachment> attachments)
     {
-        StrategiesSnapshot = null;
+        try
+        {
+            // TODO: use GetItems
+            var context = StrategyContext.FromAttachments(attachments.ToList());
+            var strategyGroups = _strategyEngine.GetStrategies(context);
 
-        // TODO: use GetItems
-        var context = StrategyContext.FromAttachments(attachments.ToList());
-        var strategyGroups = _strategyEngine.GetStrategies(context);
-        if (strategyGroups.Count == 0) return;
-
-        StrategiesSnapshot = new StrategiesSnapshot(context, strategyGroups);
+            Dispatcher.UIThread.InvokeAsync(() => StrategiesSnapshot = new StrategiesSnapshot(context, strategyGroups));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get strategies for current attachments.");
+        }
     }
 
     // namespace DynamicData.Kernel;
