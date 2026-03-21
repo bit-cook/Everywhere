@@ -107,8 +107,8 @@ public partial class VisualElementContext
 
             _isRightButtonPressed = true;
             WindowHelper.SetHitTestVisible(this, false);
-            foreach (var maskWindow in MaskWindows) maskWindow.Show(this);
-            ToolTipWindow.Show(this);
+            foreach (var maskWindow in MaskWindows) maskWindow.Show();
+            ToolTipWindow.Show();
 
             // Install a low-level mouse hook to listen for right button down events
             _mouseHookSubscription ??= LowLevelHook.CreateMouseHook(HandleMouseHook, false);
@@ -288,6 +288,14 @@ public partial class VisualElementContext
             }
 
             base.OnClosing(e);
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            foreach (var maskWindow in MaskWindows) maskWindow.Close();
+            ToolTipWindow.Close();
+
+            base.OnClosed(e);
         }
 
         private void PickCursorElement()
