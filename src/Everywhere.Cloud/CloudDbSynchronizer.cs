@@ -23,7 +23,7 @@ public class CloudChatDbSynchronizer(
     ILogger<CloudChatDbSynchronizer> logger
 ) : IChatDbSynchronizer, IAsyncInitializer
 {
-    public AsyncInitializerIndex Index => AsyncInitializerIndex.Settings + 1; // after persistentState initialization
+    public AsyncInitializerIndex Index => AsyncInitializerIndex.Network + 1; // after persistentState initialization
 
     private readonly AsyncLock _syncLock = new();
     private const int PushBytesLimit = 5 * 1024 * 1024; // 5 MB
@@ -36,11 +36,11 @@ public class CloudChatDbSynchronizer(
         // Use System.Reactive to observe changes
         // If cloudClient.CurrentUser is not null && persistentState.IsCloudSyncEnabled, start synchronization.
         // Otherwise, cancel the token
-        cloudClient.WhenPropertyChanged(x => x.CurrentUser)
+        cloudClient.WhenPropertyChanged(x => x.UserProfile)
             .CombineLatest(
                 persistentState.WhenPropertyChanged(x => x.IsCloudSyncEnabled),
                 (user, enabled) => user.Value is not null && enabled.Value)
-            .StartWith(cloudClient.CurrentUser is not null && persistentState.IsCloudSyncEnabled)
+            .StartWith(cloudClient.UserProfile is not null && persistentState.IsCloudSyncEnabled)
             .DistinctUntilChanged()
             .Select(isReady => Observable.FromAsync(cancellationToken => isReady ? StartSyncAsync(cancellationToken) : Task.CompletedTask))
             .Switch() // Only allow one active synchronization task at a time, cancel previous if new value comes in

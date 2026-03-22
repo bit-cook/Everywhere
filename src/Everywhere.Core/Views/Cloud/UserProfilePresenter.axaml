@@ -32,6 +32,7 @@
                 <v:UserProfileCard
                   Width="240"
                   ShowActionsButton="{TemplateBinding ShowActionsButton}"
+                  Subscription="{TemplateBinding Subscription}"
                   UserProfile="{TemplateBinding UserProfile}"/>
               </Flyout>
             </Button.Flyout>
@@ -60,7 +61,7 @@
             Background="{DynamicResource ErrorColor}"
             Content="!" CornerRadius="8"
             FontSize="10"
-            IsVisible="{Binding UserProfile.Subscription.Status, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static cloud:SubscriptionStatus.Unpaid}, FallbackValue={x:False}, RelativeSource={RelativeSource TemplatedParent}}"/>
+            IsVisible="{Binding Subscription.Status, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static cloud:SubscriptionStatus.Unpaid}, FallbackValue={x:False}, RelativeSource={RelativeSource TemplatedParent}}"/>
         </Panel>
       </ControlTemplate>
     </Setter>

@@ -4,7 +4,7 @@ namespace Everywhere.Cloud;
 
 /// <summary>
 /// Interface for cloud client operations, handling authentication and user profile management.
-/// Implements <see cref="INotifyPropertyChanged"/> to support data binding for the <see cref="CurrentUser"/> property.
+/// Implements <see cref="INotifyPropertyChanged"/> to support data binding for the <see cref="UserProfile"/> property.
 /// </summary>
 public interface ICloudClient : INotifyPropertyChanged
 {
@@ -12,7 +12,13 @@ public interface ICloudClient : INotifyPropertyChanged
     /// Gets the current logged-in user profile. Returns null if not logged in.
     /// This property raises <see cref="INotifyPropertyChanged.PropertyChanged"/> when updated.
     /// </summary>
-    UserProfile? CurrentUser { get; }
+    UserProfile? UserProfile { get; }
+
+    /// <summary>
+    /// Gets the current subscription information for the logged-in user. Returns null if not logged in or if subscription information is unavailable.
+    /// This property raises <see cref="INotifyPropertyChanged.PropertyChanged"/> when updated.
+    /// </summary>
+    SubscriptionInformation? Subscription { get; }
 
     /// <summary>
     /// Initiates the OAuth 2.0 (PKCE) login flow.
@@ -20,7 +26,7 @@ public interface ICloudClient : INotifyPropertyChanged
     /// </summary>
     /// <param name="cancellationToken"></param>
     /// <returns>A task returning true if login was successful, otherwise false.</returns>
-    Task<bool> LoginAsync(CancellationToken cancellationToken);
+    Task LoginAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Logs out the current user, revoking tokens and clearing local storage.
@@ -28,11 +34,11 @@ public interface ICloudClient : INotifyPropertyChanged
     Task LogoutAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// Attempts to refresh the access token using the stored refresh token.
-    /// This is typically called by the authentication handler when a 401 response is received.
+    /// Manually refresh user profile and subscription information.
     /// </summary>
-    /// <returns>True if the token was successfully refreshed, false otherwise.</returns>
-    Task<bool> TryRefreshTokenAsync(CancellationToken cancellationToken);
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task ReloadUserDataAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Creates a DelegatingHandler that can be added to the HTTP client pipeline to automatically handle authentication.
@@ -40,4 +46,15 @@ public interface ICloudClient : INotifyPropertyChanged
     /// </summary>
     /// <returns></returns>
     DelegatingHandler CreateAuthenticationHandler();
+}
+
+/// <summary>
+/// Exception thrown when an operation requires the user to be logged in, but they are not.
+/// Derived from <see cref="OperationCanceledException"/> to allow it to be used in cancellation scenarios without being treated as an error.
+/// </summary>
+public sealed class UserNotLoginException : OperationCanceledException
+{
+    public UserNotLoginException() { }
+
+    public UserNotLoginException(string message) : base(message) { }
 }

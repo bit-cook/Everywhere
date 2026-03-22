@@ -2196,9 +2196,6 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>Son senkronizasyonda hata oluştu</value>
     </data>
-    <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
-        <value>Gerek yok</value>
-    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>Hizmet, mevcut bölge veya konum için isteği desteklemiyor.</value>
     </data>

@@ -1,9 +1,7 @@
 ﻿using System.Collections.ObjectModel;
-using System.Reactive;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
+using System.Net;
 using System.Text.Json.Serialization;
+using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
 using Everywhere.AI;
 using Everywhere.Common;
@@ -14,77 +12,61 @@ using ZLinq;
 
 namespace Everywhere.Cloud;
 
-public sealed partial class OfficialModelProvider : IOfficialModelProvider, IAsyncInitializer, IDisposable
+public sealed partial class OfficialModelProvider :
+    IOfficialModelProvider,
+    IRecipient<UserProfileUpdatedMessage>,
+    IRecipient<SubscriptionInformationUpdatedMessage>,
+    IAsyncInitializer,
+    IDisposable
 {
-    public ReadOnlyObservableCollection<ModelDefinitionTemplate> ModelDefinitions
-    {
-        get
-        {
-            // Push a signal to request a refresh.
-            // This is non-blocking and extremely cheap.
-            _refreshRequestSubject.OnNext(Unit.Default);
-            return _modelDefinitions;
-        }
-    }
+    public ReadOnlyObservableCollection<ModelDefinitionTemplate> ModelDefinitions { get; }
 
+    private readonly PersistentState _persistentState;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IKeyValueStorage _keyValueStorage;
     private readonly ILogger<OfficialModelProvider> _logger;
 
     private readonly SourceList<ModelDefinitionTemplate> _modelDefinitionsSource = new();
-    private readonly Subject<Unit> _refreshRequestSubject = new();
-    private readonly ReadOnlyObservableCollection<ModelDefinitionTemplate> _modelDefinitions;
-    private readonly CompositeDisposable _disposables;
+    private readonly IDisposable _modelDefinitionsSubscription;
 
-    // State tracking (Optional, avoids reloading if data is fresh)
-    private DateTimeOffset _lastFetchTime = DateTimeOffset.MinValue;
+    private readonly SemaphoreSlim _refreshLock = new(1, 1);
+    private DateTimeOffset _nextFetchCooldownTime = DateTimeOffset.MinValue;
 
-    private const string StorageKey = "OfficialModelProvider.ModelDefinitions";
-
-    public OfficialModelProvider(IHttpClientFactory httpClientFactory, IKeyValueStorage keyValueStorage, ILogger<OfficialModelProvider> logger)
+    public OfficialModelProvider(PersistentState persistentState, IHttpClientFactory httpClientFactory, ILogger<OfficialModelProvider> logger)
     {
+        _persistentState = persistentState;
         _httpClientFactory = httpClientFactory;
-        _keyValueStorage = keyValueStorage;
         _logger = logger;
 
-        // Load cached definitions from storage on startup (if available)
-        if (keyValueStorage.Get<IReadOnlyList<ModelDefinitionTemplate>>(StorageKey) is { Count: > 0 } cachedDefinitions)
+        if (persistentState.OfficialModelDefinitionTemplate is not null)
         {
-            _modelDefinitionsSource.AddRange(cachedDefinitions);
+            _modelDefinitionsSource.AddRange(persistentState.OfficialModelDefinitionTemplate);
         }
 
-        // Bind SourceList to ObservableCollection (Standard DynamicData pattern)
-        var listSubscription = _modelDefinitionsSource.Connect()
-            .Bind(out _modelDefinitions)
-            .Subscribe();
+        ModelDefinitions = _modelDefinitionsSource.Connect()
+            .ObserveOnAvaloniaDispatcher()
+            .BindEx(out _modelDefinitionsSubscription);
 
-        // 2. The Refresher Pipeline
-        //    This separates the "Trigger" (Getter) from the "Execution" (HTTP)
-        var refreshSubscription = _refreshRequestSubject
-            .Throttle(TimeSpan.FromMilliseconds(300))
-            .Where(_ => DateTimeOffset.Now - _lastFetchTime > TimeSpan.FromSeconds(10))
-            // 'Select' projects the signal into an Async Task.
-            .Select(_ => Observable.FromAsync(RefreshImplAsync))
-            // 'Switch' subscribes to the NEW task and DISPOSES (Cancels) the previous one if it's running.
-            .Switch()
-            .Subscribe();
-
-        _disposables = new CompositeDisposable(listSubscription, refreshSubscription, _refreshRequestSubject);
+        WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
     /// <summary>
     /// Actually performs the refresh by calling the official API, parsing the response, and updating the internal list and cache.
     /// </summary>
+    /// <param name="exceptionHandler"></param>
     /// <param name="cancellationToken"></param>
-    private async Task RefreshImplAsync(CancellationToken cancellationToken)
+    public async Task RefreshAsync(IExceptionHandler? exceptionHandler = null, CancellationToken cancellationToken = default)
     {
+        if (!await _refreshLock.WaitAsync(0, cancellationToken)) return;
+
         try
         {
             if (CloudConstants.AIGatewayBaseUrl.IsNullOrEmpty()) return;
+            if (DateTimeOffset.Now < _nextFetchCooldownTime) return; // Enforce a cooldown between fetches to avoid hammering the endpoint.
 
             using var httpClient = _httpClientFactory.CreateClient(nameof(ICloudClient));
-
             var request = new HttpRequestMessage(HttpMethod.Get, $"{CloudConstants.AIGatewayBaseUrl}/v1/models");
+
+            // If not login, a UserNotLoginException will be thrown
             var response = await httpClient.SendAsync(request, cancellationToken);
             var payload = await ApiPayload<IReadOnlyList<CloudModelDefinition>>.EnsureSuccessFromHttpResponseJsonAsync(
                 response,
@@ -92,37 +74,71 @@ public sealed partial class OfficialModelProvider : IOfficialModelProvider, IAsy
                 cancellationToken);
 
             var cloudModelDefinitions = payload.EnsureData();
-            var modelDefinitions = cloudModelDefinitions.AsValueEnumerable().Select(m => m.ToModelDefinitionTemplate()).ToList();
+            var result = cloudModelDefinitions.AsValueEnumerable().Select(m => m.ToModelDefinitionTemplate()).ToList();
+            _modelDefinitionsSource.Edit(list =>
+            {
+                list.Clear();
+                list.AddRange(result);
+            });
+            _persistentState.OfficialModelDefinitionTemplate = result;
 
-            _modelDefinitionsSource.Edit(innerList => innerList.Reset(modelDefinitions));
-            _keyValueStorage.Set(StorageKey, modelDefinitions); // Update cache in storage
-
-            _lastFetchTime = DateTimeOffset.Now;
+            _nextFetchCooldownTime = DateTimeOffset.Now.AddSeconds(10);
+        }
+        catch (UserNotLoginException)
+        {
+            _modelDefinitionsSource.Clear();
+            _nextFetchCooldownTime = DateTimeOffset.Now;
         }
         catch (OperationCanceledException)
         {
             // ignored
         }
+        catch (HttpRequestException ex)
+        {
+            exceptionHandler?.HandleException(HandledSystemException.Handle(ex));
+
+            if (ex.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                _nextFetchCooldownTime = DateTimeOffset.Now.AddMinutes(1);
+            }
+            else
+            {
+                // Avoid hammering the endpoint on failure, but allow retries sooner than the normal 10s.
+                _nextFetchCooldownTime = DateTimeOffset.Now.AddSeconds(3);
+            }
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error refreshing model definitions");
 
-            // Avoid hammering the endpoint on failure, but allow retries sooner than the normal 10s.
-            _lastFetchTime = DateTimeOffset.Now - TimeSpan.FromSeconds(7);
+            exceptionHandler?.HandleException(HandledSystemException.Handle(ex));
+            _nextFetchCooldownTime = DateTimeOffset.Now.AddSeconds(3);
+        }
+        finally
+        {
+            _refreshLock.Release();
         }
     }
 
-    /// <summary>
-    /// Triggers a refresh of the model definitions from the official source and waits for it to complete.
-    /// </summary>
-    /// <param name="cancellationToken"></param>
-    public async Task RefreshAsync(CancellationToken cancellationToken = default)
+    public void Receive(UserProfileUpdatedMessage message)
     {
-        _refreshRequestSubject.OnNext(Unit.Default);
-        await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
+        _nextFetchCooldownTime = DateTimeOffset.Now;
+        RefreshAsync().Detach();
     }
 
-    public void Dispose() => _disposables.Dispose();
+    public void Receive(SubscriptionInformationUpdatedMessage message)
+    {
+        _nextFetchCooldownTime = DateTimeOffset.Now;
+        RefreshAsync().Detach();
+    }
+
+    public void Dispose()
+    {
+        _modelDefinitionsSource.Dispose();
+        _modelDefinitionsSubscription.Dispose();
+        _refreshLock.Dispose();
+        WeakReferenceMessenger.Default.UnregisterAll(this);
+    }
 
     /// <summary>
     /// Standard model definition according to https://models.dev/api.json
@@ -221,10 +237,9 @@ public sealed partial class OfficialModelProvider : IOfficialModelProvider, IAsy
 
     public Task InitializeAsync()
     {
-        _refreshRequestSubject.OnNext(Unit.Default); // Trigger an initial refresh on startup.
+        RefreshAsync().Detach();
         return Task.CompletedTask;
     }
 
     #endregion
-
 }

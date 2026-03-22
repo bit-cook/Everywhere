@@ -2233,7 +2233,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Last synchronization error</value>
     </data>
     <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
-        <value>No, thanks</value>
+        <value />
     </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>Service does not support requests from current region or location.</value>
@@ -2534,5 +2534,20 @@ Use scroll wheel or number keys to switch selection mode</value>
     </data>
     <data name="Strategy_BuiltIn_File_CompareCommand_Description" xml:space="preserve">
         <value>Compare the contents of these files</value>
+    </data>
+    <data name="WelcomeView_SoftLoginStep_Message1" xml:space="preserve">
+        <value />
+    </data>
+    <data name="WelcomeView_HardLoginStep_Message1" xml:space="preserve">
+        <value />
+    </data>
+    <data name="WelcomeView_HardLoginStep_Message2" xml:space="preserve">
+        <value />
+    </data>
+    <data name="WelcomeView_AssistantStep_Official_Message1" xml:space="preserve">
+        <value />
+    </data>
+    <data name="OfficialModelDefinitionForm_DeprecationToast_Text" xml:space="preserve">
+        <value />
     </data>
 </root>

@@ -17,6 +17,15 @@ public class UserProfilePresenter : TemplatedControl
         set => SetValue(UserProfileProperty, value);
     }
 
+    public static readonly StyledProperty<SubscriptionInformation?> SubscriptionProperty =
+        AvaloniaProperty.Register<UserProfilePresenter, SubscriptionInformation?>(nameof(Subscription));
+
+    public SubscriptionInformation? Subscription
+    {
+        get => GetValue(SubscriptionProperty);
+        set => SetValue(SubscriptionProperty, value);
+    }
+
     public static readonly StyledProperty<double> SizeProperty =
         AvaloniaProperty.Register<UserProfilePresenter, double>(nameof(Size), 16d);
 

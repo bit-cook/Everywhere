@@ -5,7 +5,7 @@ namespace Everywhere.Initialization;
 
 public class CustomAssistantInitializer(Settings settings) : IAsyncInitializer
 {
-    public AsyncInitializerIndex Index => AsyncInitializerIndex.Settings + 1;
+    public AsyncInitializerIndex Index => AsyncInitializerIndex.Network + 1;
 
     public Task InitializeAsync()
     {

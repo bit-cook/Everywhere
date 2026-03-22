@@ -28,7 +28,7 @@
           </Border.Background>
 
           <v:LazyContentControl
-            ContentDataContext="{TemplateBinding Icon}"
+            ContentDataBinding="{TemplateBinding Icon}"
             ItemIndex="{Binding Icon.Type, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=-1}">
             <ControlTemplate x:DataType="common:ColoredIcon">
               <LucideIcon

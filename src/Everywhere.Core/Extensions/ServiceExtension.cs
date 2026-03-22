@@ -21,6 +21,7 @@ public static class ServiceExtension
         public IServiceCollection AddAvaloniaBasicServices() =>
             services
                 .AddDialogManagerAndToastManager()
+                .AddDialogAndToastExceptionHandler()
                 .AddTransient<IClipboard>(_ =>
                     Application.Current.As<App>()?.TopLevel.Clipboard ??
                     throw new InvalidOperationException("Clipboard is not available."))

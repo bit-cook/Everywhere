@@ -11,6 +11,8 @@ public enum AsyncInitializerIndex
 
     Settings = 100,
 
+    Network = 200,
+
     Startup = int.MaxValue,
 }
 

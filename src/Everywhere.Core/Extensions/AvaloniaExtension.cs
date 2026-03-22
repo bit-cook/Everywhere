@@ -28,19 +28,42 @@ public static class AvaloniaExtension
         };
     }
 
-    public static IServiceCollection AddDialogManagerAndToastManager(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        return services
-            .AddTransient<DialogManager>(_ => TryGetHost()?.DialogHost.Manager ?? new DialogManager())
-            .AddTransient<ToastManager>(_ => TryGetHost()?.ToastHost.Manager ?? new ToastManager());
-
-        IReactiveHost? TryGetHost()
+        public IServiceCollection AddDialogManagerAndToastManager()
         {
-            if (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime is not { } lifetime) return null;
+            return services
+                .AddTransient<DialogManager>(_ => TryGetReactiveHost()?.DialogHost.Manager ?? new DialogManager())
+                .AddTransient<ToastManager>(_ => TryGetReactiveHost()?.ToastHost.Manager ?? new ToastManager());
 
-            return lifetime.Windows.AsValueEnumerable().FirstOrDefault(w => w.IsActive) as IReactiveHost ??
-                lifetime.MainWindow as IReactiveHost ??
-                lifetime.Windows.AsValueEnumerable().OfType<IReactiveHost>().FirstOrDefault();
+            IReactiveHost? TryGetReactiveHost()
+            {
+                if (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime is not { } lifetime) return null;
+
+                return lifetime.Windows.AsValueEnumerable().FirstOrDefault(w => w.IsActive) as IReactiveHost ??
+                    lifetime.MainWindow as IReactiveHost ??
+                    lifetime.Windows.AsValueEnumerable().OfType<IReactiveHost>().FirstOrDefault();
+            }
+        }
+
+        public IServiceCollection AddDialogAndToastExceptionHandler()
+        {
+            return services
+                .AddKeyedSingleton<IExceptionHandler>(
+                    typeof(DialogManager),
+                    (provider, _) => new DelegateExceptionHandler(() => provider.GetRequiredService<DialogManager>().ToExceptionHandler()))
+                .AddKeyedSingleton<IExceptionHandler>(
+                    typeof(ToastManager),
+                    (provider, _) => new DelegateExceptionHandler(() => provider.GetRequiredService<ToastManager>().ToExceptionHandler()));
+        }
+    }
+
+    private sealed class DelegateExceptionHandler(Func<IExceptionHandler> handlerFactory) : IExceptionHandler
+    {
+        public void HandleException(Exception exception, string? message = null, object? source = null, int lineNumber = 0)
+        {
+            // ReSharper disable once ExplicitCallerInfoArgument
+            handlerFactory().HandleException(exception, message, source, lineNumber);
         }
     }
 }

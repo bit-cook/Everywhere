@@ -2237,7 +2237,7 @@
         <value>最近一次同步出错</value>
     </data>
     <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
-        <value>不用了</value>
+        <value>我想使用自己的 API 密钥</value>
     </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>服务不支持当前所在地区或位置的请求。</value>
@@ -2538,5 +2538,20 @@
     </data>
     <data name="Strategy_BuiltIn_File_CompareCommand_Description" xml:space="preserve">
         <value>比较这些文件的内容</value>
+    </data>
+    <data name="WelcomeView_SoftLoginStep_Message1" xml:space="preserve">
+        <value>为了方便你立即开始体验，我为你准备了一些免费额度。</value>
+    </data>
+    <data name="WelcomeView_HardLoginStep_Message1" xml:space="preserve">
+        <value>欢迎使用原生模式。你需要先进行身份验证以使用我们提供的云服务。</value>
+    </data>
+    <data name="WelcomeView_HardLoginStep_Message2" xml:space="preserve">
+        <value>请登录以获取你的积分数据，或返回上一步选择其他模式。</value>
+    </data>
+    <data name="WelcomeView_AssistantStep_Official_Message1" xml:space="preserve">
+        <value>请选择一个模型来查看详细信息。我会持续更新来跟进最新模型。</value>
+    </data>
+    <data name="OfficialModelDefinitionForm_DeprecationToast_Text" xml:space="preserve">
+        <value>当前模型预计于 {0} 下架。</value>
     </data>
 </root>

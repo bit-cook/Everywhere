@@ -2199,9 +2199,6 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>Errore nell'ultima sincronizzazione</value>
     </data>
-    <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
-        <value>Non adesso</value>
-    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>Il servizio non supporta le richieste dalla tua attuale regione o posizione.</value>
     </data>

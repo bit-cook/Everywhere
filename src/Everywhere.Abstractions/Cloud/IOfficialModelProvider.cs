@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using Everywhere.AI;
+using Everywhere.Common;
 
 namespace Everywhere.Cloud;
 
@@ -17,7 +18,8 @@ public interface IOfficialModelProvider
     /// <summary>
     /// Manually refresh the list of model definitions from the official source.
     /// </summary>
+    /// <param name="exceptionHandler"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task RefreshAsync(CancellationToken cancellationToken = default);
+    Task RefreshAsync(IExceptionHandler? exceptionHandler = null, CancellationToken cancellationToken = default);
 }

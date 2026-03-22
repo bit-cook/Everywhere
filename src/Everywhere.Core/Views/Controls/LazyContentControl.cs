@@ -29,36 +29,19 @@ public class LazyContentControl : ContentControl
     }
 
     /// <summary>
-    /// Identifies the <see cref="IsActive"/> property.
+    /// Identifies the <see cref="ContentDataBinding"/> property.
     /// </summary>
-    public static readonly StyledProperty<bool> IsActiveProperty =
-        AvaloniaProperty.Register<LazyContentControl, bool>(nameof(IsActive));
-
-    /// <summary>
-    /// Gets or sets a value that provides a quick way to control the ItemIndex.
-    /// false corresponds to ItemIndex -1.
-    /// true corresponds to ItemIndex 0.
-    /// </summary>
-    public bool IsActive
-    {
-        get => GetValue(IsActiveProperty);
-        set => SetValue(IsActiveProperty, value);
-    }
-
-    /// <summary>
-    /// Identifies the <see cref="ContentDataContext"/> property.
-    /// </summary>
-    public static readonly StyledProperty<object?> ContentDataContextProperty =
-        AvaloniaProperty.Register<LazyContentControl, object?>(nameof(ContentDataContext));
+    public static readonly StyledProperty<object?> ContentDataBindingProperty =
+        AvaloniaProperty.Register<LazyContentControl, object?>(nameof(ContentDataBinding));
 
     /// <summary>
     /// Gets or sets the data context for the content of this control.
     /// If not set, the control's own DataContext is used.
     /// </summary>
-    public object? ContentDataContext
+    public object? ContentDataBinding
     {
-        get => GetValue(ContentDataContextProperty);
-        set => SetValue(ContentDataContextProperty, value);
+        get => GetValue(ContentDataBindingProperty);
+        set => SetValue(ContentDataBindingProperty, value);
     }
 
     [Content]
@@ -70,22 +53,12 @@ public class LazyContentControl : ContentControl
     static LazyContentControl()
     {
         ItemIndexProperty.Changed.AddClassHandler<LazyContentControl>(HandleItemIndexChanged);
-        IsActiveProperty.Changed.AddClassHandler<LazyContentControl>(HandleIsActiveChanged);
-        ContentDataContextProperty.Changed.AddClassHandler<LazyContentControl>(HandleContentDataContextChanged);
+        ContentDataBindingProperty.Changed.AddClassHandler<LazyContentControl>(HandleContentDataContextChanged);
     }
 
     private static void HandleItemIndexChanged(LazyContentControl sender, AvaloniaPropertyChangedEventArgs args)
     {
         sender.UpdateContent();
-    }
-
-    private static void HandleIsActiveChanged(LazyContentControl sender, AvaloniaPropertyChangedEventArgs args)
-    {
-        sender.SetCurrentValue(ItemIndexProperty, args.NewValue switch
-        {
-            true => 0,
-            _ => -1,
-        });
     }
 
     private static void HandleContentDataContextChanged(LazyContentControl sender, AvaloniaPropertyChangedEventArgs args)
@@ -147,7 +120,7 @@ public class LazyContentControl : ContentControl
         if (index >= 0 && index < ItemTemplates.Count)
         {
             var control = ItemTemplates[index]?.Build(this)?.Result;
-            control?.DataContext = ContentDataContext ?? DataContext;
+            control?.DataContext = ContentDataBinding ?? DataContext;
             Content = control;
         }
         else

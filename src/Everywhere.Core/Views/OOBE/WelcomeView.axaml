@@ -126,13 +126,13 @@
 
         <DataTemplate DataType="vm:WelcomeViewModelSoftLoginStep">
           <ListBox Classes="AssistantMessage">
-            <TextBlock Text="{I18N {x:Static LocaleKey.UserProfilePresenter_LoginToCloudTextBlock_Text}}"/>
-            <TextBlock Text="{I18N {x:Static LocaleKey.UserProfilePresenter_CloudDescriptionTextBlock_Text}}"/>
+            <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_SoftLoginStep_Message1}}"/>
 
             <v:UserProfileCard
               Width="240" Margin="8"
-              HorizontalAlignment="Left"
-              UserProfile="{Binding ViewModel.CloudClient.CurrentUser}"/>
+              HorizontalAlignment="Left" ShowActionsButton="False"
+              Subscription="{Binding ViewModel.CloudClient.Subscription}"
+              UserProfile="{Binding ViewModel.CloudClient.UserProfile}"/>
           </ListBox>
         </DataTemplate>
 
@@ -148,17 +148,25 @@
 
         <DataTemplate DataType="vm:WelcomeViewModelHardLoginStep">
           <ListBox Classes="AssistantMessage">
-            <TextBlock Text="Hard_1"/>
-            <TextBlock Text="Hard_2"/>
+            <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_HardLoginStep_Message1}}"/>
+            <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_HardLoginStep_Message2}}"/>
+
             <v:UserProfileCard
               Width="240" Margin="8"
-              HorizontalAlignment="Left"
-              UserProfile="{Binding ViewModel.CloudClient.CurrentUser}"/>
+              HorizontalAlignment="Left" ShowActionsButton="False"
+              Subscription="{Binding ViewModel.CloudClient.Subscription}"
+              UserProfile="{Binding ViewModel.CloudClient.UserProfile}"/>
           </ListBox>
         </DataTemplate>
 
         <DataTemplate DataType="vm:WelcomeViewModelAssistantStep">
           <Panel>
+            <ListBox
+              Classes="AssistantMessage"
+              IsVisible="{Binding ViewModel.Assistant.ConfiguratorType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static ai:ModelProviderConfiguratorType.Official}}">
+              <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_AssistantStep_Official_Message1}}"/>
+            </ListBox>
+
             <ListBox
               Classes="AssistantMessage"
               IsVisible="{Binding ViewModel.Assistant.ConfiguratorType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static ai:ModelProviderConfiguratorType.PresetBased}}">
@@ -236,7 +244,7 @@
 
         <DataTemplate DataType="vm:WelcomeViewModelSoftLoginStep">
           <Grid
-            VerticalAlignment="Bottom" ColumnDefinitions="*,4*"
+            VerticalAlignment="Bottom" ColumnDefinitions="2*,*"
             ColumnSpacing="8">
             <Button
               Classes="Secondary" Grid.Column="0"
@@ -246,7 +254,7 @@
               Classes="Primary" Grid.Column="1"
               Command="{Binding ViewModel.MoveNextCommand}"
               Content="{I18N {x:Static LocaleKey.WelcomeView_NextStepButton_Content}}"
-              IsEnabled="{Binding ViewModel.CloudClient.CurrentUser, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              IsEnabled="{Binding ViewModel.CloudClient.UserProfile, Converter={x:Static ObjectConverters.IsNotNull}}"/>
           </Grid>
         </DataTemplate>
 
@@ -272,12 +280,12 @@
             <Button
               Classes="Secondary" Grid.Column="0"
               Command="{Binding ViewModel.MovePreviousCommand}"
-              Content="Hard_Previous"/>
+              Content="{I18N {x:Static LocaleKey.WelcomeView_PreviousStepButton_Content}}"/>
             <Button
               Classes="Primary" Grid.Column="1"
               Command="{Binding ViewModel.MoveNextCommand}"
-              Content="Hard_Login_Next"
-              IsEnabled="{Binding ViewModel.CloudClient.CurrentUser, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+              Content="{I18N {x:Static LocaleKey.WelcomeView_NextStepButton_Content}}"
+              IsEnabled="{Binding ViewModel.CloudClient.UserProfile, Converter={x:Static ObjectConverters.IsNotNull}}"/>
           </Grid>
         </DataTemplate>
 

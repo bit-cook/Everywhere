@@ -3,7 +3,9 @@ using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.AI;
 using Everywhere.Cloud;
+using Everywhere.Common;
 using Microsoft.Extensions.DependencyInjection;
+using ShadUI;
 
 namespace Everywhere.Views;
 
@@ -36,28 +38,19 @@ public partial class OfficialModelDefinitionForm : TemplatedControl
     public ICloudClient CloudClient { get; }
 
     private readonly IOfficialModelProvider _officialModelProvider;
+    private readonly IExceptionHandler _exceptionHandler;
     private readonly CustomAssistant _customAssistant;
 
     public OfficialModelDefinitionForm(IServiceProvider serviceProvider, CustomAssistant customAssistant)
     {
         CloudClient = serviceProvider.GetRequiredService<ICloudClient>();
         _officialModelProvider = serviceProvider.GetRequiredService<IOfficialModelProvider>();
+        _exceptionHandler = serviceProvider.GetRequiredKeyedService<IExceptionHandler>(typeof(ToastManager));
         _customAssistant = customAssistant;
 
         SelectedItem = _officialModelProvider.ModelDefinitions.FirstOrDefault(m => m.ModelId == customAssistant.ModelId);
     }
 
     [RelayCommand]
-    private async Task RefreshAsync()
-    {
-        try
-        {
-            await _officialModelProvider.RefreshAsync();
-        }
-        catch (Exception ex)
-        {
-            // Handle refresh errors (e.g., show a message to the user)
-            Console.Error.WriteLine($"Error refreshing model definitions: {ex}");
-        }
-    }
+    private Task RefreshAsync() => _officialModelProvider.RefreshAsync(_exceptionHandler);
 }

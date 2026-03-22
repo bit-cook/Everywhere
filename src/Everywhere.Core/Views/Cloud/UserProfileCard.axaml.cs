@@ -18,6 +18,15 @@ public partial class UserProfileCard : TemplatedControl
         set => SetValue(UserProfileProperty, value);
     }
 
+    public static readonly StyledProperty<SubscriptionInformation?> SubscriptionProperty =
+        AvaloniaProperty.Register<UserProfileCard, SubscriptionInformation?>(nameof(Subscription));
+
+    public SubscriptionInformation? Subscription
+    {
+        get => GetValue(SubscriptionProperty);
+        set => SetValue(SubscriptionProperty, value);
+    }
+
     public static readonly StyledProperty<bool> ShowActionsButtonProperty =
         AvaloniaProperty.Register<UserProfileCard, bool>(nameof(ShowActionsButton), true);
 
@@ -37,13 +46,27 @@ public partial class UserProfileCard : TemplatedControl
     /// </summary>
     public static AsyncRelayCommand LoginCommand { get; } = new(LoginAsync);
 
-    private static Task<bool> LoginAsync(CancellationToken cancellationToken) =>
+    private static Task LoginAsync(CancellationToken cancellationToken) =>
         CloudClient.LoginAsync(cancellationToken);
 
     public static AsyncRelayCommand LogoutCommand { get; } = new(LogoutAsync);
 
     private static Task LogoutAsync(CancellationToken cancellationToken) =>
         CloudClient.LogoutAsync(cancellationToken);
+
+    public static AsyncRelayCommand RefreshUserProfileCommand { get; } = new(RefreshUserProfileAsync);
+
+    private static async Task RefreshUserProfileAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await CloudClient.ReloadUserDataAsync(cancellationToken);
+        }
+        catch
+        {
+            // Ignore
+        }
+    }
 
     [RelayCommand]
     private Task<bool> OpenDashboardAsync() => OpenUrlAsync(CloudConstants.DashboardUrl);

@@ -1,5 +1,4 @@
 ﻿using System.Buffers.Text;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -19,22 +18,236 @@ using Microsoft.Extensions.Logging;
 
 namespace Everywhere.Cloud;
 
+public sealed record UserProfileUpdatedMessage(UserProfile? NewProfile);
+
+public sealed record SubscriptionInformationUpdatedMessage(SubscriptionInformation? NewSubscription);
+
 public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncInitializer, IRecipient<ApplicationCommand>
 {
+    private const string ServiceName = "com.sylinko.everywhere";
+    private const string TokenDataKey = "oauth_token_data";
+
+    private const string AuthorizeEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/authorize";
+    private const string TokenEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/token";
+    private const string UserInfoEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/userinfo";
+    private const string RevokeEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/revoke";
+    private const string SubscriptionEndpoint = $"{CloudConstants.AuthBaseUrl}/api/subscription";
+    private const string RedirectUri = "sylinko-everywhere://callback";
+    private const string Scopes = "openid profile email offline_access";
+
+    [ObservableProperty]
+    public partial UserProfile? UserProfile { get; private set; }
+
+    [ObservableProperty]
+    public partial SubscriptionInformation? Subscription { get; private set; }
+
+    private readonly ILauncher _launcher;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<OAuthCloudClient> _logger;
+
+    // Core state management extracted into inner contexts
+    private readonly TokenSessionContext _session;
+    private volatile InteractiveOAuthFlow? _activeAuthFlow;
+
+    // Concurrency control for the UI entry point to prevent multiple login windows
+    private readonly SemaphoreSlim _loginLock = new(1, 1);
+
+    public OAuthCloudClient(ILauncher launcher, IHttpClientFactory httpClientFactory, ILogger<OAuthCloudClient> logger)
+    {
+        _launcher = launcher;
+        _httpClientFactory = httpClientFactory;
+        _logger = logger;
+
+        _session = new TokenSessionContext(httpClientFactory, logger);
+        WeakReferenceMessenger.Default.Register(this);
+    }
+
+    public async Task LoginAsync(CancellationToken cancellationToken)
+    {
+        // Prevent concurrent login attempts from the UI
+        if (!await _loginLock.WaitAsync(0, cancellationToken)) return;
+
+        try
+        {
+            // 1. Attempt silent login/refresh first using existing session
+            if (await _session.GetValidTokenDataAsync(cancellationToken) != null)
+            {
+                await ReloadUserDataAsync(cancellationToken);
+                return;
+            }
+
+            // 2. Start interactive OAuth flow
+            using var flow = new InteractiveOAuthFlow(_httpClientFactory, cancellationToken);
+            _activeAuthFlow = flow; // Expose to the message receiver for URL callbacks
+
+            var authorizeUrl = flow.BuildAuthorizeUrl();
+            _logger.LogDebug("Starting login flow. Auth URL: {AuthorizeUrl}", authorizeUrl);
+            await _launcher.LaunchUriAsync(new Uri(authorizeUrl));
+
+            // Wait for the OS protocol callback or timeout (managed entirely within the flow context)
+            var tokenData = await flow.WaitForCodeAndExchangeAsync();
+
+            // 3. Save the new session and fetch user data
+            _session.SetToken(tokenData);
+            await ReloadUserDataAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("User cancelled the login process or it timed out.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to complete login flow.");
+            _session.Clear();
+        }
+        finally
+        {
+            _activeAuthFlow = null; // Clean up the transient flow context
+            _loginLock.Release();
+        }
+    }
+
+    public async Task LogoutAsync(CancellationToken cancellationToken)
+    {
+        if (!await _loginLock.WaitAsync(0, cancellationToken)) return; // Prevent logout during login flow
+
+        try
+        {
+            await _session.RevokeAndClearAsync(cancellationToken);
+            UserProfile = null;
+            Subscription = null;
+        }
+        finally
+        {
+            _loginLock.Release();
+        }
+    }
+
+    public async Task ReloadUserDataAsync(CancellationToken cancellationToken)
+    {
+        // Ensure we have valid tokens, triggering a refresh if necessary.
+        // According to BetterAuth docs, /userinfo needs to be authenticated with the Access Token (Opaque), not the ID token (JWT).
+        var tokenData = await _session.GetValidTokenDataAsync(cancellationToken);
+        var accessToken = tokenData?.AccessToken;
+
+        if (string.IsNullOrEmpty(accessToken))
+        {
+            throw new UserNotLoginException("Cannot refresh user profile without an access token.");
+        }
+
+        using var httpClient = _httpClientFactory.CreateClient();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, UserInfoEndpoint);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        var response = await httpClient.SendAsync(request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        UserProfile = await response.Content.ReadFromJsonAsync<UserProfile>(
+            UserProfileJsonSerializerContext.Default.Options,
+            cancellationToken: cancellationToken);
+        WeakReferenceMessenger.Default.Send(new UserProfileUpdatedMessage(UserProfile));
+
+        // The subscription info is not included in the user profile response, so we need a separate call.
+        await RefreshSubscriptionAsync(cancellationToken);
+    }
+
+    private async Task RefreshSubscriptionAsync(CancellationToken cancellationToken)
+    {
+        using var httpClient = _httpClientFactory.CreateClient(nameof(ICloudClient));
+
+        var request = new HttpRequestMessage(HttpMethod.Get, SubscriptionEndpoint);
+        var response = await httpClient.SendAsync(request, cancellationToken);
+
+        var payload = await ApiPayload<SubscriptionInformation>.EnsureSuccessFromHttpResponseJsonAsync(
+            response,
+            SubscriptionInformationJsonSerializerContext.Default.ApiPayloadSubscriptionInformation.Options,
+            cancellationToken);
+
+        Subscription = payload.EnsureData();
+        WeakReferenceMessenger.Default.Send(new SubscriptionInformationUpdatedMessage(Subscription));
+
+        if (Subscription.Plan == SubscriptionPlan.Banned)
+        {
+            await LogoutAsync(CancellationToken.None); // Enforce ban immediately, cannot be canceled by user
+        }
+    }
+
+    public DelegatingHandler CreateAuthenticationHandler() => new CloudAuthenticationHandler(_session, _logger);
+
+    public void Receive(ApplicationCommand message)
+    {
+        if (message is not UrlProtocolCallbackCommand oauth) return;
+
+        _logger.LogDebug("Received URL callback: {url}", oauth.Url);
+
+        // Route the callback to the active interactive flow if one is currently awaiting
+        _activeAuthFlow?.HandleCallback(oauth.Url);
+    }
+
+    #region IAsyncInitializer Implementation
+
+    public AsyncInitializerIndex Index => AsyncInitializerIndex.Network + 1;
+
+    /// <summary>
+    /// Initializes the client by attempting a silent login using stored tokens.
+    /// This allows the app to restore the user's session without requiring them to log in again.
+    /// </summary>
+    public Task InitializeAsync()
+    {
+        // Fire and forget the initialization to avoid blocking app startup.
+        InitializeInternalAsync().Detach();
+        return Task.CompletedTask;
+    }
+
+    private async Task InitializeInternalAsync()
+    {
+        if (!await _loginLock.WaitAsync(0)) return; // Prevent reentry for initialization
+
+        try
+        {
+            _session.LoadFromVault();
+
+            // Try to refresh token and restore user data silently if a refresh token exists
+            if (_session.HasRefreshToken)
+            {
+                var tokenData = await _session.GetValidTokenDataAsync(CancellationToken.None);
+                if (tokenData != null)
+                {
+                    await ReloadUserDataAsync(CancellationToken.None);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Expected if the user has never logged in or if stored tokens are invalid/expired.
+            _logger.LogInformation(ex, "Silent login failed during initialization.");
+        }
+        finally
+        {
+            _loginLock.Release();
+        }
+    }
+
+    #endregion
+
     /// <summary>
     /// Record for holding token data for secure storage. Using a record for easy JSON serialization and immutability.
     /// </summary>
-    /// <param name="RefreshToken"></param>
-    /// <param name="AccessToken"></param>
-    /// <param name="IdToken"></param>
     private partial record TokenData(
         [property: JsonPropertyName("refresh_token")] string RefreshToken,
         [property: JsonPropertyName("access_token")] string? AccessToken = null,
-        [property: JsonPropertyName("id_token")] string? IdToken = null
+        [property: JsonPropertyName("id_token")] string? IdToken = null,
+        [property: JsonPropertyName("expires_at")] long ExpiresAtTimestamp = 0
     )
     {
+        /// <summary>
+        /// Checks if the token is expired or will expire within the next 10 seconds.
+        /// </summary>
+        public bool IsTokenExpiredOrNearingExpiry => ExpiresAtTimestamp < DateTimeOffset.UtcNow.ToUnixTimeSeconds() + 10;
+
         [JsonSerializable(typeof(TokenData))]
-        private partial class TokenDataJsonSerializerContext : JsonSerializerContext;
+        public partial class TokenDataJsonSerializerContext : JsonSerializerContext;
 
         public static TokenData? FromJson(string json)
         {
@@ -48,86 +261,93 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
             }
         }
 
-        public string ToJson()
-        {
-            return JsonSerializer.Serialize(this, TokenDataJsonSerializerContext.Default.TokenData);
-        }
+        public string ToJson() => JsonSerializer.Serialize(this, TokenDataJsonSerializerContext.Default.TokenData);
     }
 
-    [ObservableProperty]
-    public partial UserProfile? CurrentUser { get; set; }
-
-    private const string ServiceName = "com.sylinko.everywhere";
-    private const string TokenDataKey = "oauth_token_data";
-
-    private const string AuthorizeEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/authorize";
-    private const string TokenEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/token";
-    private const string UserInfoEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/userinfo";
-    private const string RevokeEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/revoke";
-    private const string SubscriptionEndpoint = $"{CloudConstants.AuthBaseUrl}/api/subscription";
-    private const string RedirectUri = "sylinko-everywhere://callback";
-    private const string Scopes = "openid profile email offline_access";
-
-    private TokenData? _tokenData;
-
-    private readonly ILauncher _launcher;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<OAuthCloudClient> _logger;
-
-    private readonly SemaphoreSlim _loginLock = new(1, 1);
-    private readonly SemaphoreSlim _refreshLock = new(1, 1);
-
-    // To coordinate the callback
-    private TaskCompletionSource<string>? _authCodeTcs;
-    private volatile string? _expectedState;
-
-    public OAuthCloudClient(ILauncher launcher, IHttpClientFactory httpClientFactory, ILogger<OAuthCloudClient> logger)
+    /// <summary>
+    /// Context responsible for the transient, interactive OAuth PKCE flow.
+    /// Manages timeouts, state validation, and exchanging the authorization code.
+    /// </summary>
+    private sealed class InteractiveOAuthFlow : IDisposable
     {
-        _launcher = launcher;
-        _httpClientFactory = httpClientFactory;
-        _logger = logger;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _expectedState;
+        private readonly string _codeVerifier;
+        private readonly string _codeChallenge;
+        private readonly TaskCompletionSource<string> _authCodeTcs;
+        private readonly CancellationTokenSource _timeoutCts;
+        private readonly CancellationTokenRegistration _ctr;
 
-        WeakReferenceMessenger.Default.Register(this);
-    }
-
-    public async Task<bool> LoginAsync(CancellationToken cancellationToken)
-    {
-        if (!await _loginLock.WaitAsync(0, cancellationToken)) return false;
-
-        try
+        public InteractiveOAuthFlow(IHttpClientFactory httpClientFactory, CancellationToken externalToken)
         {
-            _authCodeTcs = new TaskCompletionSource<string>();
+            _httpClientFactory = httpClientFactory;
             _expectedState = Guid.NewGuid().ToString();
-            var codeVerifier = GenerateCodeVerifier();
-            var codeChallenge = GenerateCodeChallenge(codeVerifier);
+            _codeVerifier = GenerateCodeVerifier();
+            _codeChallenge = GenerateCodeChallenge(_codeVerifier);
+            _authCodeTcs = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
 
-            // Construct Authorization URL with PKCE
+            // Limit the wait time for user interaction to 30 minutes to prevent memory leaks
+            _timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken);
+            _timeoutCts.CancelAfter(TimeSpan.FromMinutes(30));
+            _ctr = _timeoutCts.Token.Register(() => _authCodeTcs.TrySetCanceled());
+        }
+
+        public string BuildAuthorizeUrl()
+        {
             var sb = new StringBuilder(AuthorizeEndpoint);
-            sb.Append($"?response_type=code");
+            sb.Append("?response_type=code");
             sb.Append($"&client_id={CloudConstants.ClientId}");
             sb.Append($"&redirect_uri={Uri.EscapeDataString(RedirectUri)}");
             sb.Append($"&state={_expectedState}");
             sb.Append($"&scope={Uri.EscapeDataString(Scopes)}");
-            sb.Append($"&code_challenge={Uri.EscapeDataString(codeChallenge)}");
-            sb.Append($"&code_challenge_method=S256");
+            sb.Append($"&code_challenge={Uri.EscapeDataString(_codeChallenge)}");
+            sb.Append("&code_challenge_method=S256");
+            return sb.ToString();
+        }
 
-            var authorizeUrl = sb.ToString();
-            _logger.LogDebug("Starting login flow. Auth URL: {AuthorizeUrl}", authorizeUrl);
-            await _launcher.LaunchUriAsync(new Uri(authorizeUrl));
+        public void HandleCallback(string url)
+        {
+            if (_authCodeTcs.Task.IsCompleted) return;
 
-            // Wait for the callback
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromMinutes(30)); // Give time for sign in/up
-            string code;
             try
             {
-                code = await _authCodeTcs.Task.WaitAsync(cts.Token);
+                var uri = new Uri(url);
+                var query = HttpUtility.ParseQueryString(uri.Query);
+                var code = query["code"];
+                var state = query["state"];
+                var error = query["error"];
+                var errorDesc = query["error_description"];
+
+                if (!string.IsNullOrEmpty(error))
+                {
+                    _authCodeTcs.TrySetException(new Exception($"OAuth Error: {error} - {errorDesc}"));
+                    return;
+                }
+
+                if (state != _expectedState)
+                {
+                    _authCodeTcs.TrySetException(new Exception($"Invalid state received. Expected: {_expectedState}, Received: {state}"));
+                    return;
+                }
+
+                if (!string.IsNullOrEmpty(code))
+                {
+                    _authCodeTcs.TrySetResult(code);
+                }
+                else
+                {
+                    _authCodeTcs.TrySetException(new Exception("No code found in callback."));
+                }
             }
-            catch (OperationCanceledException)
+            catch (Exception ex)
             {
-                _logger.LogInformation("User cancelled the login process or it timed out.");
-                return false;
+                _authCodeTcs.TrySetException(ex);
             }
+        }
+
+        public async Task<TokenData> WaitForCodeAndExchangeAsync()
+        {
+            var code = await _authCodeTcs.Task;
 
             // Exchange Authorization Code for Access Token
             var parameters = new Dictionary<string, string>
@@ -136,101 +356,163 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
                 { "code", code },
                 { "redirect_uri", RedirectUri },
                 { "client_id", CloudConstants.ClientId },
-                { "code_verifier", codeVerifier }
+                { "code_verifier", _codeVerifier }
             };
-            await RequestTokenAsync(parameters, cancellationToken);
 
-            // Refresh UserProfile
-            await RefreshUserProfileAsync(cancellationToken);
-            return true;
+            return await RequestTokenInternalAsync(_httpClientFactory, parameters, _timeoutCts.Token);
         }
-        catch (Exception ex)
+
+        public void Dispose()
         {
-            _logger.LogError(ex, "Failed to login flow.");
-            _tokenData = null;
-            return false;
+            _ctr.Dispose();
+            _timeoutCts.Dispose();
         }
-        finally
+
+        // PKCE Helpers
+        private static string GenerateCodeVerifier() => Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(32));
+
+        private static unsafe string GenerateCodeChallenge(string codeVerifier)
         {
-            _authCodeTcs = null;
-            _expectedState = null;
-            _loginLock.Release();
+            Span<byte> verifierBytes = stackalloc byte[codeVerifier.Length];
+            var bytesWritten = Encoding.ASCII.GetBytes(codeVerifier, verifierBytes);
+            verifierBytes = verifierBytes[..bytesWritten];
+            Span<byte> hashBytes = stackalloc byte[SHA256.HashSizeInBytes];
+            SHA256.HashData(verifierBytes, hashBytes);
+            return Base64Url.EncodeToString(hashBytes);
         }
     }
 
     /// <summary>
-    /// Requests an access token using the provided parameters.
-    /// This method is used for both exchanging the authorization code and refreshing the token.
+    /// Context responsible for long-lived session state, token persistence, and concurrency control for refreshing.
+    /// Exposes methods to retrieve valid tokens without bleeding state logic to the main client.
     /// </summary>
-    /// <param name="parameters"></param>
-    /// <param name="cancellationToken"></param>
-    /// <exception cref="HttpRequestException"></exception>
-    private async Task RequestTokenAsync(Dictionary<string, string> parameters, CancellationToken cancellationToken)
+    private sealed class TokenSessionContext(IHttpClientFactory httpClientFactory, ILogger logger)
     {
-        using var httpClient = _httpClientFactory.CreateClient();
+        private TokenData? _tokenData;
+        private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
-        // OAuth 2.0 token endpoint requires application/x-www-form-urlencoded (RFC 6749 Section 4.1.3)
-        var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint)
-        {
-            Content = new FormUrlEncodedContent(parameters)
-        };
-        var response = await httpClient.SendAsync(request, cancellationToken);
-        var content = await response.Content.ReadAsStringAsync(cancellationToken);
-        response.EnsureSuccessStatusCode();
+        public bool HasRefreshToken => _tokenData is { RefreshToken.Length: > 0 };
+        public string? CurrentIdToken => _tokenData?.IdToken;
 
-        _tokenData = TokenData.FromJson(content);
-        if (_tokenData is null)
+        public void LoadFromVault()
         {
-            throw new HttpRequestException("Failed to parse token response. Invalid format.", null, response.StatusCode);
+            try
+            {
+                var json = OsSecretVault.GetSecret(ServiceName, TokenDataKey);
+                _tokenData = string.IsNullOrEmpty(json) ? null : TokenData.FromJson(json);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to read token data from secure storage. Proceeding with empty session.");
+            }
         }
 
-        try
+        public void SetToken(TokenData data)
         {
-            OsSecretVault.SetSecret(ServiceName, TokenDataKey, _tokenData.ToJson());
+            _tokenData = data;
+            try
+            {
+                OsSecretVault.SetSecret(ServiceName, TokenDataKey, data.ToJson());
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to save token data to secure storage");
+            }
         }
-        catch (Exception ex)
+
+        public void Clear()
         {
-            // Not a critical failure, we can still proceed with the obtained tokens
-            _logger.LogWarning(ex, "Failed to save token data to secure storage");
-        }
-    }
-
-    public async Task LogoutAsync(CancellationToken cancellationToken)
-    {
-        if (!await _loginLock.WaitAsync(0, cancellationToken)) return; // Prevent logout during login flow
-
-        try
-        {
-            if (_tokenData is null) return; // Already logged out
-
+            _tokenData = null;
             try
             {
                 OsSecretVault.DeleteSecret(ServiceName, TokenDataKey);
             }
             catch (Exception ex)
             {
-                // Not a critical failure, just log it
-                _logger.LogWarning(ex, "Failed to delete token data from secure storage");
+                logger.LogWarning(ex, "Failed to delete token data from secure storage");
             }
+        }
 
-            using var httpClient = _httpClientFactory.CreateClient();
+        /// <summary>
+        /// Ensures the current token data is valid. If it's nearing expiry, automatically triggers a refresh.
+        /// Returns the latest TokenData object, allowing callers to extract IdToken or AccessToken as needed.
+        /// </summary>
+        public async Task<TokenData?> GetValidTokenDataAsync(CancellationToken cancellationToken)
+        {
+            if (_tokenData is null) return null;
 
-            // Revoke Access Token if exists
-            if (!_tokenData.AccessToken.IsNullOrEmpty())
+            // If token is still fresh, return it directly
+            if (!_tokenData.IsTokenExpiredOrNearingExpiry) return _tokenData;
+
+            // If it's expired or nearing expiry, attempt to refresh it
+            var refreshed = await TryRefreshAsync(cancellationToken);
+            return refreshed ? _tokenData : null;
+        }
+
+        public async Task<bool> TryRefreshAsync(CancellationToken cancellationToken)
+        {
+            if (!HasRefreshToken) return false;
+
+            // Prevent concurrent refresh attempts (Double-check locking pattern)
+            if (!await _refreshLock.WaitAsync(0, cancellationToken))
             {
-                await RevokeTokenAsync(_tokenData.AccessToken, "access_token");
+                await _refreshLock.WaitAsync(cancellationToken);
+                _refreshLock.Release();
+
+                // Another thread might have completed the refresh while we were waiting
+                return _tokenData is { IsTokenExpiredOrNearingExpiry: false };
             }
 
-            // Revoke Refresh Token if exists
-            if (!_tokenData.RefreshToken.IsNullOrEmpty())
+            try
             {
-                await RevokeTokenAsync(_tokenData.RefreshToken, "refresh_token");
+                var parameters = new Dictionary<string, string>
+                {
+                    { "grant_type", "refresh_token" },
+                    { "refresh_token", _tokenData!.RefreshToken },
+                    { "client_id", CloudConstants.ClientId }
+                };
+
+                var newTokenData = await RequestTokenInternalAsync(httpClientFactory, parameters, cancellationToken);
+                SetToken(newTokenData);
+                return true;
             }
+            catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.BadRequest)
+            {
+                // Refresh token is explicitly rejected by the server (e.g., revoked, expired)
+                logger.LogWarning(ex, "Refresh token rejected by server. Clearing local session.");
+                Clear();
+                return false;
+            }
+            catch (Exception ex)
+            {
+                // Network errors or other transient issues. Keep the current session, it might recover later.
+                logger.LogWarning(ex, "Token refresh failed due to network or unknown error.");
+                return false;
+            }
+            finally
+            {
+                _refreshLock.Release();
+            }
+        }
 
-            _tokenData = null;
-            CurrentUser = null;
+        public async Task RevokeAndClearAsync(CancellationToken cancellationToken)
+        {
+            if (_tokenData is null) return;
 
-            async Task RevokeTokenAsync(string token, string tokenTypeHint)
+            using var httpClient = httpClientFactory.CreateClient();
+
+            var accessToken = _tokenData.AccessToken;
+            var refreshToken = _tokenData.RefreshToken;
+
+            Clear(); // Clear locally first to ensure UI reflects logout immediately
+
+            if (!string.IsNullOrEmpty(accessToken)) await RevokeTokenInternalAsync(httpClient, accessToken, "access_token", cancellationToken);
+            if (!string.IsNullOrEmpty(refreshToken)) await RevokeTokenInternalAsync(httpClient, refreshToken, "refresh_token", cancellationToken);
+        }
+
+        private async Task RevokeTokenInternalAsync(HttpClient client, string token, string tokenTypeHint, CancellationToken cancellationToken)
+        {
+            try
             {
                 var parameters = new Dictionary<string, string>
                 {
@@ -238,316 +520,59 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
                     { "token_type_hint", tokenTypeHint },
                     { "client_id", CloudConstants.ClientId }
                 };
-
-                var request = new HttpRequestMessage(HttpMethod.Post, RevokeEndpoint)
-                {
-                    Content = new FormUrlEncodedContent(parameters)
-                };
-
-                try
-                {
-                    // ReSharper disable once AccessToDisposedClosure
-                    await httpClient.SendAsync(request, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to revoke {TokenType}", tokenTypeHint);
-                }
+                var request = new HttpRequestMessage(HttpMethod.Post, RevokeEndpoint) { Content = new FormUrlEncodedContent(parameters) };
+                await client.SendAsync(request, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to revoke remote {TokenType}", tokenTypeHint);
             }
         }
-        finally
-        {
-            _loginLock.Release();
-        }
     }
-
-    private async Task RefreshUserProfileAsync(CancellationToken cancellationToken)
-    {
-        // According to BetterAuth docs, this call needs to be authenticated with the access token (Opaque token), not the ID token (JWT).
-        if (_tokenData is not { AccessToken: { Length: > 0 } accessToken })
-        {
-            throw new InvalidOperationException("Cannot refresh user profile without an access token.");
-        }
-
-        using var httpClient = _httpClientFactory.CreateClient();
-
-        try
-        {
-            var request = new HttpRequestMessage(HttpMethod.Get, UserInfoEndpoint);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-            var response = await httpClient.SendAsync(request, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            CurrentUser = await response.Content.ReadFromJsonAsync<UserProfile>(
-                UserProfile.JsonSerializerContext.Default.Options,
-                cancellationToken: cancellationToken);
-
-            // The subscription info is not included in the user profile response, so we need to make a separate call to get it.
-            await RefreshSubscriptionAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get user profile");
-        }
-    }
-
-    private async Task RefreshSubscriptionAsync(CancellationToken cancellationToken)
-    {
-        if (CurrentUser is not { } currentUser) return;
-
-        using var httpClient = _httpClientFactory.CreateClient(nameof(ICloudClient));
-
-        try
-        {
-            var request = new HttpRequestMessage(HttpMethod.Get, SubscriptionEndpoint);
-
-            var response = await httpClient.SendAsync(request, cancellationToken);
-            var payload = await ApiPayload<SubscriptionInformation>.EnsureSuccessFromHttpResponseJsonAsync(
-                response,
-                UserProfile.JsonSerializerContext.Default.ApiPayloadSubscriptionInformation.Options,
-                cancellationToken);
-
-            currentUser.Subscription = payload.EnsureData();
-
-            if (currentUser.Subscription.Plan == SubscriptionPlan.Banned)
-            {
-                await LogoutAsync(CancellationToken.None); // Cannot be canceled by user since we want to enforce the ban as soon as we detect it
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get user profile");
-        }
-    }
-
-    public async Task<bool> TryRefreshTokenAsync(CancellationToken cancellationToken)
-    {
-        if (_tokenData is null) return false;
-        if (_tokenData.RefreshToken.IsNullOrEmpty()) return false;
-
-        // Prevent concurrent refresh attempts
-        if (!await _refreshLock.WaitAsync(0, cancellationToken))
-        {
-            // Another refresh is in progress, wait for it
-            await _refreshLock.WaitAsync(cancellationToken);
-            _refreshLock.Release();
-
-            // Check if the refresh was successful by verifying we have a token
-            return !string.IsNullOrEmpty(_tokenData.AccessToken);
-        }
-
-        try
-        {
-            var parameters = new Dictionary<string, string>
-            {
-                { "grant_type", "refresh_token" },
-                { "refresh_token", _tokenData.RefreshToken },
-                { "client_id", CloudConstants.ClientId }
-            };
-
-            await RequestTokenAsync(parameters, cancellationToken);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Token refresh failed");
-            return false;
-        }
-        finally
-        {
-            _refreshLock.Release();
-        }
-    }
-
-    public DelegatingHandler CreateAuthenticationHandler() => new CloudAuthenticationHandler(this);
-
-    public void Receive(ApplicationCommand message)
-    {
-        if (message is not UrlProtocolCallbackCommand oauth) return;
-
-        var url = oauth.Url;
-        _logger.LogDebug("Received URL callback: {url}", url);
-
-        // Only process if we are expecting a callback
-        if (_authCodeTcs == null || _authCodeTcs.Task.IsCompleted)
-        {
-            _logger.LogDebug("Not expecting callback or task already completed. Ignoring.");
-            return;
-        }
-
-        try
-        {
-            var uri = new Uri(url);
-
-            // Parse Query Parameters
-            var query = HttpUtility.ParseQueryString(uri.Query);
-            var code = query["code"];
-            var state = query["state"];
-            var error = query["error"];
-            var errorDesc = query["error_description"];
-
-            _logger.LogDebug("Extracted - Code: '{code}', State: '{state}', Error: '{error}'", code, state, error);
-
-            if (!string.IsNullOrEmpty(error))
-            {
-                _authCodeTcs.TrySetException(new Exception($"OAuth Error: {error} - {errorDesc}"));
-                return;
-            }
-
-            if (state != _expectedState)
-            {
-                _logger.LogDebug("State mismatch!");
-                _authCodeTcs.TrySetException(new Exception($"Invalid state received. Expected: {_expectedState}, Received: {state}"));
-                return;
-            }
-
-            if (!string.IsNullOrEmpty(code))
-            {
-                _authCodeTcs.TrySetResult(code);
-            }
-            else
-            {
-                _authCodeTcs.TrySetException(new Exception("No code found in callback."));
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug("Exception in OnUrlDropped: {exception}", ex);
-            _authCodeTcs.TrySetException(ex);
-        }
-    }
-
-    // PKCE Helper
-    private static string GenerateCodeVerifier() =>
-        Base64Url.EncodeToString(RandomNumberGenerator.GetBytes(32));
-
-    private static unsafe string GenerateCodeChallenge(string codeVerifier)
-    {
-        Span<byte> verifierBytes = stackalloc byte[codeVerifier.Length];
-        var bytesWritten = Encoding.ASCII.GetBytes(codeVerifier, verifierBytes);
-        verifierBytes = verifierBytes[..bytesWritten];
-        Span<byte> hashBytes = stackalloc byte[SHA256.HashSizeInBytes];
-        SHA256.HashData(verifierBytes, hashBytes);
-        return Base64Url.EncodeToString(hashBytes);
-    }
-
-    #region IAsyncInitializer Implementation
-
-    public AsyncInitializerIndex Index => AsyncInitializerIndex.Highest;
 
     /// <summary>
-    /// Initializes the client by attempting a silent login using stored tokens.
-    /// This allows the app to restore the user's session without requiring them to log in again, providing a smoother user experience.
-    /// If valid tokens are found and the refresh is successful, the CurrentUser will be populated.
-    /// Otherwise, it will remain null, indicating that the user needs to log in interactively.
+    /// Shared HTTP logic for requesting tokens (used by both initial exchange and refresh).
     /// </summary>
-    public Task InitializeAsync()
+    private static async Task<TokenData> RequestTokenInternalAsync(IHttpClientFactory factory, Dictionary<string, string> parameters, CancellationToken ct)
     {
-        // fire and forget the initialization to avoid blocking app startup.
-        InitializeInternalAsync().Detach();
-        return Task.CompletedTask;
+        using var httpClient = factory.CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint)
+        {
+            Content = new FormUrlEncodedContent(parameters)
+        };
+
+        var response = await httpClient.SendAsync(request, ct);
+        var content = await response.Content.ReadAsStringAsync(ct);
+        response.EnsureSuccessStatusCode();
+
+        var tokenData = TokenData.FromJson(content);
+        return tokenData ?? throw new HttpRequestException("Failed to parse token response. Invalid format.", null, response.StatusCode);
     }
-
-    private async Task InitializeInternalAsync()
-    {
-        Debug.Assert(_tokenData is null, "Token data should be null before initialization");
-        Debug.Assert(CurrentUser is null, "CurrentUser should be null before initialization");
-
-        if (!await _loginLock.WaitAsync(0)) return; // Prevent reentry for initialization
-
-        try
-        {
-            // Try to load tokens from secure storage
-            var json = OsSecretVault.GetSecret(ServiceName, TokenDataKey);
-            if (string.IsNullOrEmpty(json))
-            {
-                return;
-            }
-
-            var data = TokenData.FromJson(json);
-            if (data?.RefreshToken == null)
-            {
-                return;
-            }
-
-            _tokenData = data;
-
-            // Try to refresh the token to ensure it's still valid
-            var parameters = new Dictionary<string, string>
-            {
-                { "grant_type", "refresh_token" },
-                { "refresh_token", _tokenData.RefreshToken },
-                { "client_id", CloudConstants.ClientId }
-            };
-
-            await RequestTokenAsync(parameters, CancellationToken.None);
-            await RefreshUserProfileAsync(CancellationToken.None);
-        }
-        catch (Exception ex)
-        {
-            // This exception is expected to happen if the user has never logged in before or if the stored tokens are invalid/expired.
-            // Log it for debugging but don't treat it as an error.
-            _logger.LogInformation(ex, "Silent login failed");
-
-            OsSecretVault.DeleteSecret(ServiceName, TokenDataKey);
-        }
-        finally
-        {
-            _loginLock.Release();
-        }
-    }
-
-    #endregion
 
     /// <summary>
-    /// A delegating handler that automatically adds authentication headers to outgoing requests
+    /// A delegating handler that automatically adds JWT authentication headers to outgoing requests
     /// and handles token refresh on 401 Unauthorized responses.
     /// </summary>
     /// <remarks>
-    /// This handler:
-    /// <list type="bullet">
-    ///   <item>Adds Bearer token to Authorization header before each request</item>
-    ///   <item>Catches 401 responses and attempts to refresh the token</item>
-    ///   <item>Retries the request once with the new token after successful refresh</item>
-    ///   <item>Uses a semaphore to prevent concurrent token refresh operations</item>
-    /// </list>
+    /// This handler MUST use the IdToken (JWT) for general API requests, as resource servers validate claims.
     /// </remarks>
-    private sealed class CloudAuthenticationHandler(OAuthCloudClient cloudClient) : DelegatingHandler
+    private sealed class CloudAuthenticationHandler(TokenSessionContext session, ILogger logger) : DelegatingHandler
     {
-        private static readonly SemaphoreSlim RefreshLock = new(1, 1);
-
-        // Use IServiceProvider to avoid circular dependency:
-        // CloudAuthenticationHandler -> ICloudClient -> IHttpClientFactory -> CloudAuthenticationHandler
-        protected override async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (cloudClient._tokenData?.IdToken is not { Length: > 0 } token)
+            // 1. Proactively get a valid token data and extract the IdToken (JWT)
+            var tokenData = await session.GetValidTokenDataAsync(cancellationToken);
+            var idToken = tokenData?.IdToken;
+
+            if (string.IsNullOrEmpty(idToken))
             {
-                // No token available, proceed without adding Authorization header
-                return await base.SendAsync(request, cancellationToken);
+                throw new UserNotLoginException();
             }
 
-            if (IsTokenExpiredOrNearingExpiry(token))
-            {
-                var refreshed = await TryRefreshTokenWithLockAsync(cloudClient, cancellationToken);
-                if (refreshed && cloudClient._tokenData?.IdToken is { Length: > 0 } newToken)
-                {
-                    token = newToken; // Use the refreshed token
-                }
-                else
-                {
-                    // Refresh failed, proceed with the old token which will likely result in a 401 and trigger the refresh logic there as well.
-                    cloudClient._logger.LogWarning("Token is expired or nearing expiry, but refresh failed. Proceeding with existing token.");
-                }
-            }
-
-            // Add authorization header if we have a token
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", idToken);
             request.Headers.Add("ew-device-id", RuntimeConstants.DeviceId);
 
-            // Before first send, ensure content is buffered for potential retry
+            // Ensure content is buffered for potential retry
             if (request.Content != null)
             {
                 await request.Content.LoadIntoBufferAsync(cancellationToken);
@@ -558,97 +583,20 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
             // If the response is not 401, return it as is
             if (response.StatusCode != HttpStatusCode.Unauthorized) return response;
 
-            {
-                // If we get a 401, try to refresh the token and retry once
-                var refreshed = await TryRefreshTokenWithLockAsync(cloudClient, cancellationToken);
-                if (!refreshed) return response;
+            logger.LogDebug("Received 401 Unauthorized, attempting to force refresh token...");
 
-                if (cloudClient._tokenData?.IdToken is  { Length: > 0 } newToken)
-                {
-                    token = newToken;
-                }
-                else
-                {
-                    return response; // Refresh succeeded, but we don't have a new token, give up
-                }
-            }
+            // 2. If we get a 401, the server might have invalidated the token early. Force a refresh.
+            var refreshed = await session.TryRefreshAsync(cancellationToken);
+            if (!refreshed) return response;
+
+            // 3. Extract the new IdToken after successful refresh
+            var newIdToken = session.CurrentIdToken;
+            if (string.IsNullOrEmpty(newIdToken)) return response;
 
             // Dispose the original response before retrying
             response.Dispose();
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            response = await base.SendAsync(request, cancellationToken);
-
-            return response;
-        }
-
-        private static bool IsTokenExpiredOrNearingExpiry(string token, int bufferSeconds = 60)
-        {
-            if (string.IsNullOrWhiteSpace(token)) return true;
-
-            var tokenSpan = token.AsSpan();
-            var firstDot = tokenSpan.IndexOf('.');
-            if (firstDot == -1) return true;
-
-            var secondDot = tokenSpan.LastIndexOf('.');
-            if (secondDot == -1) return true;
-
-            var payloadChars = tokenSpan[(firstDot + 1)..secondDot];
-
-            // Calculate padding and decoded length
-            var padding = (4 - (payloadChars.Length % 4)) % 4;
-            var requiredCharLength = payloadChars.Length + padding;
-            var maxByteLength = (requiredCharLength * 3) / 4;
-
-            var base64Chars = requiredCharLength <= 2048 ? stackalloc char[requiredCharLength] : new char[requiredCharLength];
-            for (var i = 0; i < payloadChars.Length; i++)
-            {
-                var c = payloadChars[i];
-                base64Chars[i] = c switch
-                {
-                    '-' => '+',
-                    '_' => '/',
-                    _ => c
-                };
-            }
-            for (var i = 0; i < padding; i++)
-            {
-                base64Chars[payloadChars.Length + i] = '=';
-            }
-
-            var decodedBytes = maxByteLength <= 2048 ? stackalloc byte[maxByteLength] : new byte[maxByteLength];
-            if (!Convert.TryFromBase64Chars(base64Chars, decodedBytes, out var bytesWritten))
-            {
-                return true; // Invalid base64
-            }
-
-            decodedBytes = decodedBytes[..bytesWritten];
-            var reader = new Utf8JsonReader(decodedBytes);
-            while (reader.Read())
-            {
-                if (reader.TokenType != JsonTokenType.PropertyName || !reader.ValueTextEquals("exp"u8)) continue;
-                if (reader.Read() && reader.TokenType == JsonTokenType.Number && reader.TryGetInt64(out var exp))
-                {
-                    var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                    return now >= (exp - bufferSeconds);
-                }
-                break;
-            }
-
-            return false;
-        }
-
-        private static async Task<bool> TryRefreshTokenWithLockAsync(OAuthCloudClient cloudClient, CancellationToken cancellationToken)
-        {
-            // Use a lock to prevent multiple concurrent refresh attempts
-            await RefreshLock.WaitAsync(cancellationToken);
-            try
-            {
-                return await cloudClient.TryRefreshTokenAsync(cancellationToken);
-            }
-            finally
-            {
-                RefreshLock.Release();
-            }
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newIdToken);
+            return await base.SendAsync(request, cancellationToken);
         }
     }
 }

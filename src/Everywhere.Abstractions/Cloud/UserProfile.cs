@@ -6,7 +6,7 @@ namespace Everywhere.Cloud;
 /// <summary>
 /// Represents the user's profile information.
 /// </summary>
-public partial class UserProfile : ObservableObject
+public sealed partial class UserProfile : ObservableObject
 {
     [ObservableProperty]
     [JsonPropertyName("name")]
@@ -19,12 +19,7 @@ public partial class UserProfile : ObservableObject
     [ObservableProperty]
     [JsonPropertyName("picture")]
     public partial string? AvatarUrl { get; set; }
-
-    [ObservableProperty]
-    [JsonPropertyName("subscription")]
-    public partial SubscriptionInformation? Subscription { get; set; }
-
-    [JsonSerializable(typeof(UserProfile))]
-    [JsonSerializable(typeof(ApiPayload<SubscriptionInformation>))]
-    public sealed partial class JsonSerializerContext : System.Text.Json.Serialization.JsonSerializerContext;
 }
+
+[JsonSerializable(typeof(UserProfile))]
+public sealed partial class UserProfileJsonSerializerContext : JsonSerializerContext;

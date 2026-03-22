@@ -64,7 +64,10 @@ public partial class ChatInputArea : TextBox
             o => o.SettingsMenuItemsSource);
 
     public static readonly StyledProperty<UserProfile?> UserProfileProperty =
-        AvaloniaProperty.Register<UserProfilePresenter, UserProfile?>(nameof(UserProfile));
+        AvaloniaProperty.Register<ChatInputArea, UserProfile?>(nameof(UserProfile));
+
+    public static readonly StyledProperty<SubscriptionPlan?> SubscriptionProperty =
+        AvaloniaProperty.Register<ChatInputArea, SubscriptionPlan?>(nameof(Subscription));
 
     public static readonly StyledProperty<bool> IsSendButtonEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsSendButtonEnabled), true);
@@ -157,6 +160,12 @@ public partial class ChatInputArea : TextBox
     {
         get => GetValue(UserProfileProperty);
         set => SetValue(UserProfileProperty, value);
+    }
+
+    public SubscriptionPlan? Subscription
+    {
+        get => GetValue(SubscriptionProperty);
+        set => SetValue(SubscriptionProperty, value);
     }
 
     public bool IsSendButtonEnabled

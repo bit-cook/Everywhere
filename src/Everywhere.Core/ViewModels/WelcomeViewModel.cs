@@ -56,6 +56,7 @@ public sealed partial class WelcomeViewModel : BusyViewModelBase
         Assistant = new CustomAssistant
         {
             Name = LocaleResolver.CustomAssistant_Name_Default,
+            Schema = ModelProviderSchema.Official,
             ConfiguratorType = ModelProviderConfiguratorType.Official
         };
         Assistant.PropertyChanged += delegate
@@ -141,7 +142,7 @@ public sealed partial class WelcomeViewModelIntroStep(WelcomeViewModel viewModel
     private void MoveNext()
     {
         // Skip the soft login step if already logged in
-        if (ViewModel.CloudClient.CurrentUser is not null)
+        if (ViewModel.CloudClient.UserProfile is not null)
         {
             ViewModel.MoveTo<WelcomeViewModelConfiguratorStep>();
         }
@@ -161,7 +162,7 @@ public sealed partial class WelcomeViewModelConfiguratorStep(WelcomeViewModel vi
     private void MovePrevious()
     {
         // Skip the soft login step if already logged in
-        if (ViewModel.CloudClient.CurrentUser is not null)
+        if (ViewModel.CloudClient.UserProfile is not null)
         {
             ViewModel.MoveTo<WelcomeViewModelIntroStep>();
         }
@@ -175,7 +176,7 @@ public sealed partial class WelcomeViewModelConfiguratorStep(WelcomeViewModel vi
     private void MoveNext()
     {
         // Skip the hard login step if not using official configurator or already logged in
-        if (ViewModel.Assistant.ConfiguratorType != ModelProviderConfiguratorType.Official || ViewModel.CloudClient.CurrentUser is not null)
+        if (ViewModel.Assistant.ConfiguratorType != ModelProviderConfiguratorType.Official || ViewModel.CloudClient.UserProfile is not null)
         {
             ViewModel.MoveTo<WelcomeViewModelAssistantStep>();
         }

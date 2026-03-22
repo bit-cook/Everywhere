@@ -120,65 +120,67 @@
           <StackPanel
             Classes="ChatMessage Assistant" Background="Transparent"
             Orientation="Vertical" Spacing="4">
-            <v:LazyContentControl
-              Margin="4,8,4,4" HorizontalContentAlignment="Stretch"
-              IsVisible="{Binding $self.IsActive}">
-              <v:LazyContentControl.IsActive>
+            <v:ConditionalContentControl
+              x:Name="LoadingSkeleton" Margin="4,8,4,4"
+              Condition="{Binding $self.IsVisible}">
+              <v:LazyContentControl.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="IsBusy"/>
                   <Binding
                     Converter="{x:Static vc:Int32Converters.IsZero}"
                     Path="Spans.Count"/>
                 </MultiBinding>
-              </v:LazyContentControl.IsActive>
+              </v:LazyContentControl.IsVisible>
 
-              <ControlTemplate>
-                <StackPanel Spacing="6">
-                  <shadui:Skeleton
-                    Width="100"
-                    Height="{DynamicResource FontSizeXl}"
-                    HorizontalAlignment="Left"
-                    Background="{DynamicResource BorderColor60}"
-                    CornerRadius="12"/>
-                  <Grid
-                    ColumnDefinitions="3*,30,*" ColumnSpacing="6">
+              <v:ConditionalContentControl.TrueContent>
+                <ControlTemplate>
+                  <StackPanel Spacing="6">
                     <shadui:Skeleton
-                      Grid.Column="0"
-                      Height="{DynamicResource FontSizeM}"
-                      Background="{DynamicResource MutedColor}"
-                      CornerRadius="4"/>
-                    <shadui:Skeleton
-                      Grid.Column="1"
-                      Height="{DynamicResource FontSizeM}"
-                      Background="{DynamicResource MutedColor}"
-                      CornerRadius="4"/>
-                    <shadui:Skeleton
-                      Grid.Column="2"
-                      Height="{DynamicResource FontSizeM}"
-                      Background="{DynamicResource MutedColor}"
-                      CornerRadius="4"/>
-                  </Grid>
-                  <Grid
-                    ColumnDefinitions="40,6*,3*,*" ColumnSpacing="6">
-                    <shadui:Skeleton
-                      Grid.Column="0"
-                      Height="{DynamicResource FontSizeM}"
-                      Background="{DynamicResource MutedColor}"
-                      CornerRadius="4"/>
-                    <shadui:Skeleton
-                      Grid.Column="1"
-                      Height="{DynamicResource FontSizeM}"
-                      Background="{DynamicResource MutedColor}"
-                      CornerRadius="4"/>
-                    <shadui:Skeleton
-                      Grid.Column="2"
-                      Height="{DynamicResource FontSizeM}"
-                      Background="{DynamicResource MutedColor}"
-                      CornerRadius="4"/>
-                  </Grid>
-                </StackPanel>
-              </ControlTemplate>
-            </v:LazyContentControl>
+                      Width="100"
+                      Height="{DynamicResource FontSizeXl}"
+                      HorizontalAlignment="Left"
+                      Background="{DynamicResource BorderColor60}"
+                      CornerRadius="12"/>
+                    <Grid
+                      ColumnDefinitions="3*,30,*" ColumnSpacing="6">
+                      <shadui:Skeleton
+                        Grid.Column="0"
+                        Height="{DynamicResource FontSizeM}"
+                        Background="{DynamicResource MutedColor}"
+                        CornerRadius="4"/>
+                      <shadui:Skeleton
+                        Grid.Column="1"
+                        Height="{DynamicResource FontSizeM}"
+                        Background="{DynamicResource MutedColor}"
+                        CornerRadius="4"/>
+                      <shadui:Skeleton
+                        Grid.Column="2"
+                        Height="{DynamicResource FontSizeM}"
+                        Background="{DynamicResource MutedColor}"
+                        CornerRadius="4"/>
+                    </Grid>
+                    <Grid
+                      ColumnDefinitions="40,6*,3*,*" ColumnSpacing="6">
+                      <shadui:Skeleton
+                        Grid.Column="0"
+                        Height="{DynamicResource FontSizeM}"
+                        Background="{DynamicResource MutedColor}"
+                        CornerRadius="4"/>
+                      <shadui:Skeleton
+                        Grid.Column="1"
+                        Height="{DynamicResource FontSizeM}"
+                        Background="{DynamicResource MutedColor}"
+                        CornerRadius="4"/>
+                      <shadui:Skeleton
+                        Grid.Column="2"
+                        Height="{DynamicResource FontSizeM}"
+                        Background="{DynamicResource MutedColor}"
+                        CornerRadius="4"/>
+                    </Grid>
+                  </StackPanel>
+                </ControlTemplate>
+              </v:ConditionalContentControl.TrueContent>
+            </v:ConditionalContentControl>
 
             <ItemsControl
               ClipToBounds="False"

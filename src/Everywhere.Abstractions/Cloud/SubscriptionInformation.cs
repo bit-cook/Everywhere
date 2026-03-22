@@ -4,7 +4,7 @@ using Everywhere.Serialization;
 
 namespace Everywhere.Cloud;
 
-public partial class SubscriptionInformation : ObservableObject
+public sealed partial class SubscriptionInformation : ObservableObject
 {
     [ObservableProperty]
     [JsonPropertyName("plan")]
@@ -55,3 +55,6 @@ public partial class SubscriptionInformation : ObservableObject
     [JsonConverter(typeof(JsonStringEnumConverter<SubscriptionStatus>))]
     public partial SubscriptionStatus? Status { get; set; }
 }
+
+[JsonSerializable(typeof(ApiPayload<SubscriptionInformation>))]
+public sealed partial class SubscriptionInformationJsonSerializerContext : JsonSerializerContext;

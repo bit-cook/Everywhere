@@ -2196,9 +2196,6 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>Letzte Synchronisierung fehlgeschlagen</value>
     </data>
-    <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
-        <value>Nein danke</value>
-    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>Der Dienst unterstützt keine Anfragen aus der aktuellen Region oder dem Standort.</value>
     </data>

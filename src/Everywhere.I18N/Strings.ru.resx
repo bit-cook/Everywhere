@@ -2199,9 +2199,6 @@
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>Ошибка последней синхронизации</value>
     </data>
-    <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
-        <value>Не сейчас</value>
-    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>Сервис не поддерживает запросы из вашего региона или местоположения.</value>
     </data>

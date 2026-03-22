@@ -81,6 +81,12 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
         set => Set(Math.Clamp(value, -1, 30));
     }
 
+    public IReadOnlyList<ModelDefinitionTemplate>? OfficialModelDefinitionTemplate
+    {
+        get => Get<IReadOnlyList<ModelDefinitionTemplate>>();
+        set => Set(value);
+    }
+
     public bool IsCloudSyncEnabled
     {
         get => Get(false);

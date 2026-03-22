@@ -22,7 +22,7 @@
           </Panel.Styles>
 
           <StackPanel
-            Classes.Disabled="{Binding CloudClient.CurrentUser, Converter={x:Static ObjectConverters.IsNull}, RelativeSource={RelativeSource TemplatedParent}}"
+            Classes.Disabled="{Binding CloudClient.UserProfile, Converter={x:Static ObjectConverters.IsNull}, RelativeSource={RelativeSource TemplatedParent}}"
             Spacing="8">
             <TextBlock
               Classes="Large"
@@ -45,6 +45,7 @@
                 MinWidth="480" HorizontalAlignment="Left"
                 HorizontalContentAlignment="Stretch" shadui:ControlAssist.MinHeight="40"
                 ItemsSource="{TemplateBinding ItemsSource}"
+                MaxDropDownHeight="480"
                 SelectedItem="{TemplateBinding SelectedItem, Mode=TwoWay}">
                 <ComboBox.Styles>
                   <Style Selector="ComboBoxItem">
@@ -57,6 +58,7 @@
                     <Grid
                       Margin="0,0,12,0" ColumnSpacing="4">
                       <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition/>
                         <ColumnDefinition
@@ -72,14 +74,28 @@
                         mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"
                         IsVisible="{Binding IconUrl, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                       <TextBlock
-                        Grid.Column="1" Margin="4,0,0,0"
+                        Grid.Column="1" Margin="4,0"
                         VerticalAlignment="Center"
                         Text="{Binding Name}"
                         TextTrimming="CharacterEllipsis"
                         ToolTip.Tip="{Binding DescriptionKey^, FallbackValue={x:Null}}"/>
+                      <LucideIcon
+                        Grid.Column="2" HorizontalAlignment="Left"
+                        Foreground="{DynamicResource WarningColor}"
+                        IsVisible="{Binding DeprecationDate, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Kind="TriangleAlert"
+                        Size="{DynamicResource FontSizeL}"
+                        ToolTip.Placement="Top">
+                        <ToolTip.Tip>
+                          <I18N Key="{x:Static LocaleKey.OfficialModelDefinitionForm_DeprecationToast_Text}">
+                            <Binding
+                              Path="DeprecationDate" StringFormat="{}{0:D}"/>
+                          </I18N>
+                        </ToolTip.Tip>
+                      </LucideIcon>
 
                       <StackPanel
-                        Grid.Column="2" Margin="16,0,0,0"
+                        Grid.Column="3" Margin="16,0,0,0"
                         HorizontalAlignment="Right" Orientation="Horizontal"
                         Spacing="2">
                         <StackPanel.Styles>
@@ -134,13 +150,28 @@
             </DockPanel>
 
             <StackPanel
-              Margin="0,8,0,0"
-              IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}}"
-              Spacing="8">
+              Margin="0,8,0,0" Spacing="8">
               <TextBlock
                 Classes="Large"
                 Text="{I18N {x:Static LocaleKey.OfficialModelDefinitionForm_DetailsTextBlock_Text}}"
                 TextTrimming="CharacterEllipsis"/>
+
+              <shadui:Toast
+                MaxWidth="2000" Margin="0"
+                Padding="8"
+                IsVisible="{Binding SelectedItem.DeprecationDate, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
+                Notification="Warning">
+                <shadui:Toast.Title>
+                  <I18N Key="{x:Static LocaleKey.OfficialModelDefinitionForm_DeprecationToast_Text}">
+                    <Binding
+                      FallbackValue="{x:Null}"
+                      Path="SelectedItem.DeprecationDate"
+                      RelativeSource="{RelativeSource TemplatedParent}"
+                      StringFormat="{}{0:D}"/>
+                  </I18N>
+                </shadui:Toast.Title>
+              </shadui:Toast>
+
               <TextBlock
                 Margin="4"
                 IsVisible="{Binding SelectedItem.DescriptionKey, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
@@ -258,6 +289,7 @@
                         Orientation="Horizontal" Spacing="4">
                         <TextBlock Text="{Binding SelectedItem.ContextLimit, Converter={x:Static vc:TokenCountHumanizationConverter.Shared}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
                         <LucideIcon
+                          IsVisible="{Binding SelectedItem, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}}"
                           Kind="CircleQuestionMark"
                           Size="{DynamicResource FontSizeS}"
                           ToolTip.Placement="Top">
@@ -305,22 +337,25 @@
             </StackPanel>
           </StackPanel>
 
-          <v:LazyContentControl
+          <v:ConditionalContentControl
             ClipToBounds="False"
-            ContentDataContext="{Binding CloudClient, RelativeSource={RelativeSource TemplatedParent}}"
-            IsActive="{Binding CloudClient.CurrentUser, Converter={x:Static ObjectConverters.IsNull}, RelativeSource={RelativeSource TemplatedParent}}">
-            <ControlTemplate x:DataType="cloud:ICloudClient">
-              <Border
-                Margin="-16,-24,-16,-16"
-                Background="{DynamicResource SecondaryCardBackgroundColor}"
-                CornerRadius="{DynamicResource XlCornerRadius}">
-                <v:UserProfileCard
-                  Width="240" HorizontalAlignment="Center"
-                  VerticalAlignment="Center" ShowActionsButton="False"
-                  UserProfile="{Binding CurrentUser}"/>
-              </Border>
-            </ControlTemplate>
-          </v:LazyContentControl>
+            Condition="{Binding CloudClient.UserProfile, Converter={x:Static ObjectConverters.IsNull}, RelativeSource={RelativeSource TemplatedParent}}"
+            ContentDataBinding="{Binding CloudClient, RelativeSource={RelativeSource TemplatedParent}}">
+            <v:ConditionalContentControl.TrueContent>
+              <ControlTemplate x:DataType="cloud:ICloudClient">
+                <Border
+                  Margin="-16,-24,-16,-16"
+                  Background="{DynamicResource SecondaryCardBackgroundColor}"
+                  CornerRadius="{DynamicResource XlCornerRadius}">
+                  <v:UserProfileCard
+                    Width="240" Margin="16"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    ShowActionsButton="False"
+                    UserProfile="{Binding UserProfile}"/>
+                </Border>
+              </ControlTemplate>
+            </v:ConditionalContentControl.TrueContent>
+          </v:ConditionalContentControl>
         </Panel>
       </ControlTemplate>
     </Setter>
