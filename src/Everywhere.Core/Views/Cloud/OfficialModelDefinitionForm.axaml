@@ -65,20 +65,27 @@
                           Width="Auto" SharedSizeGroup="Badges"/>
                       </Grid.ColumnDefinitions>
 
-                      <Image
+                      <Border
                         Grid.Column="0"
-                        Width="{DynamicResource FontSizeXl}"
-                        Height="{DynamicResource FontSizeXl}"
-                        VerticalAlignment="Center" md:AsyncImageLoader.SizeToContent="Manual"
-                        md:AsyncImageLoader.Source="{Binding IconUrl}"
-                        mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"
-                        IsVisible="{Binding IconUrl, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                        Width="{DynamicResource FontSize2Xl}"
+                        Height="{DynamicResource FontSize2Xl}"
+                        VerticalAlignment="Center" Background="#333333"
+                        ClipToBounds="True"
+                        CornerRadius="{DynamicResource FullCornerRadius}">
+                        <Image
+                          Margin="3" md:AsyncImageLoader.SizeToContent="Manual"
+                          md:AsyncImageLoader.Source="{Binding IconUrl}"
+                          mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"
+                          IsVisible="{Binding IconUrl, Converter={x:Static ObjectConverters.IsNotNull}}"
+                          Stretch="UniformToFill"/>
+                      </Border>
+
                       <TextBlock
                         Grid.Column="1" Margin="4,0"
                         VerticalAlignment="Center"
                         Text="{Binding Name}"
                         TextTrimming="CharacterEllipsis"
-                        ToolTip.Tip="{Binding DescriptionKey^, FallbackValue={x:Null}}"/>
+                        ToolTip.Tip="{Binding Description^, FallbackValue={x:Null}}"/>
                       <LucideIcon
                         Grid.Column="2" HorizontalAlignment="Left"
                         Foreground="{DynamicResource WarningColor}"
@@ -174,8 +181,8 @@
 
               <TextBlock
                 Margin="4"
-                IsVisible="{Binding SelectedItem.DescriptionKey, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
-                Text="{Binding SelectedItem.DescriptionKey^, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
+                IsVisible="{Binding SelectedItem.Description, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
+                Text="{Binding SelectedItem.Description^, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
                 TextWrapping="Wrap"/>
 
               <Border
@@ -321,6 +328,7 @@
                         Orientation="Horizontal" Spacing="4">
                         <TextBlock Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputPrice_Header}}"/>
                         <LucideIcon
+                          IsVisible="{Binding SelectedItem.SupportsReasoning, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
                           Kind="CircleQuestionMark"
                           Size="{DynamicResource FontSizeS}"
                           ToolTip.Placement="Top"

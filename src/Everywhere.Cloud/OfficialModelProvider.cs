@@ -7,6 +7,7 @@ using Everywhere.AI;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Extensions;
+using Everywhere.I18N;
 using Microsoft.Extensions.Logging;
 using ZLinq;
 
@@ -152,6 +153,8 @@ public sealed partial class OfficialModelProvider :
     private sealed record CloudModelDefinition(
         [property: JsonPropertyName("id")] string ModelId,
         [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("icon")] string Icon,
+        [property: JsonPropertyName("description")] JsonDynamicResourceKey? Description,
         [property: JsonPropertyName("reasoning")] bool SupportsReasoning,
         [property: JsonPropertyName("toolCall")] bool SupportsToolCall,
         [property: JsonPropertyName("knowledge")] string? KnowledgeCutoff,
@@ -176,6 +179,8 @@ public sealed partial class OfficialModelProvider :
                 OutputModalities = ConvertModalities(Modalities.Output),
                 ContextLimit = LimitInfo.Context,
                 OutputLimit = LimitInfo.Output,
+                IconUrl = Icon,
+                Description = Description,
                 Pricing = ConvertPricing(Pricing)
             };
 
