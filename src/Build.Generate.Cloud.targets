@@ -17,7 +17,7 @@
       <CloudCode Include="public const string AuthBaseUrl = &quot;$(AuthBaseUrl)&quot;%3B"/>
       <CloudCode Include="public const string DashboardUrl = &quot;$(AuthBaseUrl)/dashboard&quot;%3B"/>
       <CloudCode Include="public const string ManageSubscriptionUrl = &quot;$(AuthBaseUrl)/everywhere&quot;%3B"/>
-      <CloudCode Include="public const string GetSupportUrl = &quot;$(AuthBaseUrl)/everywhere?tab=support&quot;%3B"/>
+      <CloudCode Include="public const string GetSupportUrl = &quot;$(AuthBaseUrl)/everywhere%3Ftab=support&quot;%3B"/>
       <CloudCode Include="public const string AIGatewayBaseUrl = &quot;$(AIGatewayBaseUrl)&quot;%3B"/>
       <CloudCode Include="public const string CloudSyncBaseUrl = &quot;$(CloudSyncBaseUrl)&quot;%3B"/>
       <CloudCode Include="}"/>
