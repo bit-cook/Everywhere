@@ -375,7 +375,7 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
     {
         if (plugin is null) return;
 
-        await Clipboard.SetTextAsync(string.Join('\n', plugin.LogEntries));
+        await App.Clipboard.SetTextAsync(string.Join('\n', plugin.LogEntries));
         ToastManager
             .CreateToast("Logs copied to clipboard.")
             .OnBottomRight()

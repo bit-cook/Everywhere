@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
-using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
@@ -41,7 +40,6 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
     [ObservableProperty]
     public partial SubscriptionInformation? Subscription { get; private set; }
 
-    private readonly ILauncher _launcher;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OAuthCloudClient> _logger;
 
@@ -52,9 +50,8 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
     // Concurrency control for the UI entry point to prevent multiple login windows
     private readonly SemaphoreSlim _loginLock = new(1, 1);
 
-    public OAuthCloudClient(ILauncher launcher, IHttpClientFactory httpClientFactory, ILogger<OAuthCloudClient> logger)
+    public OAuthCloudClient(IHttpClientFactory httpClientFactory, ILogger<OAuthCloudClient> logger)
     {
-        _launcher = launcher;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
 
@@ -82,7 +79,7 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
 
             var authorizeUrl = flow.BuildAuthorizeUrl();
             _logger.LogDebug("Starting login flow. Auth URL: {AuthorizeUrl}", authorizeUrl);
-            await _launcher.LaunchUriAsync(new Uri(authorizeUrl));
+            await App.Launcher.LaunchUriAsync(new Uri(authorizeUrl));
 
             // Wait for the OS protocol callback or timeout (managed entirely within the flow context)
             var tokenData = await flow.WaitForCodeAndExchangeAsync();

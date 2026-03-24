@@ -10,7 +10,6 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Chat;
-using Everywhere.Common;
 using Everywhere.Interop;
 using ZLinq;
 #if DEBUG
@@ -182,7 +181,7 @@ public partial class VisualTreeDebugger : UserControl
             var filename = $"visual_tree_{timestamp}.{extension}";
             var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, filename);
             await File.WriteAllTextAsync(filePath, visualTree);
-            await ServiceLocator.Resolve<ILauncher>().LaunchFileInfoAsync(new FileInfo(filePath));
+            await App.Launcher.LaunchFileInfoAsync(new FileInfo(filePath));
         }
 #if DEBUG
         catch (Exception ex)

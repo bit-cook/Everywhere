@@ -50,7 +50,6 @@ public partial class ChatWindow :
 
     private static Size DefaultSize => new(400d, 600d);
 
-    private readonly ILauncher _launcher;
     private readonly IWindowHelper _windowHelper;
     private readonly Settings _settings;
     private readonly PersistentState _persistentState;
@@ -66,12 +65,10 @@ public partial class ChatWindow :
     private bool _canCloseWindow;
 
     public ChatWindow(
-        ILauncher launcher,
         IWindowHelper windowHelper,
         Settings settings,
         PersistentState persistentState)
     {
-        _launcher = launcher;
         _windowHelper = windowHelper;
         _settings = settings;
         _persistentState = persistentState;
@@ -359,10 +356,10 @@ public partial class ChatWindow :
     }
 
     [RelayCommand]
-    private Task LaunchLink(LinkClickedEventArgs e)
+    private static Task LaunchLink(LinkClickedEventArgs e)
     {
         // currently we only support http(s) links for safety reasons
-        return e.HRef is not { Scheme: "http" or "https" } uri ? Task.CompletedTask : _launcher.LaunchUriAsync(uri);
+        return e.HRef is not { Scheme: "http" or "https" } uri ? Task.CompletedTask : App.Launcher.LaunchUriAsync(uri);
     }
 
     private void HandleDragEnter(object? sender, DragEventArgs e)

@@ -10,7 +10,6 @@ using ShadUI;
 namespace Everywhere.Views;
 
 public partial class DebugFeaturesControl(
-    ILauncher launcher,
     ToastManager toastManager,
     ILogger<DebugFeaturesControl> logger)
     : TemplatedControl
@@ -21,7 +20,7 @@ public partial class DebugFeaturesControl(
         try
         {
             var settingsPath = Path.Combine(RuntimeConstants.WritableDataPath, "settings.json");
-            var launched = await launcher.LaunchFileInfoAsync(new FileInfo(settingsPath));
+            var launched = await App.Launcher.LaunchFileInfoAsync(new FileInfo(settingsPath));
             if (!launched)
             {
                 throw new InvalidOperationException($"Unable to launch: {settingsPath}");
@@ -46,7 +45,7 @@ public partial class DebugFeaturesControl(
         try
         {
             var logsPath = RuntimeConstants.EnsureWritableDataFolderPath("logs");
-            var launched = await launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(logsPath));
+            var launched = await App.Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(logsPath));
             if (!launched)
             {
                 throw new InvalidOperationException($"Unable to launch: {logsPath}");
@@ -126,7 +125,7 @@ public partial class DebugFeaturesControl(
                 }
             }
 
-            await launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(dumpsPath));
+            await App.Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(dumpsPath));
 #endif
         }
         catch (Exception ex)

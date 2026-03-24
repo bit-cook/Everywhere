@@ -1,6 +1,4 @@
-﻿using Avalonia.Input.Platform;
-using Avalonia.Platform.Storage;
-using Everywhere.AI;
+﻿using Everywhere.AI;
 using Everywhere.Chat;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
@@ -18,19 +16,12 @@ public static class ServiceExtension
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddAvaloniaBasicServices() =>
-            services
+        public IServiceCollection AddAvaloniaBasicServices()
+        {
+            return services
                 .AddDialogManagerAndToastManager()
-                .AddDialogAndToastExceptionHandler()
-                .AddTransient<IClipboard>(_ =>
-                    Application.Current.As<App>()?.TopLevel.Clipboard ??
-                    throw new InvalidOperationException("Clipboard is not available."))
-                .AddTransient<IStorageProvider>(_ =>
-                    Application.Current.As<App>()?.TopLevel.StorageProvider ??
-                    throw new InvalidOperationException("StorageProvider is not available."))
-                .AddTransient<ILauncher>(_ =>
-                    Application.Current.As<App>()?.TopLevel.Launcher ??
-                    throw new InvalidOperationException("Launcher is not available."));
+                .AddDialogAndToastExceptionHandler();
+        }
 
         public IServiceCollection AddViewsAndViewModels() =>
             services

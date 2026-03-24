@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Common;
@@ -26,6 +27,17 @@ public abstract class ReactiveViewModelBase : ObservableValidator
         private set;
     }
 
+    protected IClipboard Clipboard =>
+        _topLevelImpl?.TryGetFeature<IClipboard>() ?? throw new InvalidOperationException("Clipboard is not available.");
+    protected IStorageProvider StorageProvider =>
+        _topLevelImpl?.TryGetFeature<IStorageProvider>() ?? throw new InvalidOperationException("StorageProvider is not available.");
+    protected ILauncher Launcher =>
+        _topLevelImpl?.TryGetFeature<ILauncher>() ?? throw new InvalidOperationException("Launcher is not available.");
+    protected IScreenImpl ScreenImpl =>
+        _topLevelImpl?.TryGetFeature<IScreenImpl>() ?? throw new InvalidOperationException("ScreenImpl is not available.");
+
+    private ITopLevelImpl? _topLevelImpl;
+
     protected AnonymousExceptionHandler DialogExceptionHandler => new((exception, message, source, lineNumber) =>
         DialogManager.CreateDialog(exception.GetFriendlyMessage().ToString() ?? "Unknown error", $"[{source}:{lineNumber}] {message ?? "Error"}"));
 
@@ -34,10 +46,6 @@ public abstract class ReactiveViewModelBase : ObservableValidator
             .WithContent(exception.GetFriendlyMessage().ToTextBlock())
             .DismissOnClick()
             .ShowError());
-
-    protected IClipboard Clipboard { get; private set; } = ServiceLocator.Resolve<IClipboard>();
-
-    protected IStorageProvider StorageProvider { get; private set; } = ServiceLocator.Resolve<IStorageProvider>();
 
     /// <summary>
     /// Invoked when the view's <see cref="Control.Loaded"/> event is raised.
@@ -70,16 +78,11 @@ public abstract class ReactiveViewModelBase : ObservableValidator
             try
             {
                 var topLevel = TopLevel.GetTopLevel(target);
-                if (topLevel is not null)
+                _topLevelImpl = topLevel?.PlatformImpl;
+                if (topLevel is IReactiveHost reactiveHost)
                 {
-                    if (topLevel.Clipboard is { } clipboard) Clipboard = clipboard;
-                    StorageProvider = topLevel.StorageProvider;
-
-                    if (topLevel is IReactiveHost reactiveHost)
-                    {
-                        DialogManager = reactiveHost.DialogHost.Manager;
-                        ToastManager = reactiveHost.ToastHost.Manager;
-                    }
+                    DialogManager = reactiveHost.DialogHost.Manager;
+                    ToastManager = reactiveHost.ToastHost.Manager;
                 }
 
                 await ViewLoaded(cancellationTokenSource.Token);
@@ -92,9 +95,11 @@ public abstract class ReactiveViewModelBase : ObservableValidator
 
         target.Unloaded += async (_, _) =>
         {
+            _topLevelImpl = null;
+            cancellationTokenSource.Cancel();
+
             try
             {
-                cancellationTokenSource.Cancel();
                 await ViewUnloaded();
             }
             catch (Exception e)

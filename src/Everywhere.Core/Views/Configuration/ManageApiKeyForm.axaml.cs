@@ -73,7 +73,7 @@ public sealed partial class ManageApiKeyForm : TemplatedControl, IDisposable
         {
             if (SecretKey is not { Length: > 0 } secretKey) return;
 
-            await ServiceLocator.Resolve<IClipboard>().SetTextAsync(secretKey);
+            await App.Clipboard.SetTextAsync(secretKey);
             ServiceLocator.Resolve<ToastManager>()
                 .CreateToast(LocaleResolver.Common_Copied)
                 .OnBottomRight()

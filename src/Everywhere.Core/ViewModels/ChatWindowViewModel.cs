@@ -696,7 +696,7 @@ public sealed partial class ChatWindowViewModel :
             .OnBottomRight()
             .ShowSuccess();
 
-        await ServiceLocator.Resolve<ILauncher>().LaunchFileInfoAsync(new FileInfo(exportPath));
+        await Launcher.LaunchFileInfoAsync(new FileInfo(exportPath));
     }
 
     public void Receive(ChatContextMetadataChangedMessage message)

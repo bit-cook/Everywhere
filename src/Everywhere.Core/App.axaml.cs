@@ -4,7 +4,10 @@ using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
+using Avalonia.Input.Platform;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
+using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.AttachedProperties;
@@ -22,12 +25,19 @@ namespace Everywhere;
 public class App : Application, IRecipient<ApplicationCommand>
 {
     public static string Version => typeof(TransientWindow).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+    public static IClipboard Clipboard =>
+        _topLevelImpl?.TryGetFeature<IClipboard>() ?? throw new InvalidOperationException("Clipboard is not available.");
+    public static IStorageProvider StorageProvider =>
+        _topLevelImpl?.TryGetFeature<IStorageProvider>() ?? throw new InvalidOperationException("StorageProvider is not available.");
+    public static ILauncher Launcher =>
+        _topLevelImpl?.TryGetFeature<ILauncher>() ?? throw new InvalidOperationException("Launcher is not available.");
+    public static IScreenImpl ScreenImpl =>
+        _topLevelImpl?.TryGetFeature<IScreenImpl>() ?? throw new InvalidOperationException("ScreenImpl is not available.");
 
-    public static ThemeManager ThemeManager => _themeManager ?? throw new InvalidOperationException("ThemeManager is not initialized.");
+    public static ThemeManager ThemeManager => _themeManager ?? throw new InvalidOperationException("Application is not initialized.");
 
+    private static ITopLevelImpl? _topLevelImpl;
     private static ThemeManager? _themeManager;
-
-    public TopLevel TopLevel { get; } = new Window();
 
     private TransientWindow? _mainWindow, _debugWindow;
 
@@ -36,6 +46,8 @@ public class App : Application, IRecipient<ApplicationCommand>
         InitializeErrorHandler();
 
         AvaloniaXamlLoader.Load(this);
+
+        _topLevelImpl = new Window().PlatformImpl ?? throw new InvalidOperationException("Application is not initialized correctly.");
 
 #if DEBUG
         if (Design.IsDesignMode)
