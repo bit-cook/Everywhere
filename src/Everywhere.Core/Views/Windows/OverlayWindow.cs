@@ -26,7 +26,11 @@ public class OverlayWindow : Window
 
     protected override void OnClosing(WindowClosingEventArgs e)
     {
-        if (e.CloseReason != WindowCloseReason.WindowClosing) e.Cancel = true;
+        if (e.CloseReason is not WindowCloseReason.ApplicationShutdown and not WindowCloseReason.OSShutdown)
+        {
+            e.Cancel = true;
+        }
+
         base.OnClosing(e);
     }
 
