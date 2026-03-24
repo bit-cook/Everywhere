@@ -61,11 +61,11 @@ public partial class VisualElementContext
                 // This might be heavy if many screens or high res, but it is necessary for "freeze" effect.
                 try
                 {
-                    var bitmap = CaptureScreen(screen.Bounds);
-                    if (bitmap is not null)
+                    using var pointer = CaptureScreen(screen.Bounds);
+                    if (pointer is not null)
                     {
-                        maskWindow.SetImage(bitmap);
-                        _disposables.Add(bitmap);
+                        maskWindow.SetImage(pointer.ToAvaloniaBitmap());
+                        _disposables.Add(pointer);
                     }
                 }
                 catch
@@ -125,7 +125,8 @@ public partial class VisualElementContext
 
             // Hide ToolTip and capture
             WindowHelper.SetCloaked(ToolTipWindow, true);
-            _resultBitmap = CaptureScreen(captureRect);
+            using var resultPointer = CaptureScreen(captureRect);
+            _resultBitmap = resultPointer?.ToAvaloniaBitmap();
             return true; // Close
         }
 

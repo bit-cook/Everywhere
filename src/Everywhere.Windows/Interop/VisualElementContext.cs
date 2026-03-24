@@ -93,7 +93,7 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
     /// </summary>
     /// <param name="rect"></param>
     /// <returns></returns>
-    private static Bitmap? CaptureScreen(PixelRect rect)
+    private static Win32BitmapDataPointer? CaptureScreen(PixelRect rect)
     {
         var x = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_XVIRTUALSCREEN);
         var y = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_YVIRTUALSCREEN);
@@ -113,26 +113,72 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
             graphics.CopyFromScreen(rect.X, rect.Y, 0, 0, new Size(rect.Width, rect.Height));
         }
 
-        var data = gdiBitmap.LockBits(
-            new Rectangle(0, 0, gdiBitmap.Width, gdiBitmap.Height),
-            ImageLockMode.ReadOnly,
-            PixelFormat.Format32bppArgb);
-        Bitmap bitmap;
-        try
+        return new Win32BitmapDataPointer(gdiBitmap, new Vector(96, 96));
+    }
+
+    /// <summary>
+    /// A disposable wrapper that holds a System.Drawing.Bitmap and its locked BitmapData.
+    /// Exposes the raw memory pointer to be consumed by other rendering engines (like Avalonia or Skia).
+    /// </summary>
+    private sealed class Win32BitmapDataPointer : IVisualElement.IBitmapDataPointer
+    {
+        public Avalonia.Platform.PixelFormat Format { get; }
+        public AlphaFormat AlphaFormat { get; }
+        public nint Data => _bitmapData?.Scan0 ?? IntPtr.Zero;
+        public PixelSize Size { get; }
+        public Vector Dpi { get; }
+        public int Stride => _bitmapData?.Stride ?? 0;
+
+        private readonly System.Drawing.Bitmap _gdiBitmap;
+        private BitmapData? _bitmapData;
+        private bool _disposed;
+
+        /// <summary>
+        /// Initializes a new instance of the pointer, taking ownership of the provided GDI+ bitmap.
+        /// </summary>
+        public Win32BitmapDataPointer(System.Drawing.Bitmap gdiBitmap, Vector dpi)
         {
-            bitmap = new Bitmap(
-                Avalonia.Platform.PixelFormat.Bgra8888,
-                AlphaFormat.Opaque,
-                data.Scan0,
-                rect.Size,
-                new Vector(96d, 96d),
-                data.Stride);
-        }
-        finally
-        {
-            gdiBitmap.UnlockBits(data);
+            _gdiBitmap = gdiBitmap;
+            _bitmapData = _gdiBitmap.LockBits(
+                new Rectangle(0, 0, _gdiBitmap.Width, _gdiBitmap.Height),
+                ImageLockMode.ReadOnly,
+                PixelFormat.Format32bppArgb);
+
+            Size = new PixelSize(_gdiBitmap.Width, _gdiBitmap.Height);
+            Dpi = dpi;
+
+            // Format32bppArgb maps directly to Bgra8888 on little-endian Windows
+            Format = Avalonia.Platform.PixelFormat.Bgra8888;
+            AlphaFormat = AlphaFormat.Opaque;
         }
 
-        return bitmap;
+        ~Win32BitmapDataPointer()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (_disposed) return;
+
+            if (_bitmapData != null)
+            {
+                _gdiBitmap.UnlockBits(_bitmapData);
+                _bitmapData = null;
+            }
+
+            if (disposing)
+            {
+                _gdiBitmap.Dispose();
+            }
+
+            _disposed = true;
+        }
     }
 }

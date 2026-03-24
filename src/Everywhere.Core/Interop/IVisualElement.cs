@@ -1,4 +1,6 @@
 ﻿using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using SkiaSharp;
 
 namespace Everywhere.Interop;
 
@@ -250,13 +252,25 @@ public interface IVisualElement
     /// </summary>
     void SendShortcut(KeyboardShortcut shortcut);
 
-    // /// <summary>
-    // /// Get the selected text of the visual element.
-    // /// </summary>
-    // /// <returns></returns>
-    // string? GetSelectionText();
+    Task<IBitmapDataPointer> CaptureAsync(CancellationToken cancellationToken);
 
-    Task<Bitmap> CaptureAsync(CancellationToken cancellationToken);
+    /// <summary>
+    /// Gets a pointer to the bitmap data of the visual element along with metadata.
+    /// </summary>
+    interface IBitmapDataPointer : IDisposable
+    {
+        PixelFormat Format { get; }
+
+        AlphaFormat AlphaFormat { get; }
+
+        nint Data { get; }
+
+        PixelSize Size { get; }
+
+        Vector Dpi { get; }
+
+        int Stride { get; }
+    }
 }
 
 public static class VisualElementExtension
@@ -287,6 +301,47 @@ public static class VisualElementExtension
             {
                 yield return current;
                 current = current.Parent;
+            }
+        }
+    }
+
+    extension(IVisualElement.IBitmapDataPointer pointer)
+    {
+        public Bitmap ToAvaloniaBitmap() => new(
+            pointer.Format,
+            pointer.AlphaFormat,
+            pointer.Data,
+            pointer.Size,
+            pointer.Dpi,
+            pointer.Stride);
+
+        public SKImage ToSKImage()
+        {
+            var info = new SKImageInfo(pointer.Size.Width, pointer.Size.Height, ToSkColorType(pointer.Format), ToSkAlphaType(pointer.AlphaFormat));
+            return SKImage.FromPixels(info, pointer.Data, pointer.Stride);
+
+            static SKColorType ToSkColorType(PixelFormat fmt)
+            {
+                if (fmt == PixelFormat.Rgb565)
+                    return SKColorType.Rgb565;
+                if (fmt == PixelFormat.Bgra8888)
+                    return SKColorType.Bgra8888;
+                if (fmt == PixelFormat.Rgba8888)
+                    return SKColorType.Rgba8888;
+                if (fmt == PixelFormat.Rgb32)
+                    return SKColorType.Rgb888x;
+                throw new ArgumentException("Unknown pixel format: " + fmt);
+            }
+
+            static SKAlphaType ToSkAlphaType(AlphaFormat fmt)
+            {
+                return fmt switch
+                {
+                    AlphaFormat.Premul => SKAlphaType.Premul,
+                    AlphaFormat.Unpremul => SKAlphaType.Unpremul,
+                    AlphaFormat.Opaque => SKAlphaType.Opaque,
+                    _ => throw new ArgumentException($"Unknown alpha format: {fmt}")
+                };
             }
         }
     }

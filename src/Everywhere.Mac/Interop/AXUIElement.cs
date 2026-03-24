@@ -1,9 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Avalonia;
-using Avalonia.Media.Imaging;
 using CoreFoundation;
 using Everywhere.Interop;
-using ImageIO;
 using ObjCRuntime;
 
 namespace Everywhere.Mac.Interop;
@@ -244,7 +242,7 @@ public partial class AXUIElement : NSObject, IVisualElement
     /// <returns></returns>
     public string? GetSelectionText() => GetAttribute<NSObject>(AXAttributeConstants.SelectedText)?.ToString();
 
-    public Task<Bitmap> CaptureAsync(CancellationToken cancellationToken)
+    public Task<IVisualElement.IBitmapDataPointer> CaptureAsync(CancellationToken cancellationToken)
     {
         var bounds = BoundingRectangle;
         var rect = new CGRect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
@@ -261,81 +259,65 @@ public partial class AXUIElement : NSObject, IVisualElement
 
         if (cgImage is null)
         {
-            return Task.FromException<Bitmap>(new InvalidOperationException("Failed to capture screen image."));
+            return Task.FromException<IVisualElement.IBitmapDataPointer>(new InvalidOperationException("Failed to capture screen image."));
         }
 
-        using var data = new NSMutableData();
-        using var dest = CGImageDestination.Create(data, "public.png", 1);
-
-        if (dest is null)
+        if (rect.IsEmpty)
         {
-            return Task.FromException<Bitmap>(new InvalidOperationException("Failed to create image destination."));
+            return Task.FromResult<IVisualElement.IBitmapDataPointer>(new BitmapDataPointer(cgImage, 1d));
         }
 
-        if (!rect.IsEmpty)
+        var screen = NSScreen.Screens.FirstOrDefault(s => s.Frame.IntersectsWith(rect));
+        var scale = screen?.BackingScaleFactor ?? 1.0;
+
+        // cgImage captures the window content starting at (0,0) in Window Local Coordinates.
+        // rect contains Screen Coordinates (including Dock/Menu bar offsets).
+        // To crop correctly, we must transform rect to Window-Relative coordinates.
+        double windowX = 0;
+        double windowY = 0;
+
+        // Try to find the parent window to get its screen position.
+        var windowRef = GetAttributeAsElement(AXAttributeConstants.Window);
+        if (windowRef != null)
         {
-            var screen = NSScreen.Screens.FirstOrDefault(s => s.Frame.IntersectsWith(rect));
-            var scale = screen?.BackingScaleFactor ?? 1.0;
-
-            // cgImage captures the window content starting at (0,0) in Window Local Coordinates.
-            // rect contains Screen Coordinates (including Dock/Menu bar offsets).
-            // To crop correctly, we must transform rect to Window-Relative coordinates.
-            double windowX = 0;
-            double windowY = 0;
-
-            // Try to find the parent window to get its screen position.
-            var windowRef = GetAttributeAsElement(AXAttributeConstants.Window);
-            if (windowRef != null)
-            {
-                var wRect = windowRef.BoundingRectangle;
-                windowX = wRect.X;
-                windowY = wRect.Y;
-            }
-            else if (Role == AXRoleAttribute.AXWindow)
-            {
-                // Fallback: if we are the window itself
-                windowX = rect.X;
-                windowY = rect.Y;
-            }
-
-            // Check if captured image approximately matches target size (allowing for rounding/shadows).
-            // If it matches, we assume full window capture and start at 0,0.
-            var targetWidth = rect.Width * scale;
-            var isFullWindow = cgImage.Width >= targetWidth - 2 && cgImage.Width <= targetWidth + 100;
-
-            // If full window, offset is 0. 
-            // If partial (element inside window), offset is (ElementScreenPos - WindowScreenPos).
-            var cropX = isFullWindow ? 0 : (rect.X - windowX) * scale;
-            var cropY = isFullWindow ? 0 : (rect.Y - windowY) * scale;
-
-            // Clamp invalid values
-            if (cropX < 0) cropX = 0;
-            if (cropY < 0) cropY = 0;
-
-            using var croppedImage = cgImage.WithImageInRect(
-                new CGRect(
-                    cropX,
-                    cropY,
-                    rect.Width * scale,
-                    rect.Height * scale));
-
-            if (croppedImage is null)
-            {
-                return Task.FromException<Bitmap>(new InvalidOperationException("Failed to crop image."));
-            }
-
-            dest.AddImage(croppedImage);
-            dest.Close();
-
-            // after this, we can safely dispose data
-            return Task.FromResult(new Bitmap(data.AsStream()));
+            var wRect = windowRef.BoundingRectangle;
+            windowX = wRect.X;
+            windowY = wRect.Y;
+        }
+        else if (Role == AXRoleAttribute.AXWindow)
+        {
+            // Fallback: if we are the window itself
+            windowX = rect.X;
+            windowY = rect.Y;
         }
 
-        dest.AddImage(cgImage);
-        dest.Close();
+        // Check if captured image approximately matches target size (allowing for rounding/shadows).
+        // If it matches, we assume full window capture and start at 0,0.
+        var targetWidth = rect.Width * scale;
+        var isFullWindow = cgImage.Width >= targetWidth - 2 && cgImage.Width <= targetWidth + 100;
 
-        // after this, we can safely dispose data
-        return Task.FromResult(new Bitmap(data.AsStream()));
+        // If full window, offset is 0.
+        // If partial (element inside window), offset is (ElementScreenPos - WindowScreenPos).
+        var cropX = isFullWindow ? 0 : (rect.X - windowX) * scale;
+        var cropY = isFullWindow ? 0 : (rect.Y - windowY) * scale;
+
+        // Clamp invalid values
+        if (cropX < 0) cropX = 0;
+        if (cropY < 0) cropY = 0;
+
+        using var croppedImage = cgImage.WithImageInRect(
+            new CGRect(
+                cropX,
+                cropY,
+                rect.Width * scale,
+                rect.Height * scale));
+
+        if (croppedImage is null)
+        {
+            return Task.FromException<IVisualElement.IBitmapDataPointer>(new InvalidOperationException("Failed to crop image."));
+        }
+
+        return Task.FromResult<IVisualElement.IBitmapDataPointer>(new BitmapDataPointer(croppedImage, scale));
     }
 
     public bool SetAttribute(NSString attributeName, NSObject value)

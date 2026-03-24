@@ -129,7 +129,9 @@ public partial class VisualTreeDebugger : UserControl
         try
         {
             if (VisualTreeView.SelectedItem is not IVisualElement selectedItem) return;
-            CaptureImage.Source = await selectedItem.CaptureAsync(CancellationToken.None);
+
+            using var pointer = await selectedItem.CaptureAsync(CancellationToken.None);
+            CaptureImage.Source = pointer.ToAvaloniaBitmap();
         }
         catch (Exception ex)
         {

@@ -1,9 +1,8 @@
 using Avalonia;
-using Avalonia.Threading;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using Everywhere.Interop;
 using Everywhere.Utilities;
-using System.Threading;
 
 namespace Everywhere.Linux.Interop;
 
@@ -196,7 +195,8 @@ public partial class VisualElementContext
 
                 // Use the backend's Capture method which handles X11 screenshot via XGetImage
                 // The backend will capture from the root window (screen)
-                return Backend.Capture(null, rect);
+                using var pointer = Backend.Capture(null, rect);
+                return pointer.ToAvaloniaBitmap();
             }
             catch (Exception)
             {

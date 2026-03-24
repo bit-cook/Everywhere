@@ -8,7 +8,6 @@ using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Avalonia;
 using Avalonia.Input;
-using Avalonia.Media.Imaging;
 using Everywhere.Extensions;
 using Everywhere.Interop;
 using Everywhere.Windows.Extensions;
@@ -194,24 +193,7 @@ public partial class VisualElementContext
             }
         }
 
-        public PixelRect BoundingRectangle
-        {
-            get
-            {
-                try
-                {
-                    return _element.BoundingRectangle.To(r => new PixelRect(
-                        r.X,
-                        r.Y,
-                        r.Width,
-                        r.Height));
-                }
-                catch
-                {
-                    return default;
-                }
-            }
-        }
+        public PixelRect BoundingRectangle => GetBoundingRectangle(_element);
 
         public int ProcessId { get; } = element.FrameworkAutomationElement.ProcessId.ValueOrDefault;
 
@@ -569,30 +551,59 @@ public partial class VisualElementContext
         }
 
         // BUG: For a minimized window, the captured image is buggy (but child elements are fine).
-        public Task<Bitmap> CaptureAsync(CancellationToken cancellationToken)
+        public Task<IVisualElement.IBitmapDataPointer> CaptureAsync(CancellationToken cancellationToken)
         {
             var rect = BoundingRectangle;
             if (rect.Width <= 0 || rect.Height <= 0)
                 throw new InvalidOperationException("Cannot capture an element with zero width or height.");
 
-            if (TryGetAncestorWithNativeWindowHandle(_element, out var hWnd) is null ||
-                (hWnd = PInvoke.GetAncestor((HWND)hWnd, GET_ANCESTOR_FLAGS.GA_ROOTOWNER)) == 0)
-                throw new InvalidOperationException("Cannot capture an element without a valid window handle.");
+            var element = _element;
+            var hWnd = element.FrameworkAutomationElement.NativeWindowHandle.ValueOrDefault;
+            while (!IsTopLevelHWnd((HWND)hWnd))
+            {
+                // Get the window position of the toplevel
+                element = TreeWalker.GetParent(element);
+                if (element == null)
+                {
+                    throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to find the hwnd of the element.");
+                }
 
-            if (!PInvoke.GetWindowRect((HWND)hWnd, out var windowRect))
-                throw new Win32Exception(Marshal.GetLastWin32Error());
+                hWnd = element.FrameworkAutomationElement.NativeWindowHandle.ValueOrDefault;
+            }
+
+            var windowPosition = GetBoundingRectangle(element).To(r => new PixelPoint(r.X, r.Y));
+            if (hWnd == 0)
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to find the hwnd of the element.");
+            }
 
             return Direct3D11ScreenCapture.CaptureAsync(
                 hWnd,
                 new PixelRect(
-                    rect.X - windowRect.X,
-                    rect.Y - windowRect.Y,
+                    rect.X - windowPosition.X,
+                    rect.Y - windowPosition.Y,
                     rect.Width,
                     rect.Height),
                 cancellationToken);
         }
 
         #region Interop
+
+        private static PixelRect GetBoundingRectangle(AutomationElement element)
+        {
+            try
+            {
+                return element.BoundingRectangle.To(r => new PixelRect(
+                    r.X,
+                    r.Y,
+                    r.Width,
+                    r.Height));
+            }
+            catch
+            {
+                return default;
+            }
+        }
 
         /// <summary>
         ///     Attempts to find the nearest ancestor element that has a native window handle (HWND).
@@ -622,9 +633,14 @@ public partial class VisualElementContext
         /// <remarks>
         ///     e.g. A control inside a window or a non-win32 element will return false.
         /// </remarks>
-        public bool IsTopLevelWindow =>
-            NativeWindowHandle != IntPtr.Zero &&
-            PInvoke.GetAncestor((HWND)NativeWindowHandle, GET_ANCESTOR_FLAGS.GA_ROOTOWNER) == NativeWindowHandle;
+        public bool IsTopLevelWindow => IsTopLevelHWnd((HWND)NativeWindowHandle);
+
+        private static bool IsTopLevelHWnd(HWND hWnd)
+        {
+            if (hWnd == HWND.Null) return false;
+            var style = PInvoke.GetWindowLong(hWnd, WINDOW_LONG_PTR_INDEX.GWL_STYLE);
+            return (style & (int)WINDOW_STYLE.WS_CHILD) == 0;
+        }
 
         #endregion
 

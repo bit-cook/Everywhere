@@ -134,12 +134,12 @@ public class VisualContextPlugin : BuiltInChatPlugin
         CancellationToken cancellationToken = default)
     {
         var element = ResolveTargetElement(chatContext, target);
-        var bitmap = await element.CaptureAsync(cancellationToken);
+        using var pointer = await element.CaptureAsync(cancellationToken);
 
         BlobEntity blob;
         using (var stream = new MemoryStream())
         {
-            bitmap.Save(stream, 100);
+            pointer.ToAvaloniaBitmap().Save(stream, 100);
             blob = await _blobStorage.StorageBlobAsync(stream, "image/png", cancellationToken);
         }
 
