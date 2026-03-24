@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Xaml.Interactivity;
 
-namespace Everywhere.Behaviors;
+namespace Everywhere.Interactions;
 
 public enum AutoScrollBehaviorMode
 {

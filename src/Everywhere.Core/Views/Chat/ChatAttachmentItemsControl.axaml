@@ -1,6 +1,7 @@
 <ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:chat="clr-namespace:Everywhere.Chat" xmlns:v="using:Everywhere.Views">
+  xmlns:chat="clr-namespace:Everywhere.Chat" xmlns:in="clr-namespace:Everywhere.Interactions"
+  xmlns:v="using:Everywhere.Views">
   <ControlTheme
     x:Key="{x:Type v:ChatAttachmentItemsControl}"
     TargetType="v:ChatAttachmentItemsControl">
@@ -35,7 +36,16 @@
                 BorderBrush="{DynamicResource BorderColor}"
                 BorderThickness="1"
                 Classes.Primary="{Binding IsPrimary}"
-                CornerRadius="4">
+                CornerRadius="4"
+                Opacity="{Binding Opacity}">
+                <Interaction.Behaviors>
+                  <in:MiddleClickEventTrigger>
+                    <!--  Middle click to close  -->
+                    <InvokeCommandAction
+                      Command="{Binding $parent[v:ChatAttachmentItemsControl].RemoveCommand}"
+                      CommandParameter="{Binding}"/>
+                  </in:MiddleClickEventTrigger>
+                </Interaction.Behaviors>
 
                 <DockPanel
                   Margin="6,0" ClipToBounds="False"
@@ -91,7 +101,16 @@
                 BorderBrush="{DynamicResource BorderColor}"
                 BorderThickness="1"
                 Classes.Primary="{Binding IsPrimary}"
-                CornerRadius="4">
+                CornerRadius="4"
+                Opacity="{Binding Opacity}">
+                <Interaction.Behaviors>
+                  <in:MiddleClickEventTrigger>
+                    <!--  Middle click to close  -->
+                    <InvokeCommandAction
+                      Command="{Binding $parent[v:ChatAttachmentItemsControl].RemoveCommand}"
+                      CommandParameter="{Binding}"/>
+                  </in:MiddleClickEventTrigger>
+                </Interaction.Behaviors>
 
                 <DockPanel
                   Margin="6,0" ClipToBounds="False"

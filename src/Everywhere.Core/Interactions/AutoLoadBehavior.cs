@@ -6,7 +6,7 @@ using Avalonia.Xaml.Interactivity;
 using Everywhere.Common;
 using Everywhere.Utilities;
 
-namespace Everywhere.Behaviors;
+namespace Everywhere.Interactions;
 
 public class AutoLoadBehavior : Behavior<Control>
 {

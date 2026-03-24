@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Rendering.Composition;
 using Avalonia.Xaml.Interactivity;
 
-namespace Everywhere.Behaviors;
+namespace Everywhere.Interactions;
 
 public class FadeInAnimationBehavior : Behavior<Visual>
 {
