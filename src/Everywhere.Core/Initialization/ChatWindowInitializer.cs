@@ -96,7 +96,7 @@ public class ChatWindowInitializer(
                     hWnd = null;
                 }
 
-                Dispatcher.UIThread.InvokeAsync(() =>
+                Dispatcher.UIThread.Post(() =>
                 {
                     if (chatWindow.IsVisible && chatWindowHandle == hWnd)
                     {
@@ -115,7 +115,7 @@ public class ChatWindowInitializer(
     {
         RegisterShortcutListener(
             shortcut,
-            () => Dispatcher.UIThread.InvokeAsync(() => chatWindowViewModel.PickVisualElementCommand.Execute(null)),
+            () => Dispatcher.UIThread.Post(() => chatWindowViewModel.PickVisualElementCommand.Execute(null)),
             ref _pickElementShortcutSubscription);
     }
 
@@ -123,7 +123,7 @@ public class ChatWindowInitializer(
     {
         RegisterShortcutListener(
             shortcut,
-            () => Dispatcher.UIThread.InvokeAsync(() => chatWindowViewModel.TakeScreenshotCommand.Execute(null)),
+            () => Dispatcher.UIThread.Post(() => chatWindowViewModel.TakeScreenshotCommand.Execute(null)),
             ref _screenshotShortcutSubscription);
     }
 

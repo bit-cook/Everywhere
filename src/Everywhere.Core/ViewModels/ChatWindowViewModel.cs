@@ -800,7 +800,7 @@ public sealed partial class ChatWindowViewModel :
             var context = StrategyContext.FromAttachments(attachments.ToList());
             var strategyGroups = _strategyEngine.GetStrategies(context);
 
-            Dispatcher.UIThread.InvokeAsync(() => StrategiesSnapshot = new StrategiesSnapshot(context, strategyGroups));
+            Dispatcher.UIThread.Post(() => StrategiesSnapshot = new StrategiesSnapshot(context, strategyGroups));
         }
         catch (Exception ex)
         {

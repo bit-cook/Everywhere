@@ -116,7 +116,7 @@ public partial class VisualElementContext
 
             // Pick the element under the cursor immediately
             // Run on next dispatcher loop to ensure the mouse hook is installed & tooltip is shown
-            Dispatcher.UIThread.InvokeAsync(PickCursorElement);
+            Dispatcher.UIThread.Post(PickCursorElement);
         }
 
         private void HandleMouseHook(WINDOW_MESSAGE msg, ref MSLLHOOKSTRUCT hookStruct, ref bool blockNext)
@@ -260,7 +260,7 @@ public partial class VisualElementContext
                 // Restore HitTestVisible so we can catch and absorb the simulated RightUp event.
                 WindowHelper.SetHitTestVisible(this, true);
 
-                Dispatcher.UIThread.InvokeAsync(
+                Dispatcher.UIThread.Post(
                     () =>
                     {
                         // Release the Right Mouse Button.
@@ -282,7 +282,7 @@ public partial class VisualElementContext
                             Unsafe.SizeOf<INPUT>());
 
                         // Dispatch the Close call to ensure the input event is processed first.
-                        Dispatcher.UIThread.InvokeAsync(Close, DispatcherPriority.Background);
+                        Dispatcher.UIThread.Post(Close, DispatcherPriority.Background);
                     },
                     DispatcherPriority.Background);
             }
