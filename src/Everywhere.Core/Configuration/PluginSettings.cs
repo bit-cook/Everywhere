@@ -5,7 +5,7 @@ using Everywhere.Collections;
 
 namespace Everywhere.Configuration;
 
-public partial class PluginSettings : ObservableObject
+public partial class PluginSettings : SettingsBase
 {
     /// <summary>
     /// Gets or sets whether each plugin is enabled.

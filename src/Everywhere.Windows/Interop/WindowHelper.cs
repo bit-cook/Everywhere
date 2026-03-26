@@ -15,7 +15,8 @@ public class WindowHelper : IWindowHelper
     public void SetFocusable(Window window, bool focusable)
     {
         if (window.TryGetPlatformHandle() is not { } handle) return;
-        var windowLong = PInvoke.GetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+        var style = PInvoke.GetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_STYLE);
+        var exStyle = PInvoke.GetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
 
         if (focusable)
         {
@@ -24,8 +25,13 @@ public class WindowHelper : IWindowHelper
 
             PInvoke.SetWindowLong(
                 (HWND)handle.Handle,
+                WINDOW_LONG_PTR_INDEX.GWL_STYLE,
+                style |
+                ~(int)WINDOW_STYLE.WS_DISABLED);
+            PInvoke.SetWindowLong(
+                (HWND)handle.Handle,
                 WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
-                windowLong & ~(
+                exStyle & ~(
                     (int)WINDOW_EX_STYLE.WS_EX_NOACTIVATE |
                     (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW));
         }
@@ -36,17 +42,24 @@ public class WindowHelper : IWindowHelper
 
             PInvoke.SetWindowLong(
                 (HWND)handle.Handle,
+                WINDOW_LONG_PTR_INDEX.GWL_STYLE,
+                style |
+                (int)WINDOW_STYLE.WS_DISABLED);
+            PInvoke.SetWindowLong(
+                (HWND)handle.Handle,
                 WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
-                windowLong |
+                exStyle |
                 (int)WINDOW_EX_STYLE.WS_EX_NOACTIVATE |
                 (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW);
         }
 
         static (uint style, uint exStyle) WindowStylesCallback(uint style, uint exStyle)
         {
-            return (style, exStyle |
-                (uint)WINDOW_EX_STYLE.WS_EX_NOACTIVATE |
-                (uint)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW);
+            return
+            (
+                style | (int)WINDOW_STYLE.WS_DISABLED,
+                exStyle | (uint)WINDOW_EX_STYLE.WS_EX_NOACTIVATE | (uint)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW
+            );
         }
 
         IntPtr WndProcHookCallback(IntPtr hWnd, uint msg, IntPtr wparam, IntPtr lparam, ref bool handled)
@@ -201,15 +214,17 @@ public class WindowHelper : IWindowHelper
         }
 
         // Enumerate all top-level windows to find any owned by our window.
-        PInvoke.EnumWindows((hwnd, _) =>
-        {
-            if (PInvoke.GetWindow(hwnd, GET_WINDOW_CMD.GW_OWNER) != ownerHwnd ||
-                !PInvoke.IsWindowVisible(hwnd) ||
-                !PInvoke.IsWindowEnabled(hwnd)) return true;
+        PInvoke.EnumWindows(
+            (hwnd, _) =>
+            {
+                if (PInvoke.GetWindow(hwnd, GET_WINDOW_CMD.GW_OWNER) != ownerHwnd ||
+                    !PInvoke.IsWindowVisible(hwnd) ||
+                    !PInvoke.IsWindowEnabled(hwnd)) return true;
 
-            dialogFound = true;
-            return false;
-        }, 0);
+                dialogFound = true;
+                return false;
+            },
+            0);
 
         return dialogFound;
     }

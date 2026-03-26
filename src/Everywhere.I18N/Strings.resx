@@ -2550,4 +2550,16 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="OfficialModelDefinitionForm_DeprecationToast_Text" xml:space="preserve">
         <value />
     </data>
+    <data name="ChatWindowSettings_EnableVisualElementPickAnimation_Header" xml:space="preserve">
+        <value>Element Fly-in Effect</value>
+    </data>
+    <data name="ChatWindowSettings_EnableVisualElementPickAnimation_Description" xml:space="preserve">
+        <value>Show a smooth physical trajectory animation when adding an visual element to the chat window.</value>
+    </data>
+    <data name="ChatWindowSettings_EnableContextAnalysisAnimation_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChatWindowSettings_EnableContextAnalysisAnimation_Description" xml:space="preserve">
+        <value />
+    </data>
 </root>

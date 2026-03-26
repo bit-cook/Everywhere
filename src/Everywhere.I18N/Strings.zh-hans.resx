@@ -2554,4 +2554,16 @@
     <data name="OfficialModelDefinitionForm_DeprecationToast_Text" xml:space="preserve">
         <value>当前模型预计于 {0} 下架。</value>
     </data>
+    <data name="ChatWindowSettings_EnableVisualElementPickAnimation_Header" xml:space="preserve">
+        <value>元素飞入特效</value>
+    </data>
+    <data name="ChatWindowSettings_EnableVisualElementPickAnimation_Description" xml:space="preserve">
+        <value>在聊天窗口拾取屏幕视觉元素时，使用带有物理反馈的动画将其抛入聊天窗口。会对性能造成少量影响。</value>
+    </data>
+    <data name="ChatWindowSettings_EnableContextAnalysisAnimation_Header" xml:space="preserve">
+        <value>上下文分析特效</value>
+    </data>
+    <data name="ChatWindowSettings_EnableContextAnalysisAnimation_Description" xml:space="preserve">
+        <value>分析上下文时，使用带有物理反馈的动画将屏幕上被读取的元素抛入聊天窗口。会对性能造成中等影响。</value>
+    </data>
 </root>

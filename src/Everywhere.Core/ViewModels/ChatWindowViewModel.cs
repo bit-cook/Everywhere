@@ -295,11 +295,21 @@ public sealed partial class ChatWindowViewModel :
             if (isOpened || element is not null) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
             if (element is null) return;
             if (_chatAttachmentsSource.Items.OfType<VisualElementAttachment>().Any(a => Equals(a.Element?.Target, element))) return;
-            _chatAttachmentsSource.Add(
-                await Task.Run(
-                    () => VisualElementAttachment.FromVisualElement(element),
-                    cancellationToken
-                ).WaitAsync(TimeSpan.FromSeconds(3), cancellationToken));
+
+            var chatAttachment = await Task.Run(
+                () => VisualElementAttachment.FromVisualElement(element),
+                cancellationToken
+            ).WaitAsync(TimeSpan.FromSeconds(3), cancellationToken);
+
+            if (Settings.ChatWindow.EnableVisualElementPickAnimation)
+            {
+                _chatAttachmentsSource.Add(chatAttachment.With(x => x.Opacity = 0d));
+                await ServiceLocator.Resolve<VisualElementEffect>().RunOnceAsync(element, chatAttachment);
+            }
+            else
+            {
+                _chatAttachmentsSource.Add(chatAttachment);
+            }
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)

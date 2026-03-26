@@ -24,7 +24,8 @@ public partial class ChatWindow :
     ReactiveShadWindow<ChatWindowViewModel>,
     IReactiveHost,
     IRecipient<CloakChatWindowMessage>,
-    IRecipient<ApplicationCommand>
+    IRecipient<ApplicationCommand>,
+    IVisualElementAnimationTarget
 {
     public DialogHost DialogHost => PART_DialogHost;
 
@@ -535,5 +536,19 @@ public partial class ChatWindow :
         }
 
         return false;
+    }
+
+    public bool TryGetAttachmentCenterOnScreen(ChatAttachment attachment, out PixelPoint center)
+    {
+        return ChatInputArea.TryGetAttachmentCenterOnScreen(attachment, out center);
+    }
+
+    public bool TryGetEvaBoundsOnScreen(out PixelRect bounds)
+    {
+        var evaBounds = Eva.Bounds;
+        var p = Eva.PointToScreen(new Point(0, 0));
+        var rightBottom = Eva.PointToScreen(new Point(evaBounds.Width, evaBounds.Height));
+        bounds = new PixelRect(p, rightBottom);
+        return true;
     }
 }

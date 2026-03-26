@@ -1,11 +1,12 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Diagnostics.Metrics;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Chat;
 using Lucide.Avalonia;
 
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class ChatWindowSettings : ObservableObject, ISettingsCategory
+public partial class ChatWindowSettings : SettingsBase, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 3;
@@ -77,11 +78,39 @@ public partial class ChatWindowSettings : ObservableObject, ISettingsCategory
         LocaleKey.ChatWindowSettings_ShowChatStatistics_Description)]
     public partial bool ShowChatStatistics { get; set; } = true;
 
-    // [ObservableProperty]
-    // [SettingsSelectionItem(ItemsSourceBindingPath = "")]
-    // public partial Guid TitleGeneratorAssistantId { get; set; }
-    //
-    // [ObservableProperty]
-    // [SettingsStringItem(Watermark = Prompts.TitleGeneratorPrompt, IsMultiline = true, Height = 50)]
-    // public partial Customizable<string> TitleGeneratorPromptTemplate { get; set; } = Prompts.TitleGeneratorPrompt;
+    [DynamicResourceKey(
+        LocaleKey.ChatWindowSettings_EnableVisualElementPickAnimation_Header,
+        LocaleKey.ChatWindowSettings_EnableVisualElementPickAnimation_Description)]
+    public bool EnableVisualElementPickAnimation
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value)) _enableVisualElementPickAnimationGauge.Record(value ? 1 : 0);
+        }
+    } = true;
+
+    [DynamicResourceKey(
+        LocaleKey.ChatWindowSettings_EnableContextAnalysisAnimation_Header,
+        LocaleKey.ChatWindowSettings_EnableContextAnalysisAnimation_Description)]
+    public bool EnableContextAnalysisAnimation
+    {
+        get;
+        set
+        {
+            if (SetProperty(ref field, value)) _enableContextAnalysisAnimationGauge.Record(value ? 1 : 0);
+        }
+    } = true;
+
+    private readonly Gauge<int> _enableVisualElementPickAnimationGauge =
+        Meter.CreateGauge<int>($"settings.{nameof(EnableVisualElementPickAnimation)}");
+    private readonly Gauge<int> _enableContextAnalysisAnimationGauge =
+        Meter.CreateGauge<int>($"settings.{nameof(EnableContextAnalysisAnimation)}");
+
+    public ChatWindowSettings()
+    {
+        // TODO: make these ugly codes better
+        _enableVisualElementPickAnimationGauge.Record(EnableVisualElementPickAnimation ? 1 : 0);
+        _enableContextAnalysisAnimationGauge.Record(EnableContextAnalysisAnimation ? 1 : 0);
+    }
 }

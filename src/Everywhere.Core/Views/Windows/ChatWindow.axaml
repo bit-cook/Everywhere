@@ -41,8 +41,9 @@
 
       <DockPanel LastChildFill="True">
         <v:Eva
-          DockPanel.Dock="Left" Width="36"
-          Height="36" Margin="0,0,0,-4"
+          x:Name="Eva" DockPanel.Dock="Left"
+          Width="36" Height="36"
+          Margin="0,0,0,-4"
           IsThinking="{Binding IsBusy}">
           <v:Eva.Effect>
             <DropShadowEffect

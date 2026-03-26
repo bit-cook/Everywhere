@@ -6,10 +6,12 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Security;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Everywhere.Interop;
+using Everywhere.Views;
 using ZLinq;
 #if DEBUG_VISUAL_TREE_BUILDER
 using Everywhere.Chat.Debugging;
@@ -127,7 +129,8 @@ public partial class VisualTreeBuilder(
     int approximateTokenLimit,
     int startingId,
     VisualTreeDetailLevel detailLevel,
-    VisualTreeTraverseDirections allowedTraverseDirections = VisualTreeTraverseDirections.All
+    VisualTreeTraverseDirections allowedTraverseDirections = VisualTreeTraverseDirections.All,
+    VisualElementEffect.Scope? effectScope = null
 )
 {
     private static readonly ActivitySource ActivitySource = new(typeof(VisualTreeBuilder).FullName.NotNull());
@@ -139,6 +142,7 @@ public partial class VisualTreeBuilder(
     /// <param name="approximateTokenLimit"></param>
     /// <param name="startingId"></param>
     /// <param name="detailLevel"></param>
+    /// <param name="effectScope"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public static IReadOnlyDictionary<int, IVisualElement> BuildAndPopulate(
@@ -146,6 +150,7 @@ public partial class VisualTreeBuilder(
         int approximateTokenLimit,
         int startingId,
         VisualTreeDetailLevel detailLevel,
+        VisualElementEffect.Scope? effectScope,
         CancellationToken cancellationToken)
     {
         using var builderActivity = ActivitySource.StartActivity();
@@ -190,13 +195,14 @@ public partial class VisualTreeBuilder(
             // Allocate token limit relative to the number of elements in the group
             var groupTokenLimit = (int)((long)approximateTokenLimit * groupCount / totalElements);
 
-            var xmlBuilder = new VisualTreeBuilder(
+            var visualTreeBuilder = new VisualTreeBuilder(
                 groupElements,
                 groupTokenLimit,
                 startingId,
-                detailLevel);
+                detailLevel,
+                effectScope: effectScope);
 
-            var xml = xmlBuilder.Build(cancellationToken);
+            var content = visualTreeBuilder.Build(cancellationToken);
 
             // 3. for attachments in the same group
             // First attachment gets the full XML, others got null.
@@ -205,7 +211,7 @@ public partial class VisualTreeBuilder(
             {
                 if (isFirst)
                 {
-                    attachment.Content = xml;
+                    attachment.Content = content;
                     isFirst = false;
                 }
                 else
@@ -214,13 +220,13 @@ public partial class VisualTreeBuilder(
                 }
             }
 
-            foreach (var kvp in xmlBuilder.BuiltVisualElements.AsValueEnumerable())
+            foreach (var kvp in visualTreeBuilder.BuiltVisualElements.AsValueEnumerable())
             {
                 result[kvp.Key] = kvp.Value;
             }
 
-            startingId += xmlBuilder.BuiltVisualElements.Count;
-            totalBuiltElements += xmlBuilder.BuiltVisualElements.Count;
+            startingId += visualTreeBuilder.BuiltVisualElements.Count;
+            totalBuiltElements += visualTreeBuilder.BuiltVisualElements.Count;
         }
 
         builderActivity?.SetTag("xml.detail_level", detailLevel);
@@ -518,7 +524,7 @@ public partial class VisualTreeBuilder(
     {
         WriteIndented = false,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
     };
 
     private const VisualElementStates InteractiveStates = VisualElementStates.Focused | VisualElementStates.Selected;
@@ -661,6 +667,8 @@ public partial class VisualTreeBuilder(
 #endif
             var element = node.Element;
             var id = element.Id;
+
+            effectScope?.Add(element, priority);
 
             if (visitedElements.ContainsKey(id))
             {

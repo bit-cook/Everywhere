@@ -11,7 +11,7 @@ using ShadUI;
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public sealed partial class CommonSettings : ObservableObject, ISettingsCategory
+public sealed partial class CommonSettings : SettingsBase, ISettingsCategory
 {
     private static INativeHelper NativeHelper => ServiceLocator.Resolve<INativeHelper>();
 
@@ -156,10 +156,10 @@ public sealed partial class CommonSettings : ObservableObject, ISettingsCategory
         LocaleKey.SoftwareSettings_DiagnosticData_Description)]
     public bool DiagnosticData
     {
-        get => !Entrance.SendOnlyNecessaryTelemetry;
+        get => !Telemetry.SendOnlyNecessaryData;
         set
         {
-            Entrance.SendOnlyNecessaryTelemetry = !value;
+            Telemetry.SendOnlyNecessaryData = !value;
             OnPropertyChanged();
         }
     }

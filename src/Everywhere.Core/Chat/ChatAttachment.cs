@@ -28,6 +28,13 @@ public abstract partial class ChatAttachment(IDynamicResourceKey headerKey) : Ob
     /// </summary>
     [IgnoreMember]
     public bool IsPrimary { get; set; }
+
+    /// <summary>
+    /// The opacity that bind to the view for animation.
+    /// </summary>
+    [IgnoreMember]
+    [ObservableProperty]
+    public partial double Opacity { get; set; } = 1d;
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]

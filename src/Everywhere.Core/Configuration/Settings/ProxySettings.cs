@@ -4,7 +4,7 @@ using Lucide.Avalonia;
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class ProxySettings : ObservableObject, ISettingsCategory
+public partial class ProxySettings : SettingsBase, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 3;

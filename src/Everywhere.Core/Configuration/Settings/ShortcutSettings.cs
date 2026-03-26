@@ -6,7 +6,7 @@ using Lucide.Avalonia;
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class ShortcutSettings : ObservableObject, ISettingsCategory
+public partial class ShortcutSettings : SettingsBase, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 2;

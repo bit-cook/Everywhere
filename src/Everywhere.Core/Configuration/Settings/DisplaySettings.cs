@@ -1,13 +1,12 @@
 ﻿using System.ComponentModel;
 using Avalonia.Threading;
-using CommunityToolkit.Mvvm.ComponentModel;
 using Lucide.Avalonia;
 using ShadUI;
 
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public sealed partial class DisplaySettings : ObservableObject, ISettingsCategory
+public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 1;
@@ -76,7 +75,6 @@ public sealed partial class DisplaySettings : ObservableObject, ISettingsCategor
                 if (Application.Current is not { } app) return 0;
 
                 var fontSizeM = app.Resources["FontSizeM"] as double? ?? 14;
-
                 return fontSizeM switch
                 {
                     < 14 => -1,

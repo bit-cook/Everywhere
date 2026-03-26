@@ -40,7 +40,9 @@ public static class ServiceExtension
                 .AddTransient<ChangeLogViewModel>()
                 .AddTransient<ChangeLogView>()
                 .AddSingleton<MainViewModel>()
-                .AddSingleton<MainView>();
+                .AddSingleton<MainView>()
+                .AddSingleton<IVisualElementAnimationTarget>(x => x.GetRequiredService<ChatWindow>())
+                .AddSingleton<VisualElementEffect>();
 
         public IServiceCollection AddDatabaseAndStorage() =>
             services

@@ -1,10 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Lucide.Avalonia;
+﻿using Lucide.Avalonia;
 
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class SystemAssistantSettings : ObservableObject, ISettingsCategory
+public partial class SystemAssistantSettings : SettingsBase, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 4;

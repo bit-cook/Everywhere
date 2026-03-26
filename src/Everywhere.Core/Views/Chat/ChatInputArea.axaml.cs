@@ -180,6 +180,7 @@ public partial class ChatInputArea : TextBox
     private IDisposable? _chatAttachmentItemsControlPointerMovedSubscription;
     private IDisposable? _chatAttachmentItemsControlPointerExitedSubscription;
     private IDisposable? _assistantSelectionMenuItemPointerWheelChangedSubscription;
+    private ChatAttachmentItemsControl? _chatAttachmentItemsControl;
 
     private readonly OverlayWindow _visualElementAttachmentOverlayWindow = new()
     {
@@ -198,6 +199,12 @@ public partial class ChatInputArea : TextBox
     public ChatInputArea()
     {
         this.AddDisposableHandler(KeyDownEvent, HandleTextBoxKeyDown, RoutingStrategies.Tunnel);
+    }
+
+    public bool TryGetAttachmentCenterOnScreen(ChatAttachment attachment, out PixelPoint center)
+    {
+        center = default;
+        return _chatAttachmentItemsControl?.TryGetAttachmentCenterOnScreen(attachment, out center) ?? false;
     }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -225,8 +232,8 @@ public partial class ChatInputArea : TextBox
             },
             handledEventsToo: true);
 
-        var chatAttachmentItemsControl = e.NameScope.Find<ChatAttachmentItemsControl>("PART_ChatAttachmentItemsControl").NotNull();
-        _chatAttachmentItemsControlPointerMovedSubscription = chatAttachmentItemsControl.AddDisposableHandler(
+        _chatAttachmentItemsControl = e.NameScope.Find<ChatAttachmentItemsControl>("PART_ChatAttachmentItemsControl").NotNull();
+        _chatAttachmentItemsControlPointerMovedSubscription = _chatAttachmentItemsControl.AddDisposableHandler(
             PointerMovedEvent,
             (_, args) =>
             {
@@ -241,7 +248,7 @@ public partial class ChatInputArea : TextBox
                 _visualElementAttachmentOverlayWindow.UpdateForVisualElement(null);
             },
             handledEventsToo: true);
-        _chatAttachmentItemsControlPointerExitedSubscription = chatAttachmentItemsControl.AddDisposableHandler(
+        _chatAttachmentItemsControlPointerExitedSubscription = _chatAttachmentItemsControl.AddDisposableHandler(
             PointerExitedEvent,
             (_, _) => _visualElementAttachmentOverlayWindow.UpdateForVisualElement(null),
             handledEventsToo: true);

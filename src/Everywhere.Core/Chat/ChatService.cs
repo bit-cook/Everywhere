@@ -12,6 +12,7 @@ using Everywhere.Interop;
 using Everywhere.Storage;
 using Everywhere.StrategyEngine;
 using Everywhere.Utilities;
+using Everywhere.Views;
 using LiveMarkdown.Avalonia;
 using Lucide.Avalonia;
 using Microsoft.Extensions.DependencyInjection;
@@ -285,7 +286,11 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
             var approximateTokenLimit = _persistentState.VisualTreeLengthLimit.ToTokenLimit();
             var detailLevel = _persistentState.VisualTreeDetailLevel;
+            var isEffectEnabled = _settings.ChatWindow.EnableContextAnalysisAnimation;
 
+            await using var effectScope = isEffectEnabled?
+                ServiceLocator.Resolve<VisualElementEffect>().BeginScope(cancellationToken) :
+                null;
             await Task.Run(
                 () =>
                 {
@@ -295,6 +300,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
                         approximateTokenLimit,
                         chatContext.VisualElements.Count + 1,
                         detailLevel,
+                        effectScope,
                         cancellationToken);
 
                     // Adds the visual elements to the chat context for future reference.
