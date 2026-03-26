@@ -1,34 +1,25 @@
-﻿#if DEBUG
-using Avalonia.Controls;
-#endif
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
+﻿using System.Diagnostics;
 using System.IO.Pipes;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Patches;
 using MessagePack;
-using OpenTelemetry.Trace;
-using PuppeteerSharp;
-using Sentry.OpenTelemetry;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Json;
-using ZLinq;
-using OpenTelemetrySdk = OpenTelemetry.Sdk;
+#if DEBUG
+using Avalonia.Controls;
+#endif
 
 namespace Everywhere.Common;
 
-public static partial class Entrance
+public static class Entrance
 {
-    public static bool SendOnlyNecessaryTelemetry { get; set; }
-
     public static event EventHandler<UnobservedTaskExceptionEventArgs>? UnobservedTaskExceptionFilter;
 
     private static Mutex? _appMutex;
-    private static SentryMeterListener? _sentryMeterListener;
 
     private const string BundleName = "com.sylinko.everywhere";
 
@@ -49,7 +40,7 @@ public static partial class Entrance
         await InitializeSingleInstanceAsync(args);
 
         InitializeRuntimeConstants();
-        InitializeTelemetry();
+        Telemetry.Initialize();
         InitializeLogger();
         InitializeErrorHandling();
         InitializeHarmony();
@@ -221,66 +212,6 @@ public static partial class Entrance
         }
     }
 
-    private static void InitializeTelemetry()
-    {
-        if (string.IsNullOrEmpty(SentryDsn)) return;
-
-        var sentry = SentrySdk.Init(o =>
-        {
-            o.Dsn = SentryDsn;
-            o.AutoSessionTracking = true;
-            o.IsGlobalModeEnabled = true;
-            o.EnableLogs = true;
-#if DEBUG
-            o.TracesSampleRate = 1.0;
-            o.Environment = "debug";
-            o.Debug = true;
-#else
-            o.TracesSampleRate = 0.2;
-            o.Environment = "stable";
-#endif
-            o.Release = typeof(Entrance).Assembly.GetName().Version?.ToString();
-
-            o.UseOpenTelemetry();
-            o.SetBeforeSend(evt =>
-                evt.Exception.Segregate()
-                    .AsValueEnumerable()
-                    .Any(e => e is
-                        OperationCanceledException or
-                        TimeoutException or
-                        HandledException { IsExpected: true } or
-                        PuppeteerException) ? // No one knows why PuppeteerSharp throws so many exceptions and leave them unhandled in Task.Run
-                    null :
-                    evt);
-            o.SetBeforeSendTransaction(transaction => SendOnlyNecessaryTelemetry ? null : transaction);
-            o.SetBeforeBreadcrumb(breadcrumb => SendOnlyNecessaryTelemetry ? null : breadcrumb);
-        });
-
-        SentrySdk.ConfigureScope(scope =>
-        {
-            scope.User.Id = RuntimeConstants.DeviceId;
-            scope.User.Username = null;
-            scope.User.IpAddress = null;
-            scope.User.Email = null;
-        });
-
-        var traceProvider = OpenTelemetrySdk.CreateTracerProviderBuilder()
-            .AddSource("Everywhere.*")
-            .AddSentry()
-            .Build();
-
-        // Start listening to System.Diagnostics.Metrics and forwarding to Sentry.
-        // Metrics are always sent (anonymous aggregated data, no PII).
-        _sentryMeterListener = new SentryMeterListener();
-
-        AppDomain.CurrentDomain.ProcessExit += delegate
-        {
-            _sentryMeterListener.Dispose();
-            traceProvider.Dispose();
-            sentry.Dispose();
-        };
-    }
-
     private static void InitializeLogger()
     {
         var dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everywhere");
@@ -345,80 +276,6 @@ public static partial class Entrance
                     "ActivityId",
                     activity.Id)
             );
-        }
-    }
-
-    /// <summary>
-    /// Bridges <see cref="System.Diagnostics.Metrics"/> instruments to Sentry Metrics API.
-    /// Listens on all meters whose name starts with "Everywhere." and forwards measurements
-    /// to SentrySdk.Experimental.Metrics.
-    /// </summary>
-    /// <remarks>
-    /// Sentry currently has no native OpenTelemetry Metrics export, so we use
-    /// <see cref="MeterListener"/> to manually bridge the gap. When Sentry adds native support,
-    /// this class can be replaced with a standard OTel MeterProvider exporter.
-    /// </remarks>
-    private sealed class SentryMeterListener : IDisposable
-    {
-        private readonly MeterListener _listener;
-
-        public SentryMeterListener()
-        {
-            _listener = new MeterListener
-            {
-                InstrumentPublished = OnInstrumentPublished,
-            };
-
-            _listener.SetMeasurementEventCallback<long>(OnMeasurement);
-            _listener.SetMeasurementEventCallback<int>(OnMeasurement);
-            _listener.SetMeasurementEventCallback<double>(OnMeasurement);
-
-            _listener.Start();
-        }
-
-        private static void OnInstrumentPublished(Instrument instrument, MeterListener listener)
-        {
-            if (instrument.Meter.Name.StartsWith("Everywhere.", StringComparison.Ordinal))
-            {
-                listener.EnableMeasurementEvents(instrument);
-            }
-        }
-
-        private static void OnMeasurement<T>(
-            Instrument instrument,
-            T measurement,
-            ReadOnlySpan<KeyValuePair<string, object?>> tags,
-            object? state) where T : struct
-        {
-            switch (instrument)
-            {
-                case Counter<T>:
-                {
-                    SentrySdk.Experimental.Metrics.EmitCounter(instrument.Name, measurement, tags!); // null values will be ignored by Sentry SDK
-                    break;
-                }
-                case Histogram<T>:
-                {
-                    SentrySdk.Experimental.Metrics.EmitDistribution(instrument.Name, measurement, MapUnit(instrument.Unit), tags!);
-                    break;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Maps instrument unit strings to Sentry <see cref="MeasurementUnit"/>.
-        /// </summary>
-        private static MeasurementUnit MapUnit(string? unit) => unit switch
-        {
-            "ms" => MeasurementUnit.Duration.Millisecond,
-            "s" => MeasurementUnit.Duration.Second,
-            null => MeasurementUnit.None,
-            _ => MeasurementUnit.Custom(unit),
-        };
-
-        public void Dispose()
-        {
-            _listener.Dispose();
         }
     }
 }

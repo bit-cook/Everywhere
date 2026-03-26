@@ -8,7 +8,7 @@
     <ItemGroup>
       <TelemetryCode Include="// &lt;auto-generated /&gt;"/>
       <TelemetryCode Include="namespace Everywhere.Common%3B"/>
-      <TelemetryCode Include="partial class Entrance"/>
+      <TelemetryCode Include="partial class Telemetry"/>
       <TelemetryCode Include="{"/>
       <TelemetryCode Include="private const string SentryDsn = &quot;$(SentryDsn)&quot;%3B"/>
       <TelemetryCode Include="}"/>
