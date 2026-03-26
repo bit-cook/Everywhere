@@ -31,9 +31,9 @@ public sealed partial class ModelPricing(IReadOnlyList<PricingTier> tiers, Model
     /// 12.00 美元
     /// </example>
     /// <example>
-    /// 12.00 美元，词元数 &lt;= 100,000,000
-    /// 18.00 美元，100,000,000 &lt; 词元数 &lt;= 500,000,000
-    /// 30.00 美元，词元数 &gt; 500,000,000
+    /// 12.00 美元，Token 数 &lt;= 100,000,000
+    /// 18.00 美元，100,000,000 &lt; Token 数 &lt;= 500,000,000
+    /// 30.00 美元，Token 数 &gt; 500,000,000
     /// </example>
     [IgnoreMember]
     [field: AllowNull, MaybeNull]
