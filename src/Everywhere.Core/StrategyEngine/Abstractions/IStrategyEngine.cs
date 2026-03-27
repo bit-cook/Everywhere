@@ -24,9 +24,5 @@ public interface IStrategyEngine
     /// </summary>
     /// <param name="command">The command to execute.</param>
     /// <param name="context">The original strategy context.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    Task<StrategyExecutionContext> CreateExecutionContextAsync(
-        StrategyCommand command,
-        StrategyContext context,
-        CancellationToken cancellationToken = default);
+    StrategyExecutionContext CreateExecutionContext(StrategyCommand command, StrategyContext context);
 }

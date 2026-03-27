@@ -39,20 +39,17 @@ public sealed class StrategyEngine(IStrategyRegistry registry, ILogger<StrategyE
         return results;
     }
 
-    public Task<StrategyExecutionContext> CreateExecutionContextAsync(
-        StrategyCommand command,
-        StrategyContext context,
-        CancellationToken cancellationToken = default)
+    public StrategyExecutionContext CreateExecutionContext(StrategyCommand command, StrategyContext context)
     {
         // TODO: Implement command execution
         // This will:
         // 1. Resolve template variables
         // 2. Configure allowed tools
 
-        return Task.FromResult(new StrategyExecutionContext
+        return new StrategyExecutionContext
         {
             SystemPrompt = command.SystemPrompt,
             UserChatMessage = new UserChatMessage(command.UserMessage ?? string.Empty, context.Attachments)
-        });
+        };
     }
 }

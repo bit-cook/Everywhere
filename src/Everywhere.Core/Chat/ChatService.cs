@@ -20,7 +20,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using ZLinq;
-using ChatFunction = Everywhere.Chat.Plugins.ChatFunction;
 using ChatMessageContent = Microsoft.SemanticKernel.ChatMessageContent;
 using FunctionCallContent = Microsoft.SemanticKernel.FunctionCallContent;
 using FunctionResultContent = Microsoft.SemanticKernel.FunctionResultContent;
@@ -47,8 +46,6 @@ public sealed partial class ChatService : IChatService
     private readonly Histogram<long> _outputTokensHistogram;
     private readonly Histogram<long> _reasoningTokensHistogram;
     private readonly Counter<long> _toolCallsCounter;
-
-    private FunctionCallContext? _currentFunctionCallContext;
 
     public ChatService(
         IChatContextManager chatContextManager,
@@ -77,82 +74,97 @@ public sealed partial class ChatService : IChatService
         _toolCallsCounter = _meter.CreateCounter<long>("gen_ai.tool.calls");
     }
 
-    public async Task SendMessageAsync(UserChatMessage message, CancellationToken cancellationToken)
+    public void SendMessage(UserChatMessage message)
     {
         var chatContext = _chatContextManager.Current;
         var customAssistant = _settings.Model.SelectedCustomAssistant;
 
-        using var activity = _activitySource.StartActivity();
-        activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
+        chatContext.TryExecute(
+            async cancellationToken =>
+            {
+                using var activity = _activitySource.StartActivity();
+                activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
 
-        chatContext.Add(message);
+                chatContext.Add(message);
 
-        if (customAssistant is null)
-        {
-            chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
-            return;
-        }
+                if (customAssistant is null)
+                {
+                    chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
+                    return;
+                }
 
-        await ProcessUserChatMessageAsync(chatContext, message, cancellationToken);
+                await ProcessUserChatMessageAsync(chatContext, message, cancellationToken);
 
-        var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
-        chatContext.Add(assistantChatMessage);
+                var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
+                chatContext.Add(assistantChatMessage);
 
-        await RunGenerateAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken);
+                await GenerateAsync(chatContext, customAssistant, assistantChatMessage, false, cancellationToken: cancellationToken);
+            },
+            _logger.ToExceptionHandler());
     }
 
-    public async Task RetryAsync(ChatMessageNode node, CancellationToken cancellationToken)
+    public void Retry(ChatMessageNode node)
     {
-        var chatContext = node.Context;
-        var customAssistant = _settings.Model.SelectedCustomAssistant;
-
-        using var activity = _activitySource.StartActivity();
-        activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
-
         if (node.Message.Role != AuthorRole.Assistant)
         {
             throw new InvalidOperationException("Only assistant messages can be retried.");
         }
 
-        if (customAssistant is null)
-        {
-            chatContext.CreateBranchOn(node, CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
-            return;
-        }
+        var chatContext = node.Context;
+        var customAssistant = _settings.Model.SelectedCustomAssistant;
 
-        var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
-        chatContext.CreateBranchOn(node, assistantChatMessage);
+        chatContext.TryExecute(
+            async cancellationToken =>
+            {
+                using var activity = _activitySource.StartActivity();
+                activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
 
-        await RunGenerateAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken);
+                if (customAssistant is null)
+                {
+                    chatContext.CreateBranchOn(node, CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
+                    return;
+                }
+
+                var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
+                chatContext.CreateBranchOn(node, assistantChatMessage);
+
+                await GenerateAsync(chatContext, customAssistant, assistantChatMessage, false, cancellationToken: cancellationToken);
+            },
+            _logger.ToExceptionHandler());
     }
 
-    public async Task EditAsync(ChatMessageNode originalNode, UserChatMessage newMessage, CancellationToken cancellationToken)
+    public void Edit(ChatMessageNode originalNode, UserChatMessage newMessage)
     {
+        if (originalNode.Message.Role != AuthorRole.User)
+        {
+            throw new InvalidOperationException("Only user messages can be edited.");
+        }
+
         var chatContext = originalNode.Context;
         var customAssistant = _settings.Model.SelectedCustomAssistant;
 
-        using var activity = _activitySource.StartActivity();
-        activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
+        chatContext.TryExecute(
+            async cancellationToken =>
+            {
+                using var activity = _activitySource.StartActivity();
+                activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
 
-        if (originalNode.Message.Role != AuthorRole.User)
-        {
-            throw new InvalidOperationException("Only user messages can be retried.");
-        }
+                chatContext.CreateBranchOn(originalNode, newMessage);
 
-        chatContext.CreateBranchOn(originalNode, newMessage);
+                if (customAssistant is null)
+                {
+                    chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
+                    return;
+                }
 
-        if (customAssistant is null)
-        {
-            chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
-            return;
-        }
+                await ProcessUserChatMessageAsync(chatContext, newMessage, cancellationToken);
 
-        await ProcessUserChatMessageAsync(chatContext, newMessage, cancellationToken);
+                var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
+                chatContext.Add(assistantChatMessage);
 
-        var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
-        chatContext.Add(assistantChatMessage);
-
-        await RunGenerateAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken);
+                await GenerateAsync(chatContext, customAssistant, assistantChatMessage, false, cancellationToken: cancellationToken);
+            },
+            _logger.ToExceptionHandler());
     }
 
     public Task RunSubagentAsync(
@@ -169,33 +181,38 @@ public sealed partial class ChatService : IChatService
             cancellationToken: cancellationToken);
     }
 
-    public async Task ExecuteStrategyAsync(StrategyExecutionContext strategyExecutionContext, CancellationToken cancellationToken)
+    public void ExecuteStrategy(StrategyExecutionContext strategyExecutionContext)
     {
         var chatContext = _chatContextManager.Current;
         var customAssistant = strategyExecutionContext.CustomAssistant ?? _settings.Model.SelectedCustomAssistant;
 
-        if (customAssistant is null)
-        {
-            chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
-            return;
-        }
+        chatContext.TryExecute(
+            async token =>
+            {
+                using var activity = _activitySource.StartActivity();
+                activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
 
-        using var activity = _activitySource.StartActivity();
-        activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
+                if (customAssistant is null)
+                {
+                    chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
+                    return;
+                }
 
-        chatContext.Add(strategyExecutionContext.UserChatMessage);
-        await ProcessUserChatMessageAsync(chatContext, strategyExecutionContext.UserChatMessage, cancellationToken);
+                chatContext.Add(strategyExecutionContext.UserChatMessage);
+                await ProcessUserChatMessageAsync(chatContext, strategyExecutionContext.UserChatMessage, token);
 
-        var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
-        chatContext.Add(assistantChatMessage);
+                var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
+                chatContext.Add(assistantChatMessage);
 
-        await GenerateAsync(
-            chatContext,
-            customAssistant,
-            assistantChatMessage,
-            false,
-            strategyExecutionContext.SystemPrompt,
-            cancellationToken);
+                await GenerateAsync(
+                    chatContext,
+                    customAssistant,
+                    assistantChatMessage,
+                    false,
+                    strategyExecutionContext.SystemPrompt,
+                    token);
+            },
+            _logger.ToExceptionHandler());
     }
 
     /// <summary>
@@ -257,35 +274,31 @@ public sealed partial class ChatService : IChatService
             await using var effectScope = _settings.ChatWindow.EnableVisualContextAnimation ?
                 ServiceLocator.Resolve<VisualElementEffect>().BeginScope(cancellationToken) :
                 null;
-            await Task.Run(
-                () =>
-                {
-                    // Build and populate the XML for visual elements.
-                    var builtVisualElements = VisualTreeBuilder.BuildAndPopulate(
-                        visualElementAttachments,
-                        approximateTokenLimit,
-                        chatContext.VisualElements.Count + 1,
-                        detailLevel,
-                        effectScope,
-                        cancellationToken);
 
-                    // Adds the visual elements to the chat context for future reference.
-                    chatContext.VisualElements.AddRange(builtVisualElements);
-
-                    // Then deactivate all the references, making them weak references.
-                    foreach (var reference in userChatMessage
-                                 .Attachments
-                                 .AsValueEnumerable()
-                                 .OfType<VisualElementAttachment>()
-                                 .Select(a => a.Element)
-                                 .OfType<ResilientReference<IVisualElement>>())
-                    {
-                        reference.IsActive = false;
-                    }
-
-                    // After this, only the chat context holds strong references to the visual elements.
-                },
+            // Build and populate the XML for visual elements.
+            var builtVisualElements = VisualTreeBuilder.BuildAndPopulate(
+                visualElementAttachments,
+                approximateTokenLimit,
+                chatContext.VisualElements.Count + 1,
+                detailLevel,
+                effectScope,
                 cancellationToken);
+
+            // Adds the visual elements to the chat context for future reference.
+            chatContext.VisualElements.AddRange(builtVisualElements);
+
+            // Then deactivate all the references, making them weak references.
+            foreach (var reference in userChatMessage
+                         .Attachments
+                         .AsValueEnumerable()
+                         .OfType<VisualElementAttachment>()
+                         .Select(a => a.Element)
+                         .OfType<ResilientReference<IVisualElement>>())
+            {
+                reference.IsActive = false;
+            }
+
+            // After this, only the chat context holds strong references to the visual elements.
         }
         catch (Exception e)
         {
@@ -299,30 +312,6 @@ public sealed partial class ChatService : IChatService
             analyzingContextMessage.FinishedAt = DateTimeOffset.UtcNow;
             analyzingContextMessage.IsBusy = false;
         }
-    }
-
-    /// <summary>
-    /// Runs the GenerateAsync method in a separate task.
-    /// This will clear the function call context stack before running.
-    /// Means a fresh generation.
-    /// </summary>
-    /// <param name="chatContext"></param>
-    /// <param name="customAssistant"></param>
-    /// <param name="assistantChatMessage"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    private Task RunGenerateAsync(
-        ChatContext chatContext,
-        CustomAssistant customAssistant,
-        AssistantChatMessage assistantChatMessage,
-        CancellationToken cancellationToken)
-    {
-        // Clear the function call context stack.
-        _functionCallContextStack.Clear();
-
-        return Task.Run(
-            () => GenerateAsync(chatContext, customAssistant, assistantChatMessage, false, cancellationToken: cancellationToken),
-            cancellationToken);
     }
 
     /// <summary>

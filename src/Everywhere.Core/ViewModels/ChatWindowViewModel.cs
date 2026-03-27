@@ -35,9 +35,10 @@ public sealed record ActivateChatSessionMessage(IVisualElement? TargetElement = 
 public sealed record CloakChatWindowMessage(bool IsCloaked);
 
 public sealed partial class ChatWindowViewModel :
-    BusyViewModelBase,
+    ReactiveViewModelBase,
     IRecipient<ActivateChatSessionMessage>,
-    IRecipient<ChatPluginConsentRequest>,
+    IRecipient<ChatPluginRequestConsentMessage>,
+    IRecipient<ChatPluginAskQuestionMessage>,
     IRecipient<ChatContextMetadataChangedMessage>,
     IObserver<TextSelectionData>,
     IDisposable
@@ -61,6 +62,12 @@ public sealed partial class ChatWindowViewModel :
             _activeChatWindowsGauge.Record(value ? 1 : 0);
         }
     }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotBusy))]
+    public partial bool IsBusy { get; private set; }
+
+    public bool IsNotBusy => !IsBusy;
 
     /// <summary>
     /// Indicates whether the chat window is currently viewing history page.
@@ -111,7 +118,7 @@ public sealed partial class ChatWindowViewModel :
     [NotifyCanExecuteChangedFor(nameof(EditCommand))]
     public partial ChatMessageNode? EditingUserMessageNode { get; private set; }
 
-    public bool CanEdit => IsNotBusy && EditingUserMessageNode is null;
+    public bool CanEdit => !IsBusy && EditingUserMessageNode is null;
 
     public static int ChatInputAreaTextMaxLength => 100_000;
 
@@ -146,7 +153,6 @@ public sealed partial class ChatWindowViewModel :
     private readonly DynamicResourceKey _defaultWatermarkKey = new(LocaleKey.ChatInputArea_Watermark);
     private readonly CompositeDisposable _disposables = new(2);
     private readonly SourceList<ChatAttachment> _chatAttachmentsSource = new();
-    private readonly ReusableCancellationTokenSource _cancellationTokenSource = new();
 
     private readonly Meter _meter = new(typeof(ChatWindowViewModel).FullName.NotNull(), App.Version);
     private readonly Gauge<int> _activeChatWindowsGauge;
@@ -213,13 +219,20 @@ public sealed partial class ChatWindowViewModel :
         ChatInputAreaText = PersistentState.ChatInputAreaText;
         ChatInputAreaWatermarkKey = _defaultWatermarkKey;
 
+        _disposables.Add(
+            ChatContextManager.WhenValueChanged(x => x.Current)
+                .Select(context => context is null ? Observable.Return(false) : context.WhenValueChanged(x => x.IsBusy))
+                .Switch()
+                .ObserveOnAvaloniaDispatcher()
+                .Subscribe(HandleCurrentChatContextIsBusyChanged)
+        );
+
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
     public void Dispose()
     {
         _disposables.Dispose();
-        _cancellationTokenSource.Dispose();
         ChatContextManager.PropertyChanged -= HandleChatContextManagerPropertyChanged;
     }
 
@@ -454,7 +467,7 @@ public sealed partial class ChatWindowViewModel :
                 return;
             }
 
-            await AddFileUncheckAsync(filePath, cancellationToken: _cancellationTokenSource.Token);
+            await AddFileUncheckAsync(filePath, cancellationToken: cancellationToken);
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -501,13 +514,14 @@ public sealed partial class ChatWindowViewModel :
     /// Checks the attachment count limit.
     /// </summary>
     /// <param name="filePath">The file path to add.</param>
-    public async Task AddFileFromDragDropAsync(string filePath)
+    /// <param name="cancellationToken"></param>
+    public async Task AddFileFromDragDropAsync(string filePath, CancellationToken cancellationToken)
     {
         try
         {
             if (_chatAttachmentsSource.Count >= PersistentState.MaxChatAttachmentCount) return;
 
-            await AddFileUncheckAsync(filePath, "from drag&drop", _cancellationTokenSource.Token);
+            await AddFileUncheckAsync(filePath, "from drag&drop", cancellationToken);
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -537,32 +551,29 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [RelayCommand(CanExecute = nameof(IsNotBusy))]
-    private Task SendMessage(string? message) => ExecuteBusyTaskAsync(
-        cancellationToken =>
+    private void SendMessage(string? message)
+    {
+        message = message?.Trim();
+        if (message?.Length is not > 0) return;
+
+        ChatAttachment[]? attachments = null;
+        _chatAttachmentsSource.Edit(list =>
         {
-            message = message?.Trim();
-            if (message?.Length is not > 0) return Task.CompletedTask;
+            attachments = [..list];
+            list.Clear();
+        });
 
-            ChatAttachment[]? attachments = null;
-            _chatAttachmentsSource.Edit(list =>
-            {
-                attachments = [..list];
-                list.Clear();
-            });
-
-            var userMessage = new UserChatMessage(message, attachments!);
-
-            if (EditingUserMessageNode is not { } originalNode)
-            {
-                return Task.Run(() => _chatService.SendMessageAsync(userMessage, cancellationToken), cancellationToken);
-            }
-
+        var userMessage = new UserChatMessage(message, attachments!);
+        if (EditingUserMessageNode is { } originalNode)
+        {
             CancelEditing();
-
-            return Task.Run(() => _chatService.EditAsync(originalNode, userMessage, cancellationToken), cancellationToken);
-        },
-        _logger.ToExceptionHandler(),
-        cancellationToken: _cancellationTokenSource.Token);
+            _chatService.Edit(originalNode, userMessage);
+        }
+        else
+        {
+            _chatService.SendMessage(userMessage);
+        }
+    }
 
     [RelayCommand(CanExecute = nameof(CanEdit))]
     private void Edit(ChatMessageNode userChatMessageNode)
@@ -599,15 +610,15 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [RelayCommand(CanExecute = nameof(IsNotBusy))]
-    private Task RetryAsync(ChatMessageNode chatMessageNode) => ExecuteBusyTaskAsync(
-        cancellationToken => Task.Run(() => _chatService.RetryAsync(chatMessageNode, cancellationToken), cancellationToken),
-        _logger.ToExceptionHandler(),
-        cancellationToken: _cancellationTokenSource.Token);
+    private void Retry(ChatMessageNode chatMessageNode)
+    {
+        _chatService.Retry(chatMessageNode);
+    }
 
     [RelayCommand(CanExecute = nameof(IsBusy))]
     private void Cancel()
     {
-        _cancellationTokenSource.Cancel();
+        ChatContextManager.Current.Cancel();
     }
 
     [RelayCommand]
@@ -631,7 +642,7 @@ public sealed partial class ChatWindowViewModel :
     [RelayCommand]
     private async Task ExportMarkdownAsync(ChatContextMetadata metadata, CancellationToken cancellationToken)
     {
-        var chatContext = await ChatContextManager.LoadChatContextAsync(metadata, _cancellationTokenSource.Token);
+        var chatContext = await ChatContextManager.LoadChatContextAsync(metadata, cancellationToken);
         if (chatContext is null)
         {
             ToastManager
@@ -720,15 +731,14 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [RelayCommand]
-    private void Close()
+    private static void Close()
     {
         WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true));
-        if (!Settings.ChatWindow.AllowRunInBackground) _cancellationTokenSource.Cancel();
     }
 
-    protected override void OnIsBusyChanged()
+    private void HandleCurrentChatContextIsBusyChanged(bool isBusy)
     {
-        base.OnIsBusyChanged();
+        IsBusy = isBusy;
 
         SendMessageCommand.NotifyCanExecuteChanged();
         EditCommand.NotifyCanExecuteChanged();
@@ -736,7 +746,7 @@ public sealed partial class ChatWindowViewModel :
         CancelCommand.NotifyCanExecuteChanged();
         RunStrategyCommand.NotifyCanExecuteChanged();
 
-        if (IsBusy)
+        if (isBusy)
         {
             ChatInputAreaWatermarkKey = Greetings.GetRandomTip();
         }
@@ -865,29 +875,18 @@ public sealed partial class ChatWindowViewModel :
         [UnsafeAccessorType("DynamicData.Kernel.ReadOnlyCollectionLight`1[[Everywhere.Chat.ChatAttachment, Everywhere.Core]], DynamicData")]
         object collection);
 
-    [RelayCommand(CanExecute = nameof(IsNotBusy))]
-    private Task RunStrategyAsync(StrategyCommand strategyCommand) => ExecuteBusyTaskAsync(
-        cancellationToken =>
-        {
-            if (StrategiesSnapshot is not { Context: { } strategyContext })
-            {
-                return Task.CompletedTask;
-            }
+    [RelayCommand]
+    private void RunStrategy(StrategyCommand strategyCommand)
+    {
+        if (StrategiesSnapshot is not { Context: { } strategyContext }) return;
 
-            StrategiesSnapshot = null;
-            CancelEditing();
-            _chatAttachmentsSource.Clear();
+        StrategiesSnapshot = null;
+        CancelEditing();
+        _chatAttachmentsSource.Clear();
 
-            return Task.Run(
-                async () =>
-                {
-                    var context = await _strategyEngine.CreateExecutionContextAsync(strategyCommand, strategyContext, cancellationToken);
-                    await _chatService.ExecuteStrategyAsync(context, cancellationToken);
-                },
-                cancellationToken);
-        },
-        _logger.ToExceptionHandler(),
-        cancellationToken: _cancellationTokenSource.Token);
+        var context = _strategyEngine.CreateExecutionContext(strategyCommand, strategyContext);
+        _chatService.ExecuteStrategy(context);
+    }
 
     #endregion
 

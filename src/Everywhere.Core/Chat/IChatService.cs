@@ -6,29 +6,23 @@ namespace Everywhere.Chat;
 public interface IChatService
 {
     /// <summary>
-    /// Send a message to the chat service.
+    /// Send a message to the chat service. This method is NOT thread safe.
     /// </summary>
     /// <param name="message"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task SendMessageAsync(UserChatMessage message, CancellationToken cancellationToken);
+    void SendMessage(UserChatMessage message);
 
     /// <summary>
-    /// Retry sending a message that previously failed. This will create a branch in the chat history.
+    /// Retry sending a message that previously failed. This will create a branch in the chat history. This method is NOT thread safe.
     /// </summary>
     /// <param name="node"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task RetryAsync(ChatMessageNode node, CancellationToken cancellationToken);
+    void Retry(ChatMessageNode node);
 
     /// <summary>
-    /// Edit a previously sent user message. This will create a branch in the chat history.
+    /// Edit a previously sent user message. This will create a branch in the chat history. This method is NOT thread safe.
     /// </summary>
     /// <param name="originalNode"></param>
     /// <param name="newMessage"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task EditAsync(ChatMessageNode originalNode, UserChatMessage newMessage, CancellationToken cancellationToken);
+    void Edit(ChatMessageNode originalNode, UserChatMessage newMessage);
 
     /// <summary>
     /// Run a sub-agent within the context of the current chat. The sub-agent will have access to the chat history and can send messages back to the main agent.
@@ -50,5 +44,5 @@ public interface IChatService
     /// <param name="strategyExecutionContext"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task ExecuteStrategyAsync(StrategyExecutionContext strategyExecutionContext, CancellationToken cancellationToken);
+    void ExecuteStrategy(StrategyExecutionContext strategyExecutionContext);
 }

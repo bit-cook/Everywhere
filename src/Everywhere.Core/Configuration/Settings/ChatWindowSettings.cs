@@ -61,15 +61,6 @@ public partial class ChatWindowSettings : SettingsBase, ISettingsCategory
     public partial bool AlwaysStartNewChat { get; set; }
 
     /// <summary>
-    /// When enabled, chat window can generate response in the background when closed.
-    /// </summary>
-    [ObservableProperty]
-    [DynamicResourceKey(
-        LocaleKey.ChatWindowSettings_AllowRunInBackground_Header,
-        LocaleKey.ChatWindowSettings_AllowRunInBackground_Description)]
-    public partial bool AllowRunInBackground { get; set; } = true;
-
-    /// <summary>
     /// When enabled, show chat statistics in the chat window.
     /// </summary>
     [ObservableProperty]

@@ -2,9 +2,11 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reactive.Disposables;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
+using Everywhere.Common;
 using Everywhere.Interop;
 using Everywhere.Utilities;
 using MessagePack;
@@ -77,6 +79,15 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
 
     [IgnoreMember]
     public AsyncLocal<FunctionCallContext?> FunctionCallContext { get; } = new();
+
+    /// <summary>
+    /// Indicates whether the chat context is currently busy waiting for a response. This can be used to disable user input and show a loading indicator in the UI.
+    /// The busy state can be entered by calling <see cref="TryExecute"/>.
+    /// </summary>
+    [IgnoreMember]
+    [ObservableProperty]
+    public partial bool IsBusy { get; private set; }
+
     /// <summary>
     /// Resource key for the busy message to show when waiting for a response.
     /// This can be set temporarily using <see cref="SetBusyMessage(IDynamicResourceKey?)"/>.
@@ -159,6 +170,48 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
             .Subscribe();
         DisplayItems = branchNodesWithoutSystem;
     }
+
+    #region Busy implementation
+
+    [IgnoreMember]
+    private readonly ReusableCancellationTokenSource _cancellationTokenSource = new();
+
+    /// <summary>
+    /// Try to execute a task in a busy state. If the context is already busy, returns false.
+    /// This method is only safe to call on the UI thread.
+    /// </summary>
+    public bool TryExecute(Func<CancellationToken, Task> action, IExceptionHandler exceptionHandler)
+    {
+        Dispatcher.UIThread.VerifyAccess();
+
+        if (IsBusy) return false;
+
+        IsBusy = true;
+        var cancellationToken = _cancellationTokenSource.Token;
+
+        Task.Run(() => action(cancellationToken), cancellationToken)
+            .ContinueWith(
+                t =>
+                {
+                    IsBusy = false;
+                    if (t.Exception is { } exception) exceptionHandler.HandleException(exception.InnerException ?? exception);
+                },
+                CancellationToken.None,
+                TaskContinuationOptions.None,
+                TaskScheduler.FromCurrentSynchronizationContext());
+
+        return true;
+    }
+
+    /// <summary>
+    /// Cancels the current task if the context is busy.
+    /// </summary>
+    public void Cancel()
+    {
+        _cancellationTokenSource.Cancel();
+    }
+
+    #endregion
 
     /// <summary>
     /// Create a new branch on the specified sibling node by inserting a new message at that position.
