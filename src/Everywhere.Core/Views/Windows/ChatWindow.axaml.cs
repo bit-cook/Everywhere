@@ -1,4 +1,5 @@
-﻿using Avalonia.Automation.Peers;
+﻿using System.Diagnostics.CodeAnalysis;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -377,13 +378,6 @@ public partial class ChatWindow :
 
     private void UpdateDragVisuals(DragEventArgs e)
     {
-        if (ViewModel.IsBusy)
-        {
-            e.DragEffects = DragDropEffects.None;
-            DragDropOverlay.IsVisible = false;
-            return;
-        }
-
         var hasFiles = e.DataTransfer.Contains(DataFormat.File);
         var hasText = e.DataTransfer.Contains(DataFormat.Text);
 
@@ -471,9 +465,6 @@ public partial class ChatWindow :
         DragDropOverlay.IsVisible = false;
         e.Handled = true;
 
-        if (ViewModel.IsBusy)
-            return;
-
         HandleDropAsync().Detach(ToastHost.Manager.ToExceptionHandler());
 
         async Task HandleDropAsync()
@@ -491,7 +482,7 @@ public partial class ChatWindow :
 
                     try
                     {
-                        await ViewModel.AddFileFromDragDropAsync(localPath!);
+                        await ViewModel.AddFileFromDragDropAsync(localPath, CancellationToken.None);
                     }
                     catch (Exception ex)
                     {
@@ -517,7 +508,7 @@ public partial class ChatWindow :
         }
     }
 
-    private static bool IsSupportedFile(IStorageItem storageItem, out string? localPath, out string? mimeType)
+    private static bool IsSupportedFile(IStorageItem storageItem, [NotNullWhen(true)] out string? localPath, [NotNullWhen(true)] out string? mimeType)
     {
         localPath = null;
         mimeType = null;
