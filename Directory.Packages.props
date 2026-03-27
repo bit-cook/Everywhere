@@ -13,8 +13,8 @@
     <SkiaSharpVersion>3.119.2</SkiaSharpVersion>
     <XamlBehaviorsVersion>11.3.9.5</XamlBehaviorsVersion>
   </PropertyGroup>
-  <ItemGroup>
-    <!-- Base packages -->
+  
+  <ItemGroup Label="Common">
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageVersion Include="DynamicData" Version="9.4.31" />
     <PackageVersion Include="FuzzySharp" Version="2.0.2" />
@@ -52,7 +52,9 @@
     <PackageVersion Include="System.Drawing.Common" Version="$(MicrosoftPackageVersion)" />
     <PackageVersion Include="System.Text.Json" Version="$(MicrosoftPackageVersion)" />
     <PackageVersion Include="ZLinq" Version="1.5.5" />
-    <!-- AI packages -->
+  </ItemGroup>
+  
+  <ItemGroup Label="AI">
     <PackageVersion Include="Anthropic" Version="12.8.0" />
     <PackageVersion Include="Microsoft.Extensions.AI" Version="$(MEAIVersion)" />
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="$(MEAIVersion)" />
@@ -63,7 +65,9 @@
     <PackageVersion Include="ModelContextProtocol" Version="1.1.0" />
     <PackageVersion Include="OllamaSharp" Version="5.4.23" />
     <PackageVersion Include="PuppeteerSharp" Version="21.1.1" />
-    <!-- Avalonia packages -->
+  </ItemGroup>
+  
+  <ItemGroup Label="Avalonia">
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.AvaloniaEdit" Version="$(AvaloniaEditVersion)" />
     <PackageVersion Include="Avalonia.Skia" Version="$(AvaloniaVersion)" />
@@ -74,10 +78,6 @@
     <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="AvaloniaEdit.TextMate" Version="$(AvaloniaEditVersion)" />
-    <PackageVersion Include="MinVer" Version="7.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageVersion>
     <PackageVersion Include="HotAvalonia" Version="3.1.0" />
     <PackageVersion Include="LiveMarkdown.Avalonia" Version="$(LiveMarkdownVersion)" />
     <PackageVersion Include="LiveMarkdown.Avalonia.Math" Version="$(LiveMarkdownVersion)" />
@@ -88,8 +88,11 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="$(SkiaSharpVersion)" />
     <PackageVersion Include="SkiaSharp.NativeAssets.macOS" Version="$(SkiaSharpVersion)" />
     <PackageVersion Include="SkiaSharp.NativeAssets.Win32" Version="$(SkiaSharpVersion)" />
+    <PackageVersion Include="TextMateSharp.Grammars" Version="2.0.3" />
     <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="$(XamlBehaviorsVersion)" />
-    <!-- Windows packages -->
+  </ItemGroup>
+  
+  <ItemGroup Label="Windows">
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.5.5" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.269">
       <PrivateAssets>all</PrivateAssets>
@@ -98,20 +101,29 @@
     <PackageVersion Include="FlaUI.UIA3" Version="4.0.0" />
     <PackageVersion Include="Vortice.Direct3D11" Version="3.8.3" />
     <PackageVersion Include="Vortice.DirectComposition" Version="3.8.3" />
-    <!-- Linux packages -->
+  </ItemGroup>
+  
+  <ItemGroup Label="Linux">
     <PackageVersion Include="Tmds.LibC" Version="0.5.0" />
     <PackageVersion Include="X11.Net" Version="1.0.7" />
     <PackageVersion Include="GirCore.GObject-2.0" Version="0.7.0" />
-    <!-- NUnit packages -->
+  </ItemGroup>
+  
+  <ItemGroup Label="Testing">
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.1" />
     <PackageVersion Include="coverlet.collector" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
     <PackageVersion Include="NUnit" Version="4.5.1" />
     <PackageVersion Include="NUnit.Analyzers" Version="4.12.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.1.0" />
-    <!-- ShadUI packages -->
+  </ItemGroup>
+  
+  <ItemGroup Label="ShadUI">
     <PackageVersion Include="Jab" Version="0.11.0" />
     <PackageVersion Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc5.4" />
-    <PackageVersion Include="TextMateSharp.Grammars" Version="2.0.3" />
+    <PackageVersion Include="MinVer" Version="7.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageVersion>
   </ItemGroup>
 </Project>
