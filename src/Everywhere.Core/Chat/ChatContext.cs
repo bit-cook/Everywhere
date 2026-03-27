@@ -75,6 +75,8 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     [IgnoreMember]
     public ConcurrentDictionary<string, bool> IsPermissionGrantedRecords { get; } = new();
 
+    [IgnoreMember]
+    public AsyncLocal<FunctionCallContext?> FunctionCallContext { get; } = new();
     /// <summary>
     /// Resource key for the busy message to show when waiting for a response.
     /// This can be set temporarily using <see cref="SetBusyMessage(IDynamicResourceKey?)"/>.

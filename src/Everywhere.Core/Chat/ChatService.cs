@@ -27,40 +27,8 @@ using FunctionResultContent = Microsoft.SemanticKernel.FunctionResultContent;
 
 namespace Everywhere.Chat;
 
-public sealed partial class ChatService : IChatService, IChatPluginUserInterface
+public sealed partial class ChatService : IChatService
 {
-    /// <summary>
-    /// Context for function call invocations.
-    /// </summary>
-    private record FunctionCallContext(
-        Kernel Kernel,
-        ChatContext ChatContext,
-        ChatPlugin Plugin,
-        ChatFunction Function,
-        FunctionCallChatMessage ChatMessage
-    )
-    {
-        public string PermissionKey => $"{Plugin.Key}.{Function.KernelFunction.Name}";
-
-        public bool IsPermissionGranted
-        {
-            get
-            {
-                var permissionKey = PermissionKey;
-
-                // If the function requires permissions that are less than FileAccess, we consider it as low-risk and grant permission by default.
-                if (Function.Permissions <= ChatFunctionPermissions.AutoGranted &&
-                    (!ChatContext.IsPermissionGrantedRecords.ContainsKey(permissionKey) || ChatContext.IsPermissionGrantedRecords[permissionKey]))
-                {
-                    return true;
-                }
-
-                ChatContext.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isSessionGranted);
-                return isSessionGranted;
-            }
-        }
-    }
-
     private readonly IChatContextManager _chatContextManager;
     private readonly IChatPluginManager _chatPluginManager;
     private readonly IKernelMixinFactory _kernelMixinFactory;
@@ -71,7 +39,6 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
 
     private readonly ActivitySource _activitySource = new(typeof(ChatService).FullName.NotNull(), App.Version);
     private readonly Meter _meter = new(typeof(ChatService).FullName.NotNull(), App.Version);
-    private readonly Stack<FunctionCallContext> _functionCallContextStack = new();
     private readonly Counter<int> _chatRequestsCounter;
     private readonly Counter<int> _chatTopicsCounter;
     private readonly Histogram<double> _timeToFirstTokenHistogram;
@@ -381,7 +348,8 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         builder.Services.AddSingleton(_chatContextManager);
         builder.Services.AddSingleton(chatContext);
         builder.Services.AddSingleton(customAssistant);
-        builder.Services.AddSingleton<IChatPluginUserInterface>(this);
+        builder.Services.AddTransient<IChatPluginUserInterface>(static x => x.GetRequiredService<ChatContext>().FunctionCallContext.Value ??
+            throw new InvalidOperationException("No IChatPluginUserInterface is available in current function call context."));
 
         if (kernelMixin.SupportsToolCall && _persistentState.IsToolCallEnabled)
         {
@@ -780,19 +748,14 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             };
             functionCallSpan.Add(functionCallChatMessage);
 
-            // Set the current function call context.
-            // Push the previous context to the stack, allowing nested function calls.
-            if (_currentFunctionCallContext is not null)
-            {
-                _functionCallContextStack.Push(_currentFunctionCallContext);
-            }
-
-            _currentFunctionCallContext = new FunctionCallContext(
+            var functionCallContext = new FunctionCallContext(
                 kernel,
                 chatContext,
                 chatPlugin,
                 chatFunction,
-                functionCallChatMessage);
+                functionCallChatMessage,
+                _settings.Plugin.IsPermissionGrantedRecords);
+            chatContext.FunctionCallContext.Value = functionCallContext;
 
             try
             {
@@ -821,7 +784,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
                     var resultContent = await InvokeFunctionAsync(
                         kernelMixin,
                         functionCallContent,
-                        _currentFunctionCallContext,
+                        functionCallContext,
                         friendlyContent,
                         cancellationToken);
 
@@ -843,16 +806,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             {
                 functionCallChatMessage.FinishedAt = DateTimeOffset.UtcNow;
                 functionCallChatMessage.IsBusy = false;
-
-                // Restore the previous function call context.
-                if (_functionCallContextStack.Count > 0)
-                {
-                    _currentFunctionCallContext = _functionCallContextStack.Pop();
-                }
-                else
-                {
-                    _currentFunctionCallContext = null;
-                }
+                chatContext.FunctionCallContext.Value = null;
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -866,7 +820,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
         KernelMixin kernelMixin,
         FunctionCallContent content,
         FunctionCallContext context,
-        ChatPluginDisplayBlock? friendlyContent,
+        ChatPluginDisplayBlock? displayBlock,
         CancellationToken cancellationToken)
     {
         using var activity = StartChatActivity("execute_tool", kernelMixin);
@@ -879,7 +833,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             1,
             new KeyValuePair<string, object?>("gen_ai.tool.plugin", content.PluginName),
             new KeyValuePair<string, object?>("gen_ai.tool.name", content.FunctionName),
-            new KeyValuePair<string, object?>("gen_ai.tool.is_mcp", context.Plugin is McpChatPlugin));
+            new KeyValuePair<string, object?>("gen_ai.tool.is_mcp", context.ChatPlugin is McpChatPlugin));
 
         FunctionResultContent resultContent;
         try
@@ -891,7 +845,7 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             {
                 case ConsentDecision.AlwaysAllow:
                 {
-                    context.Function.AutoApprove = true;
+                    context.ChatFunction.AutoApprove = true;
                     break;
                 }
                 case ConsentDecision.AllowSession:
@@ -932,15 +886,15 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
             }
 
             FormattedDynamicResourceKey headerKey;
-            if (context.Plugin is McpChatPlugin)
+            if (context.ChatPlugin is McpChatPlugin)
             {
                 headerKey = new FormattedDynamicResourceKey(
                     LocaleKey.ChatPluginConsentRequest_MCP_Header,
-                    context.Function.HeaderKey);
+                    context.ChatFunction.HeaderKey);
             }
             else
             {
-                if (context.Function is NativeChatFunction { OnPermissionConsent: { } onPermissionConsent })
+                if (context.ChatFunction is NativeChatFunction { OnPermissionConsent: { } onPermissionConsent })
                 {
                     return onPermissionConsent(content) switch
                     {
@@ -950,18 +904,18 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
                     };
                 }
 
-                if (context.Function.Permissions == ChatFunctionPermissions.None)
+                if (context.ChatFunction.Permissions == ChatFunctionPermissions.None)
                 {
                     headerKey = new FormattedDynamicResourceKey(
                         LocaleKey.ChatPluginConsentRequest_CommonNone_Header,
-                        context.Function.HeaderKey);
+                        context.ChatFunction.HeaderKey);
                 }
                 else
                 {
                     headerKey = new FormattedDynamicResourceKey(
                         LocaleKey.ChatPluginConsentRequest_Common_Header,
-                        context.Function.HeaderKey,
-                        new DirectResourceKey(context.Function.Permissions.I18N(LocaleResolver.Common_Comma, true)));
+                        context.ChatFunction.HeaderKey,
+                        new DirectResourceKey(context.ChatFunction.Permissions.I18N(LocaleResolver.Common_Comma, true)));
                 }
             }
 
@@ -1115,80 +1069,4 @@ public sealed partial class ChatService : IChatService, IChatPluginUserInterface
     }
 
     private static KeyValuePair<string, object?> GetModelTag(string? modelId) => new("gen_ai.request.model", modelId);
-
-    public IChatPluginDisplaySink DisplaySink =>
-        _currentFunctionCallContext?.ChatMessage.DisplaySink ?? throw new InvalidOperationException("No active function call to display sink for");
-
-    public async Task<bool> RequestConsentAsync(
-        string? id,
-        IDynamicResourceKey headerKey,
-        ChatPluginDisplayBlock? content = null,
-        CancellationToken cancellationToken = default)
-    {
-        if (_currentFunctionCallContext is null)
-        {
-            throw new InvalidOperationException("No active function call to request consent for");
-        }
-
-        string? permissionKey = null;
-        if (!id.IsNullOrWhiteSpace())
-        {
-            permissionKey = $"{_currentFunctionCallContext.PermissionKey}.{id}";
-            _settings.Plugin.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isGloballyGranted);
-            _currentFunctionCallContext.ChatContext.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isSessionGranted);
-            if (isGloballyGranted || isSessionGranted)
-            {
-                return true;
-            }
-        }
-
-        var promise = new TaskCompletionSource<ConsentDecision>(TaskCreationOptions.RunContinuationsAsynchronously);
-        WeakReferenceMessenger.Default.Send(
-            new ChatPluginConsentRequest(
-                promise,
-                headerKey,
-                content,
-                permissionKey is not null,
-                cancellationToken));
-
-        var consentDecision = await promise.Task;
-
-        if (permissionKey is null)
-        {
-            // no id provided, so we cannot remember the decision
-            return consentDecision switch
-            {
-                ConsentDecision.AllowOnce => true,
-                _ => false,
-            };
-        }
-
-        switch (consentDecision)
-        {
-            case ConsentDecision.AlwaysAllow:
-            {
-                _settings.Plugin.IsPermissionGrantedRecords[permissionKey] = true;
-                return true;
-            }
-            case ConsentDecision.AllowSession:
-            {
-                _currentFunctionCallContext.ChatContext.IsPermissionGrantedRecords[permissionKey] = true;
-                return true;
-            }
-            case ConsentDecision.AllowOnce:
-            {
-                return true;
-            }
-            case ConsentDecision.Deny:
-            default:
-            {
-                return false;
-            }
-        }
-    }
-
-    public Task<string> RequestInputAsync(IDynamicResourceKey message, CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
 }
