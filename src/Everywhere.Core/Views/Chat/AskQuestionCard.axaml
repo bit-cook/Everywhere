@@ -1,0 +1,95 @@
+<ResourceDictionary
+  xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:v="using:Everywhere.Views">
+  <Design.PreviewWith>
+    <v:AskQuestionCard/>
+  </Design.PreviewWith>
+
+  <ControlTheme
+    x:Key="{x:Type v:AskQuestionCard}"
+    TargetType="v:AskQuestionCard">
+    <Setter Property="Padding" Value="8"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundColor}"/>
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="v:AskQuestionCard">
+          <Border
+            Background="{TemplateBinding Background}"
+            BorderBrush="{TemplateBinding BorderBrush}"
+            BorderThickness="{TemplateBinding BorderThickness}"
+            CornerRadius="{TemplateBinding CornerRadius}">
+            <Grid
+              Margin="{TemplateBinding Padding}"
+              RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+              <!--  Question text  -->
+              <TextBlock
+                Grid.Row="0"
+                IsVisible="{Binding CurrentQuestion.Question, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static StringConverters.IsNotNullOrEmpty}, FallbackValue={x:False}}"
+                Text="{Binding CurrentQuestion.Question.Question, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
+                TextWrapping="Wrap"/>
+
+              <!--  Options ListBox  -->
+              <ListBox
+                Grid.Row="1" MaxHeight="300"
+                Background="Transparent" BorderThickness="0"
+                ItemsSource="{Binding CurrentQuestion.OptionWrappers, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
+                SelectionMode="{Binding CurrentQuestion.SelectionMode, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}">
+                <ListBox.ItemContainerTheme>
+                  <ControlTheme
+                    x:DataType="v:AskQuestionCard+OptionWrapper"
+                    BasedOn="{StaticResource {x:Type ListBoxItem}}"
+                    TargetType="ListBoxItem">
+                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                  </ControlTheme>
+                </ListBox.ItemContainerTheme>
+
+                <ListBox.DataTemplates>
+                  <DataTemplate DataType="v:AskQuestionCard+NormalOptionWrapper">
+                    <TextBlock TextWrapping="Wrap">
+                      <Run
+                        FontSize="{DynamicResource FontSizeL}"
+                        FontWeight="Bold"
+                        Text="{Binding Option.Label}"/>
+                      <Run Text=" "/>
+                      <Run
+                        FontSize="{DynamicResource FontSizeM}"
+                        Text="{Binding Option.Description}"/>
+                    </TextBlock>
+                  </DataTemplate>
+
+                  <DataTemplate DataType="v:AskQuestionCard+FreeformOptionWrapper">
+                    <TextBox
+                      AcceptsReturn="True" MaxLines="3"
+                      Text="{Binding FreeformText}"
+                      TextWrapping="Wrap"
+                      Watermark="{I18N {x:Static LocaleKey.AskQuestionCard_FreeformPlaceholder}}"/>
+                  </DataTemplate>
+                </ListBox.DataTemplates>
+              </ListBox>
+
+              <Grid
+                Grid.Row="2" VerticalAlignment="Bottom"
+                ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="4"
+                IsVisible="{TemplateBinding ShowPagination}">
+                <Button
+                  Classes="Ghost Compact" Grid.Column="0"
+                  Command="{Binding PreviousPageCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                  Content="{I18N {x:Static LocaleKey.AskQuestionCard_Previous}}"/>
+                <TextBlock
+                  Classes="Muted" Grid.Column="1"
+                  VerticalAlignment="Center"
+                  Text="{TemplateBinding PageDisplay}"/>
+                <Button
+                  Classes="Primary Compact" Grid.Column="2"
+                  Command="{Binding NextPageCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                  Content="{I18N {x:Static LocaleKey.AskQuestionCard_Next}}"/>
+              </Grid>
+            </Grid>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </ControlTheme>
+</ResourceDictionary>

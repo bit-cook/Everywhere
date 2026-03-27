@@ -1122,7 +1122,12 @@ public enum HandledFunctionInvokingExceptionType
     /// <summary>
     /// The specified function was not found.
     /// </summary>
-    FunctionNotFound
+    FunctionNotFound,
+
+    /// <summary>
+    /// The function returned an invalid result that cannot be processed.
+    /// </summary>
+    InvalidResult
 }
 
 /// <summary>
@@ -1159,6 +1164,7 @@ public sealed partial class HandledFunctionInvokingException : HandledSystemExce
         HandledFunctionInvokingExceptionType.ArgumentError => new ArgumentException("Invalid argument provided.", name),
         HandledFunctionInvokingExceptionType.ArgumentMissing => new ArgumentException("Missing required argument.", name),
         HandledFunctionInvokingExceptionType.FunctionNotFound => new InvalidOperationException($"Function '{name}' not found."),
+        HandledFunctionInvokingExceptionType.InvalidResult => new InvalidOperationException($"Function '{name}' returned an invalid result."),
         _ => new Exception("An unknown function invoking error occurred.")
     };
 
@@ -1172,6 +1178,9 @@ public sealed partial class HandledFunctionInvokingException : HandledSystemExce
             new DirectResourceKey(name)),
         HandledFunctionInvokingExceptionType.FunctionNotFound => new FormattedDynamicResourceKey(
             new DynamicResourceKey(LocaleKey.HandledFunctionInvokingException_FunctionNotFound),
+            new DirectResourceKey(name)),
+        HandledFunctionInvokingExceptionType.InvalidResult => new FormattedDynamicResourceKey(
+            new DynamicResourceKey(LocaleKey.HandledFunctionInvokingException_InvalidResult),
             new DirectResourceKey(name)),
         _ => null, // HandledSystemException will use its own Unknown key
     };

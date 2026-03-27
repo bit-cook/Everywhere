@@ -746,24 +746,27 @@ public sealed partial class ChatWindowViewModel :
         }
     }
 
-    public void Receive(ChatPluginConsentRequest message)
+    #region IChatPluginUserInterface Recipient
+
+    public void Receive(ChatPluginRequestConsentMessage message)
     {
         Dispatcher.UIThread.InvokeOnDemand(() =>
         {
             var card = new ConsentDecisionCard
             {
                 Header = message.HeaderKey.ToTextBlock(),
-                Content = message.Content,
+                Content = message.DisplayBlock,
                 CanRemember = message.CanRemember
             };
-            card.ConsentSelected += (_, args) =>
+            card.ConsentSelected += decision =>
             {
-                message.Promise.TrySetResult(args.Decision);
+                message.Promise.TrySetResult(decision);
                 DialogManager.Close(card);
             };
             DialogManager
                 .CreateCustomDialog(card)
-                .ShowAsync(message.CancellationToken);
+                .ShowAsync(message.CancellationToken)
+                .Detach(_logger.ToExceptionHandler());
 
             if (!IsOpened)
             {
@@ -776,6 +779,40 @@ public sealed partial class ChatWindowViewModel :
             }
         });
     }
+
+    public void Receive(ChatPluginAskQuestionMessage message)
+    {
+        Dispatcher.UIThread.InvokeOnDemand(() =>
+        {
+            var card = new AskQuestionCard
+            {
+                Questions = message.Questions
+            };
+            card.Submitted += answers =>
+            {
+                message.Promise.TrySetResult(answers);
+                DialogManager.Close(card);
+            };
+            DialogManager
+                .CreateCustomDialog(card)
+                .ShowAsync(message.CancellationToken)
+                .Detach(_logger.ToExceptionHandler());
+
+            if (!IsOpened)
+            {
+                var notificationText = message.Questions.FirstOrDefault()?.Id ?? LocaleResolver.Common_Info;
+                _nativeHelper
+                    .ShowDesktopNotificationAsync(notificationText)
+                    .ContinueWith(r =>
+                    {
+                        if (r is { IsFaulted: false, Result: true })
+                            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
+                    });
+            }
+        });
+    }
+
+    #endregion
 
     #region IObserver<TextSelectionData> Implementation
 

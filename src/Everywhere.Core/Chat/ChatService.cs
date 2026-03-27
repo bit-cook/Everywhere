@@ -922,10 +922,10 @@ public sealed partial class ChatService : IChatService
             // The function requires permissions that are not granted.
             var promise = new TaskCompletionSource<ConsentDecision>(TaskCreationOptions.RunContinuationsAsynchronously);
             WeakReferenceMessenger.Default.Send(
-                new ChatPluginConsentRequest(
+                new ChatPluginRequestConsentMessage(
                     promise,
                     headerKey,
-                    friendlyContent,
+                    displayBlock,
                     true,
                     cancellationToken));
 

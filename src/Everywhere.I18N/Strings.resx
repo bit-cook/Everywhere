@@ -1849,6 +1849,21 @@ Scroll wheel or number keys to switch pick modes</value>
     <data name="BuiltInChatPlugin_Essential_RunSubagent_TokenCount" xml:space="preserve">
         <value>{0} input · {1} output · {2} total</value>
     </data>
+    <data name="BuiltInChatPlugin_Essential_AskUserQuestion_Header" xml:space="preserve">
+        <value>Ask User Question</value>
+    </data>
+    <data name="BuiltInChatPlugin_Essential_AskUserQuestion_Description" xml:space="preserve">
+        <value>Allowing the assistant to ask questions and gather input from the user through interactive dialogs.</value>
+    </data>
+    <data name="AskQuestionCard_Next" xml:space="preserve">
+        <value>Next</value>
+    </data>
+    <data name="AskQuestionCard_Previous" xml:space="preserve">
+        <value>Previous</value>
+    </data>
+    <data name="AskQuestionCard_FreeformPlaceholder" xml:space="preserve">
+        <value>Type your answer...</value>
+    </data>
     <data name="BuiltInChatPlugin_FileSystem_SearchFiles_OperationStarted_Message" xml:space="preserve">
         <value>📂 {0}</value>
     </data>
@@ -2560,6 +2575,9 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="ChatWindowSettings_EnableContextAnalysisAnimation_Description" xml:space="preserve">
+        <value />
+    </data>
+    <data name="HandledFunctionInvokingException_InvalidResult" xml:space="preserve">
         <value />
     </data>
     <data name="ChatContext_TemporaryToggleButton_ToolTip" xml:space="preserve">

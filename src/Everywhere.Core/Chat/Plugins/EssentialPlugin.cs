@@ -39,7 +39,7 @@ public class EssentialPlugin : BuiltInChatPlugin
     }
 
     [Serializable]
-    public class TodoItem
+    public sealed class TodoItem
     {
         [Description("1-based unique identifier for the todo item.")]
         public required int Id { get; set; }
@@ -72,6 +72,10 @@ public class EssentialPlugin : BuiltInChatPlugin
             list.Add(
                 new NativeChatFunction(
                     ManageTodoList,
+                    ChatFunctionPermissions.None));
+            list.Add(
+                new NativeChatFunction(
+                    AskUserQuestionAsync,
                     ChatFunctionPermissions.None));
         });
     }
@@ -122,7 +126,8 @@ public class EssentialPlugin : BuiltInChatPlugin
 
     [KernelFunction("manage_todo_list")]
     [Description(
-        "Manage a structured todo list to track progress and plan tasks. Use this tool VERY frequently to ensure task visibility and proper planning.")]
+        "Manage a structured todo list to track progress and plan tasks. " +
+        "Use this tool VERY frequently to ensure task visibility and proper planning.")]
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Header,
         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Description)]
@@ -131,7 +136,9 @@ public class EssentialPlugin : BuiltInChatPlugin
         [FromKernelServices] IChatPluginUserInterface userInterface,
         TodoAction action,
         [Description(
-            "Complete array of all todo items (required for reset, optional for read). ALWAYS provide complete list when rewriting - partial updates not supported. This MUST be a JSON array instead of a stringified JSON.") ]
+            "Complete array of all todo items (required for reset, optional for read). " +
+            "ALWAYS provide complete list when rewriting - partial updates not supported. " +
+            "This MUST be a JSON array instead of a stringified JSON.") ]
         List<TodoItem>? items)
     {
         var currentList = _todoLists.GetOrCreateValue(chatContext);
@@ -206,5 +213,39 @@ public class EssentialPlugin : BuiltInChatPlugin
             }
             userInterface.DisplaySink.AppendText(stringBuilder.TrimEnd().ToString());
         }
+    }
+
+    [KernelFunction("ask_user_question")]
+    [Description(
+        "Use this tool to ask the user a small number of clarifying questions before proceeding. " +
+        "Provide the questions array with concise headers and prompts. " +
+        "Use options for fixed choices, set multiSelect when multiple selections are allowed, and set allowFreeformInput to let users supply their own answer.")]
+    [DynamicResourceKey(
+        LocaleKey.BuiltInChatPlugin_Essential_AskUserQuestion_Header,
+        LocaleKey.BuiltInChatPlugin_Essential_AskUserQuestion_Description)]
+    private async static Task<IReadOnlyDictionary<string, ChatPluginQuestionAnswer>> AskUserQuestionAsync(
+        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [Description("The questions to present to the user. Each question is shown as a separate page.")]
+        IReadOnlyList<ChatPluginQuestion> questions,
+        CancellationToken cancellationToken)
+    {
+        var answers = await userInterface.AskQuestionAsync(questions, cancellationToken);
+
+        if (answers.Count != questions.Count)
+        {
+            throw new HandledFunctionInvokingException(
+                HandledFunctionInvokingExceptionType.InvalidResult,
+                "The number of answers does not match the number of questions.");
+        }
+
+        var result = new Dictionary<string, ChatPluginQuestionAnswer>(answers.Count);
+        for (var i = 0; i < answers.Count; i++)
+        {
+            var question = questions[i];
+            var answer = answers[i];
+            result[question.Id] = answer;
+        }
+
+        return result;
     }
 }

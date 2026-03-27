@@ -1850,6 +1850,21 @@
     <data name="BuiltInChatPlugin_Essential_RunSubagent_TokenCount" xml:space="preserve">
         <value>输入 {0} · 输出 {1} · 总计 {2}</value>
     </data>
+    <data name="BuiltInChatPlugin_Essential_AskUserQuestion_Header" xml:space="preserve">
+        <value>询问用户</value>
+    </data>
+    <data name="BuiltInChatPlugin_Essential_AskUserQuestion_Description" xml:space="preserve">
+        <value>允许助手通过交互式对话框向用户提问并收集输入。</value>
+    </data>
+    <data name="AskQuestionCard_Next" xml:space="preserve">
+        <value>下一个</value>
+    </data>
+    <data name="AskQuestionCard_Previous" xml:space="preserve">
+        <value>上一个</value>
+    </data>
+    <data name="AskQuestionCard_FreeformPlaceholder" xml:space="preserve">
+        <value>输入你的回答…</value>
+    </data>
     <data name="BuiltInChatPlugin_FileSystem_SearchFiles_OperationStarted_Message" xml:space="preserve">
         <value>📂 {0}</value>
     </data>
@@ -2566,7 +2581,10 @@
     <data name="ChatWindowSettings_EnableContextAnalysisAnimation_Description" xml:space="preserve">
         <value>分析上下文时，使用带有物理反馈的动画将屏幕上被读取的元素抛入聊天窗口。会对性能造成中等影响。</value>
     </data>
+    <data name="HandledFunctionInvokingException_InvalidResult" xml:space="preserve">
+        <value>工具的返回结果有误：{0}</value>
+    </data>
     <data name="ChatContext_TemporaryToggleButton_ToolTip" xml:space="preserve">
-        <value>临时聊天。开启后当前聊天不会被保存，切换或新建对话时即删除。</value>
+        <value>临时聊天：开启后当前聊天不会被保存，切换或新建对话时即删除。</value>
     </data>
 </root>

@@ -1,12 +1,59 @@
-﻿using Everywhere.Chat.Permissions;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using Everywhere.Chat.Permissions;
 
 namespace Everywhere.Chat.Plugins;
 
-public record ChatPluginConsentRequest(
+public sealed record ChatPluginRequestConsentMessage(
     TaskCompletionSource<ConsentDecision> Promise,
     IDynamicResourceKey HeaderKey,
-    ChatPluginDisplayBlock? Content,
+    ChatPluginDisplayBlock? DisplayBlock,
     bool CanRemember,
+    CancellationToken CancellationToken
+);
+
+[Serializable]
+public sealed class ChatPluginQuestion
+{
+    [Description("Short identifier for the question. Must be unique so answers can be mapped back to the question")]
+    [MaxLength(75)]
+    public required string Id { get; set; }
+
+    [Description("The question text to display to the user. Keep it concise, ideally one sentence")]
+    [MaxLength(300)]
+    public required string Question { get; set; }
+
+    [Description("Allow selecting multiple options when options are provided'")]
+    public bool MultiSelect { get; set; }
+
+    [Description("Allow freeform text answers in addition to option selection")]
+    public bool AllowFreeformInput { get; set; }
+
+    [Description("Optional list of selectable answers. If omitted, the question is free text")]
+    public IReadOnlyList<ChatPluginQuestionOption>? Options { get; set; }
+}
+
+[Serializable]
+public sealed class ChatPluginQuestionOption
+{
+    [Description("Display label and value for the option")]
+    public required string Label { get; set; }
+
+    [Description("Optional secondary text shown with the option")]
+    public string? Description { get; set; }
+
+    [Description("Mark this option as the recommended default")]
+    public bool Recommended { get; set; }
+}
+
+public sealed record ChatPluginQuestionAnswer(
+    IReadOnlyList<string> Selected,
+    string? FreeText
+);
+
+public sealed record ChatPluginAskQuestionMessage(
+    TaskCompletionSource<IReadOnlyList<ChatPluginQuestionAnswer>> Promise,
+    IReadOnlyList<ChatPluginQuestion> Questions,
     CancellationToken CancellationToken
 );
 
@@ -42,10 +89,12 @@ public interface IChatPluginUserInterface
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Requests input from the user.
+    /// Ask question and wait for answer.
     /// </summary>
-    /// <param name="message"></param>
+    /// <param name="questions"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<string> RequestInputAsync(IDynamicResourceKey message, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ChatPluginQuestionAnswer>> AskQuestionAsync(
+        IReadOnlyList<ChatPluginQuestion> questions,
+        CancellationToken cancellationToken = default);
 }
