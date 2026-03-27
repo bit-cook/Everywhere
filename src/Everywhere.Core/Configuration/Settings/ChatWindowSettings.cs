@@ -91,26 +91,26 @@ public partial class ChatWindowSettings : SettingsBase, ISettingsCategory
     } = true;
 
     [DynamicResourceKey(
-        LocaleKey.ChatWindowSettings_EnableContextAnalysisAnimation_Header,
-        LocaleKey.ChatWindowSettings_EnableContextAnalysisAnimation_Description)]
-    public bool EnableContextAnalysisAnimation
+        LocaleKey.ChatWindowSettings_EnableVisualContextAnimation_Header,
+        LocaleKey.ChatWindowSettings_EnableVisualContextAnimation_Description)]
+    public bool EnableVisualContextAnimation
     {
         get;
         set
         {
-            if (SetProperty(ref field, value)) _enableContextAnalysisAnimationGauge.Record(value ? 1 : 0);
+            if (SetProperty(ref field, value)) _enableVisualContextAnimationGauge.Record(value ? 1 : 0);
         }
     } = true;
 
     private readonly Gauge<int> _enableVisualElementPickAnimationGauge =
         Meter.CreateGauge<int>($"settings.{nameof(EnableVisualElementPickAnimation)}");
-    private readonly Gauge<int> _enableContextAnalysisAnimationGauge =
-        Meter.CreateGauge<int>($"settings.{nameof(EnableContextAnalysisAnimation)}");
+    private readonly Gauge<int> _enableVisualContextAnimationGauge =
+        Meter.CreateGauge<int>($"settings.{nameof(EnableVisualContextAnimation)}");
 
     public ChatWindowSettings()
     {
         // TODO: make these ugly codes better
         _enableVisualElementPickAnimationGauge.Record(EnableVisualElementPickAnimation ? 1 : 0);
-        _enableContextAnalysisAnimationGauge.Record(EnableContextAnalysisAnimation ? 1 : 0);
+        _enableVisualContextAnimationGauge.Record(EnableVisualContextAnimation ? 1 : 0);
     }
 }

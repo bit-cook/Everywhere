@@ -253,9 +253,8 @@ public sealed partial class ChatService : IChatService
 
             var approximateTokenLimit = _persistentState.VisualTreeLengthLimit.ToTokenLimit();
             var detailLevel = _persistentState.VisualTreeDetailLevel;
-            var isEffectEnabled = _settings.ChatWindow.EnableContextAnalysisAnimation;
 
-            await using var effectScope = isEffectEnabled?
+            await using var effectScope = _settings.ChatWindow.EnableVisualContextAnimation ?
                 ServiceLocator.Resolve<VisualElementEffect>().BeginScope(cancellationToken) :
                 null;
             await Task.Run(

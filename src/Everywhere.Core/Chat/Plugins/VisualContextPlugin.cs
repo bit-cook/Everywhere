@@ -11,6 +11,7 @@ using Everywhere.Configuration;
 using Everywhere.Database;
 using Everywhere.Interop;
 using Everywhere.Storage;
+using Everywhere.Views;
 using Lucide.Avalonia;
 using Microsoft.SemanticKernel;
 using ZLinq;
@@ -27,15 +28,19 @@ public class VisualContextPlugin : BuiltInChatPlugin
     private readonly IBlobStorage _blobStorage;
     private readonly IVisualElementContext _visualElementContext;
     private readonly PersistentState _persistentState;
+    private readonly Settings _settings;
 
     public VisualContextPlugin(
         IBlobStorage blobStorage,
         IVisualElementContext visualElementContext,
-        PersistentState persistentState) : base("visual_context")
+        PersistentState persistentState,
+        Settings settings) : base("visual_context")
     {
         _blobStorage = blobStorage;
         _visualElementContext = visualElementContext;
         _persistentState = persistentState;
+        _settings = settings;
+
         _functionsSource.Edit(list =>
         {
             list.Add(
@@ -48,7 +53,7 @@ public class VisualContextPlugin : BuiltInChatPlugin
                     ChatFunctionPermissions.ScreenRead));
             list.Add(
                 new NativeChatFunction(
-                    GetVisualTree,
+                    GetVisualTreeAsync,
                     ChatFunctionPermissions.ScreenRead,
                     isExperimental: true));
             list.Add(
@@ -173,7 +178,7 @@ public class VisualContextPlugin : BuiltInChatPlugin
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_VisualContext_GetVisualTree_Header,
         LocaleKey.BuiltInChatPlugin_VisualContext_GetVisualTree_Description)]
-    private string GetVisualTree(
+    private async Task<string> GetVisualTreeAsync(
         [FromKernelServices] ChatContext chatContext,
         [Description("ElementId, or hwnd startswith 0x")] string target,
         [Description("Available values: all, parent, child, previous, next")] string directions = "all",
@@ -190,12 +195,16 @@ public class VisualContextPlugin : BuiltInChatPlugin
         var detailLevel = _persistentState.VisualTreeDetailLevel;
         var nextId = chatContext.VisualElements.Count + 1;
 
+        await using var effectScope = _settings.ChatWindow.EnableVisualContextAnimation ?
+            ServiceLocator.Resolve<VisualElementEffect>().BeginScope(cancellationToken) :
+            null;
         var builder = new VisualTreeBuilder(
             [element],
             tokenLimit,
             nextId,
             detailLevel,
-            traverseDirections);
+            traverseDirections,
+            effectScope: effectScope);
 
         var result = builder.Build(cancellationToken);
 
