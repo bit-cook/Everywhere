@@ -43,7 +43,7 @@
         <v:Eva
           x:Name="Eva" DockPanel.Dock="Left"
           Width="36" Height="36"
-          Margin="0,0,0,-4"
+          Margin="0,0,0,-4" FlowDirection="LeftToRight"
           IsThinking="{Binding IsBusy}">
           <v:Eva.Effect>
             <DropShadowEffect
@@ -54,7 +54,7 @@
 
         <StackPanel
           DockPanel.Dock="Right" VerticalAlignment="Center"
-          Orientation="Horizontal" Spacing="4">
+          Orientation="Horizontal" Spacing="2">
           <StackPanel.Styles>
             <Style Selector=":is(Button).TitleBar">
               <Setter Property="Focusable" Value="False"/>
@@ -135,10 +135,27 @@
             </Style>
           </StackPanel.Styles>
 
+          <ToggleButton
+            Classes="Ghost TitleBar"
+            IsChecked="{Binding ChatContextManager.Current.Metadata.IsTemporary, Mode=TwoWay}"
+            ToolTip.Tip="{I18N {x:Static LocaleKey.ChatContext_TemporaryToggleButton_ToolTip}}">
+            <ToggleButton.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="!IsViewingHistory"/>
+                <Binding
+                  Converter="{x:Static vc:Int32Converters.NotGreaterThan}"
+                  ConverterParameter="1" Path="ChatContextManager.Current.DisplayItems.Count"/>
+              </MultiBinding>
+            </ToggleButton.IsVisible>
+
+            <LucideIcon
+              Kind="Ghost" Size="16"/>
+          </ToggleButton>
+
           <Button
             x:Name="HistoryButton" Classes="Ghost TitleBar"
             Command="{Binding ChatContextManager.UpdateRecentHistoryCommand}"
-            Content="{LucideIconContent History}"
+            Content="{LucideIconContent History, Size=16}"
             FlowDirection="LeftToRight"
             IsVisible="{Binding !IsViewingHistory}"
             ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_History_ToolTip}}">
@@ -234,7 +251,7 @@
             IsChecked="{Binding $parent[v:ChatWindow].IsWindowPinned, Mode=TwoWay}"
             IsThreeState="True"
             ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_TogglePin_ToolTip}}">
-            <LucideIcon Size="16"/>
+            <LucideIcon Size="15"/>
           </ToggleButton>
 
           <Button
@@ -293,91 +310,82 @@
             </Style>
           </Panel.Styles>
 
-          <StackPanel
-            Margin="8,0,8,8"
+          <ScrollViewer
+            Margin="8" HorizontalScrollBarVisibility="Disabled"
             IsVisible="{Binding ChatContextManager.Current.DisplayItems.Count, Converter={x:Static vc:Int32Converters.NotGreaterThan}, ConverterParameter=1}"
-            Spacing="16">
-            <ToggleSwitch
-              HorizontalAlignment="Center" shadui:ToggleSwitchAssist.RightAlignedContent="True"
-              IsChecked="{Binding ChatContextManager.Current.Metadata.IsTemporary, Mode=TwoWay}"
-              OffContent="{I18N {x:Static LocaleKey.ChatContext_Temporary}}"
-              OnContent="{I18N {x:Static LocaleKey.ChatContext_Temporary}}"/>
+            VerticalScrollBarVisibility="Auto">
+            <ItemsControl
+              HorizontalAlignment="Center"
+              IsEnabled="{Binding !IsBusy}"
+              IsVisible="{Binding $self.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}"
+              ItemsSource="{Binding StrategiesSnapshot.StrategyGroups, FallbackValue={x:Null}}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="8"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
 
-            <ScrollViewer
-              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-              <ItemsControl
-                HorizontalAlignment="Center"
-                IsEnabled="{Binding IsNotBusy}"
-                IsVisible="{Binding $self.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}"
-                ItemsSource="{Binding StrategiesSnapshot.StrategyGroups, FallbackValue={x:Null}}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <StackPanel Spacing="8"/>
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="se:StrategyGroup">
+                  <DockPanel VerticalSpacing="8">
+                    <StackPanel
+                      DockPanel.Dock="Top" Spacing="4">
+                      <TextBlock
+                        Text="{Binding Strategy.Name^, Mode=OneTime}"
+                        TextWrapping="Wrap"/>
+                      <TextBlock
+                        Classes="Muted Small"
+                        Text="{Binding Strategy.Description^, Mode=OneTime, FallbackValue={x:Null}}"
+                        TextWrapping="Wrap"/>
+                    </StackPanel>
 
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="se:StrategyGroup">
-                    <DockPanel VerticalSpacing="8">
-                      <StackPanel
-                        DockPanel.Dock="Top" Spacing="4">
-                        <TextBlock
-                          Text="{Binding Strategy.Name^, Mode=OneTime}"
-                          TextWrapping="Wrap"/>
-                        <TextBlock
-                          Classes="Muted Small"
-                          Text="{Binding Strategy.Description^, Mode=OneTime, FallbackValue={x:Null}}"
-                          TextWrapping="Wrap"/>
-                      </StackPanel>
+                    <ItemsControl ItemsSource="{Binding Commands, Mode=OneTime}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel
+                            ItemSpacing="6" LineSpacing="4"/>
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
 
-                      <ItemsControl ItemsSource="{Binding Commands, Mode=OneTime}">
-                        <ItemsControl.ItemsPanel>
-                          <ItemsPanelTemplate>
-                            <WrapPanel
-                              ItemSpacing="6" LineSpacing="4"/>
-                          </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="se:StrategyCommand">
+                          <Button
+                            Classes="Outline" Width="240"
+                            Padding="8" HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch"
+                            Command="{Binding $parent[v:ChatWindow].ViewModel.RunStrategyCommand, Mode=OneTime}"
+                            CommandParameter="{Binding Mode=OneTime}">
+                            <Grid
+                              ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
+                              RowDefinitions="Auto,*" RowSpacing="4">
+                              <v:IconPresenter
+                                Grid.Row="0" Grid.RowSpan="2"
+                                Grid.Column="0" DockPanel.Dock="Right"
+                                Width="{DynamicResource FontSize2Xl}"
+                                Height="{DynamicResource FontSize2Xl}"
+                                VerticalAlignment="Center"
+                                Icon="{Binding Icon}"
+                                IconSize="{DynamicResource FontSizeL}"/>
 
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="se:StrategyCommand">
-                            <Button
-                              Classes="Outline" Width="240"
-                              Padding="8" HorizontalAlignment="Stretch"
-                              HorizontalContentAlignment="Stretch"
-                              Command="{Binding $parent[v:ChatWindow].ViewModel.RunStrategyCommand, Mode=OneTime}"
-                              CommandParameter="{Binding Mode=OneTime}">
-                              <Grid
-                                ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
-                                RowDefinitions="Auto,*" RowSpacing="4">
-                                <v:IconPresenter
-                                  Grid.Row="0" Grid.RowSpan="2"
-                                  Grid.Column="0" DockPanel.Dock="Right"
-                                  Width="{DynamicResource FontSize2Xl}"
-                                  Height="{DynamicResource FontSize2Xl}"
-                                  VerticalAlignment="Center"
-                                  Icon="{Binding Icon}"
-                                  IconSize="{DynamicResource FontSizeL}"/>
-
-                                <TextBlock
-                                  Grid.Row="0" Grid.Column="1"
-                                  Text="{Binding Name^}"
-                                  TextWrapping="Wrap"/>
-                                <TextBlock
-                                  Classes="Muted Small" Grid.Row="1"
-                                  Grid.Column="1"
-                                  Text="{Binding Description^, Mode=OneTime, FallbackValue={x:Null}}"
-                                  TextWrapping="Wrap"/>
-                              </Grid>
-                            </Button>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-                    </DockPanel>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
-          </StackPanel>
+                              <TextBlock
+                                Grid.Row="0" Grid.Column="1"
+                                Text="{Binding Name^}"
+                                TextWrapping="Wrap"/>
+                              <TextBlock
+                                Classes="Muted Small" Grid.Row="1"
+                                Grid.Column="1"
+                                Text="{Binding Description^, Mode=OneTime, FallbackValue={x:Null}}"
+                                TextWrapping="Wrap"/>
+                            </Grid>
+                          </Button>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </DockPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
 
           <v:ChatMessageItemsControl
             Margin="10,0,8,0" Padding="6,0"
@@ -1037,6 +1045,7 @@
         </ItemsControl>
       </ScrollViewer>
     </Grid>
+
     <Border
       x:Name="DragDropOverlay" Background="#CC000000"
       IsVisible="False">

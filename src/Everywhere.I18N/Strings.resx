@@ -2562,4 +2562,7 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatWindowSettings_EnableContextAnalysisAnimation_Description" xml:space="preserve">
         <value />
     </data>
+    <data name="ChatContext_TemporaryToggleButton_ToolTip" xml:space="preserve">
+        <value />
+    </data>
 </root>

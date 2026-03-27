@@ -2566,4 +2566,7 @@
     <data name="ChatWindowSettings_EnableContextAnalysisAnimation_Description" xml:space="preserve">
         <value>分析上下文时，使用带有物理反馈的动画将屏幕上被读取的元素抛入聊天窗口。会对性能造成中等影响。</value>
     </data>
+    <data name="ChatContext_TemporaryToggleButton_ToolTip" xml:space="preserve">
+        <value>临时聊天。开启后当前聊天不会被保存，切换或新建对话时即删除。</value>
+    </data>
 </root>
