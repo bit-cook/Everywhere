@@ -44,10 +44,12 @@
           <ContentPresenter.DataTemplates>
             <DataTemplate DataType="chat:ChatAttachment">
               <Border
-                Height="24"
+                x:Name="PART_Border" Height="24"
                 Background="{DynamicResource CardBackgroundColor}"
                 BorderBrush="{DynamicResource BorderColor}"
-                BorderThickness="1" CornerRadius="4">
+                BorderThickness="1"
+                Classes.Primary="{Binding IsPrimary}"
+                CornerRadius="4">
                 <DockPanel
                   Margin="6,0" ClipToBounds="False"
                   HorizontalSpacing="2" LastChildFill="True">

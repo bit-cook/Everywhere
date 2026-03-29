@@ -273,17 +273,27 @@ public sealed partial class ChatWindowViewModel :
             }
 
             var createElement = Settings.ChatWindow.AutomaticallyAddElement;
-            var attachment = await Task
+            var chatAttachment = await Task
                 .Run(() => createElement ? VisualElementAttachment.FromVisualElement(targetElement) : null)
                 .WaitAsync(TimeSpan.FromSeconds(1));
 
-            if (attachment is not null)
+            if (chatAttachment is not null)
             {
+                var isAnimationEnabled = Settings.ChatWindow.EnableVisualElementPickAnimation;
                 _chatAttachmentsSource.Edit(list =>
                 {
                     list.RemoveWhere(a => a is VisualElementAttachment { IsPrimary: true });
-                    list.Insert(0, attachment.With(a => a.IsPrimary = true));
+                    list.Insert(0, chatAttachment.With(a =>
+                    {
+                        a.IsPrimary = true;
+                        a.Opacity = isAnimationEnabled ? 0d : 1d;
+                    }));
                 });
+
+                if (isAnimationEnabled)
+                {
+                    await ServiceLocator.Resolve<VisualElementEffect>().CreatePickEffect(targetElement, chatAttachment);
+                }
             }
         }
         catch (OperationCanceledException) { }
