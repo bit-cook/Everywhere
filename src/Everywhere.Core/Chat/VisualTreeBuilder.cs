@@ -130,7 +130,7 @@ public partial class VisualTreeBuilder(
     int startingId,
     VisualTreeDetailLevel detailLevel,
     VisualTreeTraverseDirections allowedTraverseDirections = VisualTreeTraverseDirections.All,
-    VisualElementEffect.Scope? effectScope = null
+    VisualElementEffect.ScanEffectScope? effectScope = null
 )
 {
     private static readonly ActivitySource ActivitySource = new(typeof(VisualTreeBuilder).FullName.NotNull());
@@ -150,7 +150,7 @@ public partial class VisualTreeBuilder(
         int approximateTokenLimit,
         int startingId,
         VisualTreeDetailLevel detailLevel,
-        VisualElementEffect.Scope? effectScope,
+        VisualElementEffect.ScanEffectScope? effectScope,
         CancellationToken cancellationToken)
     {
         using var builderActivity = ActivitySource.StartActivity();
@@ -668,7 +668,7 @@ public partial class VisualTreeBuilder(
             var element = node.Element;
             var id = element.Id;
 
-            effectScope?.Add(element, priority);
+            effectScope?.Add(element);
 
             if (visitedElements.ContainsKey(id))
             {

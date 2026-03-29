@@ -93,7 +93,7 @@ public sealed partial class ChatService : IChatService
                     return;
                 }
 
-                await ProcessUserChatMessageAsync(chatContext, message, cancellationToken);
+                ProcessUserChatMessage(chatContext, message, cancellationToken);
 
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
@@ -157,7 +157,7 @@ public sealed partial class ChatService : IChatService
                     return;
                 }
 
-                await ProcessUserChatMessageAsync(chatContext, newMessage, cancellationToken);
+                ProcessUserChatMessage(chatContext, newMessage, cancellationToken);
 
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
@@ -199,7 +199,7 @@ public sealed partial class ChatService : IChatService
                 }
 
                 chatContext.Add(strategyExecutionContext.UserChatMessage);
-                await ProcessUserChatMessageAsync(chatContext, strategyExecutionContext.UserChatMessage, token);
+                ProcessUserChatMessage(chatContext, strategyExecutionContext.UserChatMessage, token);
 
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
@@ -233,7 +233,7 @@ public sealed partial class ChatService : IChatService
     /// <param name="chatContext"></param>
     /// <param name="userChatMessage"></param>
     /// <param name="cancellationToken"></param>
-    private async Task ProcessUserChatMessageAsync(
+    private void ProcessUserChatMessage(
         ChatContext chatContext,
         UserChatMessage userChatMessage,
         CancellationToken cancellationToken)
@@ -271,8 +271,8 @@ public sealed partial class ChatService : IChatService
             var approximateTokenLimit = _persistentState.VisualTreeLengthLimit.ToTokenLimit();
             var detailLevel = _persistentState.VisualTreeDetailLevel;
 
-            await using var effectScope = _settings.ChatWindow.EnableVisualContextAnimation ?
-                ServiceLocator.Resolve<VisualElementEffect>().BeginScope(cancellationToken) :
+            var effectScope = _settings.ChatWindow.EnableVisualContextAnimation ?
+                ServiceLocator.Resolve<VisualElementEffect>().CreateScanEffect(cancellationToken) :
                 null;
 
             // Build and populate the XML for visual elements.

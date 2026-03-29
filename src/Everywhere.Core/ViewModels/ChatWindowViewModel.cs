@@ -317,7 +317,7 @@ public sealed partial class ChatWindowViewModel :
             if (Settings.ChatWindow.EnableVisualElementPickAnimation)
             {
                 _chatAttachmentsSource.Add(chatAttachment.With(x => x.Opacity = 0d));
-                await ServiceLocator.Resolve<VisualElementEffect>().RunOnceAsync(element, chatAttachment);
+                await ServiceLocator.Resolve<VisualElementEffect>().CreatePickEffect(element, chatAttachment);
             }
             else
             {

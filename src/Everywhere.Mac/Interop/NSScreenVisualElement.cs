@@ -76,7 +76,7 @@ public class NSScreenVisualElement(NSScreen screen) : IVisualElement
 
     public string? GetSelectionText() => null;
 
-    public Task<IVisualElement.IBitmapDataPointer> CaptureAsync(CancellationToken cancellationToken)
+    public Task<IVisualElement.ICapturedBitmapData> CaptureAsync(CancellationToken cancellationToken)
     {
         var bounds = BoundingRectangle;
         var rect = new CGRect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
@@ -87,10 +87,10 @@ public class NSScreenVisualElement(NSScreen screen) : IVisualElement
 
         if (cgImage is null)
         {
-            return Task.FromException<IVisualElement.IBitmapDataPointer>(new InvalidOperationException("Failed to create CGImage wrapper."));
+            return Task.FromException<IVisualElement.ICapturedBitmapData>(new InvalidOperationException("Failed to create CGImage wrapper."));
         }
 
-        return Task.FromResult<IVisualElement.IBitmapDataPointer>(new BitmapDataPointer(cgImage, 1d));
+        return Task.FromResult<IVisualElement.ICapturedBitmapData>(new CapturedBitmapData(cgImage, 1d));
     }
 
     private static int GetScreenNumber(NSScreen screen)

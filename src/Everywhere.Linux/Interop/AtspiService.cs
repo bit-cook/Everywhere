@@ -656,7 +656,7 @@ public sealed partial class AtspiService
             }
         }
 
-        public Task<IVisualElement.IBitmapDataPointer> CaptureAsync(CancellationToken cancellationToken)
+        public Task<IVisualElement.ICapturedBitmapData> CaptureAsync(CancellationToken cancellationToken)
         {
             var rect = BoundingRectangle;
             if (OwnerWindow != null)

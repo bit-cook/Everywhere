@@ -7,12 +7,12 @@ namespace Everywhere.Linux.Interop.X11Backend;
 
 using System;
 
-public class X11BitmapDataPointer(XImage xImage, PixelSize size) : IVisualElement.IBitmapDataPointer
+public class X11CapturedBitmapData(XImage xImage) : IVisualElement.ICapturedBitmapData
 {
     public PixelFormat Format { get; } = DeterminePixelFormat(xImage);
     public AlphaFormat AlphaFormat { get; } = xImage.depth == 32 ? AlphaFormat.Unpremul : AlphaFormat.Opaque;
     public nint Data => _xImage.data;
-    public PixelSize Size { get; } = size;
+    public PixelSize Size { get; } = new(xImage.width, xImage.height);
     public Vector Dpi { get; } = new(96, 96);
     public int Stride => _xImage.bytes_per_line;
 
@@ -42,7 +42,7 @@ public class X11BitmapDataPointer(XImage xImage, PixelSize size) : IVisualElemen
         }
     }
 
-    ~X11BitmapDataPointer() => Dispose();
+    ~X11CapturedBitmapData() => Dispose();
 
     void IDisposable.Dispose()
     {

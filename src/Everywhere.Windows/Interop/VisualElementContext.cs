@@ -93,7 +93,7 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
     /// </summary>
     /// <param name="rect"></param>
     /// <returns></returns>
-    private static Win32BitmapDataPointer? CaptureScreen(PixelRect rect)
+    private static Win32CapturedBitmapData? CaptureScreen(PixelRect rect)
     {
         var x = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_XVIRTUALSCREEN);
         var y = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_YVIRTUALSCREEN);
@@ -113,14 +113,14 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
             graphics.CopyFromScreen(rect.X, rect.Y, 0, 0, new Size(rect.Width, rect.Height));
         }
 
-        return new Win32BitmapDataPointer(gdiBitmap, new Vector(96, 96));
+        return new Win32CapturedBitmapData(gdiBitmap, new Vector(96, 96));
     }
 
     /// <summary>
     /// A disposable wrapper that holds a System.Drawing.Bitmap and its locked BitmapData.
     /// Exposes the raw memory pointer to be consumed by other rendering engines (like Avalonia or Skia).
     /// </summary>
-    private sealed class Win32BitmapDataPointer : IVisualElement.IBitmapDataPointer
+    private sealed class Win32CapturedBitmapData : IVisualElement.ICapturedBitmapData
     {
         public Avalonia.Platform.PixelFormat Format { get; }
         public AlphaFormat AlphaFormat { get; }
@@ -136,7 +136,7 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
         /// <summary>
         /// Initializes a new instance of the pointer, taking ownership of the provided GDI+ bitmap.
         /// </summary>
-        public Win32BitmapDataPointer(System.Drawing.Bitmap gdiBitmap, Vector dpi)
+        public Win32CapturedBitmapData(System.Drawing.Bitmap gdiBitmap, Vector dpi)
         {
             _gdiBitmap = gdiBitmap;
             _bitmapData = _gdiBitmap.LockBits(
@@ -152,7 +152,7 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
             AlphaFormat = AlphaFormat.Opaque;
         }
 
-        ~Win32BitmapDataPointer()
+        ~Win32CapturedBitmapData()
         {
             Dispose(false);
         }

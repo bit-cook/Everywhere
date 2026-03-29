@@ -1,9 +1,11 @@
-﻿using Avalonia.Media.Imaging;
+﻿using System.Threading.Channels;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Everywhere.Chat;
 using Everywhere.Common;
 using Everywhere.Interop;
 using Microsoft.Extensions.Logging;
+using SkiaSharp;
 
 namespace Everywhere.Views;
 
@@ -15,12 +17,12 @@ namespace Everywhere.Views;
 /// <remarks>
 /// This system supports two distinctly handled animation modes:
 /// 
-/// 1. Single-Element Morphing (`RunOnceAsync`): 
+/// 1. Single-Element Morphing (`CreatePickEffect`):
 ///    Triggered when a user selects a specific visual element on screen. A snapshot is captured, 
 ///    and a UI particle dynamically morphs (fades and scales) from the raw image bounds into its 
 ///    final DataContext-bound destination (e.g., a `ChatAttachment` chip) while tracking the window.
 ///    
-/// 2. Multi-Element Swarm (`Scope` / `VisualTreeBuilder`): 
+/// 2. Multi-Element Swarm (`ScanEffectScope` / `VisualTreeBuilder`):
 ///    Used during automated visual tree building. Employs a DPI-aware, batched TopLevel screenshot strategy
 ///    where hundreds of `IImage` sub-crops are fired sequentially based on a heuristic queue. 
 ///    The physics engine applies lateral scattering ("flocking") and Hooke's Law spring dynamics to 
@@ -34,7 +36,7 @@ public sealed class VisualElementEffect(
     private readonly IVisualElementAnimationTarget _animationTarget = animationTarget;
     private readonly List<VisualElementEffectWindow> _effectWindows = [];
 
-    public async Task RunOnceAsync(IVisualElement visualElement, ChatAttachment chatAttachment)
+    public async Task CreatePickEffect(IVisualElement visualElement, ChatAttachment chatAttachment)
     {
         try
         {
@@ -70,13 +72,12 @@ public sealed class VisualElementEffect(
                     Math.Max(16, sourceBounds.Height / effectWindow.Scale));
 
                 var tracker = new RunOnceTracker(this, chatAttachment);
-                effectWindow.AddParticle(
+                effectWindow.AddParticle<PickVisualElementParticle>(
                     startPoint,
                     tracker,
                     startBitmap,
                     chatAttachment,
-                    startSize,
-                    false);
+                    startSize);
             }
         }
         catch
@@ -98,12 +99,7 @@ public sealed class VisualElementEffect(
         }
     }
 
-    public Scope BeginScope(CancellationToken cancellationToken)
-    {
-        Dispatcher.UIThread.PostOnDemand(ArrangeEffectWindows);
-
-        return new Scope(this, logger, cancellationToken);
-    }
+    public ScanEffectScope CreateScanEffect(CancellationToken cancellationToken) => new(this, logger, cancellationToken);
 
     private void ArrangeEffectWindows()
     {
@@ -142,80 +138,81 @@ public sealed class VisualElementEffect(
         }
     }
 
-    /// <summary>
-    /// Represents an asynchronous, scoped lifecycle for executing multi-particle swarm animations. 
-    /// Instantiated by the <see cref="VisualTreeBuilder"/> when mapping a raw window's visual tree.
-    /// Elements are logically evaluated by heuristic priorities and placed into a priority queue.
-    /// 
-    /// An active background loop continuously dequeues the highest-priority elements and emits masked particles.
-    /// To ensure performance, a subset of lowest-priority elements naturally drops off queue processing.
-    /// Because UI parsing typically processes significantly faster than visual particle emission, 
-    /// disposing the <c>Scope</c> (<see cref="DisposeAsync"/>) elegantly awaits the completion of 
-    /// the currently scattered particles, ensuring visual delivery concludes before yielding execution.
-    /// </summary>
-    public sealed class Scope : IParticleTargetTracker, IAsyncDisposable
+    public sealed class ScanEffectScope
     {
-        private readonly PriorityQueue<IVisualElement, float> _queue = new(Comparer<float>.Create((a, b) => b.CompareTo(a)));
-        private readonly Dictionary<string, Bitmap> _topLevelBitmaps = new();
         private readonly VisualElementEffect _owner;
         private readonly ILogger _logger;
-        private readonly CancellationTokenSource _cts;
 
-        /// <summary>
-        /// A heuristic cap on the expected number of emitted particles during a visual tree build.
-        /// </summary>
-        private const int ExpectedCount = 15;
-        private int _emittedCount;
-        private int _aliveParticlesCount;
-        private volatile bool _isDisposed;
+        private readonly HashSet<nint> _emittedWindowHandles = [];
+        private readonly Channel<IVisualElement> _emissionQueue = Channel.CreateBounded<IVisualElement>(
+            new BoundedChannelOptions(1000)
+            {
+                SingleReader = true,
+                SingleWriter = false
+            });
 
-        public Scope(VisualElementEffect owner, ILogger logger, CancellationToken cancellationToken)
+        public ScanEffectScope(VisualElementEffect owner, ILogger logger, CancellationToken cancellationToken)
         {
             _owner = owner;
             _logger = logger;
 
-            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            EmissionLoopAsync(_cts.Token).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
+            Task.Run(() => EmissionLoopAsync(cancellationToken), cancellationToken).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
         }
 
-        public void Add(IVisualElement element, float priority)
+        public void Add(IVisualElement element)
         {
-            lock (_queue)
-            {
-                _queue.Enqueue(element, priority);
-            }
+            _emissionQueue.Writer.TryWrite(element);
         }
 
         private async Task EmissionLoopAsync(CancellationToken cancellationToken)
         {
             try
             {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    var timeBeforeEmission = DateTimeOffset.Now;
-                    IVisualElement? element = null;
-                    lock (_queue)
-                    {
-                        if (_queue.Count > 0)
-                        {
-                            element = _queue.Dequeue();
-                        }
-                    }
+                await Dispatcher.UIThread.InvokeAsync(_owner.ArrangeEffectWindows, DispatcherPriority.Render, cancellationToken);
 
-                    if (element != null)
+                while (await _emissionQueue.Reader.WaitToReadAsync(cancellationToken))
+                {
+                    while (_emissionQueue.Reader.TryRead(out var element))
                     {
-                        if (_owner._effectWindows.Count > 0)
+                        if (_owner._effectWindows.Count == 0) return;
+
+                        try
                         {
+                            if (GetTopLevel(element) is not { } topLevel) continue;
+                            if (topLevel.States.HasFlag(VisualElementStates.Offscreen)) continue;
+
+                            var windowHandle = topLevel.NativeWindowHandle;
+                            if (windowHandle == 0) continue; // Allow screen (-1)
+
+                            if (!_emittedWindowHandles.Add(windowHandle)) continue; // Already emitted
+
+                            var boundingRectangle = topLevel.BoundingRectangle;
+                            if (boundingRectangle.Width <= 16 || boundingRectangle.Height <= 16) continue;
+
+                            SKImage? topLevelImage;
+                            try
+                            {
+                                using var pointer = await topLevel.CaptureAsync(cancellationToken);
+                                topLevelImage = pointer.ToSKImage();
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogWarning(ex, "Failed to capture TopLevel for visual effect. {NativeWindowHandle}", windowHandle);
+                                continue;
+                            }
+
+                            if (topLevelImage is null) continue;
+
                             await Dispatcher.UIThread.InvokeAsync(
-                                () => EmitMaskedParticleAsync(element),
+                                () => EmitPartical(boundingRectangle, topLevelImage),
                                 DispatcherPriority.Render,
                                 cancellationToken);
-                            _emittedCount++;
+                        }
+                        catch (Exception)
+                        {
+                            _logger.LogWarning("Failed to emit visual element particle for element {ElementId}", element.Id);
                         }
                     }
-
-                    var delayMs = Random.Shared.Next(30, 70) - (int)(DateTimeOffset.Now - timeBeforeEmission).TotalMilliseconds;
-                    if (delayMs > 0) await Task.Delay(delayMs, cancellationToken);
                 }
             }
             catch (OperationCanceledException)
@@ -223,90 +220,8 @@ public sealed class VisualElementEffect(
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Unexpected error in VisualElementEffect emission loop");
+                _logger.LogError(ex, "Unexpected error in visual element effect emission loop");
             }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            try
-            {
-                while (_emittedCount < ExpectedCount)
-                {
-                    lock (_queue)
-                    {
-                        if (_queue.Count == 0)
-                        {
-                            break;
-                        }
-                    }
-
-                    await Task.Delay(50);
-                }
-
-                await _cts.CancelAsync();
-            }
-            finally
-            {
-                _cts.Dispose();
-                _isDisposed = true;
-
-                Dispatcher.UIThread.Post(TryDisposeBitmaps);
-            }
-        }
-
-        private void TryDisposeBitmaps()
-        {
-            if (!_isDisposed || _aliveParticlesCount != 0) return;
-
-            foreach (var bitmap in _topLevelBitmaps.Values) bitmap.Dispose();
-            _topLevelBitmaps.Clear();
-        }
-
-        private async Task<CroppedBitmap?> CreateStartImageAsync(IVisualElement element)
-        {
-            if (GetTopLevel(element) is not { } topLevel) return null;
-
-            if (!_topLevelBitmaps.TryGetValue(topLevel.Id, out var topLevelBitmap))
-            {
-                try
-                {
-                    using var pointer = await Task.Run(() => topLevel.CaptureAsync(CancellationToken.None));
-                    topLevelBitmap = pointer.ToAvaloniaBitmap();
-                    _topLevelBitmaps[topLevel.Id] = topLevelBitmap;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to capture TopLevel for visual effect. Element: {ElementId}", element.Id);
-                }
-            }
-
-            if (topLevelBitmap == null) return null;
-
-            var elementBounds = element.BoundingRectangle;
-            var topLevelBounds = topLevel.BoundingRectangle;
-
-            // Compute relative rect
-            var relativeRect = new PixelRect(
-                elementBounds.X - topLevelBounds.X,
-                elementBounds.Y - topLevelBounds.Y,
-                elementBounds.Width,
-                elementBounds.Height);
-
-            // Intersect with toplevel so we don't go out of bounds of the image
-            var bitmapRect = new PixelRect(0, 0, topLevelBitmap.PixelSize.Width, topLevelBitmap.PixelSize.Height);
-            var renderScaling = (double)topLevelBitmap.PixelSize.Width / topLevelBounds.Width;
-
-            var scaledRelativeRect = new PixelRect(
-                (int)(relativeRect.X * renderScaling),
-                (int)(relativeRect.Y * renderScaling),
-                (int)(relativeRect.Width * renderScaling),
-                (int)(relativeRect.Height * renderScaling));
-
-            var intersect = scaledRelativeRect.Intersect(bitmapRect);
-            if (intersect.Width <= 8 || intersect.Height <= 8) return null;
-
-            return new CroppedBitmap(topLevelBitmap, intersect);
         }
 
         private static IVisualElement? GetTopLevel(IVisualElement current)
@@ -321,66 +236,23 @@ public sealed class VisualElementEffect(
             return null;
         }
 
-        private async Task EmitMaskedParticleAsync(IVisualElement element)
+        private void EmitPartical(PixelRect bounds, SKImage image)
         {
-            try
+            foreach (var effectWindow in _owner._effectWindows)
             {
-                if (element.States.HasFlag(VisualElementStates.Offscreen)) return;
+                var sourceCenter = new PixelPoint(bounds.Center.X, bounds.Center.Y);
+                var startPoint = effectWindow.ScreenPixelToLocal(sourceCenter);
+                var startSize = new Size(
+                    Math.Max(16, bounds.Width / effectWindow.Scale),
+                    Math.Max(16, bounds.Height / effectWindow.Scale));
 
-                var bounds = element.BoundingRectangle;
-                if (bounds.Width <= 8 || bounds.Height <= 8) return;
-
-                var startImage = await CreateStartImageAsync(element);
-                if (startImage is null) return;
-
-                PixelRect? evaBounds = null;
-                if (_owner._animationTarget.TryGetEvaBoundsOnScreen(out var rect))
-                {
-                    evaBounds = rect;
-                }
-
-                foreach (var effectWindow in _owner._effectWindows)
-                {
-                    effectWindow.UpdateMask(evaBounds);
-
-                    var sourceCenter = new PixelPoint(bounds.Center.X, bounds.Center.Y);
-                    var startPoint = effectWindow.ScreenPixelToLocal(sourceCenter);
-                    var startSize = new Size(
-                        Math.Max(16, bounds.Width / effectWindow.Scale),
-                        Math.Max(16, bounds.Height / effectWindow.Scale));
-
-                    _aliveParticlesCount++;
-                    effectWindow.AddParticle(
-                        startPoint,
-                        this,
-                        startImage,
-                        null, // no end content for multi-particle, just physics
-                        startSize,
-                        true);
-                }
+                effectWindow.AddParticle<ScanVisualElementParticle>(
+                    startPoint,
+                    null,
+                    image,
+                    null,
+                    startSize);
             }
-            catch (Exception)
-            {
-                _logger.LogWarning("Failed to emit visual element particle for element {ElementId}", element.Id);
-            }
-        }
-
-        public bool TryGetTargetCenterOnScreen(out PixelPoint point)
-        {
-            if (_owner._animationTarget.TryGetEvaBoundsOnScreen(out var targetRect))
-            {
-                point = new PixelPoint(targetRect.Center.X, targetRect.Center.Y);
-                return true;
-            }
-
-            point = default;
-            return false;
-        }
-
-        public void OnParticleCompleted()
-        {
-            _aliveParticlesCount--;
-            TryDisposeBitmaps();
         }
     }
 

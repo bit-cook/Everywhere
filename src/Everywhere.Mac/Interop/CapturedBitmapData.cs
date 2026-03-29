@@ -5,7 +5,7 @@ using Everywhere.Interop;
 
 namespace Everywhere.Mac.Interop;
 
-public sealed class BitmapDataPointer : SafeHandle, IVisualElement.IBitmapDataPointer
+public sealed class CapturedBitmapData : SafeHandle, IVisualElement.ICapturedBitmapData
 {
     public PixelFormat Format { get; }
     public AlphaFormat AlphaFormat { get; }
@@ -14,15 +14,27 @@ public sealed class BitmapDataPointer : SafeHandle, IVisualElement.IBitmapDataPo
     public Vector Dpi { get; }
     public int Stride { get; }
 
-    public BitmapDataPointer(CGImage cgImage, double scaleFactor) : base(0, true)
+    public static CapturedBitmapData Empty => new();
+
+    private CapturedBitmapData() : base(0, true)
     {
+        Format = PixelFormat.Rgba8888;
+        AlphaFormat = AlphaFormat.Premul;
+        Size = new PixelSize(0, 0);
+        Dpi = new Vector(0, 0);
+        Stride = 0;
+    }
+
+    public CapturedBitmapData(CGImage cgImage, double scaleFactor) : base(0, true)
+    {
+        Format = PixelFormat.Rgba8888;
+        AlphaFormat = AlphaFormat.Premul;
+
         var width = (int)cgImage.Width;
         var height = (int)cgImage.Height;
 
         Size = new PixelSize(width, height);
         Dpi = new Vector(72 * scaleFactor, 72 * scaleFactor);
-        Format = PixelFormat.Rgba8888;
-        AlphaFormat = AlphaFormat.Premul;
         Stride = width * 4;
 
         SetHandle(Marshal.AllocHGlobal(Stride * height));

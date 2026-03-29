@@ -1,5 +1,4 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Threading;
 
 namespace Everywhere.Views;
 
@@ -7,13 +6,13 @@ namespace Everywhere.Views;
 /// A lightweight host for control-based particles.
 /// It uses Avalonia's native RequestAnimationFrame to drive physics and visual updates.
 /// </summary>
-public class VisualElementParticleHost(VisualElementEffectWindow owner, int maxPoolSize) : Canvas
+public class VisualElementParticleHost<T>(VisualElementEffectWindow owner, int maxPoolSize) : Canvas where T : VisualElementParticle, new()
 {
     // A list to hold all currently animating particles
-    private readonly List<VisualElementParticle> _activeParticles = [];
+    private readonly List<T> _activeParticles = [];
     
     // A bounded object pool to reuse particles and avoid GC pressure
-    private readonly Stack<VisualElementParticle> _particlePool = new(maxPoolSize);
+    private readonly Stack<T> _particlePool = new(maxPoolSize);
 
     public bool HasActiveParticles => _activeParticles.Count > 0;
 
@@ -32,11 +31,9 @@ public class VisualElementParticleHost(VisualElementEffectWindow owner, int maxP
         object? endContent,
         Size startSize)
     {
-        Dispatcher.UIThread.CheckAccess();
-
         if (!_particlePool.TryPop(out var particle))
         {
-            particle = new VisualElementParticle(owner);
+            particle = new T();
             Children.Add(particle); // Add to VisualTree immediately. Pool elements remain in tree but are hidden.
         }
 
@@ -53,8 +50,6 @@ public class VisualElementParticleHost(VisualElementEffectWindow owner, int maxP
     /// </summary>
     public void ClearParticles()
     {
-        Dispatcher.UIThread.CheckAccess();
-
         foreach (var particle in _activeParticles)
         {
             particle.IsVisible = false;
@@ -102,7 +97,7 @@ public class VisualElementParticleHost(VisualElementEffectWindow owner, int maxP
         for (var i = _activeParticles.Count - 1; i >= 0; i--)
         {
             var particle = _activeParticles[i];
-            if (particle.Update(deltaTimeMs)) // return true means dead
+            if (particle.Update(deltaTimeMs))
             {
                 // Particle has reached the end of its lifecycle
                 particle.IsVisible = false;

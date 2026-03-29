@@ -534,12 +534,4 @@ public partial class ChatWindow :
         return ChatInputArea.TryGetAttachmentCenterOnScreen(attachment, out center);
     }
 
-    public bool TryGetEvaBoundsOnScreen(out PixelRect bounds)
-    {
-        var evaBounds = Eva.Bounds;
-        var p = Eva.PointToScreen(new Point(0, 0));
-        var rightBottom = Eva.PointToScreen(new Point(evaBounds.Width, evaBounds.Height));
-        bounds = new PixelRect(p, rightBottom);
-        return true;
-    }
 }

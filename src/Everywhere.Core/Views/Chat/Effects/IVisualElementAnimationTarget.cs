@@ -12,12 +12,4 @@ public interface IVisualElementAnimationTarget
     /// <param name="center"></param>
     /// <returns></returns>
     bool TryGetAttachmentCenterOnScreen(ChatAttachment attachment, out PixelPoint center);
-
-    /// <summary>
-    /// Tries to get the bounding rectangle of the Eva control on the screen coordinates.
-    /// Used to create the inverted mask for absorption effect.
-    /// </summary>
-    /// <param name="bounds"></param>
-    /// <returns></returns>
-    bool TryGetEvaBoundsOnScreen(out PixelRect bounds);
 }

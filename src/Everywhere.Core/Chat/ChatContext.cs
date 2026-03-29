@@ -179,6 +179,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// <summary>
     /// Try to execute a task in a busy state. If the context is already busy, returns false.
     /// This method is only safe to call on the UI thread.
+    /// Note that action is executed with Task.Run
     /// </summary>
     public bool TryExecute(Func<CancellationToken, Task> action, IExceptionHandler exceptionHandler)
     {

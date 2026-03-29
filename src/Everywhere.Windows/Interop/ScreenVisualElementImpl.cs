@@ -101,11 +101,11 @@ public partial class VisualElementContext
 
         public string? GetSelectionText() => null;
 
-        public Task<IVisualElement.IBitmapDataPointer> CaptureAsync(CancellationToken cancellationToken)
+        public Task<IVisualElement.ICapturedBitmapData> CaptureAsync(CancellationToken cancellationToken)
         {
             return CaptureScreen(BoundingRectangle) is not { } bitmap ?
                 throw new InvalidOperationException("Failed to capture screen.") :
-                Task.FromResult<IVisualElement.IBitmapDataPointer>(bitmap);
+                Task.FromResult<IVisualElement.ICapturedBitmapData>(bitmap);
         }
 
         private sealed class SiblingAccessorImpl(ScreenVisualElementImpl visualElement) : VisualElementSiblingAccessor

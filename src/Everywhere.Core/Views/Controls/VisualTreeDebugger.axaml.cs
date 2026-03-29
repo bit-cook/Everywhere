@@ -10,6 +10,7 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Chat;
+using Everywhere.Common;
 using Everywhere.Interop;
 using ZLinq;
 #if DEBUG
@@ -130,7 +131,11 @@ public partial class VisualTreeDebugger : UserControl
             if (VisualTreeView.SelectedItem is not IVisualElement selectedItem) return;
 
             using var pointer = await selectedItem.CaptureAsync(CancellationToken.None);
-            CaptureImage.Source = pointer.ToAvaloniaBitmap();
+            var bitmap = pointer.ToAvaloniaBitmap();
+#if DEBUG
+            bitmap?.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"capture_{DateTime.Now:yyyyMMdd_HHmmss}.png"));
+#endif
+            CaptureImage.Source = bitmap;
         }
         catch (Exception ex)
         {
@@ -145,11 +150,14 @@ public partial class VisualTreeDebugger : UserControl
         {
             const VisualTreeDetailLevel level = VisualTreeDetailLevel.Compact;
             var tokenLimit = int.Parse(TokenLimitTextBox.Text ?? "8000");
+            var effectScope =
+                ServiceLocator.Resolve<VisualElementEffect>().CreateScanEffect(CancellationToken.None);
             var builder = new VisualTreeBuilder(
                 VisualTreeView.SelectedItems.AsValueEnumerable().OfType<IVisualElement>().ToList(),
                 tokenLimit,
                 0,
-                level);
+                level,
+                effectScope: effectScope);
 #if DEBUG
             // use profiler to measure building time in debug mode
             var visualTree = await Task.Run(() =>

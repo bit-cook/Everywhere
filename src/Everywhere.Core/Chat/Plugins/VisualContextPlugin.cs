@@ -53,7 +53,7 @@ public class VisualContextPlugin : BuiltInChatPlugin
                     ChatFunctionPermissions.ScreenRead));
             list.Add(
                 new NativeChatFunction(
-                    GetVisualTreeAsync,
+                    GetVisualTree,
                     ChatFunctionPermissions.ScreenRead,
                     isExperimental: true));
             list.Add(
@@ -133,18 +133,20 @@ public class VisualContextPlugin : BuiltInChatPlugin
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Header,
         LocaleKey.BuiltInChatPlugin_VisualContext_CaptureVisualElementById_Description)]
-    private async Task<FileAttachment> CaptureVisualElementAsync(
+    private async Task<FileAttachment?> CaptureVisualElementAsync(
         [FromKernelServices] ChatContext chatContext,
         [Description("ElementId, or hwnd startswith 0x")] string target,
         CancellationToken cancellationToken = default)
     {
         var element = ResolveTargetElement(chatContext, target);
         using var pointer = await element.CaptureAsync(cancellationToken);
+        var bitmap = pointer.ToAvaloniaBitmap();
+        if (bitmap is null) return null;
 
         BlobEntity blob;
         using (var stream = new MemoryStream())
         {
-            pointer.ToAvaloniaBitmap().Save(stream, 100);
+            bitmap.Save(stream, 100);
             blob = await _blobStorage.StorageBlobAsync(stream, "image/png", cancellationToken);
         }
 
@@ -178,7 +180,7 @@ public class VisualContextPlugin : BuiltInChatPlugin
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_VisualContext_GetVisualTree_Header,
         LocaleKey.BuiltInChatPlugin_VisualContext_GetVisualTree_Description)]
-    private async Task<string> GetVisualTreeAsync(
+    private string GetVisualTree(
         [FromKernelServices] ChatContext chatContext,
         [Description("ElementId, or hwnd startswith 0x")] string target,
         [Description("Available values: all, parent, child, previous, next")] string directions = "all",
@@ -195,8 +197,8 @@ public class VisualContextPlugin : BuiltInChatPlugin
         var detailLevel = _persistentState.VisualTreeDetailLevel;
         var nextId = chatContext.VisualElements.Count + 1;
 
-        await using var effectScope = _settings.ChatWindow.EnableVisualContextAnimation ?
-            ServiceLocator.Resolve<VisualElementEffect>().BeginScope(cancellationToken) :
+        var effectScope = _settings.ChatWindow.EnableVisualContextAnimation ?
+            ServiceLocator.Resolve<VisualElementEffect>().CreateScanEffect(cancellationToken) :
             null;
         var builder = new VisualTreeBuilder(
             [element],

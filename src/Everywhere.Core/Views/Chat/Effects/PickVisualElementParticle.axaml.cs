@@ -3,18 +3,12 @@ using Avalonia.Media;
 
 namespace Everywhere.Views;
 
-public interface IParticleTargetTracker
-{
-    bool TryGetTargetCenterOnScreen(out PixelPoint point);
-    void OnParticleCompleted();
-}
-
 /// <summary>
 /// Control-based particle with spring dynamics for position and time-based easing for visual morphing.
 /// Single particles morph into their target control, while multi-particles maintain their size and just use physics.
 /// Designed to be managed by a bounded object pool using Spawn / Recycle mechanics.
 /// </summary>
-public sealed partial class VisualElementParticle : UserControl
+public sealed partial class PickVisualElementParticle : VisualElementParticle
 {
     private const double MorphDurationSec = 0.55;
     private const double MaxTimeoutSec = 0.7;
@@ -27,9 +21,9 @@ public sealed partial class VisualElementParticle : UserControl
     private const double BaseShadowBlur = 4.0;
     private const double BaseShadowOffset = 2.0;
 
-    private readonly VisualElementEffectWindow _owner;
     private readonly DropShadowEffect _dropShadowEffect;
 
+    private VisualElementEffectWindow? _owner;
     private Point _startPosition;
     private IParticleTargetTracker? _targetTracker;
     private Size _startSize;
@@ -41,13 +35,11 @@ public sealed partial class VisualElementParticle : UserControl
     private double _currentSpeed;
     private Point _endPosition;
     private Size _endSize;
-    private double _elapsedTimeSec;
+    private double _elapsedTimeSeconds;
     private bool _isCompleted;
 
-    public VisualElementParticle(VisualElementEffectWindow owner)
+    public PickVisualElementParticle()
     {
-        _owner = owner;
-
         InitializeComponent();
 
         BackgroundBorder.Effect = _dropShadowEffect = new DropShadowEffect
@@ -60,13 +52,15 @@ public sealed partial class VisualElementParticle : UserControl
     /// Spawns (initializes or re-initializes) the particle with the provided physics and content logic.
     /// Acts as the surrogate constructor when dequeuing from an object pool.
     /// </summary>
-    public void Spawn(
+    public override void Spawn(
         Point startPosition,
         IParticleTargetTracker? targetTracker,
         object? startContent,
         object? endContent,
         Size startSize)
     {
+        _owner = TopLevel.GetTopLevel(this).NotNull<VisualElementEffectWindow>();
+
         _startPosition = startPosition;
         _targetTracker = targetTracker;
         StartContentPresenter.Content = startContent;
@@ -76,10 +70,10 @@ public sealed partial class VisualElementParticle : UserControl
         Width = _startSize.Width;
         Height = _startSize.Height;
         
-        _morphProgress = 0.0;
-        _velocityX = 0.0;
-        _velocityY = 0.0;
-        _elapsedTimeSec = 0.0;
+        _morphProgress = 0d;
+        _velocityX = 0d;
+        _velocityY = 0d;
+        _elapsedTimeSeconds = 0d;
         _isCompleted = false;
 
         // Force a synchronous measure to establish the end size representation before flight
@@ -98,7 +92,7 @@ public sealed partial class VisualElementParticle : UserControl
     /// Recycles the particle, severing strong references to expensive UI and image contents, 
     /// allowing it to rest idly in the memory pool without preventing GC of transient bounds.
     /// </summary>
-    public void Recycle()
+    public override void Recycle()
     {
         _targetTracker = null;
         StartContentPresenter.Content = null;
@@ -115,13 +109,13 @@ public sealed partial class VisualElementParticle : UserControl
         var dy = _endPosition.Y - _startPosition.Y;
 
         var dist = Math.Sqrt(dx * dx + dy * dy);
-        if (dist < 1) dist = 1;
+        if (dist < 1d) dist = 1d;
 
         var nx = -dy / dist;
         var ny = dx / dist;
 
-        var lateralSpeed = Random.Shared.NextDouble() * 3000.0 - 1500.0;
-        var forwardSpeed = Random.Shared.NextDouble() * 500.0;
+        var lateralSpeed = Random.Shared.NextDouble() * 3000d - 1500d;
+        var forwardSpeed = Random.Shared.NextDouble() * 500d;
 
         _velocityX = nx * lateralSpeed + (dx / dist) * forwardSpeed;
         _velocityY = ny * lateralSpeed + (dy / dist) * forwardSpeed;
@@ -131,21 +125,20 @@ public sealed partial class VisualElementParticle : UserControl
 
     private void UpdateEndPosition()
     {
-        if (_targetTracker?.TryGetTargetCenterOnScreen(out var endPointOnScreen) is true)
+        if (_owner is not null && _targetTracker?.TryGetTargetCenterOnScreen(out var endPointOnScreen) is true)
         {
             _endPosition = _owner.ScreenPixelToLocal(endPointOnScreen);
         }
     }
 
-    public bool Update(double deltaTimeMs)
+    public override bool Update(double deltaTimeMs)
     {
         if (_isCompleted) return true;
+        if (deltaTimeMs <= 0) return false;
 
-        var dt = deltaTimeMs / 1000.0;
-        if (dt <= 0) return false;
-
-        _elapsedTimeSec += dt;
-        _morphProgress = Math.Clamp(_elapsedTimeSec / MorphDurationSec, 0.0, 1.0);
+        var deltaSeconds = deltaTimeMs / 1000d;
+        _elapsedTimeSeconds += deltaSeconds;
+        _morphProgress = Math.Clamp(_elapsedTimeSeconds / MorphDurationSec, 0d, 1d);
 
         UpdateEndPosition();
 
@@ -155,14 +148,14 @@ public sealed partial class VisualElementParticle : UserControl
         var forceX = -SpringStiffness * diffX - SpringDamping * _velocityX;
         var forceY = -SpringStiffness * diffY - SpringDamping * _velocityY;
 
-        _velocityX += forceX * dt;
-        _velocityY += forceY * dt;
+        _velocityX += forceX * deltaSeconds;
+        _velocityY += forceY * deltaSeconds;
 
-        _currentPosition = new Point(_currentPosition.X + _velocityX * dt, _currentPosition.Y + _velocityY * dt);
+        _currentPosition = new Point(_currentPosition.X + _velocityX * deltaSeconds, _currentPosition.Y + _velocityY * deltaSeconds);
         _currentSpeed = Math.Sqrt(_velocityX * _velocityX + _velocityY * _velocityY);
 
-        var positionSettled = Math.Abs(diffX) < 1.0 && Math.Abs(diffY) < 1.0 && _currentSpeed < 15.0;
-        if ((positionSettled && _morphProgress >= 1.0) || _elapsedTimeSec > MaxTimeoutSec)
+        var positionSettled = Math.Abs(diffX) < 1d && Math.Abs(diffY) < 1d && _currentSpeed < 15d;
+        if ((positionSettled && _morphProgress >= 1d) || _elapsedTimeSeconds > MaxTimeoutSec)
         {
             _isCompleted = true;
             _targetTracker?.OnParticleCompleted();
@@ -180,17 +173,17 @@ public sealed partial class VisualElementParticle : UserControl
         var baseWidth = _startSize.Width + (_endSize.Width - _startSize.Width) * t;
         var baseHeight = _startSize.Height + (_endSize.Height - _startSize.Height) * t;
 
-        var finalWidth = Math.Max(1.0, baseWidth);
-        var finalHeight = Math.Max(1.0, baseHeight);
+        var finalWidth = Math.Max(1d, baseWidth);
+        var finalHeight = Math.Max(1d, baseHeight);
 
         Width = finalWidth;
         Height = finalHeight;
 
-        Canvas.SetLeft(this, _currentPosition.X - finalWidth / 2);
-        Canvas.SetTop(this, _currentPosition.Y - finalHeight / 2);
+        Canvas.SetLeft(this, _currentPosition.X - finalWidth / 2d);
+        Canvas.SetTop(this, _currentPosition.Y - finalHeight / 2d);
 
-        var radius = 8.0 - (4.0 * t);
-        RootBorder.CornerRadius = BackgroundBorder.CornerRadius = StartContentBorder.CornerRadius = new CornerRadius(Math.Max(3, radius));
+        var radius = 8d - (4d * t);
+        RootBorder.CornerRadius = BackgroundBorder.CornerRadius = StartContentBorder.CornerRadius = new CornerRadius(Math.Max(3d, radius));
 
         var currentShadowBlur = BaseShadowBlur + (MaxShadowBlur * elevation);
         var currentShadowOffsetY = BaseShadowOffset + (MaxShadowOffset * elevation);
@@ -206,7 +199,7 @@ public sealed partial class VisualElementParticle : UserControl
 
     private static double CubicEaseOut(double x)
     {
-        var t = x - 1.0;
-        return 1.0 + t * t * t;
+        var t = x - 1d;
+        return 1d + t * t * t;
     }
 }

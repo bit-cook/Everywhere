@@ -551,7 +551,7 @@ public partial class VisualElementContext
         }
 
         // BUG: For a minimized window, the captured image is buggy (but child elements are fine).
-        public Task<IVisualElement.IBitmapDataPointer> CaptureAsync(CancellationToken cancellationToken)
+        public Task<IVisualElement.ICapturedBitmapData> CaptureAsync(CancellationToken cancellationToken)
         {
             var rect = BoundingRectangle;
             if (rect.Width <= 0 || rect.Height <= 0)
@@ -653,7 +653,17 @@ public partial class VisualElementContext
 
         public override int GetHashCode() => Id.GetHashCode();
 
-        public override string ToString() => $"({Id}) [{_element.ControlType}] {Name} - {GetText(128)}";
+        public override string ToString()
+        {
+            try
+            {
+                return $"({Id}) [{_element.ControlType}] {Name} - {GetText(128)}";
+            }
+            catch (Exception ex)
+            {
+                return $"({Id}) [Unknown] - Failed to get element info: {ex.Message}";
+            }
+        }
 
 
         private sealed class SiblingAccessorImpl(AutomationVisualElementImpl visualElement) : VisualElementSiblingAccessor

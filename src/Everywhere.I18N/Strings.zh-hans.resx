@@ -1988,9 +1988,6 @@
     <data name="MainTrayIcon_Menu_OpenChatWindow" xml:space="preserve">
         <value>打开聊天窗口</value>
     </data>
-    <data name="Linux_NativeHelper_RestartAsAdministrator_DesktopNotification" xml:space="preserve">
-        <value>Linux系统下通常仅使用用户权限。如果需要管理员权限，请使用sudo重新启动应用。</value>
-    </data>
     <data name="Linux_ShortcutListener_Register_FailedToGrabHotkey" xml:space="preserve">
         <value>无法注册快捷键。该组合键可能已被占用。</value>
     </data>
@@ -2573,13 +2570,13 @@
         <value>元素飞入特效</value>
     </data>
     <data name="ChatWindowSettings_EnableVisualElementPickAnimation_Description" xml:space="preserve">
-        <value>在聊天窗口拾取屏幕视觉元素时，使用带有物理反馈的动画将其抛入聊天窗口。会对性能造成少量影响。</value>
+        <value>在聊天窗口拾取屏幕视觉元素时，使用带有物理反馈的动画将其抛入聊天窗口。</value>
     </data>
     <data name="ChatWindowSettings_EnableVisualContextAnimation_Header" xml:space="preserve">
         <value>上下文分析特效</value>
     </data>
     <data name="ChatWindowSettings_EnableVisualContextAnimation_Description" xml:space="preserve">
-        <value>分析上下文时，使用带有物理反馈的动画将屏幕上被读取的元素抛入聊天窗口。会对性能造成中等影响。</value>
+        <value>分析上下文时，使用扫描动画高亮显示被处理的元素。</value>
     </data>
     <data name="HandledFunctionInvokingException_InvalidResult" xml:space="preserve">
         <value>工具的返回结果有误：{0}</value>

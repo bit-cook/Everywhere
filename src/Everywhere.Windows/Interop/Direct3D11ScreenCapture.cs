@@ -28,7 +28,7 @@ using Visual = Windows.UI.Composition.Visual;
 
 namespace Everywhere.Windows.Interop;
 
-public sealed partial class Direct3D11ScreenCapture : IVisualElement.IBitmapDataPointer
+public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBitmapData
 {
     public PixelFormat Format => PixelFormat.Bgra8888;
     public AlphaFormat AlphaFormat => AlphaFormat.Premul;
@@ -125,7 +125,6 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.IBitmapData
                 2, // Use a buffer of 2 to avoid capture lag
                 new SizeInt32(relativeRect.Width, relativeRect.Height));
 
-            // 7. Create the capture session
             var item = GraphicsCaptureItem.CreateFromVisual(visual);
             _session = _framePool.CreateCaptureSession(item);
             _session.IsCursorCaptureEnabled = false;
@@ -195,7 +194,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.IBitmapData
 
                 Data = mapBox.DataPointer;
                 Stride = (int)mapBox.RowPitch;
-                Size = new PixelSize(frame.ContentSize.Width, frame.ContentSize.Height);
+                Size = new PixelSize((int)desc.Width, (int)desc.Height);
 
                 tcs.TrySetResult();
             }
@@ -239,7 +238,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.IBitmapData
         });
     }
 
-    public static async Task<IVisualElement.IBitmapDataPointer> CaptureAsync(
+    public static async Task<IVisualElement.ICapturedBitmapData> CaptureAsync(
         nint sourceHWnd,
         PixelRect relativeRect,
         CancellationToken cancellationToken = default)

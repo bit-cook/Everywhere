@@ -89,7 +89,7 @@ public sealed class X11WindowBackend : IWindowBackend, IEventHelper
         return target != X11Window.None ? GetWindowElement(target) : null;
     }
 
-    public IVisualElement.IBitmapDataPointer Capture(IVisualElement? window, PixelRect rect)
+    public IVisualElement.ICapturedBitmapData Capture(IVisualElement? window, PixelRect rect)
     {
         var handle = window?.NativeWindowHandle != null ? (X11Window)window.NativeWindowHandle : Context.RootWindow;
         return Screenshot.Capture(handle, rect);

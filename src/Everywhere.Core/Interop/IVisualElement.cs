@@ -252,12 +252,17 @@ public interface IVisualElement
     /// </summary>
     void SendShortcut(KeyboardShortcut shortcut);
 
-    Task<IBitmapDataPointer> CaptureAsync(CancellationToken cancellationToken);
+    /// <summary>
+    /// Captures the visual element into a bitmap and returns a pointer to the bitmap data along with metadata.
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<ICapturedBitmapData> CaptureAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets a pointer to the bitmap data of the visual element along with metadata.
     /// </summary>
-    interface IBitmapDataPointer : IDisposable
+    interface ICapturedBitmapData : IDisposable
     {
         PixelFormat Format { get; }
 
@@ -265,6 +270,11 @@ public interface IVisualElement
 
         nint Data { get; }
 
+        // TODO: actual bounds to solve ghoat window issues
+
+        /// <summary>
+        /// The actual size of the captured bitmap data. May not equal to CaptureRect.Size due to scaling.
+        /// </summary>
         PixelSize Size { get; }
 
         Vector Dpi { get; }
@@ -305,20 +315,38 @@ public static class VisualElementExtension
         }
     }
 
-    extension(IVisualElement.IBitmapDataPointer pointer)
+    extension(IVisualElement.ICapturedBitmapData data)
     {
-        public Bitmap ToAvaloniaBitmap() => new(
-            pointer.Format,
-            pointer.AlphaFormat,
-            pointer.Data,
-            pointer.Size,
-            pointer.Dpi,
-            pointer.Stride);
-
-        public SKImage ToSKImage()
+        /// <summary>
+        /// Converts the captured bitmap data into an Avalonia Bitmap object.
+        /// </summary>
+        /// <returns>Converted Bitmap if successful, or null if the pixel data is empty.</returns>
+        public Bitmap? ToAvaloniaBitmap()
         {
-            var info = new SKImageInfo(pointer.Size.Width, pointer.Size.Height, ToSkColorType(pointer.Format), ToSkAlphaType(pointer.AlphaFormat));
-            return SKImage.FromPixels(info, pointer.Data, pointer.Stride);
+            var pixelSize = data.Size;
+            return pixelSize.Width <= 0 || pixelSize.Height <= 0 ?
+                null :
+                new Bitmap(
+                    data.Format,
+                    data.AlphaFormat,
+                    data.Data,
+                    pixelSize,
+                    data.Dpi,
+                    data.Stride);
+        }
+
+        /// <summary>
+        /// Converts the captured bitmap data into a SkiaSharp SKImage object.
+        /// </summary>
+        /// <returns>Converted SKImage if successful, or null if the pixel data is empty.</returns>
+        /// <exception cref="ArgumentException"></exception>
+        public SKImage? ToSKImage()
+        {
+            var pixelSize = data.Size;
+            if (pixelSize.Width <= 0 || pixelSize.Height <= 0) return null;
+
+            var info = new SKImageInfo(pixelSize.Width, pixelSize.Height, ToSkColorType(data.Format), ToSkAlphaType(data.AlphaFormat));
+            return SKImage.FromPixels(info, data.Data, data.Stride);
 
             static SKColorType ToSkColorType(PixelFormat fmt)
             {

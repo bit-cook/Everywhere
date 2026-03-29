@@ -10,7 +10,7 @@ namespace Everywhere.Linux.Interop.X11Backend;
 /// </summary>
 public sealed class X11Screenshot(X11Context context)
 {
-    public IVisualElement.IBitmapDataPointer Capture(X11Window drawable, PixelRect rect)
+    public IVisualElement.ICapturedBitmapData Capture(X11Window drawable, PixelRect rect)
     {
         var xImage = Xlib.XGetImage(
             context.Display,
@@ -25,7 +25,7 @@ public sealed class X11Screenshot(X11Context context)
 
         try
         {
-            return new X11BitmapDataPointer(xImage, new PixelSize(rect.Width, rect.Height));
+            return new X11CapturedBitmapData(xImage);
         }
         finally
         {

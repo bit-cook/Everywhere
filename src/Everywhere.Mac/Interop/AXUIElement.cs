@@ -242,29 +242,28 @@ public partial class AXUIElement : NSObject, IVisualElement
     /// <returns></returns>
     public string? GetSelectionText() => GetAttribute<NSObject>(AXAttributeConstants.SelectedText)?.ToString();
 
-    public Task<IVisualElement.IBitmapDataPointer> CaptureAsync(CancellationToken cancellationToken)
+    public Task<IVisualElement.ICapturedBitmapData> CaptureAsync(CancellationToken cancellationToken)
     {
         var bounds = BoundingRectangle;
         var rect = new CGRect(bounds.X, bounds.Y, bounds.Width, bounds.Height);
-        var windowId = NativeWindowHandle;
+
+        if (rect.Width < 1f && rect.Height < 1f)
+        {
+            return Task.FromResult<IVisualElement.ICapturedBitmapData>(CapturedBitmapData.Empty);
+        }
 
         // we use CGSHWCaptureWindowList because it can screenshot minimized windows, which CGWindowListCreateImage can't
         // Use BestResolution to get physical pixel size (matches BackingScaleFactor). 
         // NominalResolution returns 1x logical pixels which causes scaling mismatches when cropping with scale factor.
         using var cgImage = SkyLightInterop.HardwareCaptureWindowList(
-            [(uint)windowId],
+            [(uint)NativeWindowHandle],
             SkyLightInterop.CGSWindowCaptureOptions.IgnoreGlobalCLipShape |
             SkyLightInterop.CGSWindowCaptureOptions.BestResolution |
             SkyLightInterop.CGSWindowCaptureOptions.FullSize);
 
         if (cgImage is null)
         {
-            return Task.FromException<IVisualElement.IBitmapDataPointer>(new InvalidOperationException("Failed to capture screen image."));
-        }
-
-        if (rect.IsEmpty)
-        {
-            return Task.FromResult<IVisualElement.IBitmapDataPointer>(new BitmapDataPointer(cgImage, 1d));
+            return Task.FromException<IVisualElement.ICapturedBitmapData>(new InvalidOperationException("Failed to capture screen image."));
         }
 
         var screen = NSScreen.Screens.FirstOrDefault(s => s.Frame.IntersectsWith(rect));
@@ -314,10 +313,10 @@ public partial class AXUIElement : NSObject, IVisualElement
 
         if (croppedImage is null)
         {
-            return Task.FromException<IVisualElement.IBitmapDataPointer>(new InvalidOperationException("Failed to crop image."));
+            return Task.FromException<IVisualElement.ICapturedBitmapData>(new InvalidOperationException("Failed to crop image."));
         }
 
-        return Task.FromResult<IVisualElement.IBitmapDataPointer>(new BitmapDataPointer(croppedImage, scale));
+        return Task.FromResult<IVisualElement.ICapturedBitmapData>(new CapturedBitmapData(croppedImage, scale));
     }
 
     public bool SetAttribute(NSString attributeName, NSObject value)

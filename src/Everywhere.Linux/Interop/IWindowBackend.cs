@@ -29,7 +29,7 @@ public interface IWindowBackend : IWindowHelper, IObservable<TextSelectionData>
     /// <param name="window">capture target, full screen(root window used) if not given</param>
     /// <param name="rect">captured rect relative to window</param>
     /// <returns></returns>
-    IVisualElement.IBitmapDataPointer Capture(IVisualElement? window, PixelRect rect);
+    IVisualElement.ICapturedBitmapData Capture(IVisualElement? window, PixelRect rect);
 
     void SetPickerWindow(Window? window);
 }
