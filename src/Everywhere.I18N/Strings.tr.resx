@@ -472,13 +472,13 @@
     <data name="ChatWindowPinMode_PinOnInput" xml:space="preserve">
         <value>Girişte sabitle</value>
     </data>
-    <data name="VisualTreeDetailLevel_Detailed" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Detailed" xml:space="preserve">
         <value>Detaylı</value>
     </data>
-    <data name="VisualTreeDetailLevel_Compact" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Compact" xml:space="preserve">
         <value>Kompakt (Önerilen)</value>
     </data>
-    <data name="VisualTreeDetailLevel_Minimal" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Minimal" xml:space="preserve">
         <value>Minimum</value>
     </data>
     <data name="ChatWindowSettings_WindowPinMode_Header" xml:space="preserve">
@@ -487,10 +487,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>Sohbet penceresi açıldığında sabitleme modunu belirler. Pencere sabitlenmemişse odak kaybolduğunda otomatik olarak gizlenecektir.</value>
     </data>
-    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualContextDetailLevel_Header" xml:space="preserve">
         <value>Görsel Bağlam Detay Seviyesi</value>
     </data>
-    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualContextDetailLevel_Description" xml:space="preserve">
         <value>Görsel öğe eklenmişse, Everywhere asistanınıza göndermeden önce bunu ve çevresindeki öğeleri yapılandırılmış metin olarak toplar. Bu seçenek, toplanan bilgilerin zenginliğini ve miktarını kontrol eder.</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">
@@ -872,7 +872,7 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>Ayarlar</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
+    <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>Görsel Bağlam Uzunluğu Bütçesi</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
@@ -2027,7 +2027,7 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>Derin Düşünme</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Description" xml:space="preserve">
+    <data name="PersistentState_VisualContextLengthLimit_Description" xml:space="preserve">
         <value>Görsel bağlamın toplanma uzunluğu sınırı, birim olarak token. Bu bir tahmindir, kesin bir sınır garantisi yoktur. Basit bağlamlar için harcanan token genellikle bu sayıdan daha azdır; karmaşık bağlamlar için fazlası kesilecektir.</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
@@ -2060,19 +2060,19 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="PersistentState_ReasoningEffortLevel_Header" xml:space="preserve">
         <value>Akıl Yürütme Gücü</value>
     </data>
-    <data name="VisualTreeLengthLimit_Balanced" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Balanced" xml:space="preserve">
         <value>Dengeli (~4096, önerilir)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Unlimited" xml:space="preserve">
         <value>Sınırsız (⚠️)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Minimal" xml:space="preserve">
         <value>Minimum (~1024)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Ultimate" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Ultimate" xml:space="preserve">
         <value>En Yüksek (~40960)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Detailed" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Detailed" xml:space="preserve">
         <value>Ayrıntılı (~10240)</value>
     </data>
     <data name="ChatService_Error_CustomAssistantNotSelected" xml:space="preserve">

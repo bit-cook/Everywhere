@@ -161,13 +161,9 @@ public class VisualContextPlugin : BuiltInChatPlugin
     [Description(
         """
         Read the visual tree of a target element and its surroundings. This is the primary tool for perceiving on-screen UI content — use it like a 'read_file' but for visual elements.
-        Best-First Search from core element(s).
-        Starting from the specified element(s), the algorithm expands outward in all allowed directions using a priority queue:
-        1. distance from the core element — closer nodes rank higher;
-        2. direction weight — Parent > Child > Sibling;
-        3. element type weight — text/document > containers > interactive controls > decorative. 
+        Starting from the specified element, the algorithm expands outward in all allowed directions using a priority queue.
         The traversal consumes a token budget; when exhausted, remaining branches are marked as omitted. 
-        Non-informative containers (no text, not interactive) are collapsed — their children are promoted to the parent level. 
+        Containers are collapsed, their children are promoted to the parent level. 
 
         Target selection:
         - id: An existing element id from the current visual tree. Use to expand 'omitted' regions, refresh stale content, or drill into a known element.
@@ -175,7 +171,8 @@ public class VisualContextPlugin : BuiltInChatPlugin
 
         Navigation direction: Defines the approximate area to read around the target element.
         'parent' and 'child' are for hierarchical navigation, while 'previous' and 'next' are for siblings in the visual tree.
-        Use 'all' to read everything available from the target element. Combine multiple directions with commas, e.g. "parent,child" or "siblings".
+        'all' will read everything available from the target element. 'none' will only read the target element itself.
+        Combine multiple directions with commas, e.g. "parent,child" or "siblings".
         """)]
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_VisualContext_GetVisualTree_Header,
@@ -183,7 +180,7 @@ public class VisualContextPlugin : BuiltInChatPlugin
     private string GetVisualTree(
         [FromKernelServices] ChatContext chatContext,
         [Description("ElementId, or hwnd startswith 0x")] string target,
-        [Description("Available values: all, parent, child, previous, next")] string directions = "all",
+        [Description("Available values: all, parent, child, previous, next, none")] string directions = "all",
         CancellationToken cancellationToken = default)
     {
         // --- Resolve the target element ---
@@ -193,14 +190,14 @@ public class VisualContextPlugin : BuiltInChatPlugin
         var traverseDirections = ParseTraverseDirections(directions);
 
         // Use a generous token limit so the expanded result is not truncated again
-        var tokenLimit = VisualTreeLengthLimit.Detailed.ToTokenLimit();
-        var detailLevel = _persistentState.VisualTreeDetailLevel;
+        var tokenLimit = VisualContextLengthLimit.Detailed.ToTokenLimit();
+        var detailLevel = _persistentState.VisualContextDetailLevel;
         var nextId = chatContext.VisualElements.Count + 1;
 
         var effectScope = _settings.ChatWindow.EnableVisualContextAnimation ?
             ServiceLocator.Resolve<VisualElementEffect>().CreateScanEffect(cancellationToken) :
             null;
-        var builder = new VisualTreeBuilder(
+        var builder = new VisualContextBuilder(
             [element],
             tokenLimit,
             nextId,
@@ -349,25 +346,25 @@ public class VisualContextPlugin : BuiltInChatPlugin
     }
 
     /// <summary>
-    /// Parses a comma-separated direction string into <see cref="VisualTreeTraverseDirections"/> flags.
+    /// Parses a comma-separated direction string into <see cref="VisualContextTraverseDirections"/> flags.
     /// Supports individual values (parent, child, previous, next) and combinations (parent,child).
     /// </summary>
-    private static VisualTreeTraverseDirections ParseTraverseDirections(string direction)
+    private static VisualContextTraverseDirections ParseTraverseDirections(string direction)
     {
         var parts = direction.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (parts.Length == 0) return VisualTreeTraverseDirections.All;
+        if (parts.Length == 0) return VisualContextTraverseDirections.All;
 
         return parts.AsValueEnumerable().Aggregate(
-            VisualTreeTraverseDirections.Core,
+            VisualContextTraverseDirections.Core,
             (current, part) => current | part.ToLowerInvariant() switch
             {
-                "parent" => VisualTreeTraverseDirections.Parent,
-                "child" or "children" => VisualTreeTraverseDirections.Child,
-                "previous" or "prev" => VisualTreeTraverseDirections.PreviousSibling,
-                "next" => VisualTreeTraverseDirections.NextSibling,
-                "sibling" or "siblings" => VisualTreeTraverseDirections.PreviousSibling | VisualTreeTraverseDirections.NextSibling,
-                "all" => VisualTreeTraverseDirections.All,
-                _ => VisualTreeTraverseDirections.Core // unknown tokens are ignored
+                "parent" => VisualContextTraverseDirections.Parent,
+                "child" or "children" => VisualContextTraverseDirections.Child,
+                "previous" or "prev" => VisualContextTraverseDirections.PreviousSibling,
+                "next" => VisualContextTraverseDirections.NextSibling,
+                "sibling" or "siblings" => VisualContextTraverseDirections.PreviousSibling | VisualContextTraverseDirections.NextSibling,
+                "all" => VisualContextTraverseDirections.All,
+                _ => VisualContextTraverseDirections.Core // unknown tokens are ignored
             });
     }
 

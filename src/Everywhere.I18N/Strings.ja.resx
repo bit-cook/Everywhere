@@ -473,13 +473,13 @@
     <data name="ChatWindowPinMode_PinOnInput" xml:space="preserve">
         <value>入力時に固定</value>
     </data>
-    <data name="VisualTreeDetailLevel_Detailed" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Detailed" xml:space="preserve">
         <value>詳細</value>
     </data>
-    <data name="VisualTreeDetailLevel_Compact" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Compact" xml:space="preserve">
         <value>コンパクト (推奨)</value>
     </data>
-    <data name="VisualTreeDetailLevel_Minimal" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Minimal" xml:space="preserve">
         <value>最小限</value>
     </data>
     <data name="ChatWindowSettings_WindowPinMode_Header" xml:space="preserve">
@@ -488,10 +488,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>チャットウィンドウを開いたときの固定モードを指定します。ウィンドウが固定されていない場合、フォーカスを失うと自動的に隠れます。</value>
     </data>
-    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualContextDetailLevel_Header" xml:space="preserve">
         <value>視覚コンテキスト詳細レベル</value>
     </data>
-    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualContextDetailLevel_Description" xml:space="preserve">
         <value>視覚要素の添付が追加された場合、Everywhereはそれを周囲の要素と共に構造化テキストとして収集します。このオプションは収集の豊かさと情報量を制御します。</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">
@@ -875,7 +875,7 @@
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>設定</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
+    <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>視覚コンテキスト長予算</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
@@ -2030,7 +2030,7 @@
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>深い思考</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Description" xml:space="preserve">
+    <data name="PersistentState_VisualContextLengthLimit_Description" xml:space="preserve">
         <value>視覚コンテキストの長さの上限、単位はトークンです。この値は推定であり、正確な制限を保証するものではありません。単純なコンテキストでは、消費されるトークンはこの数値より少なくなることが多く、複雑なコンテキストでは超過分が切り捨てられます。</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
@@ -2063,19 +2063,19 @@
     <data name="PersistentState_ReasoningEffortLevel_Header" xml:space="preserve">
         <value>推論強度</value>
     </data>
-    <data name="VisualTreeLengthLimit_Balanced" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Balanced" xml:space="preserve">
         <value>バランス (~4096、推奨)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Unlimited" xml:space="preserve">
         <value>無制限 (⚠️)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Minimal" xml:space="preserve">
         <value>最小 (~1024)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Ultimate" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Ultimate" xml:space="preserve">
         <value>究極 (~40960)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Detailed" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Detailed" xml:space="preserve">
         <value>詳細 (~10240)</value>
     </data>
     <data name="ChatService_Error_CustomAssistantNotSelected" xml:space="preserve">

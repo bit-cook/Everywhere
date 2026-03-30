@@ -3,9 +3,9 @@
 using Everywhere.Interop;
 using ZLinq;
 
-namespace Everywhere.Chat.Debugging;
+namespace Everywhere.Chat;
 
-public class VisualTreeRecorder(
+public class VisualContextRecorder(
     IReadOnlyList<IVisualElement> coreElements,
     int tokenLimit,
     string algorithmName)

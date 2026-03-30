@@ -473,13 +473,13 @@
     <data name="ChatWindowPinMode_PinOnInput" xml:space="preserve">
         <value>Fissa su input</value>
     </data>
-    <data name="VisualTreeDetailLevel_Detailed" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Detailed" xml:space="preserve">
         <value>Dettagliato</value>
     </data>
-    <data name="VisualTreeDetailLevel_Compact" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Compact" xml:space="preserve">
         <value>Compatto (Consigliato)</value>
     </data>
-    <data name="VisualTreeDetailLevel_Minimal" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Minimal" xml:space="preserve">
         <value>Minimale</value>
     </data>
     <data name="ChatWindowSettings_WindowPinMode_Header" xml:space="preserve">
@@ -488,10 +488,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>Specifica la modalità di fissaggio per la finestra della chat quando viene aperta. Quando la finestra non è fissata, verrà nascosta automaticamente quando perde il focus.</value>
     </data>
-    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualContextDetailLevel_Header" xml:space="preserve">
         <value>Livello Di Dettaglio Del Contesto Visivo</value>
     </data>
-    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualContextDetailLevel_Description" xml:space="preserve">
         <value>Se vengono aggiunti allegati di elementi visivi, Everywhere raccoglierà questi e gli elementi circostanti come testo strutturato prima di inviarli all'assistente. Questa opzione controlla la ricchezza e la quantità di informazioni raccolte.</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">
@@ -875,7 +875,7 @@ La mia intelligenza è fornita da un grande modello linguistico e ho bisogno del
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>Impostazioni</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
+    <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>Limite lunghezza albero visivo</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
@@ -2030,7 +2030,7 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>Ragionamento Profondo</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Description" xml:space="preserve">
+    <data name="PersistentState_VisualContextLengthLimit_Description" xml:space="preserve">
         <value>Limite di lunghezza per il contesto visivo, in token. Questo è una stima e non garantisce un limite preciso. Per contesti semplici, i token consumati sono spesso inferiori a questo numero; per contesti complessi, la parte in eccesso verrà troncata.</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
@@ -2063,19 +2063,19 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="PersistentState_ReasoningEffortLevel_Header" xml:space="preserve">
         <value>Intensità di Ragionamento</value>
     </data>
-    <data name="VisualTreeLengthLimit_Balanced" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Balanced" xml:space="preserve">
         <value>Bilanciato (~4096, consigliato)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Unlimited" xml:space="preserve">
         <value>Illimitato (⚠️)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Minimal" xml:space="preserve">
         <value>Minimo (~1024)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Ultimate" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Ultimate" xml:space="preserve">
         <value>Estremo (~40960)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Detailed" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Detailed" xml:space="preserve">
         <value>Dettagliato (~10240)</value>
     </data>
     <data name="ChatService_Error_CustomAssistantNotSelected" xml:space="preserve">

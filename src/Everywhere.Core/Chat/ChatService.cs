@@ -268,15 +268,15 @@ public sealed partial class ChatService : IChatService
             // 2. Group the visual elements and build the XML in separate tasks.
             // 3. Populate result into VisualElementAttachment.Xml
 
-            var approximateTokenLimit = _persistentState.VisualTreeLengthLimit.ToTokenLimit();
-            var detailLevel = _persistentState.VisualTreeDetailLevel;
+            var approximateTokenLimit = _persistentState.VisualContextLengthLimit.ToTokenLimit();
+            var detailLevel = _persistentState.VisualContextDetailLevel;
 
             var effectScope = _settings.ChatWindow.EnableVisualContextAnimation ?
                 ServiceLocator.Resolve<VisualElementEffect>().CreateScanEffect(cancellationToken) :
                 null;
 
             // Build and populate the XML for visual elements.
-            var builtVisualElements = VisualTreeBuilder.BuildAndPopulate(
+            var builtVisualElements = VisualContextBuilder.BuildAndPopulate(
                 visualElementAttachments,
                 approximateTokenLimit,
                 chatContext.VisualElements.Count + 1,

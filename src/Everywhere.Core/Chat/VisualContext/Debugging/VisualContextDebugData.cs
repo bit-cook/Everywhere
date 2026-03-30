@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Everywhere.Chat.Debugging;
+namespace Everywhere.Chat;
 
 public record DebugVisualNode(
     float Score,

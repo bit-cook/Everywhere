@@ -22,7 +22,7 @@ namespace Everywhere.Views;
 ///    and a UI particle dynamically morphs (fades and scales) from the raw image bounds into its 
 ///    final DataContext-bound destination (e.g., a `ChatAttachment` chip) while tracking the window.
 ///    
-/// 2. Multi-Element Swarm (`ScanEffectScope` / `VisualTreeBuilder`):
+/// 2. Multi-Element Swarm (`ScanEffectScope` / `VisualContextBuilder`):
 ///    Used during automated visual tree building. Employs a DPI-aware, batched TopLevel screenshot strategy
 ///    where hundreds of `IImage` sub-crops are fired sequentially based on a heuristic queue. 
 ///    The physics engine applies lateral scattering ("flocking") and Hooke's Law spring dynamics to 

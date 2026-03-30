@@ -148,11 +148,11 @@ public partial class VisualTreeDebugger : UserControl
     {
         try
         {
-            const VisualTreeDetailLevel level = VisualTreeDetailLevel.Compact;
+            const VisualContextDetailLevel level = VisualContextDetailLevel.Compact;
             var tokenLimit = int.Parse(TokenLimitTextBox.Text ?? "8000");
             var effectScope =
                 ServiceLocator.Resolve<VisualElementEffect>().CreateScanEffect(CancellationToken.None);
-            var builder = new VisualTreeBuilder(
+            var builder = new VisualContextBuilder(
                 VisualTreeView.SelectedItems.AsValueEnumerable().OfType<IVisualElement>().ToList(),
                 tokenLimit,
                 0,
@@ -182,8 +182,8 @@ public partial class VisualTreeDebugger : UserControl
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var extension = level switch
             {
-                VisualTreeDetailLevel.Compact => "json",
-                VisualTreeDetailLevel.Detailed => "xml",
+                VisualContextDetailLevel.Compact => "json",
+                VisualContextDetailLevel.Detailed => "xml",
                 _ => "toon"
             };
             var filename = $"visual_tree_{timestamp}.{extension}";

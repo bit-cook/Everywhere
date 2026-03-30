@@ -482,13 +482,13 @@
     <data name="ChatWindowPinMode_PinOnInput" xml:space="preserve">
         <value>输入时固定</value>
     </data>
-    <data name="VisualTreeDetailLevel_Detailed" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Detailed" xml:space="preserve">
         <value>详细</value>
     </data>
-    <data name="VisualTreeDetailLevel_Compact" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Compact" xml:space="preserve">
         <value>精简 (推荐)</value>
     </data>
-    <data name="VisualTreeDetailLevel_Minimal" xml:space="preserve">
+    <data name="VisualContextDetailLevel_Minimal" xml:space="preserve">
         <value>极简</value>
     </data>
     <data name="ChatWindowSettings_WindowPinMode_Header" xml:space="preserve">
@@ -497,10 +497,10 @@
     <data name="ChatWindowSettings_WindowPinMode_Description" xml:space="preserve">
         <value>指定聊天窗口打开时的固定模式，当窗口没有固定时，失去焦点会自动隐藏。</value>
     </data>
-    <data name="PersistentState_VisualTreeDetailLevel_Header" xml:space="preserve">
+    <data name="PersistentState_VisualContextDetailLevel_Header" xml:space="preserve">
         <value>视觉上下文详细程度</value>
     </data>
-    <data name="PersistentState_VisualTreeDetailLevel_Description" xml:space="preserve">
+    <data name="PersistentState_VisualContextDetailLevel_Description" xml:space="preserve">
         <value>如果添加了视觉元素附件，发送给助手前 Everywhere 会将它和周围的元素采集为结构化文本。此选项控制了采集的丰富程度和信息量。</value>
     </data>
     <data name="FriendlyExceptionMessage_ClientResult" xml:space="preserve">
@@ -893,7 +893,7 @@
     <data name="ChatInputArea_SettingsButton_ToolTip" xml:space="preserve">
         <value>设置</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Header" xml:space="preserve">
+    <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>视觉上下文长度预算</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
@@ -2073,7 +2073,7 @@
     <data name="ChatWindowViewModel_ExportMarkdown_ReasoningOutput" xml:space="preserve">
         <value>深度思考</value>
     </data>
-    <data name="PersistentState_VisualTreeLengthLimit_Description" xml:space="preserve">
+    <data name="PersistentState_VisualContextLengthLimit_Description" xml:space="preserve">
         <value>采集视觉上下文的长度上限，单位为 Token。此项为估算，无法保证精确限制。对于简单的上下文，消耗的 Token 往往会小于这个数；对于复杂的上下文，超出的部分会被截断。</value>
     </data>
     <data name="ChatInputArea_ToolCallButton_Header" xml:space="preserve">
@@ -2118,19 +2118,19 @@
     <data name="PersistentState_MaxContextRounds_Value_Unlimited" xml:space="preserve">
         <value>无限制</value>
     </data>
-    <data name="VisualTreeLengthLimit_Balanced" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Balanced" xml:space="preserve">
         <value>平衡 (~4096，推荐)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Unlimited" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Unlimited" xml:space="preserve">
         <value>无限制 (⚠️)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Minimal" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Minimal" xml:space="preserve">
         <value>最小 (~1024)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Ultimate" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Ultimate" xml:space="preserve">
         <value>极致 (~40960)</value>
     </data>
-    <data name="VisualTreeLengthLimit_Detailed" xml:space="preserve">
+    <data name="VisualContextLengthLimit_Detailed" xml:space="preserve">
         <value>详细 (~10240)</value>
     </data>
     <data name="ChatService_Error_CustomAssistantNotSelected" xml:space="preserve">
@@ -2583,5 +2583,8 @@
     </data>
     <data name="ChatContext_TemporaryToggleButton_ToolTip" xml:space="preserve">
         <value>临时聊天：开启后当前聊天不会被保存，切换或新建对话时即删除。</value>
+    </data>
+    <data name="ChatInputArea_Watermark_StrategyArgumentHint" xml:space="preserve">
+        <value>{0} (可选输入) {1}</value>
     </data>
 </root>
