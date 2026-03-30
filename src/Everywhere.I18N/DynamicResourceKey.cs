@@ -159,17 +159,17 @@ public sealed partial class DirectResourceKey(object key) : DynamicResourceKey(k
 /// <param name="key"></param>
 /// <param name="args"></param>
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public sealed partial class FormattedDynamicResourceKey(object key, params IReadOnlyList<IDynamicResourceKey> args) : DynamicResourceKey(key)
+public sealed partial class FormattedDynamicResourceKey(object key, params IReadOnlyList<IDynamicResourceKey?> args) : DynamicResourceKey(key)
 {
     [Key(1)]
-    private IReadOnlyList<IDynamicResourceKey> Args { get; } = args;
+    private IReadOnlyList<IDynamicResourceKey?> Args { get; } = args;
 
     public override IDisposable Subscribe(IObserver<object?> observer)
     {
         var formatter = new AnonymousObserver<object?>(_ => observer.OnNext(ToString()));
         var disposables = new CompositeDisposable();
         disposables.Add(base.Subscribe(formatter));
-        foreach (var arg in Args.AsValueEnumerable()) disposables.Add(arg.Subscribe(formatter));
+        foreach (var arg in Args.AsValueEnumerable().OfType<IDynamicResourceKey>()) disposables.Add(arg.Subscribe(formatter));
         return disposables;
     }
 
@@ -180,7 +180,7 @@ public sealed partial class FormattedDynamicResourceKey(object key, params IRead
         {
             return string.IsNullOrEmpty(resolvedKey) ?
                 string.Empty :
-                string.Format(resolvedKey, Args.AsValueEnumerable().Select(object? (a) => a.ToString()).ToArray());
+                string.Format(resolvedKey, Args.AsValueEnumerable().Select(object? (a) => a?.ToString()).ToArray());
         }
         catch (FormatException e)
         {
