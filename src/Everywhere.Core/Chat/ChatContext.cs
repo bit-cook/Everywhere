@@ -94,7 +94,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// </summary>
     [IgnoreMember]
     [ObservableProperty]
-    public partial IDynamicResourceKey? BusyMessage { get; private set; }
+    public partial IDynamicResourceKey? BusyMessageKey { get; private set; }
 
     /// <summary>
     /// Backing store for MessagePack (de)serialization: nodes are persisted as a collection, and linked by Ids.
@@ -271,9 +271,9 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// <returns></returns>
     public IDisposable SetBusyMessage(IDynamicResourceKey? busyMessage)
     {
-        var previous = BusyMessage;
-        BusyMessage = busyMessage;
-        return Disposable.Create(() => BusyMessage = previous);
+        var previous = BusyMessageKey;
+        BusyMessageKey = busyMessage;
+        return Disposable.Create(() => BusyMessageKey = previous);
     }
 
     public IObservable<IChangeSet<ChatMessageNode>> Connect(Func<ChatMessageNode, bool>? predicate = null) => _branchNodes.Connect(predicate);

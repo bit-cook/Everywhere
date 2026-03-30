@@ -16,12 +16,12 @@ public interface IStrategy
     /// <summary>
     /// Display name.
     /// </summary>
-    IDynamicResourceKey Name { get; }
+    IDynamicResourceKey NameKey { get; }
 
     /// <summary>
     /// Optional description of what this strategy does.
     /// </summary>
-    IDynamicResourceKey? Description { get; }
+    IDynamicResourceKey? DescriptionKey { get; }
 
     /// <summary>
     /// Priority for conflict resolution when multiple strategies match.
@@ -58,8 +58,8 @@ public interface IBuiltInStrategy : IStrategy;
 public abstract class StrategyBase : ObservableObject, IStrategy
 {
     public abstract string Id { get; }
-    public abstract IDynamicResourceKey Name { get; }
-    public virtual IDynamicResourceKey? Description => null;
+    public abstract IDynamicResourceKey NameKey { get; }
+    public virtual IDynamicResourceKey? DescriptionKey => null;
     public virtual int Priority => 0;
     public virtual bool IsEnabled => true;
 

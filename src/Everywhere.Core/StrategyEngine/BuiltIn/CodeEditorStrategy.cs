@@ -10,8 +10,8 @@ namespace Everywhere.StrategyEngine.BuiltIn;
 public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
 {
     public override string Id => "builtin.code-editor";
-    public override IDynamicResourceKey Name { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_Name);
-    public override IDynamicResourceKey Description { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_Description);
+    public override IDynamicResourceKey NameKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_Name);
+    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_Description);
     public override int Priority => 50;
 
     // Common code editor process names
@@ -63,11 +63,11 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
         new()
         {
             Id = "explain",
-            Name = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ExplainCommand_Name),
-            Description = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ExplainCommand_Description),
+            NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ExplainCommand_Name),
+            DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ExplainCommand_Description),
             Icon = LucideIconKind.MessageSquareCode,
             Priority = 100,
-            SystemPrompt =
+            UserMessage =
                 """
                 You are an expert programmer and code educator.
                 Explain the provided code clearly and thoroughly:
@@ -76,19 +76,18 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
                 - What are the key concepts used?
                 - Are there any notable patterns or techniques?
                 Adjust your explanation to the complexity of the code.
-                """,
-            UserMessage = "Please explain this code."
+                """
         },
 
         // Review code
         new()
         {
             Id = "review",
-            Name = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ReviewCommand_Name),
-            Description = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ReviewCommand_Description),
+            NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ReviewCommand_Name),
+            DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ReviewCommand_Description),
             Icon = LucideIconKind.SearchCode,
             Priority = 90,
-            SystemPrompt =
+            UserMessage =
                 """
                 You are a senior software engineer conducting a code review.
                 Review the provided code and provide constructive feedback on:
@@ -98,19 +97,18 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
                 - Best practices and conventions
                 - Suggestions for improvement
                 Be specific and provide examples where helpful.
-                """,
-            UserMessage = "Please review this code and suggest improvements."
+                """
         },
 
         // Add documentation
         new()
         {
             Id = "document",
-            Name = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_DocumentCommand_Name),
-            Description = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_DocumentCommand_Description),
+            NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_DocumentCommand_Name),
+            DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_DocumentCommand_Description),
             Icon = LucideIconKind.FileCode,
             Priority = 70,
-            SystemPrompt =
+            UserMessage =
                 """
                 You are a technical documentation specialist.
                 Generate appropriate documentation for the provided code:
@@ -119,19 +117,18 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
                 - Explain complex logic with inline comments
                 - Follow the conventions of the programming language
                 Return the code with documentation added.
-                """,
-            UserMessage = "Please add documentation to this code."
+                """
         },
 
         // Find bugs
         new()
         {
             Id = "find-bugs",
-            Name = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_FindBugsCommand_Name),
-            Description = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_FindBugsCommand_Description),
+            NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_FindBugsCommand_Name),
+            DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_FindBugsCommand_Description),
             Icon = LucideIconKind.Bug,
             Priority = 85,
-            SystemPrompt =
+            UserMessage =
                 """
                 You are a bug-hunting expert and static analysis specialist.
                 Analyze the provided code for potential bugs and issues:
@@ -142,19 +139,18 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
                 - Race conditions or concurrency issues
                 - Security vulnerabilities
                 For each issue found, explain the problem and suggest a fix.
-                """,
-            UserMessage = "Please analyze this code for potential bugs."
+                """
         },
 
         // Optimize performance
         new()
         {
             Id = "optimize",
-            Name = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_OptimizeCommand_Name),
-            Description = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_OptimizeCommand_Description),
+            NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_OptimizeCommand_Name),
+            DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_OptimizeCommand_Description),
             Icon = LucideIconKind.Zap,
             Priority = 60,
-            SystemPrompt =
+            UserMessage =
                 """
                 You are a performance optimization expert.
                 Analyze the provided code for performance issues:
@@ -163,8 +159,7 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
                 - Suggest caching or memoization opportunities
                 - Consider memory usage and allocation
                 Provide optimized code with explanations of the improvements.
-                """,
-            UserMessage = "Please optimize this code for better performance."
+                """
         },
     ];
 }

@@ -154,7 +154,7 @@ public sealed partial class OfficialModelProvider :
         [property: JsonPropertyName("id")] string ModelId,
         [property: JsonPropertyName("name")] string Name,
         [property: JsonPropertyName("icon")] string Icon,
-        [property: JsonPropertyName("description")] JsonDynamicResourceKey? Description,
+        [property: JsonPropertyName("description")] JsonDynamicResourceKey? DescriptionKey,
         [property: JsonPropertyName("reasoning")] bool SupportsReasoning,
         [property: JsonPropertyName("toolCall")] bool SupportsToolCall,
         [property: JsonPropertyName("knowledge")] string? KnowledgeCutoff,
@@ -180,7 +180,7 @@ public sealed partial class OfficialModelProvider :
                 ContextLimit = LimitInfo.Context,
                 OutputLimit = LimitInfo.Output,
                 IconUrl = Icon,
-                Description = Description,
+                DescriptionKey = DescriptionKey,
                 Pricing = ConvertPricing(Pricing)
             };
 

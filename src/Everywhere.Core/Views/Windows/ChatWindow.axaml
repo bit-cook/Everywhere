@@ -331,11 +331,11 @@
                     <StackPanel
                       DockPanel.Dock="Top" Spacing="4">
                       <TextBlock
-                        Text="{Binding Strategy.Name^, Mode=OneTime}"
+                        Text="{Binding Strategy.NameKey^, Mode=OneTime}"
                         TextWrapping="Wrap"/>
                       <TextBlock
                         Classes="Muted Small"
-                        Text="{Binding Strategy.Description^, Mode=OneTime, FallbackValue={x:Null}}"
+                        Text="{Binding Strategy.DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
                         TextWrapping="Wrap"/>
                     </StackPanel>
 
@@ -369,12 +369,12 @@
 
                               <TextBlock
                                 Grid.Row="0" Grid.Column="1"
-                                Text="{Binding Name^}"
+                                Text="{Binding NameKey^}"
                                 TextWrapping="Wrap"/>
                               <TextBlock
                                 Classes="Muted Small" Grid.Row="1"
                                 Grid.Column="1"
-                                Text="{Binding Description^, Mode=OneTime, FallbackValue={x:Null}}"
+                                Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
                                 TextWrapping="Wrap"/>
                             </Grid>
                           </Button>
@@ -427,14 +427,14 @@
             Background="{DynamicResource SuccessColor20}"
             BorderBrush="{DynamicResource BorderColor}"
             BorderThickness="0,0,0,1"
-            IsVisible="{Binding ChatContextManager.Current.BusyMessage, Converter={x:Static ObjectConverters.IsNotNull}, Delay=200}">
+            IsVisible="{Binding ChatContextManager.Current.BusyMessageKey, Converter={x:Static ObjectConverters.IsNotNull}, Delay=200}">
             <StackPanel
               Orientation="Horizontal" Spacing="4">
               <shadui:Loading
                 Width="14" Height="14"/>
               <TextBlock
                 Classes="Small"
-                Text="{Binding ChatContextManager.Current.BusyMessage}"/>
+                Text="{Binding ChatContextManager.Current.BusyMessageKey}"/>
             </StackPanel>
           </Border>
 
@@ -724,19 +724,19 @@
                   <TextBlock
                     VerticalAlignment="Center"
                     FontSize="{DynamicResource FontSizeS}"
-                    Text="{I18N {x:Static LocaleKey.PersistentState_VisualTreeLengthLimit_Header}}"/>
+                    Text="{I18N {x:Static LocaleKey.PersistentState_VisualContextLengthLimit_Header}}"/>
                   <LucideIcon
                     Kind="CircleQuestionMark"
                     Size="{DynamicResource FontSizeS}"
                     ToolTip.Placement="Right"
-                    ToolTip.Tip="{I18N {x:Static LocaleKey.PersistentState_VisualTreeLengthLimit_Description}}"/>
+                    ToolTip.Tip="{I18N {x:Static LocaleKey.PersistentState_VisualContextLengthLimit_Description}}"/>
                 </StackPanel>
 
                 <TextBlock
                   Classes="Muted" VerticalAlignment="Center"
                   FontSize="{DynamicResource FontSizeS}">
                   <TextBlock.Text>
-                    <I18N Key="{Binding PersistentState.VisualTreeLengthLimit, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
+                    <I18N Key="{Binding PersistentState.VisualContextLengthLimit, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
                   </TextBlock.Text>
                 </TextBlock>
 
@@ -744,7 +744,7 @@
                   MinWidth="160" IsSnapToTickEnabled="True"
                   Maximum="4" Minimum="0"
                   TickFrequency="1"
-                  Value="{Binding PersistentState.VisualTreeLengthLimit, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
+                  Value="{Binding PersistentState.VisualContextLengthLimit, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
 
                 <Separator/>
               </StackPanel>
@@ -757,19 +757,19 @@
                   <TextBlock
                     VerticalAlignment="Center"
                     FontSize="{DynamicResource FontSizeS}"
-                    Text="{I18N {x:Static LocaleKey.PersistentState_VisualTreeDetailLevel_Header}}"/>
+                    Text="{I18N {x:Static LocaleKey.PersistentState_VisualContextDetailLevel_Header}}"/>
                   <LucideIcon
                     Kind="CircleQuestionMark"
                     Size="{DynamicResource FontSizeS}"
                     ToolTip.Placement="Right"
-                    ToolTip.Tip="{I18N {x:Static LocaleKey.PersistentState_VisualTreeDetailLevel_Description}}"/>
+                    ToolTip.Tip="{I18N {x:Static LocaleKey.PersistentState_VisualContextDetailLevel_Description}}"/>
                 </StackPanel>
 
                 <TextBlock
                   Classes="Muted" VerticalAlignment="Center"
                   FontSize="{DynamicResource FontSizeS}">
                   <TextBlock.Text>
-                    <I18N Key="{Binding PersistentState.VisualTreeDetailLevel, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
+                    <I18N Key="{Binding PersistentState.VisualContextDetailLevel, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
                   </TextBlock.Text>
                 </TextBlock>
 
@@ -777,7 +777,7 @@
                   MinWidth="160" IsSnapToTickEnabled="True"
                   Maximum="2" Minimum="0"
                   TickFrequency="1"
-                  Value="{Binding PersistentState.VisualTreeDetailLevel, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
+                  Value="{Binding PersistentState.VisualContextDetailLevel, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
 
                 <Separator/>
               </StackPanel>

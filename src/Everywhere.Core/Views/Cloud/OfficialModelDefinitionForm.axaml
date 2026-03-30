@@ -85,7 +85,7 @@
                         VerticalAlignment="Center"
                         Text="{Binding Name}"
                         TextTrimming="CharacterEllipsis"
-                        ToolTip.Tip="{Binding Description^, FallbackValue={x:Null}}"/>
+                        ToolTip.Tip="{Binding DescriptionKey^, FallbackValue={x:Null}}"/>
                       <LucideIcon
                         Grid.Column="2" HorizontalAlignment="Left"
                         Foreground="{DynamicResource WarningColor}"
@@ -181,8 +181,8 @@
 
               <TextBlock
                 Margin="4"
-                IsVisible="{Binding SelectedItem.Description, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
-                Text="{Binding SelectedItem.Description^, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
+                IsVisible="{Binding SelectedItem.DescriptionKey, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
+                Text="{Binding SelectedItem.DescriptionKey^, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
                 TextWrapping="Wrap"/>
 
               <Border

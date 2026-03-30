@@ -17,12 +17,12 @@ public sealed record StrategyCommand
     /// <summary>
     /// Display name.
     /// </summary>
-    public required IDynamicResourceKey Name { get; init; }
+    public required IDynamicResourceKey NameKey { get; init; }
 
     /// <summary>
     /// Optional description shown as tooltip or subtitle.
     /// </summary>
-    public IDynamicResourceKey? Description { get; init; }
+    public IDynamicResourceKey? DescriptionKey { get; init; }
 
     /// <summary>
     /// Icon for UI display.
@@ -36,13 +36,16 @@ public sealed record StrategyCommand
 
     /// <summary>
     /// System prompt template for the agent session. Overrides the default prompt.
-    /// Supports variable interpolation with {{variable}} syntax.
+    /// Supports variable interpolation with {variable} syntax.
+    /// TODO: Use {SystemPrompt} for the original system prompt.
+    /// Leave null to use the default system prompt.
     /// </summary>
     public string? SystemPrompt { get; init; }
 
     /// <summary>
     /// User message template to auto-send when starting the conversation.
-    /// Supports variable interpolation with {{variable}} syntax.
+    /// Supports variable interpolation with {variable} syntax.
+    /// TODO: Use {Argument} for Argument
     /// </summary>
     public string? UserMessage { get; init; }
 
@@ -53,8 +56,7 @@ public sealed record StrategyCommand
     public IReadOnlyList<string>? AllowedTools { get; init; }
 
     /// <summary>
-    /// Variables for prompt template interpolation.
-    /// These are resolved at execution time from the context.
+    /// Displays in the watermark as a hint for the user input after selecting this command.
     /// </summary>
-    public IReadOnlyDictionary<string, object>? Variables { get; init; }
+    public IDynamicResourceKey? ArgumentHintKey { get; init; }
 }
