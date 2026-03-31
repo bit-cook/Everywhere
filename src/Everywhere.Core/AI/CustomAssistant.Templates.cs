@@ -25,6 +25,29 @@ partial class PresetBasedModelProviderConfigurator
             [
                 new ModelDefinitionTemplate
                 {
+                    ModelId = "gpt-5.4",
+                    Name = "GPT-5.4",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 1_050_000,
+                    OutputLimit = 128_000,
+                    IsDefault = true
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "gpt-5.4-mini",
+                    Name = "GPT-5.4 mini",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 400_000,
+                    OutputLimit = 128_000
+                },
+                new ModelDefinitionTemplate
+                {
                     ModelId = "gpt-5.2",
                     Name = "GPT-5.2",
                     SupportsReasoning = true,
@@ -32,8 +55,7 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text | Modalities.Image,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 400_000,
-                    OutputLimit = 128_000,
-                    IsDefault = true
+                    OutputLimit = 128_000
                 },
                 new ModelDefinitionTemplate
                 {
@@ -136,7 +158,7 @@ partial class PresetBasedModelProviderConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 200_000,
+                    ContextLimit = 1_000_000,
                     OutputLimit = 128_000
                 },
                 new ModelDefinitionTemplate
@@ -152,6 +174,18 @@ partial class PresetBasedModelProviderConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
+                    ModelId = "claude-sonnet-4-6",
+                    Name = "Claude Sonnet 4.6",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 1_000_000,
+                    OutputLimit = 64_000,
+                    IsDefault = true
+                },
+                new ModelDefinitionTemplate
+                {
                     ModelId = "claude-sonnet-4-5-20250929",
                     Name = "Claude Sonnet 4.5",
                     SupportsReasoning = true,
@@ -159,8 +193,7 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 200_000,
-                    OutputLimit = 64_000,
-                    IsDefault = true
+                    OutputLimit = 64_000
                 },
                 new ModelDefinitionTemplate
                 {
@@ -205,39 +238,6 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 200_000,
                     OutputLimit = 64_000
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "claude-3-7-sonnet-20250219",
-                    Name = "Claude 3.7 Sonnet",
-                    SupportsReasoning = true,
-                    SupportsToolCall = true,
-                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 200_000,
-                    OutputLimit = 64_000
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "claude-3-5-haiku-20241022",
-                    Name = "Claude 3.5 Haiku",
-                    SupportsReasoning = false,
-                    SupportsToolCall = true,
-                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 200_000,
-                    OutputLimit = 8_192
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "claude-3-haiku-20240307",
-                    Name = "Claude 3 Haiku",
-                    SupportsReasoning = false,
-                    SupportsToolCall = true,
-                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 200_000,
-                    OutputLimit = 4_096
                 }
             ]
         },
@@ -260,8 +260,8 @@ partial class PresetBasedModelProviderConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Audio | Modalities.Video | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 1_000_000,
-                    OutputLimit = 64_000
+                    ContextLimit = 1_048_576,
+                    OutputLimit = 65_536
                 },
                 new ModelDefinitionTemplate
                 {
@@ -290,6 +290,17 @@ partial class PresetBasedModelProviderConfigurator
                 {
                     ModelId = "gemini-2.5-flash",
                     Name = "Gemini 2.5 Flash",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Audio | Modalities.Video | Modalities.Pdf,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 1_048_576,
+                    OutputLimit = 65_536
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "gemini-3.1-flash-lite-preview",
+                    Name = "Gemini 3.1 Flash-Lite",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Audio | Modalities.Video | Modalities.Pdf,
@@ -341,7 +352,7 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 128_000,
-                    OutputLimit = 128_000,
+                    OutputLimit = 64_000,
                     IsDefault = true
                 }
             ]
@@ -417,6 +428,97 @@ partial class PresetBasedModelProviderConfigurator
         },
         new()
         {
+            Id = "minimax",
+            DisplayName = "MiniMax",
+            Endpoint = "https://api.minimaxi.com/anthropic",
+            OfficialWebsiteUrl = "https://minimaxi.com",
+            DarkIconUrl = "avares://Everywhere.Core/Assets/Icons/minimax-color.svg",
+            LightIconUrl = "avares://Everywhere.Core/Assets/Icons/minimax-color.svg",
+            Schema = ModelProviderSchema.Anthropic,
+            ModelDefinitions =
+            [
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "MiniMax-M2.7",
+                    Name = "MiniMax-M2.7",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 204_800,
+                    OutputLimit = 131_072,
+                    IsDefault = true
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "MiniMax-M2.7-highspeed",
+                    Name = "MiniMax-M2.7-highspeed",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 204_800,
+                    OutputLimit = 131_072
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "MiniMax-M2.5",
+                    Name = "MiniMax-M2.5",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 204_800,
+                    OutputLimit = 131_072
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "MiniMax-M2.5-highspeed",
+                    Name = "MiniMax-M2.5-highspeed",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 204_800,
+                    OutputLimit = 131_072
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "MiniMax-M2.1",
+                    Name = "MiniMax-M2.1",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 204_800,
+                    OutputLimit = 131_072
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "MiniMax-M2.1-highspeed",
+                    Name = "MiniMax-M2.1-highspeed",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 204_800,
+                    OutputLimit = 131_072
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "MiniMax-M2",
+                    Name = "MiniMax-M2",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 196_608,
+                    OutputLimit = 128_000
+                },
+            ]
+        },
+        new()
+        {
             Id = "openrouter",
             DisplayName = "OpenRouter",
             OfficialWebsiteUrl = "https://openrouter.ai",
@@ -426,16 +528,73 @@ partial class PresetBasedModelProviderConfigurator
             Schema = ModelProviderSchema.OpenAI,
             ModelDefinitions =
             [
+                // According to 2026/03/31 Rankings
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "moonshotai/kimi-k2.5",
-                    Name = "MoonshotAI: Kimi K2.5",
+                    ModelId = "xiaomi/mimo-v2-pro",
+                    Name = "Xiaomi: MiMo-V2-Pro",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 1_048_576,
+                    OutputLimit = 65_536,
+                    IsDefault = true
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "stepfun/step-3.5-flash:free",
+                    Name = "StepFun: Step 3.5 Flash (free)",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 256_000,
+                    OutputLimit = 256_000,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "minimax/minimax-m2.7",
+                    Name = "MiniMax: MiniMax M2.7",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 204_800,
+                    OutputLimit = 131_072,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "deepseek/deepseek-v3.2",
+                    Name = "DeepSeek: DeepSeek V3.2",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 163_840,
+                    OutputLimit = 65_536,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "anthropic/claude-sonnet-4.6",
+                    Name = "Anthropic: Claude Sonnet 4.6",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 262_144,
-                    OutputLimit = 262_144,
+                    ContextLimit = 1_000_000,
+                    OutputLimit = 128_000,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "anthropic/claude-opus-4.6",
+                    Name = "Anthropic: Claude Opus 4.6",
+                    SupportsReasoning = false,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 1_000_000,
+                    OutputLimit = 128_000,
                 },
                 new ModelDefinitionTemplate
                 {
@@ -446,7 +605,40 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Audio | Modalities.Video | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_048_576,
-                    OutputLimit = 65_535,
+                    OutputLimit = 65_536,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "z-ai/glm-5-turbo",
+                    Name = "Z.ai: GLM 5 Turbo",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 200_000,
+                    OutputLimit = 128_000,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "minimax/minimax-m2.5",
+                    Name = "MiniMax: MiniMax M2.5",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 204_800,
+                    OutputLimit = 131_072,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "x-ai/grok-4.1-fast",
+                    Name = "X-AI: Grok 4.1 Fast",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 2_000_000,
+                    OutputLimit = 30_000
                 },
                 new ModelDefinitionTemplate
                 {
@@ -467,7 +659,7 @@ partial class PresetBasedModelProviderConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 2_000_000,
+                    ContextLimit = 200_000,
                     OutputLimit = 32_000,
                 },
                 new ModelDefinitionTemplate
@@ -483,17 +675,6 @@ partial class PresetBasedModelProviderConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "deepseek/deepseek-v3.2",
-                    Name = "DeepSeek: DeepSeek V3.2",
-                    SupportsReasoning = true,
-                    SupportsToolCall = true,
-                    InputModalities = Modalities.Text,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 163_840,
-                    OutputLimit = 65_536,
-                },
-                new ModelDefinitionTemplate
-                {
                     ModelId = "openai/gpt-oss-120b",
                     Name = "OpenAI: GPT-OSS 120B",
                     SupportsReasoning = true,
@@ -502,18 +683,6 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 131_072,
                     OutputLimit = 32_768,
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "x-ai/grok-4.1-fast",
-                    Name = "X-AI: Grok 4.1 Fast",
-                    SupportsReasoning = true,
-                    SupportsToolCall = true,
-                    InputModalities = Modalities.Text | Modalities.Image,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 2_000_000,
-                    OutputLimit = 30_000,
-                    IsDefault = true
                 }
             ]
         },
@@ -528,6 +697,73 @@ partial class PresetBasedModelProviderConfigurator
             Schema = ModelProviderSchema.OpenAI,
             ModelDefinitions =
             [
+                // According to 2026/03/31 Models
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "Pro/MiniMaxAI/MiniMax-M2.5",
+                    Name = "MiniMax-M2.5 (Pro)",
+                    SupportsReasoning = false,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 192_000,
+                    OutputLimit = 131_000,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "Pro/zai-org/GLM-5",
+                    Name = "GLM-5 (Pro)",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 205_000,
+                    OutputLimit = 205_000,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "Pro/moonshotai/Kimi-K2.5",
+                    Name = "Kimi-K2.5 (Pro)",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 262_000,
+                    OutputLimit = 262_000,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "Pro/zai-org/GLM-4.7",
+                    Name = "GLM-4.7 (Pro)",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 205_000,
+                    OutputLimit = 205_000,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "deepseek-ai/DeepSeek-V3.2",
+                    Name = "DeepSeek-V3.2",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 164_000,
+                    OutputLimit = 164_000,
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "Pro/deepseek-ai/DeepSeek-V3.2",
+                    Name = "DeepSeek-V3.2 (Pro)",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 164_000,
+                    OutputLimit = 164_000,
+                },
                 new ModelDefinitionTemplate
                 {
                     ModelId = "Qwen/Qwen3-8B",
@@ -572,17 +808,6 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 197_000,
                     OutputLimit = 131_000,
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "deepseek-ai/DeepSeek-V3.2",
-                    Name = "DeepSeek-V3.2",
-                    SupportsReasoning = true,
-                    SupportsToolCall = true,
-                    InputModalities = Modalities.Text,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 164_000,
-                    OutputLimit = 164_000,
                 }
             ]
         },
