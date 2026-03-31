@@ -154,16 +154,15 @@ public class OpenAIKernelMixin : KernelMixin
                     }
 
                     var delta = GetDelta(firstChoice);
-                    var jsonPatch = GetPatch(delta);
-
-                    // Extract and process the raw data if it exists.
-                    if (!jsonPatch.TryGetValue("$.reasoning_content"u8, out string? reasoningContent))
+                    if (delta is null)
                     {
                         yield return update;
                         continue;
                     }
 
-                    if (string.IsNullOrEmpty(reasoningContent))
+                    // Extract and process the raw data if it exists.
+                    var jsonPatch = GetPatch(delta);
+                    if (!jsonPatch.TryGetValue("$.reasoning_content"u8, out string? reasoningContent) || string.IsNullOrEmpty(reasoningContent))
                     {
                         yield return update;
                         continue;
@@ -204,11 +203,11 @@ public class OpenAIKernelMixin : KernelMixin
 
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_Choices")]
         [return: UnsafeAccessorType(FuckingInternalChoiceListTypeName)]
-        private extern static object GetChoices(StreamingChatCompletionUpdate update);
+        private extern static object? GetChoices(StreamingChatCompletionUpdate update);
 
         [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_Delta")]
         [return: UnsafeAccessorType(FuckingInternalDeltaTypeName)]
-        private extern static object GetDelta([UnsafeAccessorType(FuckingInternalChoiceTypeName)] object choice);
+        private extern static object? GetDelta([UnsafeAccessorType(FuckingInternalChoiceTypeName)] object choice);
 
         [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_patch")]
         private extern static ref JsonPatch GetPatch([UnsafeAccessorType(FuckingInternalDeltaTypeName)] object delta);
