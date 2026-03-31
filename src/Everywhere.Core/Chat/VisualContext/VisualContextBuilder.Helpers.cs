@@ -71,7 +71,7 @@ partial class VisualContextBuilder
     /// <returns></returns>
     private static string OmitIfNeeded(string text, int maxLength, out int omittedLength)
     {
-        var tokenCount = TokenCounterSlim.EstimateTokenCount(text);
+        var tokenCount = TokenCounter.EstimateTokenCount(text);
         if (maxLength <= 0 || tokenCount <= maxLength)
         {
             omittedLength = 0;

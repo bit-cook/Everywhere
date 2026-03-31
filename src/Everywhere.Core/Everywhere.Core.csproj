@@ -57,6 +57,8 @@
     <PackageReference Include="Svg.Controls.Skia.Avalonia"/>
     <PackageReference Include="System.Drawing.Common"/>
     <PackageReference Include="TextMateSharp.Grammars" />
+    <PackageReference Include="Tiktoken.Core" />
+    <PackageReference Include="Tiktoken.Encodings.o200k" />
   </ItemGroup>
 
   <ItemGroup>

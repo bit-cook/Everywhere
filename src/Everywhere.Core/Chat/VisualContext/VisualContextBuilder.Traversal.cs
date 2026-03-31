@@ -362,11 +362,11 @@ partial class VisualContextBuilder
         };
 
         var contentTokenCount = 0;
-        if (description != null) contentTokenCount += TokenCounterSlim.EstimateTokenCount(description) + attrOverhead;
+        if (description != null) contentTokenCount += TokenCounter.EstimateTokenCount(description) + attrOverhead;
         contentTokenCount += contentLines.Length switch
         {
-            > 0 and < 3 => contentLines.Sum(TokenCounterSlim.EstimateTokenCount),
-            >= 3 => contentLines.Sum(line => TokenCounterSlim.EstimateTokenCount(line) + lineOverhead) + blockOverhead,
+            > 0 and < 3 => contentLines.Sum(TokenCounter.EstimateTokenCount),
+            >= 3 => contentLines.Sum(line => TokenCounter.EstimateTokenCount(line) + lineOverhead) + blockOverhead,
             _ => 0
         };
 
