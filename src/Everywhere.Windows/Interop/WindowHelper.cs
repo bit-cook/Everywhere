@@ -14,55 +14,39 @@ public class WindowHelper : IWindowHelper
 {
     public void SetFocusable(Window window, bool focusable)
     {
-        if (window.TryGetPlatformHandle() is not { } handle) return;
-        var style = PInvoke.GetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_STYLE);
-        var exStyle = PInvoke.GetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
-
         if (focusable)
-        {
-            Win32Properties.AddWindowStylesCallback(window, WindowStylesCallback);
-            Win32Properties.AddWndProcHookCallback(window, WndProcHookCallback);
-
-            PInvoke.SetWindowLong(
-                (HWND)handle.Handle,
-                WINDOW_LONG_PTR_INDEX.GWL_STYLE,
-                style |
-                ~(int)WINDOW_STYLE.WS_DISABLED);
-            PInvoke.SetWindowLong(
-                (HWND)handle.Handle,
-                WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
-                exStyle & ~(
-                    (int)WINDOW_EX_STYLE.WS_EX_NOACTIVATE |
-                    (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW));
-        }
-        else
         {
             Win32Properties.RemoveWindowStylesCallback(window, WindowStylesCallback);
             Win32Properties.RemoveWndProcHookCallback(window, WndProcHookCallback);
+        }
+        else
+        {
+            Win32Properties.AddWindowStylesCallback(window, WindowStylesCallback);
+            Win32Properties.AddWndProcHookCallback(window, WndProcHookCallback);
+        }
 
-            PInvoke.SetWindowLong(
-                (HWND)handle.Handle,
-                WINDOW_LONG_PTR_INDEX.GWL_STYLE,
-                style |
-                (int)WINDOW_STYLE.WS_DISABLED);
-            PInvoke.SetWindowLong(
-                (HWND)handle.Handle,
-                WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
-                exStyle |
-                (int)WINDOW_EX_STYLE.WS_EX_NOACTIVATE |
-                (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW);
+        if (window.TryGetPlatformHandle() is { } handle)
+        {
+            var exStyle = PInvoke.GetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+
+            if (focusable)
+            {
+                exStyle &= ~((int)WINDOW_EX_STYLE.WS_EX_NOACTIVATE | (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW);
+            }
+            else
+            {
+                exStyle |= (int)WINDOW_EX_STYLE.WS_EX_NOACTIVATE | (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW;
+            }
+
+            PInvoke.SetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, exStyle);
         }
 
         static (uint style, uint exStyle) WindowStylesCallback(uint style, uint exStyle)
         {
-            return
-            (
-                style | (int)WINDOW_STYLE.WS_DISABLED,
-                exStyle | (uint)WINDOW_EX_STYLE.WS_EX_NOACTIVATE | (uint)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW
-            );
+            return (style, exStyle | (uint)WINDOW_EX_STYLE.WS_EX_NOACTIVATE | (uint)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW);
         }
 
-        IntPtr WndProcHookCallback(IntPtr hWnd, uint msg, IntPtr wparam, IntPtr lparam, ref bool handled)
+        static IntPtr WndProcHookCallback(IntPtr hWnd, uint msg, IntPtr wparam, IntPtr lparam, ref bool handled)
         {
             // handle and block all activate messages
             // if (msg is not (>= (uint)WINDOW_MESSAGE.WM_MOUSEMOVE and <= (uint)WINDOW_MESSAGE.WM_XBUTTONDBLCLK or (uint)WINDOW_MESSAGE.WM_NCHITTEST))
@@ -87,41 +71,46 @@ public class WindowHelper : IWindowHelper
 
     public void SetHitTestVisible(Window window, bool visible)
     {
-        if (window.TryGetPlatformHandle() is not { } handle) return;
-        var windowLong = PInvoke.GetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
-
         if (visible)
         {
             Win32Properties.RemoveWindowStylesCallback(window, WindowStylesCallback);
-
-            PInvoke.SetWindowLong(
-                (HWND)handle.Handle,
-                WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
-                windowLong & ~(
-                    (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW |
-                    (int)WINDOW_EX_STYLE.WS_EX_LAYERED |
-                    (int)WINDOW_EX_STYLE.WS_EX_TRANSPARENT));
         }
         else
         {
             Win32Properties.AddWindowStylesCallback(window, WindowStylesCallback);
+        }
 
-            PInvoke.SetWindowLong(
-                (HWND)handle.Handle,
-                WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE,
-                windowLong |
-                (int)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW |
-                (int)WINDOW_EX_STYLE.WS_EX_LAYERED |
-                (int)WINDOW_EX_STYLE.WS_EX_TRANSPARENT);
-            PInvoke.SetLayeredWindowAttributes((HWND)handle.Handle, new COLORREF(), 255, LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA);
+        if (window.TryGetPlatformHandle() is { } handle)
+        {
+            var style = PInvoke.GetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_STYLE);
+            var exStyle = PInvoke.GetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE);
+
+            if (visible)
+            {
+                style &= ~(int)WINDOW_STYLE.WS_DISABLED;
+                PInvoke.SetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_STYLE, style);
+
+                exStyle &= ~((int)WINDOW_EX_STYLE.WS_EX_LAYERED | (int)WINDOW_EX_STYLE.WS_EX_TRANSPARENT);
+                PInvoke.SetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, exStyle);
+            }
+            else
+            {
+                style |= (int)WINDOW_STYLE.WS_DISABLED;
+                PInvoke.SetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_STYLE, style);
+
+                exStyle |= (int)WINDOW_EX_STYLE.WS_EX_LAYERED | (int)WINDOW_EX_STYLE.WS_EX_TRANSPARENT;
+                PInvoke.SetWindowLong((HWND)handle.Handle, WINDOW_LONG_PTR_INDEX.GWL_EXSTYLE, exStyle);
+                PInvoke.SetLayeredWindowAttributes((HWND)handle.Handle, new COLORREF(), 255, LAYERED_WINDOW_ATTRIBUTES_FLAGS.LWA_ALPHA);
+            }
         }
 
         static (uint style, uint exStyle) WindowStylesCallback(uint style, uint exStyle)
         {
-            return (style, exStyle |
-                (uint)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW |
-                (uint)WINDOW_EX_STYLE.WS_EX_LAYERED |
-                (uint)WINDOW_EX_STYLE.WS_EX_TRANSPARENT);
+            return
+            (
+                style | (uint)WINDOW_STYLE.WS_DISABLED,
+                exStyle | (uint)WINDOW_EX_STYLE.WS_EX_TOOLWINDOW | (uint)WINDOW_EX_STYLE.WS_EX_LAYERED | (uint)WINDOW_EX_STYLE.WS_EX_TRANSPARENT
+            );
         }
     }
 

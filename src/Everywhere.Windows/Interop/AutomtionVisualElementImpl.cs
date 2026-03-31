@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Dwm;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
@@ -332,49 +333,51 @@ public partial class VisualElementContext
 
             // Send mouse click to the point
             PInvoke.SendInput(
-            [
-                new INPUT
-                {
-                    Anonymous =
+                [
+                    new INPUT
                     {
-                        mi =
+                        Anonymous =
                         {
-                            dx = point.X * 65535 / PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN),
-                            dy = point.Y * 65535 / PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN),
-                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
-                        }
+                            mi =
+                            {
+                                dx = point.X * 65535 / PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSCREEN),
+                                dy = point.Y * 65535 / PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CYSCREEN),
+                                dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_ABSOLUTE | MOUSE_EVENT_FLAGS.MOUSEEVENTF_MOVE,
+                            }
+                        },
+                        type = INPUT_TYPE.INPUT_MOUSE,
                     },
-                    type = INPUT_TYPE.INPUT_MOUSE,
-                },
-                new INPUT
-                {
-                    Anonymous =
+                    new INPUT
                     {
-                        mi =
+                        Anonymous =
                         {
-                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTDOWN,
-                        }
-                    },
-                    type = INPUT_TYPE.INPUT_MOUSE,
-                }
-            ], Unsafe.SizeOf<INPUT>());
+                            mi =
+                            {
+                                dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTDOWN,
+                            }
+                        },
+                        type = INPUT_TYPE.INPUT_MOUSE,
+                    }
+                ],
+                Unsafe.SizeOf<INPUT>());
 
             // A short delay to ensure the click is done before sending mouse up
             Thread.Sleep(30);
             PInvoke.SendInput(
-            [
-                new INPUT
-                {
-                    Anonymous =
+                [
+                    new INPUT
                     {
-                        mi =
+                        Anonymous =
                         {
-                            dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTUP,
-                        }
-                    },
-                    type = INPUT_TYPE.INPUT_MOUSE,
-                }
-            ], Unsafe.SizeOf<INPUT>());
+                            mi =
+                            {
+                                dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_LEFTUP,
+                            }
+                        },
+                        type = INPUT_TYPE.INPUT_MOUSE,
+                    }
+                ],
+                Unsafe.SizeOf<INPUT>());
 
             void LogError(Exception ex, string action) =>
                 Log.ForContext<AutomationVisualElementImpl>().Information(ex, "Failed to perform {Action} on element {Type}", action, Type);
@@ -589,10 +592,21 @@ public partial class VisualElementContext
 
         #region Interop
 
-        private static PixelRect GetBoundingRectangle(AutomationElement element)
+        private static unsafe PixelRect GetBoundingRectangle(AutomationElement element)
         {
             try
             {
+                var hWnd = element.FrameworkAutomationElement.NativeWindowHandle.ValueOrDefault;
+                if (hWnd != 0 && IsTopLevelHWnd((HWND)hWnd))
+                {
+                    Span<byte> pvAttribute = stackalloc byte[sizeof(RECT)];
+                    if (PInvoke.DwmGetWindowAttribute((HWND)hWnd, DWMWINDOWATTRIBUTE.DWMWA_EXTENDED_FRAME_BOUNDS, pvAttribute) == 0)
+                    {
+                        var visualRect = Unsafe.As<byte, RECT>(ref MemoryMarshal.GetReference(pvAttribute));
+                        return new PixelRect(visualRect.X, visualRect.Y, visualRect.Width, visualRect.Height);
+                    }
+                }
+
                 return element.BoundingRectangle.To(r => new PixelRect(
                     r.X,
                     r.Y,
