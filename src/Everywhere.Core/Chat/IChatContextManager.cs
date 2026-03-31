@@ -71,9 +71,8 @@ public interface IChatContextManager : INotifyPropertyChanged
     string EnsureWorkingDirectory(ChatContext chatContext);
 
     /// <summary>
-    /// Populates the system prompt for the given chat context.
+    /// Render the given prompt and populate variables
     /// </summary>
     /// <param name="chatContext"></param>
-    /// <param name="systemPrompt"></param>
-    string RenderSystemPrompt(ChatContext chatContext, string? systemPrompt);
+    IDictionary<string, Func<string>> GetPromptVariables(ChatContext chatContext);
 }

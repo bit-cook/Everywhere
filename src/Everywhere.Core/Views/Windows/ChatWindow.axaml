@@ -136,7 +136,7 @@
           </StackPanel.Styles>
 
           <ToggleButton
-            Classes="Ghost TitleBar"
+            Classes="Ghost TitleBar" Margin="0,0,2,0"
             IsChecked="{Binding ChatContextManager.Current.Metadata.IsTemporary, Mode=TwoWay}"
             ToolTip.Tip="{I18N {x:Static LocaleKey.ChatContext_TemporaryToggleButton_ToolTip}}">
             <ToggleButton.IsVisible>
@@ -353,23 +353,23 @@
                             Classes="Outline" Width="240"
                             Padding="8" HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Stretch"
-                            Command="{Binding $parent[v:ChatWindow].ViewModel.RunStrategyCommand, Mode=OneTime}"
+                            Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
                             CommandParameter="{Binding Mode=OneTime}">
                             <Grid
                               ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
                               RowDefinitions="Auto,*" RowSpacing="4">
                               <v:IconPresenter
                                 Grid.Row="0" Grid.RowSpan="2"
-                                Grid.Column="0" DockPanel.Dock="Right"
+                                Grid.Column="0"
                                 Width="{DynamicResource FontSize2Xl}"
                                 Height="{DynamicResource FontSize2Xl}"
-                                VerticalAlignment="Center"
-                                Icon="{Binding Icon}"
+                                Margin="4,0,-4,0" VerticalAlignment="Center"
+                                Icon="{Binding Icon, Mode=OneTime}"
                                 IconSize="{DynamicResource FontSizeL}"/>
 
                               <TextBlock
                                 Grid.Row="0" Grid.Column="1"
-                                Text="{Binding NameKey^}"
+                                Text="{Binding NameKey^, Mode=OneTime}"
                                 TextWrapping="Wrap"/>
                               <TextBlock
                                 Classes="Muted Small" Grid.Row="1"
@@ -473,31 +473,28 @@
           </Border>
 
           <v:ChatInputArea
-            x:Name="ChatInputArea" AcceptsReturn="True"
+            x:Name="ChatInputArea"
             CancelCommand="{Binding CancelCommand}"
-            CaretIndex="{x:Static sys:Int32.MaxValue}"
             ChatAttachmentItemsSource="{Binding ChatAttachments}"
             Command="{Binding SendMessageCommand}"
             CustomAssistantItemsSource="{Binding Settings.Model.CustomAssistants}"
-            Focusable="True"
             IsSendButtonEnabled="{Binding !IsBusy}"
             IsToolCallEnabled="{Binding PersistentState.IsToolCallEnabled, Mode=TwoWay}"
             IsToolCallSupported="{Binding Settings.Model.SelectedCustomAssistant.SupportsToolCall, FallbackValue={x:False}}"
+            LeadingContent="{Binding SelectedStrategyCommand, Mode=TwoWay}"
             MaxChatAttachmentCount="{Binding PersistentState.MaxChatAttachmentCount}"
             MaxLength="{Binding ChatInputAreaTextMaxLength}"
-            MaxLines="12"
             RemoveAttachmentCommand="{Binding RemoveAttachmentCommand}"
             SelectedCustomAssistant="{Binding Settings.Model.SelectedCustomAssistant, Mode=TwoWay}"
             Subscription="{Binding CloudClient.Subscription}"
             Text="{Binding ChatInputAreaText, Mode=TwoWay}"
-            TextWrapping="Wrap"
             UserProfile="{Binding CloudClient.UserProfile}"
             Watermark="{Binding ChatInputAreaWatermarkKey^, FallbackValue={x:Null}}">
             <v:ChatInputArea.Transitions>
               <Transitions>
                 <shadui:StringTransition
                   Easing="CubicEaseInOut" Property="Watermark"
-                  Duration="0:0:0.4"/>
+                  Duration="0:0:0.2"/>
               </Transitions>
             </v:ChatInputArea.Transitions>
 
@@ -848,6 +845,24 @@
                 Command="{Binding OpenSettingsCommand}"
                 Content="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_MoreSettings}}"/>
             </v:ChatInputArea.SettingsMenuItemsSource>
+
+            <v:ChatInputArea.LeadingContentTemplate>
+              <DataTemplate x:DataType="se:StrategyCommand">
+                <shadui:Badge Background="{DynamicResource PrimaryColor}">
+                  <StackPanel
+                    Orientation="Horizontal" Spacing="4">
+                    <v:IconPresenter
+                      VerticalAlignment="Center"
+                      Background="{x:Null}"
+                      Icon="{Binding Icon}"
+                      IconSize="{DynamicResource FontSizeM}"/>
+                    <TextBlock
+                      Text="{Binding NameKey^}"
+                      TextWrapping="Wrap"/>
+                  </StackPanel>
+                </shadui:Badge>
+              </DataTemplate>
+            </v:ChatInputArea.LeadingContentTemplate>
           </v:ChatInputArea>
         </StackPanel>
       </Border>

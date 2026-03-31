@@ -394,6 +394,70 @@
           </StackPanel>
         </DataTemplate>
 
+        <DataTemplate x:DataType="chat:UserStrategyMessage">
+          <StackPanel
+            Classes="ChatMessage User" Margin="36,0,0,0"
+            HorizontalAlignment="Right" shadui:Timeline.Anchor="0,0"
+            shadui:Timeline.IsBreak="True" Background="Transparent"
+            Orientation="Vertical" Spacing="4">
+            <StackPanel.Styles>
+              <Style Selector="Border.Editing">
+                <Setter Property="BorderBrush" Value="{DynamicResource WarningColor60}"/>
+                <Setter Property="Opacity" Value="0.7"/>
+              </Style>
+            </StackPanel.Styles>
+
+            <Border
+              Classes="ChatBubble" HorizontalAlignment="Right">
+              <Classes.Editing>
+                <MultiBinding Converter="{x:Static vc:CommonConverters.AllEquals}">
+                  <Binding Path="$parent[ContentControl].DataContext"/>
+                  <Binding Path="$parent[v:ChatWindow].ViewModel.EditingUserMessageNode"/>
+                </MultiBinding>
+              </Classes.Editing>
+              <SelectableTextBlock>
+                <InlineUIContainer>
+                  <shadui:Badge
+                    Margin="0,0,4,0"
+                    Background="{DynamicResource PrimaryColor}">
+                    <TextBlock
+                      Text="{Binding StrategyCommand.NameKey^}"
+                      TextWrapping="Wrap"/>
+                  </shadui:Badge>
+                </InlineUIContainer>
+                <Run Text="{Binding Content}"/>
+              </SelectableTextBlock>
+            </Border>
+
+            <v:ChatAttachmentItemsControl ItemsSource="{Binding Attachments}"/>
+
+            <StackPanel
+              x:Name="ChatMessageOperationPanel"
+              IsVisible="{Binding !$parent[v:ChatMessageItemsControl].IsReadonly}"
+              Orientation="Horizontal">
+              <NumericUpDown
+                x:Name="ChoiceSelector" Margin="0,0,4,0"
+                IsVisible="{Binding $parent[ContentControl].((chat:ChatMessageNode)DataContext).Parent.ChoiceCount, FallbackValue=False, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=1}"
+                Maximum="{Binding $parent[ContentControl].((chat:ChatMessageNode)DataContext).Parent.ChoiceCount, FallbackValue=1}"
+                Minimum="1"
+                Value="{Binding $parent[ContentControl].((chat:ChatMessageNode)DataContext).Parent.ChoiceIndex, FallbackValue=1, Converter={x:Static vc:Int32Converters.Plus}, ConverterParameter=1}"/>
+
+              <Button
+                Classes="Ghost Compact"
+                Command="{Binding $parent[v:ChatWindow].ViewModel.EditCommand}"
+                CommandParameter="{Binding $parent[ContentControl].DataContext}"
+                Content="{LucideIconContent SquarePen}"
+                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_User_Edit}}"/>
+              <Button
+                Classes="Ghost Compact"
+                Command="{Binding $parent[v:ChatWindow].ViewModel.CopyCommand}"
+                CommandParameter="{Binding}"
+                Content="{LucideIconContent Copy}"
+                ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Copy}}"/>
+            </StackPanel>
+          </StackPanel>
+        </DataTemplate>
+
         <DataTemplate DataType="chat:UserChatMessage">
           <StackPanel
             Classes="ChatMessage User" Margin="36,0,0,0"

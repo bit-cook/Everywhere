@@ -1,11 +1,9 @@
-﻿using System.Text.RegularExpressions;
-
-namespace Everywhere.AI;
+﻿namespace Everywhere.AI;
 
 /// <summary>
 /// Contains predefined prompt strings for AI interactions.
 /// </summary>
-public static partial class Prompts
+public static class Prompts
 {
     public const string DefaultSystemPrompt =
         """
@@ -78,14 +76,4 @@ public static partial class Prompts
         This is a test prompt.
         You MUST Only reply with "Test successful!".
         """;
-
-    public static string RenderPrompt(string prompt, IReadOnlyDictionary<string, Func<string>> variables)
-    {
-        return PromptTemplateRegex().Replace(
-            prompt,
-            m => variables.TryGetValue(m.Groups[1].Value, out var getter) ? getter() : m.Value);
-    }
-
-    [GeneratedRegex(@"(?<!\{)\{(\w+)\}(?!\})")]
-    private static partial Regex PromptTemplateRegex();
 }

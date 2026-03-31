@@ -78,8 +78,8 @@ public partial class ChatWindow :
         InitializeComponent();
         AddHandler(KeyDownEvent, HandleKeyDown, RoutingStrategies.Tunnel, true);
 
-        ChatInputArea.TextChanged += HandleChatInputAreaTextChanged;
-        ChatInputArea.PastingFromClipboard += HandleChatInputAreaPastingFromClipboard;
+        ChatInputArea.AddDisposableHandler(TextBox.TextChangedEvent, HandleChatInputAreaTextChanged);
+        ChatInputArea.AddDisposableHandler(TextBox.PastingFromClipboardEvent, HandleChatInputAreaPastingFromClipboard);
 
         SetupDragDropHandlers();
 
@@ -500,10 +500,7 @@ public partial class ChatWindow :
                 var text = e.DataTransfer.TryGetText();
                 if (string.IsNullOrWhiteSpace(text)) return;
 
-                var currentText = _persistentState.ChatInputAreaText ?? string.Empty;
-                var caretIndex = ChatInputArea.CaretIndex;
-                _persistentState.ChatInputAreaText = currentText.Insert(caretIndex, text);
-                ChatInputArea.CaretIndex = caretIndex + text.Length;
+                ChatInputArea.SelectedText = text;
             }
         }
     }

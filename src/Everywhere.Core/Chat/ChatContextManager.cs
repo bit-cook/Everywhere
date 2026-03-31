@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -9,7 +8,6 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
-using Everywhere.AI;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Storage;
@@ -468,20 +466,16 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     public string EnsureWorkingDirectory(ChatContext chatContext) =>
         RuntimeConstants.EnsureWritableDataFolderPath($"plugins/{chatContext.Metadata.DateCreated:yyyy-MM-dd}");
 
-    public string RenderSystemPrompt(ChatContext chatContext, string? systemPrompt)
+    public IDictionary<string, Func<string>> GetPromptVariables(ChatContext chatContext)
     {
-        var variables =
-            ImmutableDictionary.CreateRange(
-                new KeyValuePair<string, Func<string>>[]
-                {
-                    new("Date", () => DateTime.Now.ToString("D")),
-                    new("Time", () => DateTime.Now.ToString("F")),
-                    new("OS", () => Environment.OSVersion.ToString()),
-                    new("SystemLanguage", () => LocaleManager.CurrentLocale.ToEnglishName()),
-                    new("WorkingDirectory", () => EnsureWorkingDirectory(chatContext))
-                });
-        if (systemPrompt.IsNullOrWhiteSpace()) systemPrompt = Prompts.DefaultSystemPrompt;
-        return Prompts.RenderPrompt(systemPrompt, variables);
+        return new Dictionary<string, Func<string>>(
+        [
+            new KeyValuePair<string, Func<string>>("Date", () => DateTime.Now.ToString("D")),
+            new KeyValuePair<string, Func<string>>("Time", () => DateTime.Now.ToString("F")),
+            new KeyValuePair<string, Func<string>>("OS", () => Environment.OSVersion.ToString()),
+            new KeyValuePair<string, Func<string>>("SystemLanguage", () => LocaleManager.CurrentLocale.ToEnglishName()),
+            new KeyValuePair<string, Func<string>>("WorkingDirectory", () => EnsureWorkingDirectory(chatContext)),
+        ]);
     }
 
     private async Task<ChatContext?> LoadChatContextAsync(Guid id, bool deleteIfFailed, CancellationToken cancellationToken = default)

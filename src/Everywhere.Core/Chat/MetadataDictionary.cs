@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a dictionary for metadata storage.
 /// </summary>
-public class MetadataDictionary : Dictionary<string, object?>
+public sealed class MetadataDictionary : Dictionary<string, object?>
 {
     public MetadataDictionary() { }
 

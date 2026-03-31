@@ -120,6 +120,9 @@ public sealed partial class ChatWindowViewModel :
 
     public bool CanEdit => !IsBusy && EditingUserMessageNode is null;
 
+    [ObservableProperty]
+    public partial StrategyCommand? SelectedStrategyCommand { get; set; }
+
     public static int ChatInputAreaTextMaxLength => 100_000;
 
     /// <summary>
@@ -141,7 +144,7 @@ public sealed partial class ChatWindowViewModel :
     /// Can be set to one of greetings or instructions based on the chat context, or a default value.
     /// </summary>
     [ObservableProperty]
-    public partial IDynamicResourceKey ChatInputAreaWatermarkKey { get; private set; }
+    public partial IDynamicResourceKey? ChatInputAreaWatermarkKey { get; private set; }
 
     private readonly IChatService _chatService;
     private readonly IVisualElementContext _visualElementContext;
@@ -157,7 +160,7 @@ public sealed partial class ChatWindowViewModel :
     private readonly Meter _meter = new(typeof(ChatWindowViewModel).FullName.NotNull(), App.Version);
     private readonly Gauge<int> _activeChatWindowsGauge;
 
-    private List<ChatAttachment>? _chatAttachmentsBeforeEditing;
+    private ChatInputAreaSnapshot? _snapshotBeforeEdit;
 
     public ChatWindowViewModel(
         Settings settings,
@@ -283,11 +286,13 @@ public sealed partial class ChatWindowViewModel :
                 _chatAttachmentsSource.Edit(list =>
                 {
                     list.RemoveWhere(a => a is VisualElementAttachment { IsPrimary: true });
-                    list.Insert(0, chatAttachment.With(a =>
-                    {
-                        a.IsPrimary = true;
-                        a.Opacity = isAnimationEnabled ? 0d : 1d;
-                    }));
+                    list.Insert(
+                        0,
+                        chatAttachment.With(a =>
+                        {
+                            a.IsPrimary = true;
+                            a.Opacity = isAnimationEnabled ? 0d : 1d;
+                        }));
                 });
 
                 if (isAnimationEnabled)
@@ -573,7 +578,17 @@ public sealed partial class ChatWindowViewModel :
             list.Clear();
         });
 
-        var userMessage = new UserChatMessage(message, attachments!);
+        UserChatMessage userMessage;
+        if (SelectedStrategyCommand is { } selectedStrategyCommand)
+        {
+            userMessage = new UserStrategyMessage(message, attachments!, selectedStrategyCommand);
+            SelectedStrategyCommand = null;
+        }
+        else
+        {
+            userMessage = new UserChatMessage(message, attachments!);
+        }
+
         if (EditingUserMessageNode is { } originalNode)
         {
             CancelEditing();
@@ -590,11 +605,20 @@ public sealed partial class ChatWindowViewModel :
     {
         if (userChatMessageNode is not { Message: UserChatMessage userChatMessage }) return;
 
+        var textBeforeEdit = ChatInputAreaText;
+        var strategyCommandBeforeEdit = SelectedStrategyCommand;
+
         EditingUserMessageNode = userChatMessageNode;
         ChatInputAreaText = userChatMessage.Content;
+        SelectedStrategyCommand = userChatMessage.As<UserStrategyMessage>()?.StrategyCommand;
+
         _chatAttachmentsSource.Edit(list =>
         {
-            _chatAttachmentsBeforeEditing = list.ToList();
+            _snapshotBeforeEdit = new ChatInputAreaSnapshot(
+                textBeforeEdit,
+                list.Count == 0 ? null : list.ToReadOnlyList(),
+                strategyCommandBeforeEdit);
+
             list.Clear();
             list.AddRange(userChatMessage.Attachments.Where(a => a is not VisualElementAttachment { IsElementValid: false }));
         });
@@ -609,14 +633,14 @@ public sealed partial class ChatWindowViewModel :
         _chatAttachmentsSource.Edit(list =>
         {
             list.Clear();
-            if (_chatAttachmentsBeforeEditing is not null)
+            if (_snapshotBeforeEdit is { Attachments: { } chatAttachmentsBeforeEditing })
             {
-                list.AddRange(_chatAttachmentsBeforeEditing);
-                _chatAttachmentsBeforeEditing = null;
+                list.AddRange(chatAttachmentsBeforeEditing);
             }
         });
 
-        ChatInputAreaText = PersistentState.ChatInputAreaText;
+        ChatInputAreaText = _snapshotBeforeEdit?.Text;
+        SelectedStrategyCommand = _snapshotBeforeEdit?.StrategyCommand;
     }
 
     [RelayCommand(CanExecute = nameof(IsNotBusy))]
@@ -749,16 +773,37 @@ public sealed partial class ChatWindowViewModel :
     private void HandleCurrentChatContextIsBusyChanged(bool isBusy)
     {
         IsBusy = isBusy;
+    }
 
+    partial void OnIsBusyChanged(bool value)
+    {
         SendMessageCommand.NotifyCanExecuteChanged();
         EditCommand.NotifyCanExecuteChanged();
         RetryCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
-        RunStrategyCommand.NotifyCanExecuteChanged();
 
+        UpdateWatermark(value, SelectedStrategyCommand);
+    }
+
+    partial void OnSelectedStrategyCommandChanged(StrategyCommand? value)
+    {
+        UpdateWatermark(IsBusy, value);
+    }
+
+    private void UpdateWatermark(bool isBusy, StrategyCommand? selectedStrategyCommand)
+    {
         if (isBusy)
         {
             ChatInputAreaWatermarkKey = Greetings.GetRandomTip();
+        }
+        else if (selectedStrategyCommand is not null)
+        {
+            ChatInputAreaWatermarkKey = selectedStrategyCommand.ArgumentHintKey is null ?
+                selectedStrategyCommand.DescriptionKey :
+                new FormattedDynamicResourceKey(
+                    LocaleKey.ChatInputArea_Watermark_StrategyArgumentHint,
+                    selectedStrategyCommand.DescriptionKey,
+                    selectedStrategyCommand.ArgumentHintKey);
         }
         else
         {
@@ -886,18 +931,12 @@ public sealed partial class ChatWindowViewModel :
         object collection);
 
     [RelayCommand]
-    private void RunStrategy(StrategyCommand strategyCommand)
+    private void SelectStrategy(StrategyCommand strategyCommand)
     {
-        if (StrategiesSnapshot is not { Context: { } strategyContext }) return;
-
-        StrategiesSnapshot = null;
-        CancelEditing();
-        _chatAttachmentsSource.Clear();
-
-        var context = _strategyEngine.CreateExecutionContext(strategyCommand, strategyContext);
-        _chatService.ExecuteStrategy(context);
+        SelectedStrategyCommand = strategyCommand;
     }
 
     #endregion
 
+    private sealed record ChatInputAreaSnapshot(string? Text, IReadOnlyList<ChatAttachment>? Attachments, StrategyCommand? StrategyCommand);
 }

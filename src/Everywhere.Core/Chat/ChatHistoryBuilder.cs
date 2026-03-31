@@ -14,6 +14,7 @@ namespace Everywhere.Chat;
 public static class ChatHistoryBuilder
 {
     public static async ValueTask<ChatHistory> BuildChatHistoryAsync(
+        IPromptRenderer promptRenderer,
         string systemPrompt,
         IReadOnlyList<ChatMessage> chatMessages,
         int maxContextRounds,
@@ -27,7 +28,11 @@ public static class ChatHistoryBuilder
 
         foreach (var chatMessage in chatMessages.Skip(startIndex))
         {
-            await foreach (var chatMessageContent in CreateChatMessageContentsAsync(chatMessage, supportedModalities, cancellationToken))
+            await foreach (var chatMessageContent in CreateChatMessageContentsAsync(
+                               promptRenderer,
+                               chatMessage,
+                               supportedModalities,
+                               cancellationToken))
             {
                 chatHistory.Add(chatMessageContent);
             }
@@ -65,11 +70,13 @@ public static class ChatHistoryBuilder
     /// <summary>
     /// Creates chat message contents from a chat message.
     /// </summary>
-    /// <param name="chatMessage"></param>
+    /// <param name="promptRenderer"></param>
     /// <param name="supportedModalities"></param>
+    /// <param name="chatMessage"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     private static async IAsyncEnumerable<ChatMessageContent> CreateChatMessageContentsAsync(
+        IPromptRenderer promptRenderer,
         ChatMessage chatMessage,
         Modalities supportedModalities,
         [EnumeratorCancellation] CancellationToken cancellationToken)
@@ -186,15 +193,11 @@ public static class ChatHistoryBuilder
                     await PopulateKernelContentsAsync(chatAttachment, items, supportedModalities, cancellationToken);
                 }
 
-                if (items.Count > 0)
+                if (user is UserStrategyMessage { StrategyCommand.UserMessage: { Length: > 0 } userMessage })
                 {
-                    // If there are attachments, add the user content as a separate item.
-                    items.Add(
-                        new TextContent(
-                            $"""
-                             <UserRequestStart/>
-                             {user.Content}
-                             """));
+                    // If UserMessage template is provided, render the content with the template.
+                    var renderedContent = promptRenderer.RenderStrategyUserPrompt(userMessage, user.Content);
+                    items.Add(new TextContent(renderedContent));
                 }
                 else
                 {

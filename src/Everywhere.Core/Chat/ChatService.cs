@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Text;
+using System.Text.RegularExpressions;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.AI;
@@ -10,7 +11,6 @@ using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Storage;
-using Everywhere.StrategyEngine;
 using Everywhere.Utilities;
 using Everywhere.Views;
 using LiveMarkdown.Avalonia;
@@ -98,7 +98,14 @@ public sealed partial class ChatService : IChatService
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
 
-                await GenerateAsync(chatContext, customAssistant, assistantChatMessage, false, cancellationToken: cancellationToken);
+                var systemPromptOverride = message.As<UserStrategyMessage>()?.StrategyCommand.SystemPrompt;
+                await GenerateAsync(
+                    chatContext,
+                    customAssistant,
+                    assistantChatMessage,
+                    false,
+                    systemPromptOverride: systemPromptOverride,
+                    cancellationToken: cancellationToken);
             },
             _logger.ToExceptionHandler());
     }
@@ -162,7 +169,14 @@ public sealed partial class ChatService : IChatService
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
 
-                await GenerateAsync(chatContext, customAssistant, assistantChatMessage, false, cancellationToken: cancellationToken);
+                var systemPromptOverride = newMessage.As<UserStrategyMessage>()?.StrategyCommand.SystemPrompt;
+                await GenerateAsync(
+                    chatContext,
+                    customAssistant,
+                    assistantChatMessage,
+                    false,
+                    systemPromptOverride: systemPromptOverride,
+                    cancellationToken: cancellationToken);
             },
             _logger.ToExceptionHandler());
     }
@@ -179,40 +193,6 @@ public sealed partial class ChatService : IChatService
             assistantChatMessage,
             true,
             cancellationToken: cancellationToken);
-    }
-
-    public void ExecuteStrategy(StrategyExecutionContext strategyExecutionContext)
-    {
-        var chatContext = _chatContextManager.Current;
-        var customAssistant = strategyExecutionContext.CustomAssistant ?? _settings.Model.SelectedCustomAssistant;
-
-        chatContext.TryExecute(
-            async token =>
-            {
-                using var activity = _activitySource.StartActivity();
-                activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
-
-                if (customAssistant is null)
-                {
-                    chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
-                    return;
-                }
-
-                chatContext.Add(strategyExecutionContext.UserChatMessage);
-                ProcessUserChatMessage(chatContext, strategyExecutionContext.UserChatMessage, token);
-
-                var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
-                chatContext.Add(assistantChatMessage);
-
-                await GenerateAsync(
-                    chatContext,
-                    customAssistant,
-                    assistantChatMessage,
-                    false,
-                    strategyExecutionContext.SystemPrompt,
-                    token);
-            },
-            _logger.ToExceptionHandler());
     }
 
     /// <summary>
@@ -364,14 +344,14 @@ public sealed partial class ChatService : IChatService
     /// <param name="customAssistant"></param>
     /// <param name="assistantChatMessage"></param>
     /// <param name="isSubagent"></param>
-    /// <param name="systemPrompt"></param>
+    /// <param name="systemPromptOverride"></param>
     /// <param name="cancellationToken"></param>
     private async Task GenerateAsync(
         ChatContext chatContext,
         CustomAssistant customAssistant,
         AssistantChatMessage assistantChatMessage,
         bool isSubagent,
-        string? systemPrompt = null,
+        string? systemPromptOverride = null,
         CancellationToken cancellationToken = default)
     {
         using var activity = StartChatActivity("chat", customAssistant);
@@ -388,7 +368,9 @@ public sealed partial class ChatService : IChatService
             // Because the custom assistant maybe changed, we need to re-render the system prompt.
             // But we only do this once per generation, even if the system time may change during function calls.
             // This can save prompt tokens because they may be cached by LLM providers.
-            systemPrompt ??= _chatContextManager.RenderSystemPrompt(chatContext, customAssistant.SystemPrompt);
+            var promptRenderer = new AnonymousPromptRenderer(_chatContextManager.GetPromptVariables(chatContext));
+            var systemPrompt = systemPromptOverride ?? promptRenderer.RenderPrompt(
+                customAssistant.SystemPrompt.IsNullOrEmpty() ? Prompts.DefaultSystemPrompt : customAssistant.SystemPrompt);
 
             while (true)
             {
@@ -396,6 +378,7 @@ public sealed partial class ChatService : IChatService
 
                 // Build the chat history for the current generation.
                 var chatHistory = await ChatHistoryBuilder.BuildChatHistoryAsync(
+                    promptRenderer,
                     systemPrompt,
                     chatContext
                         .Items
@@ -956,7 +939,7 @@ public sealed partial class ChatService : IChatService
                     Prompts.TitleGeneratorSystemPrompt),
                 new ChatMessageContent(
                     AuthorRole.User,
-                    Prompts.RenderPrompt(
+                    AnonymousPromptRenderer.RenderPrompt(
                         Prompts.TitleGeneratorUserPrompt,
                         new Dictionary<string, Func<string>>
                         {
@@ -1011,6 +994,8 @@ public sealed partial class ChatService : IChatService
         }
     }
 
+    #region Telemetry
+
     /// <summary>
     /// Starts a chat activity for telemetry.
     /// </summary>
@@ -1063,4 +1048,36 @@ public sealed partial class ChatService : IChatService
     }
 
     private static KeyValuePair<string, object?> GetModelTag(string? modelId) => new("gen_ai.request.model", modelId);
+
+    #endregion
+
+    // TODO: this is shit
+    private sealed partial class AnonymousPromptRenderer(IDictionary<string, Func<string>> promptVariables) : IPromptRenderer
+    {
+        public static string RenderPrompt(string prompt, IDictionary<string, Func<string>> variables)
+        {
+            return PromptTemplateRegex().Replace(
+                prompt,
+                m => variables.TryGetValue(m.Groups[1].Value, out var getter) ? getter() : m.Value);
+        }
+
+        public string RenderPrompt(string prompt) => RenderPrompt(prompt, promptVariables);
+
+        public string RenderStrategyUserPrompt(string userMessage, string? argument)
+        {
+            return RenderPrompt(
+                userMessage,
+                promptVariables
+                    .AsValueEnumerable()
+                    .Concat(
+                    [
+                        new KeyValuePair<string, Func<string>>("Argument", () => argument ?? string.Empty),
+                    ])
+                    .GroupBy(kvp => kvp.Key)
+                    .ToDictionary(g => g.Key, g => g.Last().Value)) + "\n\n" + argument;
+        }
+
+        [GeneratedRegex(@"(?<!\{)\{(\w+)\}(?!\})")]
+        private static partial Regex PromptTemplateRegex();
+    }
 }
