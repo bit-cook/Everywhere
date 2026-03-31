@@ -19,6 +19,7 @@
       "src\\Everywhere.I18N.SourceGenerator\\Everywhere.I18N.SourceGenerator.csproj",
       "src\\Everywhere.I18N\\Everywhere.I18N.csproj",
       "src\\Everywhere.Linux\\Everywhere.Linux.csproj",
+      "src\\Everywhere.Patches\\Everywhere.Patches.csproj",
       "src\\Everywhere.Watchdog\\Everywhere.Watchdog.csproj",
       "tests\\Everywhere.Tests\\Everywhere.Tests.csproj"
     ]
