@@ -204,7 +204,7 @@ public sealed class VisualElementEffect(
                             if (topLevelImage is null) continue;
 
                             await Dispatcher.UIThread.InvokeAsync(
-                                () => EmitPartical(boundingRectangle, topLevelImage),
+                                () => EmitParticle(boundingRectangle, topLevelImage),
                                 DispatcherPriority.Render,
                                 cancellationToken);
                         }
@@ -236,7 +236,7 @@ public sealed class VisualElementEffect(
             return null;
         }
 
-        private void EmitPartical(PixelRect bounds, SKImage image)
+        private void EmitParticle(PixelRect bounds, SKImage image)
         {
             foreach (var effectWindow in _owner._effectWindows)
             {

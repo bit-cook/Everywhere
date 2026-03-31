@@ -39,7 +39,7 @@ public class VisualElementEffectWindow : OverlayWindow
         Position = _screenBounds.Position;
         Scale = DesktopScaling; // we must set Position first to get the correct scaling factor
         Width = _screenBounds.Width / Scale;
-        Height = _screenBounds.Height / Scale;
+        Height = _screenBounds.Height / Scale - 1d; // Let the window slightly smaller than screen, avoid focus assist
     }
 
     public Point ScreenPixelToLocal(PixelPoint screenPoint)

@@ -89,34 +89,39 @@ public class ScanVisualElementParticle : VisualElementParticle
                 """
                 uniform float2 u_resolution;
                 uniform float u_time;
-                uniform float u_progress; // Controls the vertical drop (0.0 to 1.0)
+                uniform float u_progress; // Controls the drop (0.0 to 1.0)
                 uniform shader u_mask;    // The captured window screenshot for alpha masking
-
+                
                 const float SCAN_SPEED = 2.4;
-                const float EVAPORATION_SPEED = 4.2;
-                const float GLOW = 0.4;
-                const float OPACITY = 0.7;
-
+                const float EVAPORATION_SPEED = 1.2;
+                const float GLOW = 0.5;
+                const float OPACITY = 0.85;
+                const float EDGE_WIDTH = 4.0;
+                
                 // 2D rotation matrix
                 float2x2 rot(float a) {
                     float s = sin(a), c = cos(a);
                     return float2x2(c, -s, s, c);
                 }
-
+                
+                half eval(float2 fragCoord) {
+                    return u_mask.eval(fragCoord).a;
+                }
+                
                 half4 main(float2 fragCoord) {
                     // Normalize coordinates and aspect ratio
                     float2 uv = fragCoord.xy / u_resolution.xy;
                     float2 st = uv;
                     st.x *= u_resolution.x / u_resolution.y;
-
+                
                     // Fluid Dynamics with turbulence
                     float2 p = st * 3.0;
                     float t = u_time * SCAN_SPEED;
                     for(int i = 0; i < 3; i++) {
                         p = p * rot(1.5) + float2(sin(p.y + t), cos(p.x - t)) * 0.3;
                     }
-
-                    // From Everywhere logo color
+                
+                    // Colors
                     float3 color0 = float3(0.322, 0.690, 0.969);
                     float3 color1 = float3(0.929, 0.310, 0.710);
                     float3 color2 = float3(0.937, 0.886, 0.494);
@@ -125,21 +130,55 @@ public class ScanVisualElementParticle : VisualElementParticle
                     float3 fluidColor = mix(color0, color1, mix1);
                     fluidColor = mix(fluidColor, color2, mix2);
                     fluidColor *= 1.1;
-
-                    // Smudge Edges & Evaporation
+                
+                    // --- 45-Degree Diagonal Scan Logic ---
+                    // Project UVs onto a diagonal axis. 
+                    float scanAxis = (2.0 - uv.x - uv.y) * 0.5 + 0.5;
+                    
                     float scanEdge = 1.2 - (u_progress * 1.4);
+                    // Add noise to the diagonal line
                     float edgeNoise = (sin(p.x * 2.0) + cos(p.y * 1.5)) * 0.08;
-                    float dist = uv.y - scanEdge + edgeNoise;
+                    
+                    // Calculate distance based on the diagonal axis instead of just uv.y
+                    float dist = scanAxis - scanEdge + edgeNoise;
+                    
                     float frontEdge = smoothstep(-0.15, 0.05, dist);
                     float evaporateTail = smoothstep(1.0, 0.0, dist * EVAPORATION_SPEED);
-                    float alpha = frontEdge * evaporateTail * OPACITY;
-
+                    
+                    float scanVisibility = frontEdge * evaporateTail;
+                
+                    // Glow on the leading edge of the scan
                     float leadingEdgeGlow = smoothstep(-0.08, 0.0, dist) * smoothstep(0.18, 0.0, dist);
                     fluidColor += leadingEdgeGlow * float3(1.0, 0.9, 0.9) * GLOW;
-
-                    half4 maskColor = u_mask.eval(fragCoord);
-                    alpha *= smoothstep(0.4, 0.6, maskColor.a);
-                    return half4(fluidColor * alpha, alpha); // premultiplied color
+                
+                    // --- Laplacian Edge Detect ---
+                    // Using an 8-neighbor Laplacian kernel for sharp edge detection:
+                    //  1   1   1
+                    //  1  -8   1
+                    //  1   1   1
+                    float w = EDGE_WIDTH;
+                    
+                    // Sample the 8 surrounding neighbors
+                    float a00 = eval(fragCoord + float2(-w, -w));
+                    float a10 = eval(fragCoord + float2(0.0, -w));
+                    float a20 = eval(fragCoord + float2(w, -w));
+                    float a01 = eval(fragCoord + float2(-w, 0.0));
+                    float a21 = eval(fragCoord + float2(w, 0.0));
+                    float a02 = eval(fragCoord + float2(-w, w));
+                    float a12 = eval(fragCoord + float2(0.0, w));
+                    float a22 = eval(fragCoord + float2(w, w));
+                    
+                    // Sample the center pixel
+                    float centerAlpha = u_mask.eval(fragCoord).a;
+                
+                    // Calculate the Laplacian sum
+                    float laplacian = a00 + a10 + a20 + a01 + a21 + a02 + a12 + a22 - 8.0 * centerAlpha;
+                    
+                    // Take the absolute value because the Laplacian transitions from positive to negative across an edge
+                    float edgeIntensity = clamp(abs(laplacian), 0.0, 1.0);
+                
+                    float finalAlpha = scanVisibility * edgeIntensity * smoothstep(0.5, 1.0, centerAlpha) * OPACITY;
+                    return half4(fluidColor * finalAlpha, finalAlpha); // premultiplied color
                 }
                 """;
 
@@ -151,7 +190,7 @@ public class ScanVisualElementParticle : VisualElementParticle
         }
 
         private readonly ScanVisualElementParticle _owner;
-        private readonly double _timeSecconds;
+        private readonly double _timeSeconds;
         private readonly Rect _bounds;
         private readonly RefCountedSKImage? _windowMaskRef;
 
@@ -159,11 +198,11 @@ public class ScanVisualElementParticle : VisualElementParticle
         /// Creates a new frame of the fluid scan operation.
         /// </summary>
         /// <param name="owner"></param>
-        /// <param name="timeSecconds">The continuously increasing time in seconds (for fluid swirling).</param>
-        public FluidScanDrawOperation(ScanVisualElementParticle owner, double timeSecconds)
+        /// <param name="timeSeconds">The continuously increasing time in seconds (for fluid swirling).</param>
+        public FluidScanDrawOperation(ScanVisualElementParticle owner, double timeSeconds)
         {
             _owner = owner;
-            _timeSecconds = timeSecconds;
+            _timeSeconds = timeSeconds;
             _bounds = new Rect(0d, 0d, owner.Width, owner.Height);
             _windowMaskRef = owner._windowMaskRef;
             _windowMaskRef?.AddRef();
@@ -188,11 +227,11 @@ public class ScanVisualElementParticle : VisualElementParticle
             var scaleX = (float)(_bounds.Width / windowMask.Width);
             var scaleY = (float)(_bounds.Height / windowMask.Height);
             var localMatrix = SKMatrix.CreateScale(scaleX, scaleY);
-            using var maskShader = windowMask.ToShader(SKShaderTileMode.Clamp, SKShaderTileMode.Clamp, localMatrix);
+            using var maskShader = windowMask.ToShader(SKShaderTileMode.Decal, SKShaderTileMode.Decal, localMatrix);
 
             using var uniforms = new SKRuntimeEffectUniforms(FluidEffect);
             uniforms.Add("u_resolution", new[] { (float)_bounds.Width, (float)_bounds.Height });
-            uniforms.Add("u_time", (float)_timeSecconds);
+            uniforms.Add("u_time", (float)_timeSeconds);
             uniforms.Add("u_progress", (float)_owner._animationProgress);
 
             using var children = new SKRuntimeEffectChildren(FluidEffect);
