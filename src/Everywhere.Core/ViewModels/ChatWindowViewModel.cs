@@ -568,8 +568,10 @@ public sealed partial class ChatWindowViewModel :
     [RelayCommand(CanExecute = nameof(IsNotBusy))]
     private void SendMessage(string? message)
     {
-        message = message?.Trim();
-        if (message?.Length is not > 0) return;
+        if (message is null) return;
+        message = message.Trim();
+
+        if (message.Length == 0 && SelectedStrategyCommand is null) return;
 
         ChatAttachment[]? attachments = null;
         _chatAttachmentsSource.Edit(list =>

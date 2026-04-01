@@ -1065,16 +1065,28 @@ public sealed partial class ChatService : IChatService
 
         public string RenderStrategyUserPrompt(string userMessage, string? argument)
         {
-            return RenderPrompt(
-                userMessage,
-                promptVariables
-                    .AsValueEnumerable()
-                    .Concat(
-                    [
-                        new KeyValuePair<string, Func<string>>("Argument", () => argument ?? string.Empty),
-                    ])
-                    .GroupBy(kvp => kvp.Key)
-                    .ToDictionary(g => g.Key, g => g.Last().Value)) + "\n\n" + argument;
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append(
+                RenderPrompt(
+                    userMessage,
+                    promptVariables
+                        .AsValueEnumerable()
+                        .Concat(
+                        [
+                            new KeyValuePair<string, Func<string>>("Argument", () => argument ?? string.Empty),
+                        ])
+                        .GroupBy(kvp => kvp.Key)
+                        .ToDictionary(g => g.Key, g => g.Last().Value)));
+
+            if (!argument.IsNullOrEmpty())
+            {
+                stringBuilder
+                    .AppendLine()
+                    .AppendLine("<UserRequestStart>")
+                    .Append(argument);
+            }
+
+            return stringBuilder.ToString();
         }
 
         [GeneratedRegex(@"(?<!\{)\{(\w+)\}(?!\})")]
