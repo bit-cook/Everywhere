@@ -371,7 +371,7 @@
                   <TemplateBinding Property="IsSendButtonEnabled"/>
                   <TemplateBinding
                     Converter="{x:Static vc:Int32Converters.GreaterThan}"
-                    ConverterParameter="0" Property="TextLength"/>
+                    ConverterParameter="0" Property="ActualTextLength"/>
                 </MultiBinding>
               </Button.IsEnabled>
 

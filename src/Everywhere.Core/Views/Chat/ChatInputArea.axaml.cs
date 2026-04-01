@@ -35,9 +35,9 @@ public sealed partial class ChatInputArea : TemplatedControl
         o => o.Text,
         (o, v) => o.Text = v);
 
-    public static readonly DirectProperty<ChatInputArea, int> TextLengthProperty = AvaloniaProperty.RegisterDirect<ChatInputArea, int>(
-        nameof(TextLength),
-        o => o.TextLength);
+    public static readonly DirectProperty<ChatInputArea, int> ActualTextLengthProperty = AvaloniaProperty.RegisterDirect<ChatInputArea, int>(
+        nameof(ActualTextLength),
+        o => o.ActualTextLength);
 
     public static readonly StyledProperty<int> MaxLengthProperty =
         TextBox.MaxLengthProperty.AddOwner<ChatInputArea>();
@@ -125,10 +125,10 @@ public sealed partial class ChatInputArea : TemplatedControl
         }
     }
 
-    public int TextLength
+    public int ActualTextLength
     {
         get;
-        private set => SetAndRaise(TextLengthProperty, ref field, value);
+        private set => SetAndRaise(ActualTextLengthProperty, ref field, value);
     }
 
     public string SelectedText
@@ -297,10 +297,11 @@ public sealed partial class ChatInputArea : TemplatedControl
     {
         if (sender is not TextEditor textEditor) return;
 
+        var document = textEditor.Document;
+        ActualTextLength = document?.TextLength ?? 0;
+
         if (LeadingContent != null)
         {
-            var document = textEditor.Document;
-            TextLength = document?.TextLength ?? 0;
             if (document == null || document.TextLength == 0 || document.GetCharAt(0) != '\uFFFC')
             {
                 LeadingContent = null;
