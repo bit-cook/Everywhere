@@ -36,10 +36,10 @@ public class ScanVisualElementParticle : VisualElementParticle
         if (_windowMaskRef is null) return true;
         if (deltaTimeMs <= 0) return false;
 
-        _animationProgress += deltaTimeMs / 1000d;
+        _animationProgress += deltaTimeMs / 1600d;
         InvalidateVisual();
 
-        return _animationProgress >= 1.5d;
+        return _animationProgress >= 1d;
     }
 
     public override void Render(DrawingContext context)
@@ -92,11 +92,11 @@ public class ScanVisualElementParticle : VisualElementParticle
                 uniform float u_progress; // Controls the drop (0.0 to 1.0)
                 uniform shader u_mask;    // The captured window screenshot for alpha masking
                 
-                const float SCAN_SPEED = 2.4;
-                const float EVAPORATION_SPEED = 1.2;
-                const float GLOW = 0.5;
-                const float OPACITY = 0.85;
-                const float EDGE_WIDTH = 4.0;
+                const float SCAN_SPEED = 2.2;
+                const float EVAPORATION_SPEED = 0.6;
+                const float GLOW = 0.7;
+                const float OPACITY = 1.0;
+                const float EDGE_WIDTH = 8.0;
                 
                 // 2D rotation matrix
                 float2x2 rot(float a) {
@@ -133,9 +133,9 @@ public class ScanVisualElementParticle : VisualElementParticle
                 
                     // --- 45-Degree Diagonal Scan Logic ---
                     // Project UVs onto a diagonal axis. 
-                    float scanAxis = (2.0 - uv.x - uv.y) * 0.5 + 0.5;
+                    float scanAxis = (2.0 - 0.8 * uv.x -  1.2 * uv.y) * 0.5 + 0.5;
                     
-                    float scanEdge = 1.2 - (u_progress * 1.4);
+                    float scanEdge = 1.8 - (u_progress * 2.4);
                     // Add noise to the diagonal line
                     float edgeNoise = (sin(p.x * 2.0) + cos(p.y * 1.5)) * 0.08;
                     
@@ -229,6 +229,14 @@ public class ScanVisualElementParticle : VisualElementParticle
             var localMatrix = SKMatrix.CreateScale(scaleX, scaleY);
             using var maskShader = windowMask.ToShader(SKShaderTileMode.Decal, SKShaderTileMode.Decal, localMatrix);
 
+            var drawRect = new SKRect(0, 0, (float)_bounds.Width, (float)_bounds.Height);
+            canvas.SaveLayer(drawRect, new SKPaint());
+
+            using var maskPaint = new SKPaint();
+            maskPaint.Shader = maskShader;
+            maskPaint.IsAntialias = true;
+            canvas.DrawRect(drawRect, maskPaint);
+
             using var uniforms = new SKRuntimeEffectUniforms(FluidEffect);
             uniforms.Add("u_resolution", new[] { (float)_bounds.Width, (float)_bounds.Height });
             uniforms.Add("u_time", (float)_timeSeconds);
@@ -239,12 +247,12 @@ public class ScanVisualElementParticle : VisualElementParticle
 
             using var fluidShader = FluidEffect.ToShader(uniforms, children);
 
-            using var paint = new SKPaint();
-            paint.Shader = fluidShader;
-            paint.IsAntialias = true;
-
-            var drawRect = new SKRect(0, 0, (float)_bounds.Width, (float)_bounds.Height);
-            canvas.DrawRect(drawRect, paint);
+            using var fluidPaint = new SKPaint();
+            fluidPaint.Shader = fluidShader;
+            fluidPaint.ImageFilter = SKImageFilter.CreateBlur(9f, 9f);
+            fluidPaint.BlendMode = SKBlendMode.SrcIn;
+            fluidPaint.IsAntialias = true;
+            canvas.DrawRect(drawRect, fluidPaint);
 
             canvas.Restore();
         }
