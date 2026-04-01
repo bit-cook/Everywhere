@@ -45,8 +45,8 @@ public class ScanVisualElementParticle : VisualElementParticle
     public override void Render(DrawingContext context)
     {
         if (_windowMaskRef is null) return;
+        if (Bounds is not { Width: > 16d and < 5120, Height: > 16d and < 5120 }) return;
 
-        Console.WriteLine("Rendering scan particle at progress: " + _animationProgress);
         context.Custom(new FluidScanDrawOperation(
             this,
             DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000d));
@@ -189,10 +189,10 @@ public class ScanVisualElementParticle : VisualElementParticle
             }
         }
 
-        private readonly ScanVisualElementParticle _owner;
-        private readonly double _timeSeconds;
+        private readonly float _timeSeconds;
         private readonly Rect _bounds;
         private readonly RefCountedSKImage? _windowMaskRef;
+        private readonly float _progress;
 
         /// <summary>
         /// Creates a new frame of the fluid scan operation.
@@ -201,10 +201,10 @@ public class ScanVisualElementParticle : VisualElementParticle
         /// <param name="timeSeconds">The continuously increasing time in seconds (for fluid swirling).</param>
         public FluidScanDrawOperation(ScanVisualElementParticle owner, double timeSeconds)
         {
-            _owner = owner;
-            _timeSeconds = timeSeconds;
+            _timeSeconds = (float)timeSeconds;
             _bounds = new Rect(0d, 0d, owner.Width, owner.Height);
             _windowMaskRef = owner._windowMaskRef;
+            _progress = (float)owner._animationProgress;
             _windowMaskRef?.AddRef();
         }
 
@@ -221,16 +221,18 @@ public class ScanVisualElementParticle : VisualElementParticle
             using var lease = leaseFeature.Lease();
             var canvas = lease.SkCanvas;
 
-            canvas.Save();
+            var saveCount = canvas.Save();
             canvas.Translate((float)_bounds.X, (float)_bounds.Y);
+
+            var drawRect = new SKRect(0, 0, (float)_bounds.Width, (float)_bounds.Height);
+
+            using var saveLayerPaint = new SKPaint();
+            canvas.SaveLayer(drawRect, saveLayerPaint);
 
             var scaleX = (float)(_bounds.Width / windowMask.Width);
             var scaleY = (float)(_bounds.Height / windowMask.Height);
             var localMatrix = SKMatrix.CreateScale(scaleX, scaleY);
             using var maskShader = windowMask.ToShader(SKShaderTileMode.Decal, SKShaderTileMode.Decal, localMatrix);
-
-            var drawRect = new SKRect(0, 0, (float)_bounds.Width, (float)_bounds.Height);
-            canvas.SaveLayer(drawRect, new SKPaint());
 
             using var maskPaint = new SKPaint();
             maskPaint.Shader = maskShader;
@@ -239,22 +241,23 @@ public class ScanVisualElementParticle : VisualElementParticle
 
             using var uniforms = new SKRuntimeEffectUniforms(FluidEffect);
             uniforms.Add("u_resolution", new[] { (float)_bounds.Width, (float)_bounds.Height });
-            uniforms.Add("u_time", (float)_timeSeconds);
-            uniforms.Add("u_progress", (float)_owner._animationProgress);
+            uniforms.Add("u_time", _timeSeconds);
+            uniforms.Add("u_progress", _progress);
 
             using var children = new SKRuntimeEffectChildren(FluidEffect);
             children.Add("u_mask", maskShader);
 
             using var fluidShader = FluidEffect.ToShader(uniforms, children);
+            using var blurFilter = SKImageFilter.CreateBlur(9f, 9f);
 
             using var fluidPaint = new SKPaint();
             fluidPaint.Shader = fluidShader;
-            fluidPaint.ImageFilter = SKImageFilter.CreateBlur(9f, 9f);
+            fluidPaint.ImageFilter = blurFilter;
             fluidPaint.BlendMode = SKBlendMode.SrcIn;
             fluidPaint.IsAntialias = true;
             canvas.DrawRect(drawRect, fluidPaint);
 
-            canvas.Restore();
+            canvas.RestoreToCount(saveCount);
         }
 
         public bool HitTest(Point p) => false;
