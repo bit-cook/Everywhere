@@ -2193,6 +2193,9 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>Error en la última sincronización</value>
     </data>
+    <data name="UserProfilePresenter_SynchronizingTextBlock_Text" xml:space="preserve">
+        <value>Sincronizando...</value>
+    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>El servicio no admite solicitudes desde tu región o ubicación actual.</value>
     </data>

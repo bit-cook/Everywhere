@@ -1,5 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Reactive.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData.Binding;
 using Everywhere.Common;
 using Everywhere.Configuration;
@@ -15,15 +16,18 @@ using Nito.AsyncEx;
 
 namespace Everywhere.Cloud;
 
-public class CloudChatDbSynchronizer(
+public partial class CloudChatDbSynchronizer(
     IDbContextFactory<ChatDbContext> dbFactory,
     IHttpClientFactory httpClientFactory,
     ICloudClient cloudClient,
     PersistentState persistentState,
     ILogger<CloudChatDbSynchronizer> logger
-) : IChatDbSynchronizer, IAsyncInitializer
+) : ObservableObject, IChatDbSynchronizer, IAsyncInitializer
 {
     public AsyncInitializerIndex Index => AsyncInitializerIndex.Network + 1; // after persistentState initialization
+
+    [ObservableProperty]
+    private bool _isCloudSyncing;
 
     private readonly AsyncLock _syncLock = new();
     private const int PushBytesLimit = 5 * 1024 * 1024; // 5 MB
@@ -67,6 +71,7 @@ public class CloudChatDbSynchronizer(
             {
                 try
                 {
+                    IsCloudSyncing = true;
                     await SynchronizeAsync(cancellationToken).ConfigureAwait(false);
 
                     persistentState.LastCloudSynchronizationErrorMessageKey = null;
@@ -88,6 +93,10 @@ public class CloudChatDbSynchronizer(
                     persistentState.LastCloudSynchronizationErrorMessageKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
 
                     logger.LogError(ex, "Error occurred during cloud database synchronization.");
+                }
+                finally
+                {
+                    IsCloudSyncing = false;
                 }
 
                 try
@@ -190,7 +199,7 @@ public class CloudChatDbSynchronizer(
                     }
                     else
                     {
-                        logger.LogWarning("Received delete for non-existing entity Id {EntityId} from cloud.", entityWrapper.Id);
+                        logger.LogInformation("Received delete for non-existing entity Id {EntityId} from cloud.", entityWrapper.Id);
                     }
                 }
                 else

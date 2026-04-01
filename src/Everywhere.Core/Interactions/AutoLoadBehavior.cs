@@ -65,6 +65,8 @@ public class AutoLoadBehavior : Behavior<Control>
     }
 
     private bool _isAtEnd;
+    private double _lastExtentHeight;
+    private double _lastViewportHeight;
     private readonly DebounceExecutor<AutoLoadBehavior, DispatcherTimerImpl> _debounceExecutor;
 
     public AutoLoadBehavior()
@@ -133,6 +135,16 @@ public class AutoLoadBehavior : Behavior<Control>
 
     private void HandleScroll(double extentHeight, double viewportHeight, double offsetY)
     {
+        // Reset _isAtEnd when content size or viewport size changes (e.g. new items loaded, window resized),
+        // so the trigger re-evaluates even if we were already at the end.
+        if (_isAtEnd && (Math.Abs(extentHeight - _lastExtentHeight) > 0.01 || Math.Abs(viewportHeight - _lastViewportHeight) > 0.01))
+        {
+            _isAtEnd = false;
+        }
+
+        _lastExtentHeight = extentHeight;
+        _lastViewportHeight = viewportHeight;
+
         if (extentHeight - (offsetY + viewportHeight) <= Threshold)
         {
             if (_isAtEnd) return;

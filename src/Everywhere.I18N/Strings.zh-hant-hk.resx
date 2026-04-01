@@ -2193,6 +2193,9 @@
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>最近一次同步出錯</value>
     </data>
+    <data name="UserProfilePresenter_SynchronizingTextBlock_Text" xml:space="preserve">
+        <value>正在同步...</value>
+    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>服務不支持當前所在區域或位置的請求。</value>
     </data>

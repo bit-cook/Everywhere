@@ -2247,6 +2247,9 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>Last synchronization error</value>
     </data>
+    <data name="UserProfilePresenter_SynchronizingTextBlock_Text" xml:space="preserve">
+        <value>Syncing...</value>
+    </data>
     <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
         <value />
     </data>

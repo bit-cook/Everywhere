@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Everywhere.Cloud;
 using Everywhere.Common;
 using Everywhere.Configuration;
+using Everywhere.Database;
 
 namespace Everywhere.Views;
 
@@ -37,6 +38,8 @@ public partial class UserProfileCard : TemplatedControl
     }
 
     public PersistentState PersistentState { get; } = ServiceLocator.Resolve<PersistentState>();
+
+    public IChatDbSynchronizer CloudSynchronizer { get; } = ServiceLocator.Resolve<IChatDbSynchronizer>();
 
     private static readonly ICloudClient CloudClient = ServiceLocator.Resolve<ICloudClient>();
 

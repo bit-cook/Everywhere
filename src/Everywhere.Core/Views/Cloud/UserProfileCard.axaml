@@ -364,6 +364,18 @@
 
                     <StackPanel
                       Orientation="Horizontal" Spacing="4">
+                      <shadui:Loading
+                        Width="{DynamicResource FontSizeS}"
+                        Height="{DynamicResource FontSizeS}"
+                        IsVisible="{Binding Path=CloudSynchronizer.IsCloudSyncing}"/>
+                      <TextBlock
+                        Classes="Caption Muted"
+                        IsVisible="{Binding Path=CloudSynchronizer.IsCloudSyncing}"
+                        Text="{I18N {x:Static LocaleKey.UserProfilePresenter_SynchronizingTextBlock_Text}}"/>
+                    </StackPanel>
+
+                    <StackPanel
+                      Orientation="Horizontal" Spacing="4">
                       <TextBlock
                         Classes="Caption"
                         Foreground="{DynamicResource WarningColor}"

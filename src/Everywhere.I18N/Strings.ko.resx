@@ -2193,6 +2193,9 @@
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>최근 동기화 오류 발생</value>
     </data>
+    <data name="UserProfilePresenter_SynchronizingTextBlock_Text" xml:space="preserve">
+        <value>동기화 중...</value>
+    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>서비스가 현재 위치에서 요청을 지원하지 않습니다.</value>
     </data>

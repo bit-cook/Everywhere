@@ -2193,6 +2193,9 @@
     <data name="UserProfilePresenter_LastSynchronizationErrorTextBlock_Text" xml:space="preserve">
         <value>最近の同期でエラーが発生しました。</value>
     </data>
+    <data name="UserProfilePresenter_SynchronizingTextBlock_Text" xml:space="preserve">
+        <value>同期中...</value>
+    </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>サービスは現在の地域または位置でのリクエストをサポートしていません。</value>
     </data>
