@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Globalization;
+using System.Numerics;
 using Avalonia.Data.Converters;
 using ZLinq;
 
@@ -6,7 +7,7 @@ namespace Everywhere.ValueConverters;
 
 public class NumberConverters<T> where T : struct, INumber<T>
 {
-    private static T ChangeType(object? value) => (T)(Convert.ChangeType(value, typeof(T)) ?? default(T));
+    private static T ChangeType(object? value) => value is UnsetValueType ? default : (T)(Convert.ChangeType(value, typeof(T)) ?? default(T));
 
     public static IValueConverter IsZero { get; } = new BidirectionalFuncValueConverter<T, bool>(
         convert: static (x, _) => x == T.Zero,
@@ -28,10 +29,14 @@ public class NumberConverters<T> where T : struct, INumber<T>
         convertBack: static (x, p) => x - ChangeType(p)
     );
 
+    public static IMultiValueConverter Sum { get; } = new SumConverter();
+
     public static IValueConverter Multiply { get; } = new BidirectionalFuncValueConverter<T, T>(
         convert: static (x, p) => x * ChangeType(p),
         convertBack: static (x, p) => x / ChangeType(p)
     );
+
+    public static IMultiValueConverter Product { get; } = new ProductConverter();
 
     public static IValueConverter NotGreaterThan { get; } = new BidirectionalFuncValueConverter<T, bool>(
         convert: static (x, p) => x <= ChangeType(p),
@@ -54,14 +59,30 @@ public class NumberConverters<T> where T : struct, INumber<T>
 
     public static IValueConverter FromEnum { get; } = new FromEnumConverter();
 
+    private sealed class SumConverter : IMultiValueConverter
+    {
+        public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+        {
+            return values.AsValueEnumerable().Aggregate(T.Zero, (a, b) => a + ChangeType(b));
+        }
+    }
+
+    private sealed class ProductConverter : IMultiValueConverter
+    {
+        public object Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+        {
+            return values.AsValueEnumerable().Aggregate(T.One, (a, b) => a * ChangeType(b));
+        }
+    }
+
     private sealed class FromEnumConverter : IValueConverter
     {
-        public object Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             return value is null ? default : ChangeType(value);
         }
 
-        public object ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
             return value is null ? 0 : Enum.ToObject(targetType, System.Convert.ChangeType(value, TypeCode.Int64));
         }

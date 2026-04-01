@@ -2,7 +2,8 @@
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:ai="clr-namespace:Everywhere.AI" xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
   xmlns:in="clr-namespace:Everywhere.Interactions" xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
-  xmlns:v="clr-namespace:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters">
+  xmlns:system="clr-namespace:System;assembly=System.Runtime" xmlns:v="clr-namespace:Everywhere.Views"
+  xmlns:vc="clr-namespace:Everywhere.ValueConverters">
 
   <DataTemplate
     x:Key="{x:Type ai:CustomAssistant}"
@@ -124,6 +125,17 @@
                 AcceptsTab="False" AllowScrollBelowDocument="False"
                 EnableRectangularSelection="False" EnableTextDragDrop="False"/>
             </avaloniaEdit:TextEditor.Options>
+
+            <avaloniaEdit:TextEditor.MaxHeight>
+              <MultiBinding Converter="{x:Static vc:DoubleConverters.Product}">
+                <DynamicResource ResourceKey="LineHeightM"/>
+                <ReflectionBinding>
+                  <ReflectionBinding.Source>
+                    <system:Double>5</system:Double>
+                  </ReflectionBinding.Source>
+                </ReflectionBinding>
+              </MultiBinding>
+            </avaloniaEdit:TextEditor.MaxHeight>
 
             <avaloniaEdit:TextEditor.ContextFlyout>
               <MenuFlyout Placement="Bottom">
