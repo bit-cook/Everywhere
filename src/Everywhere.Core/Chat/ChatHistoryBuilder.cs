@@ -1,4 +1,5 @@
-﻿using Everywhere.AI;
+﻿using System.Security;
+using Everywhere.AI;
 using Everywhere.Common;
 using Everywhere.Utilities;
 using Microsoft.SemanticKernel;
@@ -292,7 +293,7 @@ public static class ChatHistoryBuilder
                         contents.Add(
                             new TextContent(
                                 $"""
-                                 <Attachment type="file" path="{file.FilePath}" mimeType="{file.MimeType}" description="{file.Description}">
+                                 <Attachment type="file" path="{SecurityElement.Escape(file.FilePath)}" mimeType="{SecurityElement.Escape(file.MimeType)}" description="{SecurityElement.Escape(file.Description)}">
                                  Content omitted because file type is not supported
                                  </Attachment>
                                  """));
@@ -316,7 +317,7 @@ public static class ChatHistoryBuilder
                 contents.Add(
                     new TextContent(
                         $"""
-                         <Attachment type="file" path="{file.FilePath}" mimeType="{file.MimeType}" description="{file.Description}">
+                         <Attachment type="file" path="{SecurityElement.Escape(file.FilePath)}" mimeType="{SecurityElement.Escape(file.MimeType)}" description="{SecurityElement.Escape(file.Description)}">
                          """));
                 contents.Add(
                     FileUtilities.GetCategory(file.MimeType) switch
