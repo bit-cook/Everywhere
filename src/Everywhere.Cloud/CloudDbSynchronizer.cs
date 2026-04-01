@@ -27,10 +27,20 @@ public partial class CloudChatDbSynchronizer(
     public AsyncInitializerIndex Index => AsyncInitializerIndex.Network + 1; // after persistentState initialization
 
     [ObservableProperty]
-    private bool _isCloudSyncing;
+    public partial bool IsCloudSyncing { get; private set; }
 
     private readonly AsyncLock _syncLock = new();
     private const int PushBytesLimit = 5 * 1024 * 1024; // 5 MB
+
+    // Adaptive delay state
+    private int _consecutiveIdleCount;
+    private int _consecutiveErrorCount;
+
+    private static readonly TimeSpan[] IdleBackoffSchedule =
+        [TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(10)];
+
+    private static readonly TimeSpan[] ErrorBackoffSchedule =
+        [TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(2), TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(10)];
 
     public Task InitializeAsync()
     {
@@ -67,15 +77,36 @@ public partial class CloudChatDbSynchronizer(
                 // Ignored
             }
 
+            _consecutiveIdleCount = 0;
+            _consecutiveErrorCount = 0;
+
             while (true)
             {
+                SyncOutcome syncOutcome;
                 try
                 {
                     IsCloudSyncing = true;
-                    await SynchronizeAsync(cancellationToken).ConfigureAwait(false);
+                    var result = await SynchronizeCoreAsync(cancellationToken).ConfigureAwait(false);
 
                     persistentState.LastCloudSynchronizationErrorMessageKey = null;
                     persistentState.LastCloudSynchronized = DateTimeOffset.UtcNow;
+                    _consecutiveErrorCount = 0;
+
+                    if (result.HadRemoteChanges)
+                    {
+                        syncOutcome = SyncOutcome.RemoteChanges;
+                        _consecutiveIdleCount = 0;
+                    }
+                    else if (result.HadLocalChanges)
+                    {
+                        syncOutcome = SyncOutcome.LocalChanges;
+                        _consecutiveIdleCount = 0;
+                    }
+                    else
+                    {
+                        syncOutcome = SyncOutcome.Idle;
+                        _consecutiveIdleCount++;
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -85,12 +116,18 @@ public partial class CloudChatDbSynchronizer(
                 {
                     // Network-related errors
                     persistentState.LastCloudSynchronizationErrorMessageKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
+                    syncOutcome = SyncOutcome.NetworkError;
+                    _consecutiveErrorCount++;
+                    _consecutiveIdleCount = 0;
 
                     logger.LogInformation(ex, "Network error occurred during cloud database synchronization.");
                 }
                 catch (Exception ex)
                 {
                     persistentState.LastCloudSynchronizationErrorMessageKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
+                    syncOutcome = SyncOutcome.Error;
+                    _consecutiveErrorCount++;
+                    _consecutiveIdleCount = 0;
 
                     logger.LogError(ex, "Error occurred during cloud database synchronization.");
                 }
@@ -99,9 +136,21 @@ public partial class CloudChatDbSynchronizer(
                     IsCloudSyncing = false;
                 }
 
+                var nextDelay = CalculateNextDelay(syncOutcome);
+                logger.LogDebug(
+                    "Sync outcome: {Outcome}, next delay: {Delay} (idle={IdleCount}, error={ErrorCount})",
+                    syncOutcome, nextDelay, _consecutiveIdleCount, _consecutiveErrorCount);
+
                 try
                 {
-                    await Task.Delay(TimeSpan.FromMinutes(1d), cancellationToken).ConfigureAwait(false);
+                    // Wait for either the adaptive delay or a local data change signal, whichever comes first.
+                    await Task.WhenAny(
+                        Task.Delay(nextDelay, cancellationToken),
+                        CloudSyncTrigger.WaitForChangeAsync(cancellationToken)
+                    ).ConfigureAwait(false);
+
+                    // If woken by a local change signal, debounce briefly to batch rapid changes.
+                    await Task.Delay(TimeSpan.FromSeconds(10d), cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -111,7 +160,20 @@ public partial class CloudChatDbSynchronizer(
         },
         cancellationToken);
 
+    private TimeSpan CalculateNextDelay(SyncOutcome outcome) => outcome switch
+    {
+        SyncOutcome.RemoteChanges => TimeSpan.FromSeconds(15),
+        SyncOutcome.LocalChanges => TimeSpan.FromMinutes(1),
+        SyncOutcome.Idle => IdleBackoffSchedule[Math.Min(_consecutiveIdleCount, IdleBackoffSchedule.Length - 1)],
+        SyncOutcome.NetworkError => ErrorBackoffSchedule[Math.Min(_consecutiveErrorCount, ErrorBackoffSchedule.Length - 1)],
+        SyncOutcome.Error => ErrorBackoffSchedule[Math.Min(_consecutiveErrorCount, ErrorBackoffSchedule.Length - 1)],
+        _ => TimeSpan.FromMinutes(1)
+    };
+
     public async Task SynchronizeAsync(CancellationToken cancellationToken = default)
+        => await SynchronizeCoreAsync(cancellationToken);
+
+    private async Task<SyncResult> SynchronizeCoreAsync(CancellationToken cancellationToken)
     {
         using var _ = await _syncLock.LockAsync(cancellationToken);
 
@@ -119,18 +181,19 @@ public partial class CloudChatDbSynchronizer(
         var metadata = await dbContext.SyncMetadata.FirstOrDefaultAsync(
             x => x.Id == CloudSyncMetadataEntity.SingletonId,
             cancellationToken: cancellationToken);
-        if (metadata is null) return;
+        if (metadata is null) return default;
 
         // Use named HttpClient for ICloudClient to ensure proper configuration (e.g., authentication, proxy).
         using var httpClient = httpClientFactory.CreateClient(nameof(ICloudClient));
         httpClient.Timeout = TimeSpan.FromMinutes(5); // Set a reasonable timeout for sync operations
 
+        bool hadRemoteChanges;
         try
         {
             // 1. Pull remote changes from the cloud
             // set syncing flag to avoid interference with other operations
             dbContext.IsSyncing = true;
-            await PullChangesAsync(dbContext, metadata, httpClient, cancellationToken);
+            hadRemoteChanges = await PullChangesAsync(dbContext, metadata, httpClient, cancellationToken);
         }
         finally
         {
@@ -138,24 +201,28 @@ public partial class CloudChatDbSynchronizer(
             dbContext.IsSyncing = false;
         }
 
+        bool hadLocalChanges;
         try
         {
             // 2. Push local changes to the cloud
-            await PushChangesAsync(dbContext, metadata, httpClient, cancellationToken);
+            hadLocalChanges = await PushChangesAsync(dbContext, metadata, httpClient, cancellationToken);
         }
         finally
         {
             // save metadata changes
             await dbContext.SaveChangesAsync(cancellationToken);
         }
+
+        return new SyncResult(hadRemoteChanges, hadLocalChanges);
     }
 
-    private async ValueTask PullChangesAsync(
+    private async ValueTask<bool> PullChangesAsync(
         ChatDbContext dbContext,
         CloudSyncMetadataEntity metadata,
         HttpClient httpClient,
         CancellationToken cancellationToken)
     {
+        var hadChanges = false;
         while (true)
         {
             logger.LogDebug("Pulling cloud changes since version {LastPulledVersion}", metadata.LastPulledVersion);
@@ -183,8 +250,9 @@ public partial class CloudChatDbSynchronizer(
             metadata.LastPulledVersion = data.LatestVersion;
             metadata.LastSyncAt = DateTimeOffset.UtcNow;
 
-            if (data.EntityWrappers is not { Count: > 0 }) return;
+            if (data.EntityWrappers is not { Count: > 0 }) return hadChanges;
 
+            hadChanges = true;
             var chats = dbContext.Chats;
             var nodes = dbContext.Nodes;
             foreach (var entityWrapper in data.EntityWrappers)
@@ -269,13 +337,15 @@ public partial class CloudChatDbSynchronizer(
             if (!data.HasMore) break;
         }
 
+        return hadChanges;
+
         // Find nodes first because it has a higher chance of being requested.
         async Task<CloudSyncableEntity?> FindEntityAsync(Guid id) =>
             await dbContext.Nodes.FirstOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken) as CloudSyncableEntity ??
             await dbContext.Chats.FirstOrDefaultAsync(x => x.Id == id, cancellationToken: cancellationToken);
     }
 
-    private async ValueTask PushChangesAsync(
+    private async ValueTask<bool> PushChangesAsync(
         ChatDbContext dbContext,
         CloudSyncMetadataEntity metadata,
         HttpClient httpClient,
@@ -299,7 +369,7 @@ public partial class CloudChatDbSynchronizer(
                 .Where(x => x.LocalSyncVersion > lastPushedVersion)
                 .Where(x => x.Id != Guid.Empty)
                 .ToListAsync(cancellationToken: cancellationToken));
-        if (entitiesToPush.Count == 0) return;
+        if (entitiesToPush.Count == 0) return false;
 
         var entityWrappers = new List<EntityWrapper>(entitiesToPush.Count);
         var totalPushBytes = 0;
@@ -354,6 +424,8 @@ public partial class CloudChatDbSynchronizer(
         await PushPayloadAsync(entityWrappers, httpClient, cancellationToken);
         metadata.LastPushedVersion = currentPushedVersion; // If successful, update the last pushed version
         metadata.LastSyncAt = DateTimeOffset.UtcNow;
+
+        return true;
     }
 
     /// <summary>
@@ -404,4 +476,15 @@ public sealed partial class CloudPullData
 
     [Key(2)]
     public List<EntityWrapper>? EntityWrappers { get; set; }
+}
+
+internal readonly record struct SyncResult(bool HadRemoteChanges, bool HadLocalChanges);
+
+internal enum SyncOutcome
+{
+    Idle,
+    LocalChanges,
+    RemoteChanges,
+    NetworkError,
+    Error
 }

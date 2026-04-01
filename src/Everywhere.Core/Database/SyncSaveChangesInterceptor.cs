@@ -49,6 +49,11 @@ public class SyncSaveChangesInterceptor : SaveChangesInterceptor
         // The 'meta' entity is now modified (via CurrentLocalVersion++),
         // so EF Core will automatically include it in the upcoming transaction commit.
 
-        return await base.SavingChangesAsync(eventData, result, cancellationToken);
+        var changeCount = await base.SavingChangesAsync(eventData, result, cancellationToken);
+
+        // Signal the cloud synchronizer that local data has changed.
+        CloudSyncTrigger.SignalLocalChange();
+
+        return changeCount;
     }
 }
