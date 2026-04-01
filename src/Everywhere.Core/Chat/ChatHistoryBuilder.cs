@@ -289,6 +289,14 @@ public static class ChatHistoryBuilder
 
                     if (!supportedModalities.SupportsMimeType(mimeType))
                     {
+                        contents.Add(
+                            new TextContent(
+                                $"""
+                                 <Attachment type="file" path="{file.FilePath}" mimeType="{file.MimeType}" description="{file.Description}">
+                                 Content omitted because file type is not supported
+                                 </Attachment>
+                                 """));
+
                         break;
                     }
 
