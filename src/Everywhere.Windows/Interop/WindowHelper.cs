@@ -140,16 +140,13 @@ public class WindowHelper : IWindowHelper
     {
         if (window.TryGetPlatformHandle() is not { } handle) return;
         var hWnd = (HWND)handle.Handle;
+
         if (cloaked)
         {
             // We must first hide our Avalonia window, otherwise Avalonia's focus state will get confused
             window.Hide();
 
             Cloak(hWnd);
-
-            // Then hide our HWND, to make sure that the OS gives the FG / focus back to another app
-            // (there's no way for us to guess what the right hwnd might be, only the OS can do it right)
-            PInvoke.ShowWindow(hWnd, SHOW_WINDOW_CMD.SW_HIDE);
         }
         else
         {
@@ -166,26 +163,13 @@ public class WindowHelper : IWindowHelper
                 PInvoke.ShowWindow(hWnd, SHOW_WINDOW_CMD.SW_RESTORE);
             }
 
-            // Just to be sure, SHOW our hwnd.
-            window.Show();
-            if (window.IsLoaded) PInvoke.ShowWindow(hWnd, SHOW_WINDOW_CMD.SW_SHOWNA);
-
             // Once we're done, uncloak to avoid all animations
             Uncloak(hWnd);
 
-            PInvoke.SetForegroundWindow(hWnd);
-            PInvoke.SetActiveWindow(hWnd);
-            window.Focus();
+            // Just to be sure, SHOW our hwnd.
+            window.Show();
 
-            // Push our window to the top of the Z-order and make it the topmost, so that it appears above all other windows.
-            // We want to remove the topmost status when we hide the window (because we cloak it instead of hiding it).
-            var topMost = window.Topmost;
-
-            // This line is needed to ensure the window can be focused properly.
-            PInvoke.SetWindowPos(hWnd, HWND.HWND_TOPMOST, 0, 0, 0, 0, SET_WINDOW_POS_FLAGS.SWP_NOMOVE | SET_WINDOW_POS_FLAGS.SWP_NOSIZE);
-
-            window.Topmost = true;
-            window.Topmost = topMost;
+            window.Activate();
         }
     }
 

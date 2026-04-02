@@ -40,7 +40,6 @@ public sealed class VisualElementEffect(
     {
         try
         {
-            ArrangeEffectWindows();
             if (_effectWindows.Count == 0)
             {
                 chatAttachment.Opacity = 1d;
@@ -65,6 +64,9 @@ public sealed class VisualElementEffect(
 
             foreach (var effectWindow in _effectWindows)
             {
+                effectWindow.Topmost = false;
+                effectWindow.Topmost = true; // Ensure the effect window is above all others to properly display the animation
+
                 var sourceCenter = new PixelPoint(sourceBounds.Center.X, sourceBounds.Center.Y);
                 var startPoint = effectWindow.ScreenPixelToLocal(sourceCenter);
                 var startSize = new Size(
@@ -101,7 +103,7 @@ public sealed class VisualElementEffect(
 
     public ScanEffectScope CreateScanEffect(CancellationToken cancellationToken) => new(this, logger, cancellationToken);
 
-    private void ArrangeEffectWindows()
+    public void ArrangeEffectWindows()
     {
         var screens = App.ScreenImpl.AllScreens;
         if (screens is not { Count: > 0 })
@@ -127,7 +129,6 @@ public sealed class VisualElementEffect(
 
             effectWindow.SetPlacement(screens[i]);
             effectWindow.Show();
-            effectWindow.Topmost = true;
         }
 
         // Remove unnecessary VisualElementEffectWindow
@@ -240,6 +241,9 @@ public sealed class VisualElementEffect(
         {
             foreach (var effectWindow in _owner._effectWindows)
             {
+                effectWindow.Topmost = false;
+                effectWindow.Topmost = true; // Ensure the effect window is above all others to properly display the animation
+
                 var sourceCenter = new PixelPoint(bounds.Center.X, bounds.Center.Y);
                 var startPoint = effectWindow.ScreenPixelToLocal(sourceCenter);
                 var startSize = new Size(

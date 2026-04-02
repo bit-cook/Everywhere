@@ -257,11 +257,13 @@ public sealed partial class ChatWindowViewModel :
                 }
             }
 
-            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
-
             // Avoid adding duplicate attachments
             var targetElement = message.TargetElement;
-            if (_chatAttachmentsSource.Items.Any(a => a is VisualElementAttachment vea && Equals(vea.Element?.Target, targetElement))) return;
+            if (_chatAttachmentsSource.Items.Any(a => a is VisualElementAttachment vea && Equals(vea.Element?.Target, targetElement)))
+            {
+                WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
+                return;
+            }
 
             if (targetElement == null)
             {
@@ -272,6 +274,8 @@ public sealed partial class ChatWindowViewModel :
                         list.RemoveAt(0);
                     }
                 });
+
+                WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
                 return;
             }
 
@@ -282,7 +286,15 @@ public sealed partial class ChatWindowViewModel :
 
             if (chatAttachment is not null)
             {
-                var isAnimationEnabled = Settings.ChatWindow.EnableVisualElementPickAnimation;
+                VisualElementEffect? visualElementEffect = null;
+                if (Settings.ChatWindow.EnableVisualElementPickAnimation)
+                {
+                    visualElementEffect = ServiceLocator.Resolve<VisualElementEffect>();
+                    visualElementEffect.ArrangeEffectWindows();
+                }
+
+                WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
+
                 _chatAttachmentsSource.Edit(list =>
                 {
                     list.RemoveWhere(a => a is VisualElementAttachment { IsPrimary: true });
@@ -291,13 +303,13 @@ public sealed partial class ChatWindowViewModel :
                         chatAttachment.With(a =>
                         {
                             a.IsPrimary = true;
-                            a.Opacity = isAnimationEnabled ? 0d : 1d;
+                            a.Opacity = visualElementEffect is not null ? 0d : 1d;
                         }));
                 });
 
-                if (isAnimationEnabled)
+                if (visualElementEffect is not null)
                 {
-                    await ServiceLocator.Resolve<VisualElementEffect>().CreatePickEffect(targetElement, chatAttachment);
+                    await visualElementEffect.CreatePickEffect(targetElement, chatAttachment);
                 }
             }
         }
@@ -319,10 +331,19 @@ public sealed partial class ChatWindowViewModel :
             // Hide the chat window to avoid picking itself
             var isOpened = IsOpened;
             if (isOpened) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(true));
+
             var element = await _visualElementContext.PickVisualElementAsync(null);
-            if (isOpened || element is not null) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
-            if (element is null) return;
-            if (_chatAttachmentsSource.Items.OfType<VisualElementAttachment>().Any(a => Equals(a.Element?.Target, element))) return;
+            if (element is null)
+            {
+                if (isOpened) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
+                return;
+            }
+
+            if (_chatAttachmentsSource.Items.OfType<VisualElementAttachment>().Any(a => Equals(a.Element?.Target, element)))
+            {
+                WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
+                return;
+            }
 
             var chatAttachment = await Task.Run(
                 () => VisualElementAttachment.FromVisualElement(element),
@@ -331,11 +352,17 @@ public sealed partial class ChatWindowViewModel :
 
             if (Settings.ChatWindow.EnableVisualElementPickAnimation)
             {
+                var visualElementEffect = ServiceLocator.Resolve<VisualElementEffect>();
+                visualElementEffect.ArrangeEffectWindows();
+
+                WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
                 _chatAttachmentsSource.Add(chatAttachment.With(x => x.Opacity = 0d));
-                await ServiceLocator.Resolve<VisualElementEffect>().CreatePickEffect(element, chatAttachment);
+
+                await visualElementEffect.CreatePickEffect(element, chatAttachment);
             }
             else
             {
+                WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
                 _chatAttachmentsSource.Add(chatAttachment);
             }
         }

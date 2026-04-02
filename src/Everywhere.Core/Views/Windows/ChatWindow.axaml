@@ -11,8 +11,8 @@
   Background="{DynamicResource AcrylicWindowBackgroundColor}"
   BorderBrush="{DynamicResource BorderColor}"
   ExtendClientAreaChromeHints="NoChrome" ExtendClientAreaToDecorationsHint="True"
-  ShowActivated="False" SizeToContent="WidthAndHeight"
-  TransparencyLevelHint="AcrylicBlur" WindowStartupLocation="CenterScreen">
+  SizeToContent="WidthAndHeight" TransparencyLevelHint="AcrylicBlur"
+  WindowStartupLocation="CenterScreen">
 
   <v:ReactiveShadWindow.BorderThickness>
     <OnPlatform
@@ -354,7 +354,8 @@
                             Padding="8" HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Stretch"
                             Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
-                            CommandParameter="{Binding Mode=OneTime}">
+                            CommandParameter="{Binding Mode=OneTime}"
+                            Focusable="False">
                             <Grid
                               ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
                               RowDefinitions="Auto,*" RowSpacing="4">
