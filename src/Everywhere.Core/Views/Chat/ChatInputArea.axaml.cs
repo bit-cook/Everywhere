@@ -19,6 +19,7 @@ using CommunityToolkit.Mvvm.Input;
 using Everywhere.AI;
 using Everywhere.Chat;
 using Everywhere.Cloud;
+using Everywhere.Patches.Avalonia;
 using Everywhere.Utilities;
 using Serilog;
 
@@ -34,10 +35,6 @@ public sealed partial class ChatInputArea : TemplatedControl
         nameof(Text),
         o => o.Text,
         (o, v) => o.Text = v);
-
-    public static readonly DirectProperty<ChatInputArea, int> ActualTextLengthProperty = AvaloniaProperty.RegisterDirect<ChatInputArea, int>(
-        nameof(ActualTextLength),
-        o => o.ActualTextLength);
 
     public static readonly StyledProperty<int> MaxLengthProperty =
         TextBox.MaxLengthProperty.AddOwner<ChatInputArea>();
@@ -123,12 +120,6 @@ public sealed partial class ChatInputArea : TemplatedControl
                 _isTextChanging = false;
             }
         }
-    }
-
-    public int ActualTextLength
-    {
-        get;
-        private set => SetAndRaise(ActualTextLengthProperty, ref field, value);
     }
 
     public string SelectedText
@@ -284,7 +275,8 @@ public sealed partial class ChatInputArea : TemplatedControl
 
     public ChatInputArea()
     {
-        this.AddDisposableHandler(KeyDownEvent, HandleKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(KeyDownEvent, HandleKeyDown, RoutingStrategies.Tunnel);
+        AddHandler(PreeditChangedEventRegistry.PreeditChangedEvent, HandlePreeditChanged, RoutingStrategies.Bubble);
     }
 
     public bool TryGetAttachmentCenterOnScreen(ChatAttachment attachment, out PixelPoint center)
@@ -297,11 +289,9 @@ public sealed partial class ChatInputArea : TemplatedControl
     {
         if (sender is not TextEditor textEditor) return;
 
-        var document = textEditor.Document;
-        ActualTextLength = document?.TextLength ?? 0;
-
         if (LeadingContent != null)
         {
+            var document = textEditor.Document;
             if (document == null || document.TextLength == 0 || document.GetCharAt(0) != '\uFFFC')
             {
                 LeadingContent = null;
@@ -656,6 +646,42 @@ public sealed partial class ChatInputArea : TemplatedControl
             }
         }
     }
+
+    // AvaloniaEdit does not support preedit, so this is a workaround for it.
+    // I use harmony to patch TextAreaTextInputMethodClient, and raise PreeditChangedEvent when the preedit text changes.
+    // Then I handle this event in ChatInputArea and update the PreeditText and PreeditRect properties accordingly.
+    // https://github.com/AvaloniaUI/AvaloniaEdit/pull/532
+
+    #region Preedit
+
+    public static readonly DirectProperty<ChatInputArea, string?> PreeditTextProperty = AvaloniaProperty.RegisterDirect<ChatInputArea, string?>(
+        nameof(PreeditText),
+        o => o.PreeditText);
+
+    public static readonly DirectProperty<ChatInputArea, Rect> PreeditRectProperty = AvaloniaProperty.RegisterDirect<ChatInputArea, Rect>(
+        nameof(PreeditRect),
+        o => o.PreeditRect);
+
+    public string? PreeditText
+    {
+        get;
+        private set => SetAndRaise(PreeditTextProperty, ref field, value);
+    }
+
+    public Rect PreeditRect
+    {
+        get;
+        private set => SetAndRaise(PreeditRectProperty, ref field, value);
+    }
+
+    private void HandlePreeditChanged(object? sender, PreeditChangedEventArgs e)
+    {
+        PreeditText = e.PreeditText;
+        PreeditRect = e.CursorRectangle;
+    }
+
+    #endregion
+
 }
 
 file class LeadingContentElementGenerator(ChatInputArea inputArea, TextEditor textEditor) : VisualLineElementGenerator

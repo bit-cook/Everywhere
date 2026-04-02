@@ -381,9 +381,11 @@
               <Button.IsEnabled>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <TemplateBinding Property="IsSendButtonEnabled"/>
-                  <TemplateBinding
+                  <Binding
                     Converter="{x:Static vc:Int32Converters.GreaterThan}"
-                    ConverterParameter="0" Property="ActualTextLength"/>
+                    ConverterParameter="0"
+                    FallbackValue="{x:False}"
+                    Path="#PART_TextEditor.Document.TextLength"/>
                 </MultiBinding>
               </Button.IsEnabled>
 
@@ -403,6 +405,22 @@
                 CornerRadius="1"/>
             </Button>
           </StackPanel>
+
+          <Popup
+            x:Name="PART_PreeditPopup" Grid.Row="0"
+            Grid.Column="0" Focusable="False"
+            IsHitTestVisible="False"
+            IsOpen="{TemplateBinding PreeditText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+            Placement="AnchorAndGravity" PlacementGravity="Right"
+            PlacementRect="{TemplateBinding PreeditRect}">
+            <shadui:Badge
+              Padding="2"
+              Background="{DynamicResource PopupBackgroundColor}"
+              BorderBrush="{DynamicResource BorderColor}"
+              BorderThickness="1"
+              Content="{TemplateBinding PreeditText}"
+              CornerRadius="{DynamicResource SmCornerRadius}"/>
+          </Popup>
         </Grid>
       </ControlTemplate>
     </Setter>
