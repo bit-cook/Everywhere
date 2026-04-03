@@ -57,14 +57,14 @@ public sealed partial class BetterBclLauncher : ILauncher
             {
                 using var process = Process.Start(psi);
             }
-            catch (Win32Exception e) when (OperatingSystem.IsWindows() && e.NativeErrorCode == 1155)
+            catch (Win32Exception e) when (OperatingSystem.IsWindows() && e.NativeErrorCode == -2147221003)
             {
                 // ERROR_NO_ASSOCIATION: No application is associated with the specified file for this operation.
-                // Fall back to explorer
+                // Fall back to explorer to select the file
                 using var process = Process.Start(new ProcessStartInfo
                 {
                     FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe"),
-                    ArgumentList = { urlOrFile },
+                    ArgumentList = { "/select,", urlOrFile },
                     CreateNoWindow = true,
                     UseShellExecute = false
                 });
