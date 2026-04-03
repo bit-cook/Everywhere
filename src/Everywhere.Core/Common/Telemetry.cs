@@ -126,17 +126,17 @@ public static partial class Telemetry
             {
                 case Counter<T>:
                 {
-                    SentrySdk.Experimental.Metrics.EmitCounter(instrument.Name, measurement, tags!); // null values will be ignored by Sentry SDK
+                    SentrySdk.Metrics.EmitCounter(instrument.Name, measurement, tags!); // null values will be ignored by Sentry SDK
                     break;
                 }
                 case Histogram<T>:
                 {
-                    SentrySdk.Experimental.Metrics.EmitDistribution(instrument.Name, measurement, MapUnit(instrument.Unit), tags!);
+                    SentrySdk.Metrics.EmitDistribution(instrument.Name, measurement, MapUnit(instrument.Unit), tags!);
                     break;
                 }
                 case Gauge<T>:
                 {
-                    SentrySdk.Experimental.Metrics.EmitGauge(instrument.Name, measurement, MapUnit(instrument.Unit), tags!);
+                    SentrySdk.Metrics.EmitGauge(instrument.Name, measurement, MapUnit(instrument.Unit), tags!);
                     break;
                 }
             }
