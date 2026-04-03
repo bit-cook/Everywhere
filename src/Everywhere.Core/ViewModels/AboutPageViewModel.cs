@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.Input;
-using Everywhere.Common;
 using Everywhere.Views;
 using Everywhere.Views.Pages;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Everywhere.ViewModels;
 
-public partial class AboutPageViewModel : ReactiveViewModelBase
+public partial class AboutPageViewModel(IServiceProvider serviceProvider) : ReactiveViewModelBase
 {
     public static string Version => typeof(AboutPage).Assembly.GetName().Version?.ToString() ?? "Unknown Version";
 
@@ -13,16 +13,13 @@ public partial class AboutPageViewModel : ReactiveViewModelBase
     private void OpenWelcomeDialog()
     {
         DialogManager
-            .CreateCustomDialog(ServiceLocator.Resolve<WelcomeView>())
+            .CreateCustomDialog(serviceProvider.GetRequiredService<WelcomeView>())
             .ShowAsync();
     }
 
     [RelayCommand]
     private void OpenChangeLogDialog()
     {
-        DialogManager
-            .CreateCustomDialog(ServiceLocator.Resolve<ChangeLogView>())
-            .Dismissible()
-            .ShowAsync();
+        serviceProvider.GetRequiredService<MainViewModel>().NavigateTo(serviceProvider.GetRequiredService<ChangeLogView>());
     }
 }

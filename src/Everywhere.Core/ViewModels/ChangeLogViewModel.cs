@@ -1,3 +1,186 @@
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using Avalonia.Platform;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using DynamicData;
+using DynamicData.Binding;
+using Everywhere.Common;
+using LiveMarkdown.Avalonia;
+using Microsoft.Extensions.Logging;
+
 namespace Everywhere.ViewModels;
 
-public class ChangeLogViewModel : ReactiveViewModelBase;
+public sealed class ReleaseInfo
+{
+    [JsonPropertyName("published_at")]
+    public DateTimeOffset PublishedDate { get; set; }
+
+    [JsonPropertyName("tag_name")]
+    public string? Tag { get; set; }
+
+    [JsonPropertyName("html_url")]
+    public Uri? HtmlUrl { get; set; }
+
+    [JsonPropertyName("body")]
+    public string? ReleaseNotes { get; set; }
+
+    [JsonIgnore]
+    public bool IsCurrent { get; set; }
+
+    [JsonIgnore]
+    [field: AllowNull, MaybeNull]
+    public ObservableStringBuilder MarkdownBuilder => field ??= new ObservableStringBuilder().Append(ReleaseNotes);
+}
+
+[JsonSerializable(typeof(List<ReleaseInfo>))]
+public sealed partial class ReleaseInfoJsonSerializerContext : JsonSerializerContext;
+
+public sealed partial class ChangeLogViewModel : BusyViewModelBase
+{
+    [GeneratedRegex(@"^##\s+\[(?<tag>v[0-9.]+)\]\((?<url>[^\)]+)\)\s+-\s+(?<date>\d{4}-\d{2}-\d{2})")]
+    private static partial Regex VersionHeaderRegex();
+
+    public ISoftwareUpdater SoftwareUpdater { get; }
+
+    public ReadOnlyObservableCollection<ReleaseInfo> ReleaseInfos { get; }
+
+    [ObservableProperty]
+    public partial ReleaseInfo? SelectedReleaseInfo { get; set; }
+
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<ChangeLogViewModel> _logger;
+    private readonly SourceCache<ReleaseInfo, string> _releaseInfosSource = new(r => r.Tag ?? string.Empty);
+
+    public ChangeLogViewModel(ISoftwareUpdater softwareUpdater, IHttpClientFactory httpClientFactory, ILogger<ChangeLogViewModel> logger)
+    {
+        SoftwareUpdater = softwareUpdater;
+        _httpClientFactory = httpClientFactory;
+        _logger = logger;
+
+        _releaseInfosSource.Connect()
+            .ObserveOnAvaloniaDispatcher()
+            .SortAndBind(
+                out var releaseInfos,
+                SortExpressionComparer<ReleaseInfo>
+                    .Descending(r => r.PublishedDate)
+                    .ThenByDescending(r => Version.TryParse(r.Tag?.TrimStart('v'), out var v) ? v : new Version(0, 0))
+            )
+            .Subscribe();
+        ReleaseInfos = releaseInfos;
+    }
+
+    protected internal override Task ViewLoaded(CancellationToken cancellationToken) => ExecuteBusyTaskAsync(
+        async token =>
+        {
+            try
+            {
+                var releases = new List<ReleaseInfo>();
+                await using var changeLogStream = AssetLoader.Open(new Uri("avares://Everywhere.Core/Assets/CHANGELOG.md", UriKind.Absolute));
+                using var changeLogReader = new StreamReader(changeLogStream);
+
+                ReleaseInfo? currentRelease = null;
+                var currentNotes = new StringBuilder();
+
+                while (await changeLogReader.ReadLineAsync(token) is { } line)
+                {
+                    var match = VersionHeaderRegex().Match(line);
+                    if (match.Success)
+                    {
+                        if (currentRelease != null)
+                        {
+                            currentRelease.ReleaseNotes = currentNotes.ToString().Trim();
+                            releases.Add(currentRelease);
+                        }
+
+                        var tag = match.Groups["tag"].Value; // e.g. v0.7.0
+                        currentRelease = new ReleaseInfo
+                        {
+                            Tag = tag,
+                            HtmlUrl = new Uri(match.Groups["url"].Value, UriKind.RelativeOrAbsolute),
+                            PublishedDate = DateTimeOffset.Parse(match.Groups["date"].Value),
+                            IsCurrent = tag.EndsWith(SoftwareUpdater.CurrentVersion.ToString(3), StringComparison.OrdinalIgnoreCase)
+                        };
+                        currentNotes.Clear();
+                    }
+                    else if (currentRelease != null)
+                    {
+                        currentNotes.AppendLine(line);
+                    }
+                }
+
+                if (currentRelease != null)
+                {
+                    currentRelease.ReleaseNotes = currentNotes.ToString().Trim();
+                    releases.Add(currentRelease);
+                }
+
+                _releaseInfosSource.AddOrUpdate(releases);
+
+                if (SelectedReleaseInfo == null && ReleaseInfos.Count > 0)
+                {
+                    SelectedReleaseInfo = ReleaseInfos[0];
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load local changelog.");
+                throw HandledSystemException.Handle(ex);
+            }
+
+            try
+            {
+                using var httpClient = _httpClientFactory.CreateClient();
+                var response = await httpClient.GetAsync("https://api.github.com/repos/DearVa/Everywhere/releases?per_page=20", token);
+                if (response.IsSuccessStatusCode)
+                {
+                    await using var jsonStream = await response.Content.ReadAsStreamAsync(token);
+                    var githubReleases = await JsonSerializer.DeserializeAsync(
+                        jsonStream,
+                        ReleaseInfoJsonSerializerContext.Default.ListReleaseInfo,
+                        token);
+                    if (githubReleases != null)
+                    {
+                        var newReleases = githubReleases.Where(r => !_releaseInfosSource.Lookup(r.Tag ?? string.Empty).HasValue);
+                        _releaseInfosSource.AddOrUpdate(newReleases);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load GitHub releases.");
+                throw HandledSystemException.Handle(ex);
+            }
+        },
+        ToastExceptionHandler,
+        cancellationToken);
+
+    [RelayCommand]
+    private async Task PerformUpdateAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var progress = new Progress<double>();
+            ToastManager
+                .CreateToast(LocaleResolver.Common_Info)
+                .WithContent(LocaleResolver.CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate)
+                .WithProgress(progress)
+                .WithCancellationTokenSource(CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                .WithDelay(0d)
+                .OnBottomRight()
+                .ShowInfo();
+            await SoftwareUpdater.PerformUpdateAsync(progress, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to perform update.");
+
+            ex = new HandledException(ex, new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_Toast_UpdateFailed_Content));
+            ToastExceptionHandler.HandleException(ex);
+        }
+    }
+}

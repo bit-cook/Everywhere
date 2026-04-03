@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.Common;
 using Everywhere.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ShadUI;
 
@@ -11,6 +12,7 @@ public partial class SoftwareUpdateControl(
     Settings settings,
     ISoftwareUpdater softwareUpdater,
     ToastManager toastManager,
+    IServiceProvider serviceProvider,
     ILogger<SoftwareUpdateControl> logger
 ) : TemplatedControl
 {
@@ -33,8 +35,7 @@ public partial class SoftwareUpdateControl(
         UpdateOrCheckTitle = new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_CheckingUpdateTitle_Text);
         if (SoftwareUpdater.LatestVersion is not null)
         {
-            UpdateOrCheckTitle = new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_UpdatingTitle_Text);
-            await PerformUpdateAsync();
+            serviceProvider.GetRequiredService<MainViewModel>().NavigateTo(serviceProvider.GetRequiredService<ChangeLogView>());
             return;
         }
         
@@ -44,40 +45,15 @@ public partial class SoftwareUpdateControl(
         }
         catch (Exception ex)
         {
-            ex = new HandledException(ex, new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_Toast_CheckForUpdatesFailed_Content));
             logger.LogError(ex, "Failed to check for updates.");
-            ShowErrorToast(ex);
-        }
-    }
 
-    private async Task PerformUpdateAsync()
-    {
-        try
-        {
-            var progress = new Progress<double>();
-            var cts = new CancellationTokenSource();
+            ex = new HandledException(ex, new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_Toast_CheckForUpdatesFailed_Content));
             toastManager
-                .CreateToast(LocaleResolver.Common_Info)
-                .WithContent(LocaleResolver.CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate)
-                .WithProgress(progress)
-                .WithCancellationTokenSource(cts)
-                .WithDelay(0d)
+                .CreateToast(LocaleResolver.Common_Error)
+                .WithContent(ex.GetFriendlyMessage())
+                .DismissOnClick()
                 .OnBottomRight()
-                .ShowInfo();
-            await SoftwareUpdater.PerformUpdateAsync(progress, cts.Token);
-        }
-        catch (Exception ex)
-        {
-            ex = new HandledException(ex, new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_Toast_UpdateFailed_Content));
-            logger.LogError(ex, "Failed to perform update.");
-            ShowErrorToast(ex);
+                .ShowError();
         }
     }
-
-    private void ShowErrorToast(Exception ex) => toastManager
-        .CreateToast(LocaleResolver.Common_Error)
-        .WithContent(ex.GetFriendlyMessage())
-        .DismissOnClick()
-        .OnBottomRight()
-        .ShowError();
 }

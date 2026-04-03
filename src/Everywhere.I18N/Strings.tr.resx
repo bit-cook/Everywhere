@@ -442,18 +442,6 @@
     <data name="WelcomeView_IntroStep_Message2" xml:space="preserve">
         <value>Tanıştığımıza memnun oldum! Ben sizin asistanınız olayım ve sorunlarınızı daha akıllıca çözmenize yardımcı olabilirim!</value>
     </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_Content" xml:space="preserve">
-        <value>Bir Hata Bildir</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_Content" xml:space="preserve">
-        <value>Özellik Talebi</value>
-    </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=bug-report.yml</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=feature-request.yml</value>
-    </data>
     <data name="WelcomeView_DiscordHyperlinkButton_Content" xml:space="preserve">
         <value>Discord</value>
     </data>
@@ -679,11 +667,8 @@
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>GitHub'da Görüntüle</value>
     </data>
-    <data name="ChangeLogView_Header" xml:space="preserve">
+    <data name="MainViewModel_UpgradeSuccessfulToast_Title" xml:space="preserve">
         <value>Everywhere en son sürümüne güncellendi 🎉</value>
-    </data>
-    <data name="ChangeLogView_Content" xml:space="preserve">
-        <value>Ben hâlâ çok gençim, bu yüzden herhangi bir sorununuz varsa aşağıdaki bağlantıya tıklayarak geri bildirimde bulunabilirsiniz; gelişmeye devam edeceğim! Grup tartışmasına katılmak için de aşağıdaki bağlantıyı tıklayabilirsiniz. Daha fazla sosyal medya oluşturuluyor, takipte kalın. İpucu: “Hakkında – Yenilikler”e tıklayarak bu mesajı yeniden açabilirsiniz.</value>
     </data>
     <data name="WelcomeView_QQGroupHyperlinkButton_Content" xml:space="preserve">
         <value>QQ Group</value>

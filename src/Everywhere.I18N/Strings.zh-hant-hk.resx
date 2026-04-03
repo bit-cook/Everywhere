@@ -443,18 +443,6 @@
     <data name="WelcomeView_IntroStep_Message2" xml:space="preserve">
         <value>很高興認識你！讓我成為你的助手，幫助你解決問題！</value>
     </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_Content" xml:space="preserve">
-        <value>回報錯誤</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_Content" xml:space="preserve">
-        <value>功能請求</value>
-    </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=bug-report.yml</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=feature-request.yml</value>
-    </data>
     <data name="WelcomeView_DiscordHyperlinkButton_Content" xml:space="preserve">
         <value>Discord</value>
     </data>
@@ -680,13 +668,8 @@
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>在 GitHub 查看</value>
     </data>
-    <data name="ChangeLogView_Header" xml:space="preserve">
+    <data name="MainViewModel_UpgradeSuccessfulToast_Title" xml:space="preserve">
         <value>Everywhere 已更新至最新版本 🎉</value>
-    </data>
-    <data name="ChangeLogView_Content" xml:space="preserve">
-        <value>我還很年輕，所以如果您有任何問題，請隨時點擊下面的連結反饋，我會不斷進化！
-您也歡迎點擊下面的連結進入群組討論，更多社交媒體正在建設中，敬請期待。
-提示：您可以通過點擊“關於 - 有什麼新功能”重新打開此消息。</value>
     </data>
     <data name="WelcomeView_QQGroupHyperlinkButton_Content" xml:space="preserve">
         <value>QQ 群組</value>

@@ -34,7 +34,7 @@ public sealed partial class SoftwareUpdater(
     private Asset? _latestAsset;
     private Version? _notifiedVersion;
 
-    public Version CurrentVersion { get; } = new Version(0, 1, 0);
+    public Version CurrentVersion { get; } = typeof(SoftwareUpdater).Assembly.GetName().Version ?? new Version(0, 0, 0);
 
     [ObservableProperty] public partial DateTimeOffset? LastCheckTime { get; private set; }
 

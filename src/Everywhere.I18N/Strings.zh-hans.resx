@@ -452,18 +452,6 @@
     <data name="WelcomeView_IntroStep_Message2" xml:space="preserve">
         <value>很高兴认识你！就让我做你的助手，陪伴你解决问题吧！</value>
     </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_Content" xml:space="preserve">
-        <value>反馈 Bug</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_Content" xml:space="preserve">
-        <value>功能请求</value>
-    </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=bug-report-zh.yml</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=feature-request-zh.yml</value>
-    </data>
     <data name="WelcomeView_DiscordHyperlinkButton_Content" xml:space="preserve">
         <value>Discord</value>
     </data>
@@ -695,13 +683,11 @@
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>访问 GitHub</value>
     </data>
-    <data name="ChangeLogView_Header" xml:space="preserve">
+    <data name="MainViewModel_UpgradeSuccessfulToast_Title" xml:space="preserve">
         <value>Everywhere 已更新到最新版本 🎉</value>
     </data>
-    <data name="ChangeLogView_Content" xml:space="preserve">
-        <value>目前我还刚诞生不久，如果遇到问题，欢迎点击下方链接反馈，我会不断进化的！
-也欢迎点击下方链接进入群组讨论，更多的社交媒体正在建设中，敬请期待。
-提示：你可点击“关于 - 最新变化”重新打开此消息。</value>
+    <data name="ChangeLogView_Title" xml:space="preserve">
+        <value>更新日志</value>
     </data>
     <data name="WelcomeView_QQGroupHyperlinkButton_Content" xml:space="preserve">
         <value>QQ 群</value>
@@ -2589,5 +2575,11 @@
     </data>
     <data name="ChatInputArea_Watermark_StrategyArgumentHint" xml:space="preserve">
         <value>{0} (可选输入) {1}</value>
+    </data>
+    <data name="ChangeLogView_UpdateButton_Content" xml:space="preserve">
+        <value>更新到最新版本</value>
+    </data>
+    <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
+        <value>当前</value>
     </data>
 </root>

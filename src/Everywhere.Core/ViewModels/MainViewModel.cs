@@ -77,23 +77,25 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
         foreach (var page in topLevelPages)
         {
             NavigationBarItem item;
-            rootItems.Add((page.Index, item = new NavigationBarItem
-            {
-                Icon = page.Icon,
-                [!ContentControl.ContentProperty] = page.TitleKey.ToBinding(),
-                [!NavigationBarItem.ToolTipProperty] = page.TitleKey.ToBinding(),
-                Route = page,
-            }));
+            rootItems.Add(
+                (page.Index, item = new NavigationBarItem
+                {
+                    Icon = page.Icon,
+                    [!ContentControl.ContentProperty] = page.TitleKey.ToBinding(),
+                    [!NavigationBarItem.ToolTipProperty] = page.TitleKey.ToBinding(),
+                    Route = page,
+                }));
 
             if (page is IMainViewNavigationTopLevelItemWithSubItems factory)
             {
-                item.Children.AddRange(factory.CreateSubItems().Select(i => new NavigationBarItem
-                {
-                    Icon = i.Icon,
-                    [!ContentControl.ContentProperty] = i.TitleKey.ToBinding(),
-                    [!NavigationBarItem.ToolTipProperty] = i.TitleKey.ToBinding(),
-                    Route = i
-                }));
+                item.Children.AddRange(
+                    factory.CreateSubItems().Select(i => new NavigationBarItem
+                    {
+                        Icon = i.Icon,
+                        [!ContentControl.ContentProperty] = i.TitleKey.ToBinding(),
+                        [!NavigationBarItem.ToolTipProperty] = i.TitleKey.ToBinding(),
+                        Route = i
+                    }));
             }
         }
 
@@ -158,9 +160,9 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
         }
         else if (previousLaunchVersion != version)
         {
-            DialogManager
-                .CreateCustomDialog(_serviceProvider.GetRequiredService<ChangeLogView>())
-                .Dismissible()
+            NavigateTo(_serviceProvider.GetRequiredService<ChangeLogView>());
+            ToastManager
+                .CreateToast(LocaleResolver.MainViewModel_UpgradeSuccessfulToast_Title)
                 .ShowAsync();
         }
 
@@ -170,15 +172,17 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
     [RelayCommand]
     private void NavigateToType(Type routeType)
     {
-        var item = FindNavigationBarItem(_itemsSource.Items, i => i.Route?.GetType() == routeType);
+        var item = FindNavigationBarItem(
+            _itemsSource.Items,
+            i => i.Route?.GetType() == routeType || i.Children.Any(c => c.Route?.GetType() == routeType));
         if (item != null) SelectedItem = item;
     }
 
     [RelayCommand]
-    private void NavigateTo(object route)
+    public void NavigateTo(object route)
     {
-        var item = FindNavigationBarItem(_itemsSource.Items, i => i.Route == route);
-        if (item != null) SelectedItem = item;
+        var item = FindNavigationBarItem(_itemsSource.Items, i => i.Route == route || i.Children.Any(c => c.Route == route));
+        SelectedItem = item ?? new NavigationBarItem(route); // This allows navigating to a route that is not in the navigation bar
     }
 
     protected internal override Task ViewUnloaded()

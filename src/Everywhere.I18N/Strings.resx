@@ -452,18 +452,6 @@
     <data name="WelcomeView_IntroStep_Message2" xml:space="preserve">
         <value>Nice to meet you! Let me be your assistant and help you solve problems!</value>
     </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_Content" xml:space="preserve">
-        <value>Report a Bug</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_Content" xml:space="preserve">
-        <value>Feature Request</value>
-    </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=bug-report.yml</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=feature-request.yml</value>
-    </data>
     <data name="WelcomeView_DiscordHyperlinkButton_Content" xml:space="preserve">
         <value>Discord</value>
     </data>
@@ -695,13 +683,11 @@
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>View on GitHub</value>
     </data>
-    <data name="ChangeLogView_Header" xml:space="preserve">
+    <data name="MainViewModel_UpgradeSuccessfulToast_Title" xml:space="preserve">
         <value>Everywhere has been updated to the latest version 🎉</value>
     </data>
-    <data name="ChangeLogView_Content" xml:space="preserve">
-        <value>I'm still very young, so if you have any problems, feel free to click the link below for feedback, I'll keep on evolving!
-You're also welcome to click the link below to enter the group discussion, more social media is under construction, so stay tuned.
-Tip: You can reopen this message by clicking “About - What's new”.</value>
+    <data name="ChangeLogView_Title" xml:space="preserve">
+        <value/>
     </data>
     <data name="WelcomeView_QQGroupHyperlinkButton_Content" xml:space="preserve">
         <value>QQ Group</value>
@@ -2587,6 +2573,12 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="ChatInputArea_Watermark_StrategyArgumentHint" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChangeLogView_UpdateButton_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value />
     </data>
 </root>

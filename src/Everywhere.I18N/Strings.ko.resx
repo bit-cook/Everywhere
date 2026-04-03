@@ -443,18 +443,6 @@
     <data name="WelcomeView_IntroStep_Message2" xml:space="preserve">
         <value>만나서 반가워요! 제가 당신의 조수가 되어 문제를 해결하는 데 도움을 드릴게요!</value>
     </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_Content" xml:space="preserve">
-        <value>버그 신고</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_Content" xml:space="preserve">
-        <value>기능 요청</value>
-    </data>
-    <data name="ChangeLogView_ReportBugHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=bug-report.yml</value>
-    </data>
-    <data name="ChangeLogView_FeatureRequestHyperlinkButton_NavigateUri" xml:space="preserve">
-        <value>https://github.com/DearVa/Everywhere/issues/new?template=feature-request.yml</value>
-    </data>
     <data name="WelcomeView_DiscordHyperlinkButton_Content" xml:space="preserve">
         <value>Discord</value>
     </data>
@@ -680,13 +668,8 @@
     <data name="ChangeLogView_ViewOnGitHubHyperlinkButton_Content" xml:space="preserve">
         <value>GitHub에서 보기</value>
     </data>
-    <data name="ChangeLogView_Header" xml:space="preserve">
+    <data name="MainViewModel_UpgradeSuccessfulToast_Title" xml:space="preserve">
         <value>Everywhere가 최신 버전으로 업데이트되었습니다 🎉</value>
-    </data>
-    <data name="ChangeLogView_Content" xml:space="preserve">
-        <value>저는 아직 매우 젊기 때문에 문제가 있으면 아래 링크를 클릭하여 피드백을 주시면 계속 발전하겠습니다!
-아래 링크를 클릭하여 그룹 토론에 참여하실 수도 있으며, 더 많은 소셜 미디어가 준비 중이니 기대해 주세요.
-팁: &quot;정보 - 새로운 기능&quot;을 클릭하여 이 메시지를 다시 열 수 있습니다.</value>
     </data>
     <data name="WelcomeView_QQGroupHyperlinkButton_Content" xml:space="preserve">
         <value>QQ 그룹</value>

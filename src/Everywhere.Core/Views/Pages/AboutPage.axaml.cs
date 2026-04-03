@@ -2,7 +2,7 @@
 
 namespace Everywhere.Views.Pages;
 
-public partial class AboutPage : ReactiveUserControl<AboutPageViewModel>, IMainViewNavigationTopLevelItem
+public sealed partial class AboutPage : ReactiveUserControl<AboutPageViewModel>, IMainViewNavigationTopLevelItem
 {
     public int Index => int.MaxValue;
 
