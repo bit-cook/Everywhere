@@ -60,6 +60,7 @@ public static class Program
                 .AddSingleton<IShortcutListener, ShortcutListener>()
                 .AddSingleton<INativeHelper, NativeHelper>()
                 .AddSingleton<IWindowHelper, WindowHelper>()
+                .AddSingleton<IPlatformUpdateHandler, WindowsUpdateHandler>()
                 .AddSingleton<ISoftwareUpdater, SoftwareUpdater>()
                 .AddSettings()
                 .AddWatchdogManager()

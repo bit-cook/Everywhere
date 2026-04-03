@@ -10,13 +10,13 @@ using Everywhere.Extensions;
 using Everywhere.Initialization;
 using Everywhere.Interop;
 using Everywhere.Linux.Chat.Plugins;
+using Everywhere.Linux.Common;
 using Everywhere.Linux.Interop;
 using Everywhere.StrategyEngine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Extensions.Logging;
-using SoftwareUpdater = Everywhere.Linux.Common.SoftwareUpdater;
 
 namespace Everywhere.Linux;
 
@@ -61,6 +61,7 @@ public static class Program
                 .AddSingleton<IVisualElementContext, VisualElementContext>()
                 .AddSingleton<IShortcutListener, ShortcutListener>()
                 .AddSingleton<INativeHelper, NativeHelper>()
+                .AddSingleton<IPlatformUpdateHandler, LinuxUpdateHandler>()
                 .AddSingleton<ISoftwareUpdater, SoftwareUpdater>()
                 .AddSettings()
                 .AddWatchdogManager()

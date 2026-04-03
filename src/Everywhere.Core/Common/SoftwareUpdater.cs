@@ -1,38 +1,29 @@
-using System.Buffers;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
-using Everywhere.Common;
 using Everywhere.Configuration;
-using Everywhere.Extensions;
-using Everywhere.I18N;
 using Everywhere.Interop;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 #if !DEBUG
-using System.Text.RegularExpressions;
 using Everywhere.Utilities;
 #endif
 
-namespace Everywhere.Mac.Common;
+namespace Everywhere.Common;
 
 public sealed partial class SoftwareUpdater(
+    IPlatformUpdateHandler platformHandler,
+    IHttpClientFactory httpClientFactory,
     INativeHelper nativeHelper,
     ILogger<SoftwareUpdater> logger
 ) : ObservableObject, ISoftwareUpdater, IDisposable
 {
     private const string CustomUpdateServiceBaseUrl = "https://ghproxy.sylinko.com";
     private const string ApiUrl = $"{CustomUpdateServiceBaseUrl}/api?product=everywhere";
+    private readonly string _downloadUrlBase = $"{CustomUpdateServiceBaseUrl}/download?product=everywhere&os={platformHandler.OsIdentifier}";
+    private const string GitHubDirectUrlBase = "https://github.com/DearVa/Everywhere/releases/download";
 
-    private readonly HttpClient _httpClient = new()
-    {
-        DefaultRequestHeaders =
-        {
-            { "User-Agent", "libcurl/7.64.1 r-curl/4.3.2 httr/1.4.2 EverywhereUpdater" }
-        }
-    };
     private readonly ActivitySource _activitySource = new(typeof(SoftwareUpdater).FullName.NotNull());
 
 #if !DEBUG
@@ -43,15 +34,11 @@ public sealed partial class SoftwareUpdater(
     private Asset? _latestAsset;
     private Version? _notifiedVersion;
 
-    public Version CurrentVersion { get; } = typeof(SoftwareUpdater).Assembly.GetName().Version ?? new Version(0, 0, 0);
+    public Version CurrentVersion { get; } = new Version(0, 1, 0);
 
     [ObservableProperty] public partial DateTimeOffset? LastCheckTime { get; private set; }
 
     [ObservableProperty] public partial Version? LatestVersion { get; private set; }
-
-    private static string OsIdentifier => RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "osx-arm64" : "osx-x64";
-
-    private static string OsString => RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "macOS-arm64" : "macOS-x64";
 
     public void RunAutomaticCheckInBackground(TimeSpan interval, CancellationToken cancellationToken = default)
     {
@@ -62,8 +49,10 @@ public sealed partial class SoftwareUpdater(
         Task.Run(
             async () =>
             {
+                // Clean up old update packages on startup.
                 await CleanupOldUpdatesAsync();
-                await CheckForUpdatesAsync(cancellationToken);
+
+                await CheckForUpdatesAsync(cancellationToken); // check immediately on start
 
                 while (await _timer.WaitForNextTickAsync(cancellationToken))
                 {
@@ -85,7 +74,8 @@ public sealed partial class SoftwareUpdater(
         {
             if (_updateTask is not null) return;
 
-            var response = await _httpClient.GetAsync(ApiUrl, cancellationToken);
+            using var httpClient = httpClientFactory.CreateClient(Options.DefaultName);
+            var response = await httpClient.GetAsync(ApiUrl, cancellationToken);
             response.EnsureSuccessStatusCode();
 
             var jsonDoc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cancellationToken));
@@ -101,13 +91,11 @@ public sealed partial class SoftwareUpdater(
                 return;
             }
 
-            var assets = root.GetProperty("assets").Deserialize(JsonSerializerContext.Default.ListAssetMetadata);
+            var assets = root.GetProperty("assets").Deserialize(UpdateAssetMetadataJsonSerializerContext.Default.ListUpdateAssetMetadata);
 
-            // Match files like: Everywhere-macOS-x64-v0.5.1.pkg
-            var assetMetadata = assets?.FirstOrDefault(a =>
-                a.Name.Contains(OsString, StringComparison.OrdinalIgnoreCase) &&
-                a.Name.EndsWith(".pkg", StringComparison.OrdinalIgnoreCase)
-            );
+            if (assets is null) return;
+
+            var assetMetadata = platformHandler.SelectAsset(assets, versionString);
 
             if (assetMetadata is not null)
             {
@@ -115,7 +103,8 @@ public sealed partial class SoftwareUpdater(
                     assetMetadata.Name,
                     assetMetadata.Digest,
                     assetMetadata.Size,
-                    $"{CustomUpdateServiceBaseUrl}/download?product=everywhere&os={OsIdentifier}&type=pkg"
+                    $"{_downloadUrlBase}&type={platformHandler.GetDownloadType()}",
+                    $"{GitHubDirectUrlBase}/{latestTag}/{assetMetadata.Name}"
                 );
             }
 
@@ -124,9 +113,9 @@ public sealed partial class SoftwareUpdater(
             if (_notifiedVersion != LatestVersion && LatestVersion is not null)
             {
                 _notifiedVersion = LatestVersion;
-                await nativeHelper.ShowDesktopNotificationAsync(
+                nativeHelper.ShowDesktopNotificationAsync(
                     LocaleResolver.SoftwareUpdater_UpdateAvailable_Toast_Message,
-                    LocaleResolver.Common_Info);
+                    LocaleResolver.Common_Info).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
             }
         }
         catch (Exception ex)
@@ -160,15 +149,7 @@ public sealed partial class SoftwareUpdater(
                 try
                 {
                     var assetPath = await DownloadAssetAsync(asset, progress, cancellationToken);
-                    if (assetPath.EndsWith(".pkg", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var psi = new ProcessStartInfo("open")
-                        {
-                            ArgumentList = { assetPath }
-                        };
-                        Process.Start(psi);
-                        Environment.Exit(0);
-                    }
+                    await platformHandler.ExecuteUpdateAsync(assetPath, cancellationToken);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
@@ -190,6 +171,9 @@ public sealed partial class SoftwareUpdater(
     }
 
 #if !DEBUG
+    /// <summary>
+    /// Cleans up old update packages from the updates directory.
+    /// </summary>
     private async Task CleanupOldUpdatesAsync()
     {
         await Task.Run(() =>
@@ -202,9 +186,10 @@ public sealed partial class SoftwareUpdater(
                 foreach (var file in Directory.EnumerateFiles(updatesPath))
                 {
                     var fileName = Path.GetFileName(file);
-                    var match = VersionRegex().Match(fileName);
+                    
+                    if (!platformHandler.TryParseUpdatePackageVersion(fileName, out var fileVersion) || fileVersion is null) continue;
 
-                    if (!match.Success || !Version.TryParse(match.Groups["version"].Value, out var fileVersion)) continue;
+                    // Delete if the package version is older than or same as the current running version.
                     if (fileVersion > CurrentVersion) continue;
 
                     try
@@ -244,37 +229,73 @@ public sealed partial class SoftwareUpdater(
             logger.LogDebug("Asset {AssetName} exists but is invalid, redownloading.", asset.Name);
         }
 
-        var response = await _httpClient.GetAsync(asset.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        using var httpClient = httpClientFactory.CreateClient(Options.DefaultName);
+        HttpResponseMessage? response = null;
+
+        try
+        {
+            var directPingCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            logger.LogInformation("Attempting to download update direct via GitHub: {Url}", asset.DirectDownloadUrl);
+            
+            var fetchTask = httpClient.GetAsync(asset.DirectDownloadUrl, HttpCompletionOption.ResponseHeadersRead, directPingCts.Token);
+            var completedTask = await Task.WhenAny(fetchTask, Task.Delay(3000, cancellationToken));
+
+            if (completedTask == fetchTask && fetchTask.Status == TaskStatus.RanToCompletion)
+            {
+                response = await fetchTask;
+                response.EnsureSuccessStatusCode();
+                logger.LogInformation("Direct download is responsive, proceeding to download asset.");
+            }
+            else
+            {
+                await directPingCts.CancelAsync();
+                if (fetchTask.IsFaulted)
+                {
+                    logger.LogWarning(fetchTask.Exception, "GitHub direct download failed. Falling back to ghproxy.");
+                }
+                else
+                {
+                    logger.LogWarning("GitHub direct download timed out. Falling back to ghproxy.");
+                }
+                response = await httpClient.GetAsync(asset.ProxyDownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                response.EnsureSuccessStatusCode();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed during download selection. Falling back to ghproxy: {Url}", asset.ProxyDownloadUrl);
+            response?.Dispose();
+            response = await httpClient.GetAsync(asset.ProxyDownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            response.EnsureSuccessStatusCode();
+        }
+
         await using var fs = new FileStream(assetDownloadPath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
 
         var totalBytes = response.Content.Headers.ContentLength ?? asset.Size;
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        var totalBytesRead = 0L;
+        var buffer = new byte[81920];
+        int bytesRead;
 
-        var buffer = ArrayPool<byte>.Shared.Rent(81920);
-        try
+        while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
         {
-            var totalBytesRead = 0L;
-            int bytesRead;
-            while ((bytesRead = await contentStream.ReadAsync(buffer, cancellationToken)) > 0)
-            {
-                await fs.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
-                totalBytesRead += bytesRead;
-                progress.Report((double)totalBytesRead / totalBytes);
-            }
+            await fs.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
+            totalBytesRead += bytesRead;
+            progress.Report((double)totalBytesRead / totalBytes);
         }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(buffer);
-        }
+
+        response.Dispose();
 
         fs.Position = 0;
-        return !string.Equals(
-            "sha256:" + Convert.ToHexString(await SHA256.HashDataAsync(fs, cancellationToken)),
-            asset.Digest,
-            StringComparison.OrdinalIgnoreCase) ?
-            throw new InvalidOperationException($"Downloaded asset {asset.Name} hash does not match expected digest.") :
-            assetDownloadPath;
+        if (!string.Equals(
+                "sha256:" + Convert.ToHexString(await SHA256.HashDataAsync(fs, cancellationToken)),
+                asset.Digest,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"Downloaded asset {asset.Name} hash does not match expected digest.");
+        }
+
+        return assetDownloadPath;
 
         async Task<string> HashFileAsync()
         {
@@ -286,7 +307,6 @@ public sealed partial class SoftwareUpdater(
 
     public void Dispose()
     {
-        _httpClient.Dispose();
 #if !DEBUG
         _timer?.Dispose();
 #endif
@@ -296,21 +316,7 @@ public sealed partial class SoftwareUpdater(
         string Name,
         string Digest,
         long Size,
-        string DownloadUrl
+        string ProxyDownloadUrl,
+        string DirectDownloadUrl
     );
-
-    [Serializable]
-    private record AssetMetadata(
-        [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("digest")] string Digest,
-        [property: JsonPropertyName("size")] long Size
-    );
-
-    [JsonSerializable(typeof(List<AssetMetadata>))]
-    private partial class JsonSerializerContext : System.Text.Json.Serialization.JsonSerializerContext;
-
-#if !DEBUG
-    [GeneratedRegex(@"-v(?<version>\d+\.\d+\.\d+(\.\d+)?)\.pkg$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "zh-CN")]
-    private static partial Regex VersionRegex();
-#endif
 }

@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
@@ -7,11 +7,11 @@ using Everywhere.Extensions;
 using Everywhere.I18N;
 using Everywhere.Initialization;
 using Everywhere.Interop;
-using Everywhere.StrategyEngine;
 using Everywhere.Mac.Chat.Plugin;
 using Everywhere.Mac.Common;
 using Everywhere.Mac.Interop;
 using Everywhere.Mac.Patches;
+using Everywhere.StrategyEngine;
 using HarmonyLib;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -40,6 +40,7 @@ public static class Program
                 .AddSingleton<IShortcutListener, CGEventShortcutListener>()
                 .AddSingleton<INativeHelper, NativeHelper>()
                 .AddSingleton<IWindowHelper, WindowHelper>()
+                .AddSingleton<IPlatformUpdateHandler, MacUpdateHandler>()
                 .AddSingleton<ISoftwareUpdater, SoftwareUpdater>()
                 .AddSettings()
                 .AddWatchdogManager()
