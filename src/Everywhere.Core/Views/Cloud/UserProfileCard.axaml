@@ -10,35 +10,6 @@
         <v:ConditionalContentControl
           Condition="{TemplateBinding UserProfile, Converter={x:Static ObjectConverters.IsNotNull}}"
           ContentDataBinding="{Binding RelativeSource={RelativeSource TemplatedParent}}">
-          <v:ConditionalContentControl.Styles>
-            <Style Selector="ProgressBar.Compact">
-              <Setter Property="MinHeight" Value="6"/>
-              <Setter Property="Height" Value="6"/>
-              <Setter Property="Template">
-                <ControlTemplate TargetType="ProgressBar">
-                  <Grid>
-                    <Border
-                      Background="{DynamicResource GhostColor}"
-                      CornerRadius="3">
-                      <Panel>
-                        <Border
-                          Name="PART_Indicator"
-                          Background="{TemplateBinding Foreground}"
-                          CornerRadius="3"
-                          IsVisible="{Binding !IsIndeterminate, RelativeSource={RelativeSource TemplatedParent}}"/>
-                        <Border
-                          Name="PART_IndeterminateIndicator"
-                          Background="{TemplateBinding Foreground}"
-                          CornerRadius="3"
-                          IsVisible="{Binding IsIndeterminate, RelativeSource={RelativeSource TemplatedParent}}"/>
-                      </Panel>
-                    </Border>
-                  </Grid>
-                </ControlTemplate>
-              </Setter>
-            </Style>
-          </v:ConditionalContentControl.Styles>
-
           <v:ConditionalContentControl.FalseContent>
             <ControlTemplate x:DataType="v:UserProfileCard">
               <!--  Logged Out State  -->
@@ -162,7 +133,6 @@
                       </LucideIcon>
                     </Grid>
                     <ProgressBar
-                      Classes="Compact"
                       Maximum="{Binding Subscription.TotalPlanCredits, FallbackValue=1}"
                       Value="{Binding Subscription.PlanCredits, FallbackValue=0}"/>
                   </StackPanel>
