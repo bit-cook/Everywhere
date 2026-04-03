@@ -166,7 +166,6 @@ public static class Program
         // Apply Harmony patches
         var harmony = new Harmony("com.sylinko.everywhere.mac.patches");
         ControlAutomationPeerPatch.Patch(harmony);
-        BclLauncherExecPatch.Patch(harmony);
     }
 
     private static AppBuilder BuildAvaloniaApp() =>

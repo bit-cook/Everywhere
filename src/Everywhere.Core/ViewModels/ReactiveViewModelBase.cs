@@ -5,6 +5,7 @@ using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Common;
+using Everywhere.Interop;
 using Everywhere.Utilities;
 using Everywhere.Views;
 using ShadUI;
@@ -29,10 +30,12 @@ public abstract class ReactiveViewModelBase : ObservableValidator
 
     protected IClipboard Clipboard =>
         _topLevelImpl?.TryGetFeature<IClipboard>() ?? throw new InvalidOperationException("Clipboard is not available.");
+
     protected IStorageProvider StorageProvider =>
         _topLevelImpl?.TryGetFeature<IStorageProvider>() ?? throw new InvalidOperationException("StorageProvider is not available.");
-    protected ILauncher Launcher =>
-        _topLevelImpl?.TryGetFeature<ILauncher>() ?? throw new InvalidOperationException("Launcher is not available.");
+
+    protected static ILauncher Launcher => BetterBclLauncher.Shared;
+
     protected IScreenImpl ScreenImpl =>
         _topLevelImpl?.TryGetFeature<IScreenImpl>() ?? throw new InvalidOperationException("ScreenImpl is not available.");
 

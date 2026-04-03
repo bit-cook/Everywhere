@@ -25,12 +25,15 @@ namespace Everywhere;
 public class App : Application, IRecipient<ApplicationCommand>
 {
     public static string Version => typeof(TransientWindow).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+
     public static IClipboard Clipboard =>
         _topLevelImpl?.TryGetFeature<IClipboard>() ?? throw new InvalidOperationException("Clipboard is not available.");
+
     public static IStorageProvider StorageProvider =>
         _topLevelImpl?.TryGetFeature<IStorageProvider>() ?? throw new InvalidOperationException("StorageProvider is not available.");
-    public static ILauncher Launcher =>
-        _topLevelImpl?.TryGetFeature<ILauncher>() ?? throw new InvalidOperationException("Launcher is not available.");
+
+    public static ILauncher Launcher => BetterBclLauncher.Shared;
+
     public static IScreenImpl ScreenImpl =>
         _topLevelImpl?.TryGetFeature<IScreenImpl>() ?? throw new InvalidOperationException("ScreenImpl is not available.");
 
