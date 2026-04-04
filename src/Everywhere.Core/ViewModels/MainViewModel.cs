@@ -181,7 +181,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
     [RelayCommand]
     public void NavigateTo(object route)
     {
-        var item = FindNavigationBarItem(_itemsSource.Items, i => i.Route == route || i.Children.Any(c => c.Route == route));
+        var item = FindNavigationBarItem(_itemsSource.Items, i => i.Route == route);
         SelectedItem = item ?? new NavigationBarItem(route); // This allows navigating to a route that is not in the navigation bar
     }
 

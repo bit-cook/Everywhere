@@ -24,7 +24,7 @@ namespace Everywhere;
 
 public class App : Application, IRecipient<ApplicationCommand>
 {
-    public static string Version => typeof(TransientWindow).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+    public static string Version => typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
 
     public static IClipboard Clipboard =>
         _topLevelImpl?.TryGetFeature<IClipboard>() ?? throw new InvalidOperationException("Clipboard is not available.");

@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using ShadUI;
 
 namespace Everywhere.Views;
@@ -12,8 +11,7 @@ public partial class SoftwareUpdateControl(
     Settings settings,
     ISoftwareUpdater softwareUpdater,
     ToastManager toastManager,
-    IServiceProvider serviceProvider,
-    ILogger<SoftwareUpdateControl> logger
+    IServiceProvider serviceProvider
 ) : TemplatedControl
 {
     public Settings Settings { get; } = settings;
@@ -30,7 +28,7 @@ public partial class SoftwareUpdateControl(
     }
 
     [RelayCommand]
-    private async Task UpdateOrCheckAsync()
+    private async Task UpdateOrCheckAsync(CancellationToken cancellationToken)
     {
         UpdateOrCheckTitle = new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_CheckingUpdateTitle_Text);
         if (SoftwareUpdater.LatestVersion is not null)
@@ -41,12 +39,10 @@ public partial class SoftwareUpdateControl(
         
         try
         {
-            await SoftwareUpdater.CheckForUpdatesAsync();
+            await SoftwareUpdater.CheckForUpdatesAsync(true, cancellationToken);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to check for updates.");
-
             ex = new HandledException(ex, new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_Toast_CheckForUpdatesFailed_Content));
             toastManager
                 .CreateToast(LocaleResolver.Common_Error)

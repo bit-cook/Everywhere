@@ -52,11 +52,11 @@ public sealed partial class SoftwareUpdater(
                 // Clean up old update packages on startup.
                 await CleanupOldUpdatesAsync();
 
-                await CheckForUpdatesAsync(cancellationToken); // check immediately on start
+                await CheckForUpdatesAsync(false, cancellationToken); // check immediately on start
 
                 while (await _timer.WaitForNextTickAsync(cancellationToken))
                 {
-                    await CheckForUpdatesAsync(cancellationToken);
+                    await CheckForUpdatesAsync(false, cancellationToken);
                 }
             },
             cancellationToken);
@@ -68,7 +68,7 @@ public sealed partial class SoftwareUpdater(
 #endif
     }
 
-    public async Task CheckForUpdatesAsync(CancellationToken cancellationToken = default)
+    public async Task CheckForUpdatesAsync(bool throwOnError, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -92,11 +92,9 @@ public sealed partial class SoftwareUpdater(
             }
 
             var assets = root.GetProperty("assets").Deserialize(UpdateAssetMetadataJsonSerializerContext.Default.ListUpdateAssetMetadata);
-
             if (assets is null) return;
 
             var assetMetadata = platformHandler.SelectAsset(assets, versionString);
-
             if (assetMetadata is not null)
             {
                 _latestAsset = new Asset(
@@ -122,9 +120,13 @@ public sealed partial class SoftwareUpdater(
         {
             logger.LogInformation(ex, "Failed to check for updates.");
             LatestVersion = null;
-        }
 
-        LastCheckTime = DateTimeOffset.UtcNow;
+            if (throwOnError) throw;
+        }
+        finally
+        {
+            LastCheckTime = DateTimeOffset.UtcNow;
+        }
     }
 
     public async Task PerformUpdateAsync(IProgress<double> progress, CancellationToken cancellationToken = default)

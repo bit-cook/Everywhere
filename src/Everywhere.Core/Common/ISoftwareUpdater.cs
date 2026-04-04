@@ -24,9 +24,10 @@ public interface ISoftwareUpdater : INotifyPropertyChanged
     /// <summary>
     /// Manually checks for updates asynchronously.
     /// </summary>
+    /// <param name="throwOnError"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task CheckForUpdatesAsync(CancellationToken cancellationToken = default);
+    Task CheckForUpdatesAsync(bool throwOnError, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Performs the update process.

@@ -165,15 +165,16 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
         try
         {
             var progress = new Progress<double>();
+            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             ToastManager
                 .CreateToast(LocaleResolver.Common_Info)
                 .WithContent(LocaleResolver.CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate)
                 .WithProgress(progress)
-                .WithCancellationTokenSource(CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                .WithCancellationTokenSource(cancellationTokenSource)
                 .WithDelay(0d)
                 .OnBottomRight()
                 .ShowInfo();
-            await SoftwareUpdater.PerformUpdateAsync(progress, cancellationToken);
+            await SoftwareUpdater.PerformUpdateAsync(progress, cancellationTokenSource.Token);
         }
         catch (Exception ex)
         {
