@@ -81,23 +81,21 @@ public class ConditionalContentControl : ContentControl
         set => SetValue(ContentDataBindingProperty, value);
     }
 
-    public ConditionalContentControl()
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
-        ConditionProperty.Changed.AddClassHandler<ConditionalContentControl>(HandleConditionChanged);
-        TrueContentProperty.Changed.AddClassHandler<ConditionalContentControl>(HandleContentChanged);
-        FalseContentProperty.Changed.AddClassHandler<ConditionalContentControl>(HandleContentChanged);
-        NullContentProperty.Changed.AddClassHandler<ConditionalContentControl>(HandleContentChanged);
-        ContentDataBindingProperty.Changed.AddClassHandler<ConditionalContentControl>(HandleContentDataContextChanged);
-    }
+        base.OnPropertyChanged(change);
 
-    private void HandleConditionChanged(ConditionalContentControl sender, AvaloniaPropertyChangedEventArgs e)
-    {
-        UpdateContent();
-    }
-
-    private void HandleContentChanged(ConditionalContentControl sender, AvaloniaPropertyChangedEventArgs e)
-    {
-        UpdateContent();
+        if (change.Property == ConditionProperty ||
+            change.Property == TrueContentProperty ||
+            change.Property == FalseContentProperty ||
+            change.Property == NullContentProperty)
+        {
+            UpdateContent();
+        }
+        else if (change.Property == ContentDataBindingProperty)
+        {
+            if (Content is Control control) control.DataContext = change.NewValue ?? DataContext;
+        }
     }
 
     private void UpdateContent()
@@ -111,10 +109,5 @@ public class ConditionalContentControl : ContentControl
         var control = content?.Build(this)?.Result;
         control?.DataContext = ContentDataBinding ?? DataContext;
         Content = control;
-    }
-
-    private void HandleContentDataContextChanged(ConditionalContentControl sender, AvaloniaPropertyChangedEventArgs e)
-    {
-        if (Content is Control control) control.DataContext = e.NewValue ?? sender.DataContext;
     }
 }
