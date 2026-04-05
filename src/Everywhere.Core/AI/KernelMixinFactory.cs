@@ -9,21 +9,14 @@ namespace Everywhere.AI;
 /// </summary>
 public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILoggerFactory loggerFactory) : IKernelMixinFactory
 {
-    private readonly Lock _syncLock = new();
-
-    private HttpClient? _cachedHttpClient;
-    private KernelMixin? _cachedKernelMixin;
-
     /// <summary>
-    /// Gets an existing <see cref="KernelMixin"/> instance from the cache or creates a new one.
+    /// Creates a new instance of <see cref="KernelMixin"/>.
     /// </summary>
     /// <param name="customAssistant">The custom assistant configuration to use for creating the kernel mixin.</param>
-    /// <returns>A cached or new instance of <see cref="KernelMixin"/>.</returns>
+    /// <returns>A new instance of <see cref="KernelMixin"/>.</returns>
     /// <exception cref="HandledChatException">Thrown if the model provider or definition is not found or not supported.</exception>
-    public KernelMixin GetOrCreate(CustomAssistant customAssistant)
+    public KernelMixin Create(CustomAssistant customAssistant)
     {
-        using var lockScope = _syncLock.EnterScope();
-
         if (customAssistant.ModelId.IsNullOrWhiteSpace())
         {
             throw new HandledChatException(
@@ -31,27 +24,14 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
                 HandledChatExceptionType.InvalidConfiguration);
         }
 
-        var (connection, httpClient) = ResolveConnection(customAssistant);
-
-        if (_cachedKernelMixin is not null &&
-            _cachedKernelMixin.Connection == connection &&
-            _cachedKernelMixin.ModelId == customAssistant.ModelId &&
-            _cachedKernelMixin.RequestTimeoutSeconds == customAssistant.RequestTimeoutSeconds.ActualValue)
+        var connection = ResolveConnection(customAssistant);
+        return connection.Schema switch
         {
-            return _cachedKernelMixin;
-        }
-
-        _cachedHttpClient?.Dispose();
-        _cachedKernelMixin?.Dispose();
-        _cachedHttpClient = httpClient;
-
-        return _cachedKernelMixin = connection.Schema switch
-        {
-            ModelProviderSchema.OpenAI => new OpenAIKernelMixin(customAssistant, connection, httpClient, loggerFactory),
-            ModelProviderSchema.OpenAIResponses => new OpenAIResponsesKernelMixin(customAssistant, connection, httpClient, loggerFactory),
-            ModelProviderSchema.Anthropic => new AnthropicKernelMixin(customAssistant, connection, httpClient),
-            ModelProviderSchema.Google => new GoogleKernelMixin(customAssistant, connection, httpClient, loggerFactory),
-            ModelProviderSchema.Ollama => new OllamaKernelMixin(customAssistant, connection, httpClient),
+            ModelProviderSchema.OpenAI => new OpenAIKernelMixin(customAssistant, connection, loggerFactory),
+            ModelProviderSchema.OpenAIResponses => new OpenAIResponsesKernelMixin(customAssistant, connection, loggerFactory),
+            ModelProviderSchema.Anthropic => new AnthropicKernelMixin(customAssistant, connection),
+            ModelProviderSchema.Google => new GoogleKernelMixin(customAssistant, connection, loggerFactory),
+            ModelProviderSchema.Ollama => new OllamaKernelMixin(customAssistant, connection),
             _ => throw new HandledChatException(
                 new NotSupportedException($"Model provider schema '{connection.Schema}' is not supported."),
                 HandledChatExceptionType.InvalidConfiguration,
@@ -65,7 +45,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
     /// and the API key is null (OAuth is handled by the named HttpClient).
     /// For user-configured modes, endpoint/apiKey are read from the assistant configuration.
     /// </summary>
-    private (ModelConnection Connection, HttpClient HttpClient) ResolveConnection(CustomAssistant customAssistant)
+    private ModelConnection ResolveConnection(CustomAssistant customAssistant)
     {
         return customAssistant.Schema is ModelProviderSchema.Official ?
             ResolveOfficialConnection(customAssistant) :
@@ -76,7 +56,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
     /// Resolves connection for Official (cloud gateway) mode.
     /// The actual provider schema is inferred from the model ID prefix (e.g. "openai/gpt-4o" → OpenAIResponses).
     /// </summary>
-    private (ModelConnection Connection, HttpClient HttpClient) ResolveOfficialConnection(CustomAssistant customAssistant)
+    private ModelConnection ResolveOfficialConnection(CustomAssistant customAssistant)
     {
         var schema = InferSchemaFromModelId(customAssistant.ModelId);
 
@@ -88,16 +68,14 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
         // Official mode uses OAuth via the named HttpClient — no user API key needed.
         // Some SDKs require a non-null credential, so we pass null and let each mixin handle it
         // (e.g. OpenAIKernelMixin uses NoneAuthenticationPolicy, others use "official" placeholder).
-        var connection = new ModelConnection(schema, endpoint, ApiKey: null, null);
         var httpClient = httpClientFactory.CreateClient(nameof(ICloudClient));
-
-        return (connection, httpClient);
+        return new ModelConnection(schema, endpoint, ApiKey: null, httpClient, null);
     }
 
     /// <summary>
     /// Resolves connection for user-configured (non-Official) modes.
     /// </summary>
-    private (ModelConnection Connection, HttpClient HttpClient) ResolveUserConnection(CustomAssistant customAssistant)
+    private ModelConnection ResolveUserConnection(CustomAssistant customAssistant)
     {
         if (!Uri.TryCreate(customAssistant.Endpoint, UriKind.Absolute, out _))
         {
@@ -112,14 +90,13 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
                 HandledChatExceptionType.InvalidEndpoint);
 
         var apiKey = Configuration.ApiKey.GetKey(customAssistant.ApiKey);
-        var connection = new ModelConnection(customAssistant.Schema, endpoint, apiKey, null);
 
         // Create an HttpClient instance using the factory.
         // It will have the configured settings (timeout and proxy).
         var httpClient = httpClientFactory.CreateClient();
         httpClient.Timeout = TimeSpan.FromSeconds(customAssistant.RequestTimeoutSeconds.ActualValue);
 
-        return (connection, httpClient);
+        return new ModelConnection(customAssistant.Schema, endpoint, apiKey, httpClient, null);
     }
 
     /// <summary>

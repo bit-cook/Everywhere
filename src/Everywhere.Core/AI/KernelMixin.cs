@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Everywhere.Common;
+﻿using Everywhere.Common;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
@@ -29,23 +28,23 @@ public abstract class KernelMixin(CustomAssistant customAssistant, ModelConnecti
 
     public string? Name { get; } = customAssistant.Name;
 
-    public int RequestTimeoutSeconds { get; } = customAssistant.RequestTimeoutSeconds;
+    public bool SupportsReasoning { get; } = customAssistant.SupportsReasoning;
 
-    public bool SupportsReasoning => customAssistant.SupportsReasoning;
+    public bool SupportsToolCall { get; } = customAssistant.SupportsToolCall;
 
-    public bool SupportsToolCall => customAssistant.SupportsToolCall;
+    public Modalities InputModalities { get; } = customAssistant.InputModalities;
 
-    public Modalities InputModalities => customAssistant.InputModalities;
+    public Modalities OutputModalities { get; } = customAssistant.OutputModalities;
 
-    public Modalities OutputModalities => customAssistant.OutputModalities;
+    public int ContextLimit { get; } = customAssistant.ContextLimit;
 
-    public int ContextLimit => customAssistant.ContextLimit;
+    public int OutputLimit { get; } = customAssistant.OutputLimit;
 
-    public int OutputLimit => customAssistant.OutputLimit;
+    public ModelSpecializations Specializations { get; } = customAssistant.Specializations;
 
-    protected double? Temperature => customAssistant.Temperature.IsCustomValueSet ? customAssistant.Temperature.ActualValue : null;
+    protected double? Temperature { get; } = customAssistant.Temperature.IsCustomValueSet ? customAssistant.Temperature.ActualValue : null;
 
-    protected double? TopP => customAssistant.TopP.IsCustomValueSet ? customAssistant.TopP.ActualValue : null;
+    protected double? TopP { get; } = customAssistant.TopP.IsCustomValueSet ? customAssistant.TopP.ActualValue : null;
 
     public abstract IChatCompletionService ChatCompletionService { get; }
 
@@ -123,5 +122,6 @@ public abstract class KernelMixin(CustomAssistant customAssistant, ModelConnecti
     public virtual void Dispose()
     {
         GC.SuppressFinalize(this);
+        Connection.HttpClient.Dispose();
     }
 }

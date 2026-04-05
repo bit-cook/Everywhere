@@ -360,7 +360,7 @@ public sealed partial class ChatService : IChatService
         KernelMixin? kernelMixin = null;
         try
         {
-            kernelMixin = _kernelMixinFactory.GetOrCreate(customAssistant);
+            kernelMixin = _kernelMixinFactory.Create(customAssistant);
             var kernel = await BuildKernelAsync(kernelMixin, chatContext, customAssistant, isSubagent, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -440,6 +440,8 @@ public sealed partial class ChatService : IChatService
 
             assistantChatMessage.FinishedAt = DateTimeOffset.UtcNow;
             assistantChatMessage.IsBusy = false;
+
+            kernelMixin?.Dispose();
         }
     }
 

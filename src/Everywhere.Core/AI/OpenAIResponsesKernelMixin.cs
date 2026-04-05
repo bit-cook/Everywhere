@@ -19,7 +19,6 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
     public OpenAIResponsesKernelMixin(
         CustomAssistant customAssistant,
         ModelConnection connection,
-        HttpClient httpClient,
         ILoggerFactory loggerFactory
     ) : base(customAssistant, connection)
     {
@@ -30,7 +29,7 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
                 new OpenAIClientOptions
                 {
                     Endpoint = new Uri(Endpoint, UriKind.Absolute),
-                    Transport = new HttpClientPipelineTransport(httpClient, true, loggerFactory)
+                    Transport = new HttpClientPipelineTransport(connection.HttpClient, true, loggerFactory)
                 }
             ).AsIChatClient(),
             this

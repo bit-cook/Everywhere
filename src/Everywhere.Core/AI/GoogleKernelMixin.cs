@@ -16,14 +16,13 @@ public sealed class GoogleKernelMixin : KernelMixin
     public GoogleKernelMixin(
         CustomAssistant customAssistant,
         ModelConnection connection,
-        HttpClient httpClient,
         ILoggerFactory loggerFactory
     ) : base(customAssistant, connection)
     {
         var service = new GoogleAIGeminiChatCompletionService(
             ModelId,
             ApiKey ?? "NO_API_KEY",
-            httpClient: httpClient,
+            httpClient: connection.HttpClient,
             loggerFactory: loggerFactory,
             customEndpoint: new Uri(Endpoint, UriKind.Absolute));
 

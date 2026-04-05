@@ -97,7 +97,7 @@ public partial class CustomAssistantPageViewModel(IKernelMixinFactory kernelMixi
         KernelMixin? kernelMixin = null;
         try
         {
-            kernelMixin = kernelMixinFactory.GetOrCreate(customAssistant);
+            kernelMixin = kernelMixinFactory.Create(customAssistant);
             await kernelMixin.CheckConnectivityAsync(cancellationToken);
             ToastManager
                 .CreateToast(LocaleResolver.CustomAssistantPageViewModel_CheckConnectivity_SuccessToast_Title)
@@ -117,6 +117,10 @@ public partial class CustomAssistantPageViewModel(IKernelMixinFactory kernelMixi
                 .WithContent(ex.GetFriendlyMessage().ToTextBlock())
                 .DismissOnClick()
                 .ShowError();
+        }
+        finally
+        {
+            kernelMixin?.Dispose();
         }
     }
 

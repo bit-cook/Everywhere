@@ -26,7 +26,6 @@ public class OpenAIKernelMixin : KernelMixin
     public OpenAIKernelMixin(
         CustomAssistant customAssistant,
         ModelConnection connection,
-        HttpClient httpClient,
         ILoggerFactory loggerFactory
     ) : base(customAssistant, connection)
     {
@@ -42,7 +41,7 @@ public class OpenAIKernelMixin : KernelMixin
                 new OpenAIClientOptions
                 {
                     Endpoint = new Uri(Endpoint, UriKind.Absolute),
-                    Transport = new HttpClientPipelineTransport(httpClient, true, loggerFactory)
+                    Transport = new HttpClientPipelineTransport(connection.HttpClient, true, loggerFactory)
                 }
             ).AsIChatClient(),
             this

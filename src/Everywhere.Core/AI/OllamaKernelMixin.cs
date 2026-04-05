@@ -17,12 +17,11 @@ public sealed class OllamaKernelMixin : KernelMixin
     /// </summary>
     public OllamaKernelMixin(
         CustomAssistant customAssistant,
-        ModelConnection connection,
-        HttpClient httpClient
+        ModelConnection connection
     ) : base(customAssistant, connection)
     {
-        httpClient.BaseAddress = new Uri(Endpoint, UriKind.Absolute);
-        _client = new OllamaApiClient(httpClient, ModelId);
+        connection.HttpClient.BaseAddress = new Uri(Endpoint, UriKind.Absolute);
+        _client = new OllamaApiClient(connection.HttpClient, ModelId);
         ChatCompletionService = _client.AsChatCompletionService();
     }
 

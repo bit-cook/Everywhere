@@ -18,13 +18,13 @@ public sealed class AnthropicKernelMixin : KernelMixin
     /// <summary>
     /// Initializes a new instance of the <see cref="AnthropicKernelMixin"/> class.
     /// </summary>
-    public AnthropicKernelMixin(CustomAssistant customAssistant, ModelConnection connection, HttpClient httpClient) : base(customAssistant, connection)
+    public AnthropicKernelMixin(CustomAssistant customAssistant, ModelConnection connection) : base(customAssistant, connection)
     {
         var anthropicClient = new AnthropicClient(
             new ClientOptions
             {
                 ApiKey = ApiKey,
-                HttpClient = httpClient,
+                HttpClient = connection.HttpClient,
                 BaseUrl = Endpoint,
                 Timeout = TimeSpan.FromSeconds(customAssistant.RequestTimeoutSeconds)
             }).AsIChatClient();

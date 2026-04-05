@@ -15,4 +15,5 @@ public readonly record struct ModelConnection(
     ModelProviderSchema Schema,
     string Endpoint,
     string? ApiKey,
+    HttpClient HttpClient,
     Func<Exception, Exception>? ChatExceptionTransformer);

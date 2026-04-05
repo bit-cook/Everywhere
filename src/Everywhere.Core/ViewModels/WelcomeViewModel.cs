@@ -218,7 +218,7 @@ public sealed partial class WelcomeViewModelAssistantStep(WelcomeViewModel viewM
                 KernelMixin? kernelMixin = null;
                 try
                 {
-                    kernelMixin = _kernelMixinFactory.GetOrCreate(ViewModel.Assistant);
+                    kernelMixin = _kernelMixinFactory.Create(ViewModel.Assistant);
                     await kernelMixin.CheckConnectivityAsync(cancellationToken);
                     StrongReferenceMessenger.Default.Send(new ShowConfettiEffectMessage());
                     ViewModel.IsConnectivityChecked = true;
@@ -232,6 +232,10 @@ public sealed partial class WelcomeViewModelAssistantStep(WelcomeViewModel viewM
                         .WithContent(ex.GetFriendlyMessage().ToTextBlock())
                         .DismissOnClick()
                         .ShowError();
+                }
+                finally
+                {
+                    kernelMixin?.Dispose();
                 }
             },
             cancellationToken: CancellationTokenSource.Token);
