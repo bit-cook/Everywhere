@@ -85,18 +85,6 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Sohbet penceresini istediğiniz zaman çağırmak için bir kısayol ayarlayın.</value>
     </data>
-    <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
-        <value>Yaratıcılık (sıcaklık)</value>
-    </data>
-    <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
-        <value>Daha yüksek değerler daha hayal gücü yüksek, yaratıcı yanıtlar üretir; daha düşük değerler ise daha tutarlı ve ölçülü sonuçlar verir. 1.0 üzerindeki sıcaklıklar bazı modellerde bozuk çıktılara yol açabilir.</value>
-    </data>
-    <data name="CustomAssistant_TopP_Header" xml:space="preserve">
-        <value>Düşünce Açıklığı (top_p)</value>
-    </data>
-    <data name="CustomAssistant_TopP_Description" xml:space="preserve">
-        <value>Daha yüksek değerler daha geniş bir yanıt yelpazesine izin verir; daha düşük değerler en olası cevapları tercih eder; bu ayarı sıcaklıkla birlikte değiştirmek önerilmez. Bu ayar yalnızca bazı modeller için etkilidir. Bir hata ile karşılaşırsanız, varsayılan değeri geri yüklemeyi deneyin.</value>
-    </data>
     <data name="WebSearchEngineProvider_Description" xml:space="preserve">
         <value>Web arama motorları için servis sağlayıcısını seçin.</value>
     </data>

@@ -95,16 +95,16 @@
         <value>设置一个快捷键，在任何时候按下即可唤出聊天窗口。</value>
     </data>
     <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
-        <value>创意活跃度 (temperature)</value>
+        <value>temperature (“创意活跃度”)</value>
     </data>
     <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
-        <value>数值越高，回答越具创造力和想象力；数值越低，则越趋严谨；部分模型数值超过 1.0 可能导致输出乱码。</value>
+        <value>通常情况下，数值越高，回答越具创造力和想象力，数值越低，则越趋严谨。部分模型数值超过 1.0 可能导致输出乱码。通常建议不要同时更改 top_p。如果遇到错误，请尝试还原默认值。</value>
     </data>
     <data name="CustomAssistant_TopP_Header" xml:space="preserve">
-        <value>思维开放度 (top_p)</value>
+        <value>top_p (“思维开放度”)</value>
     </data>
     <data name="CustomAssistant_TopP_Description" xml:space="preserve">
-        <value>数值越高，模型会接受更多潜在回答；数值越低，则更倾向于最可能的回答；不建议与创意活跃度同时调整。此设置仅对部分模型有效，如果遇到错误，请尝试还原默认值。</value>
+        <value>用于控制模型输出文本的多样性。通常情况下，数值越高，模型会接受更多潜在回答，数值越低，则更倾向于最可能的回答。通常建议不要同时更改 temperature。如果遇到错误，请尝试还原默认值。</value>
     </data>
     <data name="WebSearchEngineProvider_Description" xml:space="preserve">
         <value>选择用于网络搜索引擎的服务提供商。</value>

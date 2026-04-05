@@ -85,18 +85,6 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>設定快捷鍵以隨時調出聊天視窗。</value>
     </data>
-    <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
-        <value>創意度（temperature）</value>
-    </data>
-    <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
-        <value>較高的值會產生更具想像力和創意的回應；較低的值則會產生更精確和保守的輸出；注意，某些模型在溫度超過 1.0 時可能會產生亂碼。</value>
-    </data>
-    <data name="CustomAssistant_TopP_Header" xml:space="preserve">
-        <value>思維開放度（top_p）</value>
-    </data>
-    <data name="CustomAssistant_TopP_Description" xml:space="preserve">
-        <value>較高的值允許更廣泛的可能回應範圍；較低的值則偏向最可能的答案；不建議與溫度同時修改。此設定僅對某些模型有效。如果遇到錯誤，請嘗試恢復預設值。</value>
-    </data>
     <data name="WebSearchEngineProvider_Description" xml:space="preserve">
         <value>選擇網頁搜尋引擎的服務提供者。</value>
     </data>

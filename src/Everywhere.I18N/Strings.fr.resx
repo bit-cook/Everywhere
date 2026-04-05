@@ -85,18 +85,6 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Définissez un raccourci pour invoquer la fenêtre de chat à tout moment.</value>
     </data>
-    <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
-        <value>Créativité (température)</value>
-    </data>
-    <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
-        <value>Des valeurs plus élevées produisent des réponses plus imaginatives et créatives ; des valeurs plus basses produisent des résultats plus précis et conservateurs ; notez que des températures supérieures à 1.0 peuvent entraîner des résultats incohérents dans certains modèles.</value>
-    </data>
-    <data name="CustomAssistant_TopP_Header" xml:space="preserve">
-        <value>Ouverture d'esprit (top_p)</value>
-    </data>
-    <data name="CustomAssistant_TopP_Description" xml:space="preserve">
-        <value>Des valeurs plus élevées permettent une plus grande variété de réponses possibles ; des valeurs plus basses favorisent les réponses les plus probables ; il n'est pas recommandé de modifier cela en même temps que la température. Ce réglage est uniquement efficace pour certains modèles. Si vous rencontrez une erreur, essayez de rétablir la valeur par défaut.</value>
-    </data>
     <data name="WebSearchEngineProvider_Description" xml:space="preserve">
         <value>Sélectionnez le fournisseur de service pour les moteurs de recherche web.</value>
     </data>

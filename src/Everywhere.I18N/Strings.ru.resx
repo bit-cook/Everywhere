@@ -85,18 +85,6 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Установите горячую клавишу для вызова окна чата в любое время.</value>
     </data>
-    <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
-        <value>Креативность (temperature)</value>
-    </data>
-    <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
-        <value>Более высокие значения дают более воображаемые, креативные ответы; более низкие значения обеспечивают более точные, консервативные результаты; обратите внимание, что температуры выше 1.0 могут привести к искаженному выводу в некоторых моделях.</value>
-    </data>
-    <data name="CustomAssistant_TopP_Header" xml:space="preserve">
-        <value>Открытость мышления (top_p)</value>
-    </data>
-    <data name="CustomAssistant_TopP_Description" xml:space="preserve">
-        <value>Более высокие значения позволяют более широкий диапазон возможных ответов; более низкие значения отдают предпочтение наиболее вероятным ответам; не рекомендуется изменять это вместе с температурой. Эта настройка эффективна только для некоторых моделей. Если вы столкнулись с ошибкой, попробуйте восстановить значение по умолчанию.</value>
-    </data>
     <data name="WebSearchEngineProvider_Description" xml:space="preserve">
         <value>Выберите поставщика услуг для поисковых систем.</value>
     </data>

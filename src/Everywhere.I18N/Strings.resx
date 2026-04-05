@@ -95,16 +95,16 @@
         <value>Set a shortcut to invoke the chat window at any time.</value>
     </data>
     <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
-        <value>Creativity (temperature)</value>
+        <value />
     </data>
     <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
-        <value>Higher values yield more imaginative, creative responses; lower values produce more precise, conservative outputs; note that temperatures above 1.0 may cause garbled output in some models.</value>
+        <value />
     </data>
     <data name="CustomAssistant_TopP_Header" xml:space="preserve">
-        <value>Thought Openness (top_p)</value>
+        <value />
     </data>
     <data name="CustomAssistant_TopP_Description" xml:space="preserve">
-        <value>Higher values allow a wider range of possible responses; lower values favor the most probable answers; it’s not recommended to modify this alongside the temperature. This setting is only effective for some models. If you encounter an error, try restoring the default value.</value>
+        <value />
     </data>
     <data name="WebSearchEngineProvider_Description" xml:space="preserve">
         <value>Select the service provider for web search engines.</value>

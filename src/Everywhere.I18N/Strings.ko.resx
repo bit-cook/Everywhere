@@ -85,18 +85,6 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>언제든지 채팅 창을 호출할 수 있는 단축키를 설정합니다.</value>
     </data>
-    <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
-        <value>창의성 (temperature)</value>
-    </data>
-    <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
-        <value>높은 값은 더 상상력 있고 창의적인 응답을 생성하며, 낮은 값은 더 정확하고 보수적인 출력을 생성합니다. 1.0 이상의 온도는 일부 모델에서 의미 없는 출력을 초래할 수 있습니다.</value>
-    </data>
-    <data name="CustomAssistant_TopP_Header" xml:space="preserve">
-        <value>사고 개방성 (top_p)</value>
-    </data>
-    <data name="CustomAssistant_TopP_Description" xml:space="preserve">
-        <value>높은 값은 더 다양한 응답을 허용하고, 낮은 값은 가장 가능성이 높은 답변을 선호합니다. 온도와 함께 이 설정을 수정하는 것은 권장되지 않습니다. 이 설정은 일부 모델에서만 효과적입니다. 오류가 발생하면 기본값으로 복원해 보세요.</value>
-    </data>
     <data name="WebSearchEngineProvider_Description" xml:space="preserve">
         <value>웹 검색 엔진의 서비스 제공자를 선택하세요.</value>
     </data>
