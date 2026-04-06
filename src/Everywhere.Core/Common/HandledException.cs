@@ -708,7 +708,8 @@ public enum HandledChatExceptionType
 public class HandledChatException(
     Exception originalException,
     HandledChatExceptionType type,
-    DynamicResourceKey? customFriendlyMessageKey = null
+    DynamicResourceKey? customFriendlyMessageKey = null,
+    string? detailedMessage = null
 ) : HandledException(originalException)
 {
     /// <summary>
@@ -717,34 +718,52 @@ public class HandledChatException(
     /// </summary>
     public override bool IsExpected => ExceptionType != HandledChatExceptionType.Unknown;
 
-    public override IDynamicResourceKey FriendlyMessageKey { get; } = new AggregateDynamicResourceKey(
-        [
-            customFriendlyMessageKey ?? new DynamicResourceKey(
-                type switch
-                {
-                    HandledChatExceptionType.InvalidConfiguration => LocaleKey.HandledChatException_InvalidConfiguration,
-                    HandledChatExceptionType.InvalidApiKey => LocaleKey.HandledChatException_InvalidApiKey,
-                    HandledChatExceptionType.ContextLengthExceeded => LocaleKey.HandledChatException_ContextLengthExceeded,
-                    HandledChatExceptionType.QuotaExceeded => LocaleKey.HandledChatException_QuotaExceeded,
-                    HandledChatExceptionType.RateLimit => LocaleKey.HandledChatException_RateLimit,
-                    HandledChatExceptionType.EndpointNotReachable => LocaleKey.HandledChatException_EndpointNotReachable,
-                    HandledChatExceptionType.InvalidEndpoint => LocaleKey.HandledChatException_InvalidEndpoint,
-                    HandledChatExceptionType.EmptyResponse => LocaleKey.HandledChatException_EmptyResponse,
-                    HandledChatExceptionType.FeatureNotSupport => LocaleKey.HandledChatException_FeatureNotSupport,
-                    HandledChatExceptionType.ImageNotSupport => LocaleKey.HandledChatException_ImageNotSupport,
-                    HandledChatExceptionType.RegionNotSupport => LocaleKey.HandledChatException_RegionNotSupport,
-                    HandledChatExceptionType.Timeout => LocaleKey.HandledChatException_Timeout,
-                    HandledChatExceptionType.NetworkError => LocaleKey.HandledChatException_NetworkError,
-                    HandledChatExceptionType.ServiceUnavailable => LocaleKey.HandledChatException_ServiceUnavailable,
-                    HandledChatExceptionType.OperationCanceled => LocaleKey.HandledChatException_OperationCanceled,
-                    HandledChatExceptionType.SSLConnectionError => LocaleKey.HandledSystemException_SSLConnectionError,
-                    HandledChatExceptionType.ConnectionRefused => LocaleKey.HandledSystemException_ConnectionRefused,
-                    HandledChatExceptionType.HostNotFound => LocaleKey.HandledSystemException_HostNotFound,
-                    _ => LocaleKey.HandledChatException_Unknown,
-                }),
-            new DirectResourceKey(originalException.Message.Trim())
-        ],
-        "\n");
+    public override IDynamicResourceKey FriendlyMessageKey
+    {
+        get
+        {
+            if (field is not null) return field;
+
+            var parts = new List<IDynamicResourceKey>
+            {
+                customFriendlyMessageKey ?? new DynamicResourceKey(
+                    ExceptionType switch
+                    {
+                        HandledChatExceptionType.InvalidConfiguration => LocaleKey.HandledChatException_InvalidConfiguration,
+                        HandledChatExceptionType.InvalidApiKey => LocaleKey.HandledChatException_InvalidApiKey,
+                        HandledChatExceptionType.ContextLengthExceeded => LocaleKey.HandledChatException_ContextLengthExceeded,
+                        HandledChatExceptionType.QuotaExceeded => LocaleKey.HandledChatException_QuotaExceeded,
+                        HandledChatExceptionType.RateLimit => LocaleKey.HandledChatException_RateLimit,
+                        HandledChatExceptionType.EndpointNotReachable => LocaleKey.HandledChatException_EndpointNotReachable,
+                        HandledChatExceptionType.InvalidEndpoint => LocaleKey.HandledChatException_InvalidEndpoint,
+                        HandledChatExceptionType.EmptyResponse => LocaleKey.HandledChatException_EmptyResponse,
+                        HandledChatExceptionType.FeatureNotSupport => LocaleKey.HandledChatException_FeatureNotSupport,
+                        HandledChatExceptionType.ImageNotSupport => LocaleKey.HandledChatException_ImageNotSupport,
+                        HandledChatExceptionType.RegionNotSupport => LocaleKey.HandledChatException_RegionNotSupport,
+                        HandledChatExceptionType.Timeout => LocaleKey.HandledChatException_Timeout,
+                        HandledChatExceptionType.NetworkError => LocaleKey.HandledChatException_NetworkError,
+                        HandledChatExceptionType.ServiceUnavailable => LocaleKey.HandledChatException_ServiceUnavailable,
+                        HandledChatExceptionType.OperationCanceled => LocaleKey.HandledChatException_OperationCanceled,
+                        HandledChatExceptionType.SSLConnectionError => LocaleKey.HandledSystemException_SSLConnectionError,
+                        HandledChatExceptionType.ConnectionRefused => LocaleKey.HandledSystemException_ConnectionRefused,
+                        HandledChatExceptionType.HostNotFound => LocaleKey.HandledSystemException_HostNotFound,
+                        _ => LocaleKey.HandledChatException_Unknown,
+                    })
+            };
+
+            if (Message.Trim() is { Length: > 0 } trimmedMessage)
+            {
+                parts.Add(new DirectResourceKey(trimmedMessage));
+            }
+
+            if (detailedMessage?.Trim() is { Length: > 0 } trimmedDetailedMessage)
+            {
+                parts.Add(new DirectResourceKey(trimmedDetailedMessage));
+            }
+
+            return field = new AggregateDynamicResourceKey(parts, "\n");
+        }
+    }
 
     /// <summary>
     /// Gets the categorized type of the exception.
@@ -803,7 +822,8 @@ public class HandledChatException(
 
         return new HandledChatException(
             originalException: exception,
-            type: context.ExceptionType ?? HandledChatExceptionType.Unknown)
+            type: context.ExceptionType ?? HandledChatExceptionType.Unknown,
+            detailedMessage: context.DetailedMessage)
         {
             StatusCode = context.StatusCode,
             SocketError = context.SocketError,
@@ -817,6 +837,7 @@ public class HandledChatException(
         public HandledChatExceptionType? ExceptionType { get; set; }
         public HttpStatusCode? StatusCode { get; set; }
         public SocketError? SocketError { get; set; }
+        public string? DetailedMessage { get; set; }
     }
 
     private readonly struct ParserChain<T1, T2> : IExceptionParser
@@ -1007,6 +1028,7 @@ public class HandledChatException(
             }
 
             context.StatusCode = httpOperation.StatusCode;
+            context.DetailedMessage = httpOperation.ResponseContent;
             context.ExceptionType = IExceptionParser.ParseMessage(httpOperation.ResponseContent);
             return true;
         }
