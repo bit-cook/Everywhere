@@ -321,7 +321,7 @@ public class ObjectObserver(ObjectObserverChangedEventHandler handler) : IDispos
                     {
                         var keyString = key.ToString()!;
                         ObserveObject(keyString, null); // Stop observing
-                        _observer._handler.Invoke(new ObjectObserverChangedEventArgs(_basePath + keyString, null)); // Notify removal
+                        _observer._handler.Invoke(new ObjectObserverChangedEventArgs(_basePath.TrimEnd(':'), dictionary)); // Notify removal
                     }
                 }
             }

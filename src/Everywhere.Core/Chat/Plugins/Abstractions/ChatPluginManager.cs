@@ -57,10 +57,10 @@ public class ChatPluginManager : IChatPluginManager
         // Apply the enabled state from settings.
         var isEnabledRecords = settings.Plugin.IsEnabledRecords;
         var isPermissionGrantedRecords = settings.Plugin.IsPermissionGrantedRecords;
-        // var pluginKeys = new HashSet<string>();
+        var pluginKeys = new HashSet<string>();
         foreach (var plugin in _builtInPluginsSource.Items.AsValueEnumerable().OfType<ChatPlugin>().Concat(_mcpPluginsSource.Items))
         {
-            // pluginKeys.Add(plugin.Key);
+            pluginKeys.Add(plugin.Key);
             plugin.IsEnabled = GetIsEnabled(plugin.Key, plugin is BuiltInChatPlugin { IsDefaultEnabled: true });
             foreach (var function in plugin.Functions)
             {
@@ -71,14 +71,20 @@ public class ChatPluginManager : IChatPluginManager
         }
 
         // Remove any records in settings that do not correspond to any existing plugin.
-        // TODO: This is useless because settings allows arbitrary keys and values. We need to refactor JsonConfiguration to support this
-        // foreach (var key in isEnabledRecords.Keys.AsValueEnumerable().ToList())
-        // {
-        //     if (pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal)))
-        //     {
-        //         isEnabledRecords.Remove(key);
-        //     }
-        // }
+        foreach (var key in isEnabledRecords.Keys.AsValueEnumerable().ToList())
+        {
+            if (pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal)))
+            {
+                isEnabledRecords.Remove(key);
+            }
+        }
+        foreach (var key in isPermissionGrantedRecords.Keys.AsValueEnumerable().ToList())
+        {
+            if (pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal)))
+            {
+                isPermissionGrantedRecords.Remove(key);
+            }
+        }
 
         BuiltInPlugins = _builtInPluginsSource
             .Connect()
@@ -118,20 +124,6 @@ public class ChatPluginManager : IChatPluginManager
         // Handle changes to plugins and update settings accordingly.
         void HandleChatPluginChanged<TPlugin>(IReadOnlyList<TPlugin> plugins, in ObjectObserverChangedEventArgs e) where TPlugin : ChatPlugin
         {
-            ObservableDictionary<string, bool> records;
-            if (e.Path.EndsWith(nameof(ChatFunction.IsEnabled), StringComparison.Ordinal))
-            {
-                records = isEnabledRecords;
-            }
-            else if (e.Path.EndsWith(nameof(ChatFunction.AutoApprove), StringComparison.Ordinal))
-            {
-                records = isPermissionGrantedRecords;
-            }
-            else
-            {
-                return;
-            }
-
             var parts = e.Path.Split(':');
             if (parts.Length < 2 || !int.TryParse(parts[0], out var pluginIndex) || pluginIndex < 0 || pluginIndex >= plugins.Count)
             {
@@ -140,6 +132,23 @@ public class ChatPluginManager : IChatPluginManager
 
             var plugin = plugins[pluginIndex];
             var value = e.Value is true;
+
+            ObservableDictionary<string, bool> records;
+            bool? defaultValue;
+            if (e.Path.EndsWith(nameof(ChatFunction.IsEnabled), StringComparison.Ordinal))
+            {
+                records = isEnabledRecords;
+                defaultValue = parts.Length != 2 || plugin is BuiltInChatPlugin { IsDefaultEnabled: true };
+            }
+            else if (e.Path.EndsWith(nameof(ChatFunction.AutoApprove), StringComparison.Ordinal))
+            {
+                records = isPermissionGrantedRecords;
+                defaultValue = null;
+            }
+            else
+            {
+                return;
+            }
 
             string key;
             switch (parts.Length)
@@ -164,7 +173,8 @@ public class ChatPluginManager : IChatPluginManager
                 }
             }
 
-            records[key] = value;
+            if (value == defaultValue) records.Remove(key);
+            else records[key] = value;
         }
     }
 
