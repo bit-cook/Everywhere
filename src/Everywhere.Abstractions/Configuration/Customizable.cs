@@ -46,7 +46,7 @@ public partial class Customizable<T> : ObservableObject where T : notnull
     }
 
     [JsonIgnore]
-    public bool IsCustomValueSet => CustomValue is not null && !EqualityComparer<T>.Default.Equals((T)CustomValue, DefaultValue);
+    public bool IsCustomValueSet => CustomValue is T;
 
     [JsonIgnore]
     public T ActualValue => CustomValue is T value ? value : DefaultValue;

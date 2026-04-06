@@ -35,9 +35,9 @@ public abstract class KernelMixin(Assistant assistant, ModelConnection connectio
 
     public ModelSpecializations Specializations { get; } = assistant.Specializations;
 
-    public double? Temperature { get; } = assistant.Temperature;
+    public double? Temperature { get; } = assistant.Temperature.IsCustomValueSet ? assistant.Temperature.ActualValue : null;
 
-    public double? TopP { get; } = assistant.TopP;
+    public double? TopP { get; } = assistant.TopP.IsCustomValueSet ? assistant.TopP.ActualValue : null;
 
     public abstract IChatCompletionService ChatCompletionService { get; }
 
