@@ -462,11 +462,12 @@ internal sealed class GeminiRequest
                                 if (types.Contains("null"))
                                 {
                                     var mainType = types.First(t => t != "null");
-                                    propertyObj["type"] = JsonValue.Create(mainType);
+                                    propertyObj["type"] = typeNode = JsonValue.Create(mainType);
                                     propertyObj["nullable"] = JsonValue.Create(true);
                                 }
                             }
-                            else if (typeNode is JsonValue typeValue && typeValue.GetValue<string>() == "array")
+
+                            if (typeNode is JsonValue typeValue && typeValue.GetValue<string>() == "array")
                             {
                                 if (propertyObj.TryGetPropertyValue("items", out JsonNode? itemsNode) && itemsNode is JsonObject itemsObj)
                                 {
