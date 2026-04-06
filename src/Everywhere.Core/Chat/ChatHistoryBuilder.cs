@@ -104,6 +104,7 @@ public static class ChatHistoryBuilder
 
                             // 2. Yield the assistant message with function call items first
                             yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: metadata);
+                            metadata = new MetadataDictionary(1);
                             items = [];
 
                             // 3. Yield the function call results as separate tool messages
