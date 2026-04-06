@@ -224,7 +224,7 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
             {
                 httpTransportMode = HttpTransportMode.Sse;
             }
-            else if (typePropString?.Equals("streamable-http", StringComparison.OrdinalIgnoreCase) is true)
+            else if (typePropString?.EndsWith("http", StringComparison.OrdinalIgnoreCase) is true)
             {
                 httpTransportMode = HttpTransportMode.StreamableHttp;
             }
