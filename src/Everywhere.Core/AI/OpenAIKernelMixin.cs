@@ -10,7 +10,6 @@ using OpenAI;
 using OpenAI.Chat;
 using ZLinq;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
-using FunctionCallContent = Microsoft.Extensions.AI.FunctionCallContent;
 
 #pragma warning disable SCME0001 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 
@@ -134,56 +133,6 @@ public class OpenAIKernelMixin : KernelMixin
             // cache the value to avoid property changes during enumeration
             await foreach (var update in base.GetStreamingResponseAsync(messagesList, options, cancellationToken))
             {
-                // Why you keep reasoning in the fucking internal properties, OpenAI???
-                // I'm not a thief, let me access the data! 😭😭😭😭
-                if (owner.SupportsReasoning && update is { Text: not { Length: > 0 }, RawRepresentation: StreamingChatCompletionUpdate detail })
-                {
-                    // Get the value of the internal 'Choices' property.
-                    if (GetChoices(detail) is not IEnumerable choices)
-                    {
-                        yield return update;
-                        continue;
-                    }
-
-                    var firstChoice = choices.AsValueEnumerable().FirstOrDefault();
-                    if (firstChoice is null)
-                    {
-                        yield return update;
-                        continue;
-                    }
-
-                    var delta = GetDelta(firstChoice);
-                    if (delta is null)
-                    {
-                        yield return update;
-                        continue;
-                    }
-
-                    // Extract and process the raw data if it exists.
-                    var jsonPatch = GetPatch(delta);
-                    if (!jsonPatch.TryGetValue("$.reasoning_content"u8, out string? reasoningContent) || string.IsNullOrEmpty(reasoningContent))
-                    {
-                        yield return update;
-                        continue;
-                    }
-
-                    update.Contents.Add(new TextReasoningContent(reasoningContent));
-                }
-
-                // Ensure that all FunctionCallContent items have a unique CallId.
-                for (var i = 0; i < update.Contents.Count; i++)
-                {
-                    var item = update.Contents[i];
-                    if (item is FunctionCallContent { Name.Length: > 0, CallId: null or { Length: 0 } } missingIdContent)
-                    {
-                        // Generate a unique ToolCallId for the function call update.
-                        update.Contents[i] = new FunctionCallContent(
-                            Guid.CreateVersion7().ToString("N"),
-                            missingIdContent.Name,
-                            missingIdContent.Arguments);
-                    }
-                }
-
                 yield return update;
             }
         }
@@ -194,22 +143,6 @@ public class OpenAIKernelMixin : KernelMixin
             object? klass,
             IEnumerable<ChatMessage> inputs,
             ChatOptions? chatOptions);
-
-        private const string FuckingInternalChoiceTypeName = "OpenAI.Chat.InternalCreateChatCompletionStreamResponseChoice, OpenAI";
-        private const string FuckingInternalDeltaTypeName = "OpenAI.Chat.InternalChatCompletionStreamResponseDelta, OpenAI";
-        private const string FuckingInternalChoiceListTypeName =
-            $"System.Collections.Generic.IReadOnlyList`1[[{FuckingInternalChoiceTypeName}]], System.Private.CoreLib";
-
-        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_Choices")]
-        [return: UnsafeAccessorType(FuckingInternalChoiceListTypeName)]
-        private extern static object? GetChoices(StreamingChatCompletionUpdate update);
-
-        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "get_Delta")]
-        [return: UnsafeAccessorType(FuckingInternalDeltaTypeName)]
-        private extern static object? GetDelta([UnsafeAccessorType(FuckingInternalChoiceTypeName)] object choice);
-
-        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_patch")]
-        private extern static ref JsonPatch GetPatch([UnsafeAccessorType(FuckingInternalDeltaTypeName)] object delta);
     }
 
     private sealed class NoneAuthenticationPolicy : AuthenticationPolicy

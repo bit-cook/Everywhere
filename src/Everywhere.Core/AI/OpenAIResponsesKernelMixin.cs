@@ -24,14 +24,13 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
     {
         ChatCompletionService = new OptimizedChatClient(
             new ResponsesClient(
-                ModelId,
                 new ApiKeyCredential(ApiKey ?? "NO_API_KEY"),
                 new OpenAIClientOptions
                 {
                     Endpoint = new Uri(Endpoint, UriKind.Absolute),
                     Transport = new HttpClientPipelineTransport(connection.HttpClient, true, loggerFactory)
                 }
-            ).AsIChatClient(),
+            ).AsIChatClient(ModelId),
             this
         ).AsChatCompletionService();
     }

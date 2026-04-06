@@ -2,9 +2,9 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <MicrosoftPackageVersion>10.0.5</MicrosoftPackageVersion>
-    <MEAIVersion>10.3.0</MEAIVersion>
+    <MEAIVersion>10.4.1</MEAIVersion>
     <EntityFrameworkVersion>10.0.0</EntityFrameworkVersion>
-    <SemanticKernelVersion>1.72.0</SemanticKernelVersion>
+    <SemanticKernelVersion>1.74.0</SemanticKernelVersion>
     <OpenTelemetryVersion>1.15.1</OpenTelemetryVersion>
     <SentryVersion>6.3.0</SentryVersion>
     <AvaloniaVersion>11.3.12</AvaloniaVersion>
