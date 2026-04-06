@@ -17,12 +17,12 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
     public override IChatCompletionService ChatCompletionService { get; }
 
     public OpenAIResponsesKernelMixin(
-        CustomAssistant customAssistant,
+        Assistant assistant,
         ModelConnection connection,
         ILoggerFactory loggerFactory
-    ) : base(customAssistant, connection)
+    ) : base(assistant, connection)
     {
-        ChatCompletionService = new OptimizedOpenAIApiClient(
+        ChatCompletionService = new OptimizedChatClient(
             new ResponsesClient(
                 ModelId,
                 new ApiKeyCredential(ApiKey ?? "NO_API_KEY"),
@@ -39,7 +39,7 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
     /// <summary>
     /// optimized wrapper around OpenAI's IChatClient to extract reasoning content from internal properties.
     /// </summary>
-    private sealed class OptimizedOpenAIApiClient(IChatClient client, OpenAIResponsesKernelMixin owner) : DelegatingChatClient(client)
+    private sealed class OptimizedChatClient(IChatClient originalClient, OpenAIResponsesKernelMixin owner) : DelegatingChatClient(originalClient)
     {
         public override async IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
             IEnumerable<ChatMessage> messages,

@@ -183,13 +183,13 @@ public sealed partial class ChatService : IChatService
 
     public Task RunSubagentAsync(
         ChatContext chatContext,
-        CustomAssistant customAssistant,
+        Assistant assistant,
         AssistantChatMessage assistantChatMessage,
         CancellationToken cancellationToken)
     {
         return GenerateAsync(
             chatContext,
-            customAssistant,
+            assistant,
             assistantChatMessage,
             true,
             cancellationToken: cancellationToken);
@@ -304,7 +304,7 @@ public sealed partial class ChatService : IChatService
     private async Task<Kernel> BuildKernelAsync(
         KernelMixin kernelMixin,
         ChatContext chatContext,
-        CustomAssistant customAssistant,
+        Assistant assistant,
         bool isSubagent,
         CancellationToken cancellationToken)
     {
@@ -315,7 +315,7 @@ public sealed partial class ChatService : IChatService
         builder.Services.AddSingleton(kernelMixin.ChatCompletionService);
         builder.Services.AddSingleton(_chatContextManager);
         builder.Services.AddSingleton(chatContext);
-        builder.Services.AddSingleton(customAssistant);
+        builder.Services.AddSingleton(assistant);
         builder.Services.AddTransient<IChatPluginUserInterface>(static x => x.GetRequiredService<ChatContext>().FunctionCallContext.Value ??
             throw new InvalidOperationException("No IChatPluginUserInterface is available in current function call context."));
 
@@ -341,27 +341,27 @@ public sealed partial class ChatService : IChatService
     /// Generates a response for the given chat context and assistant chat message.
     /// </summary>
     /// <param name="chatContext"></param>
-    /// <param name="customAssistant"></param>
+    /// <param name="assistant"></param>
     /// <param name="assistantChatMessage"></param>
     /// <param name="isSubagent"></param>
     /// <param name="systemPromptOverride"></param>
     /// <param name="cancellationToken"></param>
     private async Task GenerateAsync(
         ChatContext chatContext,
-        CustomAssistant customAssistant,
+        Assistant assistant,
         AssistantChatMessage assistantChatMessage,
         bool isSubagent,
         string? systemPromptOverride = null,
         CancellationToken cancellationToken = default)
     {
-        using var activity = StartChatActivity("chat", customAssistant);
+        using var activity = StartChatActivity("chat", assistant);
         activity?.SetTag("id", chatContext.Metadata.Id);
 
         KernelMixin? kernelMixin = null;
         try
         {
-            kernelMixin = _kernelMixinFactory.Create(customAssistant);
-            var kernel = await BuildKernelAsync(kernelMixin, chatContext, customAssistant, isSubagent, cancellationToken);
+            kernelMixin = _kernelMixinFactory.Create(assistant);
+            var kernel = await BuildKernelAsync(kernelMixin, chatContext, assistant, isSubagent, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -370,7 +370,9 @@ public sealed partial class ChatService : IChatService
             // This can save prompt tokens because they may be cached by LLM providers.
             var promptRenderer = new AnonymousPromptRenderer(_chatContextManager.GetPromptVariables(chatContext));
             var systemPrompt = systemPromptOverride ?? promptRenderer.RenderPrompt(
-                customAssistant.SystemPrompt.IsNullOrEmpty() ? Prompts.DefaultSystemPrompt : customAssistant.SystemPrompt);
+                assistant is ISystemPromptProvider { SystemPrompt: { Length: > 0 } providedSystemPrompt } ?
+                    providedSystemPrompt :
+                    Prompts.DefaultSystemPrompt);
 
             while (true)
             {
@@ -387,7 +389,7 @@ public sealed partial class ChatService : IChatService
                         .Where(m => m.Role.Label is "assistant" or "user" or "tool")
                         .ToList(),
                     _persistentState.MaxContextRounds,
-                    customAssistant.InputModalities,
+                    assistant.InputModalities,
                     cancellationToken);
 
                 if (!chatContext.Metadata.IsTemporary && // Do not generate titles for temporary contexts.
@@ -398,7 +400,7 @@ public sealed partial class ChatService : IChatService
                     // If the chat history only contains one user message and one assistant message,
                     // we can generate a title for the chat context.
                     GenerateTitleAsync(
-                        kernelMixin,
+                        assistant,
                         userMessage,
                         chatContext.Metadata,
                         cancellationToken).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
@@ -435,8 +437,8 @@ public sealed partial class ChatService : IChatService
         finally
         {
             SetChatUsageTags(activity, assistantChatMessage.UsageDetails);
-            RecordChatUsageMetrics(assistantChatMessage.UsageDetails, customAssistant.ModelId);
-            _chatRequestsCounter.Add(1, GetModelTag(customAssistant.ModelId));
+            RecordChatUsageMetrics(assistantChatMessage.UsageDetails, assistant.ModelId);
+            _chatRequestsCounter.Add(1, GetModelTag(assistant.ModelId));
 
             assistantChatMessage.FinishedAt = DateTimeOffset.UtcNow;
             assistantChatMessage.IsBusy = false;
@@ -914,7 +916,7 @@ public sealed partial class ChatService : IChatService
     }
 
     private async Task GenerateTitleAsync(
-        KernelMixin kernelMixin,
+        Assistant assistant,
         string userMessage,
         ChatContextMetadata metadata,
         CancellationToken cancellationToken)
@@ -922,6 +924,20 @@ public sealed partial class ChatService : IChatService
         if (!metadata.IsGeneratingTopic.FlipIfFalse())
         {
             // Another generation is in progress, skip generating title to avoid token waste and confusion.
+            return;
+        }
+
+        KernelMixin kernelMixin;
+        try
+        {
+            var systemAssistant = _settings.SystemAssistant.TitleGeneration.AutoSelect ?
+                assistant.Configurator.ResolveAssistant(ModelSpecializations.TitleGeneration) :
+                _settings.SystemAssistant.TitleGeneration;
+            kernelMixin = _kernelMixinFactory.Create(systemAssistant);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to resolve assistant");
             return;
         }
 
@@ -984,11 +1000,10 @@ public sealed partial class ChatService : IChatService
             metadata.Topic = titleBuilder.Length > 0 ? titleBuilder.ToString() : null;
             activity?.SetTag("topic.length", metadata.Topic?.Length ?? 0);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            e = HandledChatException.Handle(e, kernelMixin);
-            activity?.SetStatus(ActivityStatusCode.Error, e.Message);
-            _logger.LogError(e, "Failed to generate chat title");
+            _logger.LogError(ex, "Failed to generate chat title");
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
         }
         finally
         {

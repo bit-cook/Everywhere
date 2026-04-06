@@ -31,7 +31,7 @@ public partial class OfficialModelDefinitionForm : TemplatedControl
         {
             if (!SetAndRaise(SelectedItemProperty, ref field, value)) return;
 
-            _customAssistant.ApplyTemplate(value);
+            _assistant.ApplyTemplate(value);
         }
     }
 
@@ -39,16 +39,16 @@ public partial class OfficialModelDefinitionForm : TemplatedControl
 
     private readonly IOfficialModelProvider _officialModelProvider;
     private readonly IExceptionHandler _exceptionHandler;
-    private readonly CustomAssistant _customAssistant;
+    private readonly Assistant _assistant;
 
-    public OfficialModelDefinitionForm(IServiceProvider serviceProvider, CustomAssistant customAssistant)
+    public OfficialModelDefinitionForm(IServiceProvider serviceProvider, Assistant assistant)
     {
         CloudClient = serviceProvider.GetRequiredService<ICloudClient>();
         _officialModelProvider = serviceProvider.GetRequiredService<IOfficialModelProvider>();
         _exceptionHandler = serviceProvider.GetRequiredKeyedService<IExceptionHandler>(typeof(ToastManager));
-        _customAssistant = customAssistant;
+        _assistant = assistant;
 
-        SelectedItem = _officialModelProvider.ModelDefinitions.FirstOrDefault(m => m.ModelId == customAssistant.ModelId);
+        SelectedItem = _officialModelProvider.ModelDefinitions.FirstOrDefault(m => m.ModelId == assistant.ModelId);
     }
 
     [RelayCommand]

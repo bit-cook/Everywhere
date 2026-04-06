@@ -14,10 +14,10 @@ public sealed class GoogleKernelMixin : KernelMixin
     public override IChatCompletionService ChatCompletionService { get; }
 
     public GoogleKernelMixin(
-        CustomAssistant customAssistant,
+        Assistant assistant,
         ModelConnection connection,
         ILoggerFactory loggerFactory
-    ) : base(customAssistant, connection)
+    ) : base(assistant, connection)
     {
         var service = new GoogleAIGeminiChatCompletionService(
             ModelId,

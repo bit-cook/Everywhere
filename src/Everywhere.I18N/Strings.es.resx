@@ -1826,16 +1826,16 @@ Rueda de desplazamiento o teclas numéricas para cambiar modos de selección</va
     <data name="CustomAssistantInformationForm_IconButton_ToolTip" xml:space="preserve">
         <value>Haz clic para cambiar el icono</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
         <value>Modo avanzado</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
         <value>Configura libremente todos los parámetros del modelo, compatible con modelos de terceros</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
         <value>Modo preestablecido</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
         <value>Selecciona modelos comunes en los preestablecidos y comienza rápidamente</value>
     </data>
     <data name="CreateApiKeyForm_NameTextBox_Label" xml:space="preserve">
@@ -1859,7 +1859,7 @@ Rueda de desplazamiento o teclas numéricas para cambiar modos de selección</va
     <data name="WelcomeView_AssistantStep_Advanced_Message2" xml:space="preserve">
         <value>Ten en cuenta que no puedo garantizar la compatibilidad perfecta con todos los modelos de terceros.</value>
     </data>
-    <data name="AdvancedModelProviderConfigurator_InvalidEndpoint" xml:space="preserve">
+    <data name="AdvancedAssistantConfigurator_InvalidEndpoint" xml:space="preserve">
         <value>Debe ser una URL válida que comience con http:// o https://</value>
     </data>
     <data name="VisualElementType_Spinner" xml:space="preserve">
@@ -2091,10 +2091,10 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     <data name="UserProfilePresenter_GetSupportButton_Content" xml:space="preserve">
         <value>Obtener Soporte</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
         <value>Modo Nativo</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
         <value>Servicio alojado oficialmente. Sin necesidad de clave API, listo para usar</value>
     </data>
     <data name="Common_CriticalError" xml:space="preserve">

@@ -65,9 +65,9 @@ public abstract class SettingsItem : AvaloniaObject, INotifyDataErrorInfo
 
     public static readonly DirectProperty<SettingsItem, IEnumerable<SettingsItem>?> ChildrenProperty =
         AvaloniaProperty.RegisterDirect<SettingsItem, IEnumerable<SettingsItem>?>(
-        nameof(Children),
-        o => o.Children,
-        (o, v) => o.Children = v);
+            nameof(Children),
+            o => o.Children,
+            (o, v) => o.Children = v);
 
     public IEnumerable<SettingsItem>? Children
     {
@@ -79,6 +79,18 @@ public abstract class SettingsItem : AvaloniaObject, INotifyDataErrorInfo
     /// Indicates whether this settings item contains no content (but may have child items).
     /// </summary>
     public virtual bool IsEmpty => false;
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == IsExpandableProperty)
+        {
+            IsExpanded = change.NewValue is true;
+        }
+    }
+
+    #region INotifyDataErrorInfo implementation
 
     private object? _error;
 
@@ -105,6 +117,8 @@ public abstract class SettingsItem : AvaloniaObject, INotifyDataErrorInfo
         ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(null));
         RaisePropertyChanged(HasErrorsProperty, false, true);
     }
+
+    #endregion
 }
 
 public class SettingsBooleanItem : SettingsItem
@@ -261,9 +275,9 @@ public class SettingsDoubleItem : SettingsItem
 
     public static readonly DirectProperty<SettingsDoubleItem, string?> ValueTextProperty =
         AvaloniaProperty.RegisterDirect<SettingsDoubleItem, string?>(
-        nameof(ValueText),
-        o => o.ValueText,
-        (o, v) => o.ValueText = v);
+            nameof(ValueText),
+            o => o.ValueText,
+            (o, v) => o.ValueText = v);
 
     public string? ValueText
     {

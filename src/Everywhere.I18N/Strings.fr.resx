@@ -1831,16 +1831,16 @@ Molette de défilement ou touches numériques pour changer de mode de sélection
     <data name="CustomAssistantInformationForm_IconButton_ToolTip" xml:space="preserve">
         <value>Cliquez pour changer l'icône</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
         <value>Mode avancé</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
         <value>Configurez librement tous les paramètres du modèle, compatible avec des modèles tiers</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
         <value>Mode prédéfini</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
         <value>Sélectionnez des modèles courants dans les préréglages et commencez rapidement</value>
     </data>
     <data name="CreateApiKeyForm_NameTextBox_Label" xml:space="preserve">
@@ -1864,7 +1864,7 @@ Molette de défilement ou touches numériques pour changer de mode de sélection
     <data name="WelcomeView_AssistantStep_Advanced_Message2" xml:space="preserve">
         <value>Veuillez noter que je ne peux pas garantir une compatibilité parfaite avec tous les modèles tiers.</value>
     </data>
-    <data name="AdvancedModelProviderConfigurator_InvalidEndpoint" xml:space="preserve">
+    <data name="AdvancedAssistantConfigurator_InvalidEndpoint" xml:space="preserve">
         <value>Doit être une URL valide commençant par http:// ou https://</value>
     </data>
     <data name="VisualElementType_Spinner" xml:space="preserve">
@@ -2096,10 +2096,10 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="UserProfilePresenter_GetSupportButton_Content" xml:space="preserve">
         <value>Obtenir de l'Aide</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
         <value>Mode Natif</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
         <value>Service hébergé par l'officiel. Pas besoin de clé API, prêt à l'emploi</value>
     </data>
     <data name="Common_CriticalError" xml:space="preserve">

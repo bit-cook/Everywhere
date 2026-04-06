@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.AI;
+using Everywhere.AI.Configurator;
 using Everywhere.Cloud;
 using Everywhere.Common;
 using Everywhere.Configuration;
@@ -57,7 +58,7 @@ public sealed partial class WelcomeViewModel : BusyViewModelBase
         {
             Name = LocaleResolver.CustomAssistant_Name_Default,
             Schema = ModelProviderSchema.Official,
-            ConfiguratorType = ModelProviderConfiguratorType.Official
+            ConfiguratorType = AssistantConfiguratorType.Official
         };
         Assistant.PropertyChanged += delegate
         {
@@ -176,7 +177,7 @@ public sealed partial class WelcomeViewModelConfiguratorStep(WelcomeViewModel vi
     private void MoveNext()
     {
         // Skip the hard login step if not using official configurator or already logged in
-        if (ViewModel.Assistant.ConfiguratorType != ModelProviderConfiguratorType.Official || ViewModel.CloudClient.UserProfile is not null)
+        if (ViewModel.Assistant.ConfiguratorType != AssistantConfiguratorType.Official || ViewModel.CloudClient.UserProfile is not null)
         {
             ViewModel.MoveTo<WelcomeViewModelAssistantStep>();
         }

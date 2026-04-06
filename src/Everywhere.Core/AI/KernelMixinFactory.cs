@@ -12,26 +12,26 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
     /// <summary>
     /// Creates a new instance of <see cref="KernelMixin"/>.
     /// </summary>
-    /// <param name="customAssistant">The custom assistant configuration to use for creating the kernel mixin.</param>
+    /// <param name="assistant"></param>
     /// <returns>A new instance of <see cref="KernelMixin"/>.</returns>
     /// <exception cref="HandledChatException">Thrown if the model provider or definition is not found or not supported.</exception>
-    public KernelMixin Create(CustomAssistant customAssistant)
+    public KernelMixin Create(Assistant assistant)
     {
-        if (customAssistant.ModelId.IsNullOrWhiteSpace())
+        if (assistant.ModelId.IsNullOrWhiteSpace())
         {
             throw new HandledChatException(
                 new InvalidOperationException("Model ID cannot be empty."),
                 HandledChatExceptionType.InvalidConfiguration);
         }
 
-        var connection = ResolveConnection(customAssistant);
+        var connection = ResolveConnection(assistant);
         return connection.Schema switch
         {
-            ModelProviderSchema.OpenAI => new OpenAIKernelMixin(customAssistant, connection, loggerFactory),
-            ModelProviderSchema.OpenAIResponses => new OpenAIResponsesKernelMixin(customAssistant, connection, loggerFactory),
-            ModelProviderSchema.Anthropic => new AnthropicKernelMixin(customAssistant, connection),
-            ModelProviderSchema.Google => new GoogleKernelMixin(customAssistant, connection, loggerFactory),
-            ModelProviderSchema.Ollama => new OllamaKernelMixin(customAssistant, connection),
+            ModelProviderSchema.OpenAI => new OpenAIKernelMixin(assistant, connection, loggerFactory),
+            ModelProviderSchema.OpenAIResponses => new OpenAIResponsesKernelMixin(assistant, connection, loggerFactory),
+            ModelProviderSchema.Anthropic => new AnthropicKernelMixin(assistant, connection),
+            ModelProviderSchema.Google => new GoogleKernelMixin(assistant, connection, loggerFactory),
+            ModelProviderSchema.Ollama => new OllamaKernelMixin(assistant, connection),
             _ => throw new HandledChatException(
                 new NotSupportedException($"Model provider schema '{connection.Schema}' is not supported."),
                 HandledChatExceptionType.InvalidConfiguration,
@@ -45,20 +45,16 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
     /// and the API key is null (OAuth is handled by the named HttpClient).
     /// For user-configured modes, endpoint/apiKey are read from the assistant configuration.
     /// </summary>
-    private ModelConnection ResolveConnection(CustomAssistant customAssistant)
-    {
-        return customAssistant.Schema is ModelProviderSchema.Official ?
-            ResolveOfficialConnection(customAssistant) :
-            ResolveUserConnection(customAssistant);
-    }
+    private ModelConnection ResolveConnection(Assistant assistant) =>
+        assistant.Schema is ModelProviderSchema.Official ? ResolveOfficialConnection(assistant) : ResolveUserConnection(assistant);
 
     /// <summary>
     /// Resolves connection for Official (cloud gateway) mode.
     /// The actual provider schema is inferred from the model ID prefix (e.g. "openai/gpt-4o" → OpenAIResponses).
     /// </summary>
-    private ModelConnection ResolveOfficialConnection(CustomAssistant customAssistant)
+    private ModelConnection ResolveOfficialConnection(Assistant assistant)
     {
-        var schema = InferSchemaFromModelId(customAssistant.ModelId);
+        var schema = InferSchemaFromModelId(assistant.ModelId);
 
         var endpoint = schema.NormalizeEndpoint(CloudConstants.AIGatewayBaseUrl) ??
             throw new HandledChatException(
@@ -69,34 +65,35 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
         // Some SDKs require a non-null credential, so we pass null and let each mixin handle it
         // (e.g. OpenAIKernelMixin uses NoneAuthenticationPolicy, others use "official" placeholder).
         var httpClient = httpClientFactory.CreateClient(nameof(ICloudClient));
+
         return new ModelConnection(schema, endpoint, ApiKey: null, httpClient, null);
     }
 
     /// <summary>
     /// Resolves connection for user-configured (non-Official) modes.
     /// </summary>
-    private ModelConnection ResolveUserConnection(CustomAssistant customAssistant)
+    private ModelConnection ResolveUserConnection(Assistant assistant)
     {
-        if (!Uri.TryCreate(customAssistant.Endpoint, UriKind.Absolute, out _))
+        if (!Uri.TryCreate(assistant.Endpoint, UriKind.Absolute, out _))
         {
             throw new HandledChatException(
                 new InvalidOperationException("Invalid endpoint URL."),
                 HandledChatExceptionType.InvalidEndpoint);
         }
 
-        var endpoint = customAssistant.Schema.NormalizeEndpoint(customAssistant.Endpoint) ??
+        var endpoint = assistant.Schema.NormalizeEndpoint(assistant.Endpoint) ??
             throw new HandledChatException(
                 new InvalidOperationException("Endpoint cannot be empty."),
                 HandledChatExceptionType.InvalidEndpoint);
 
-        var apiKey = Configuration.ApiKey.GetKey(customAssistant.ApiKey);
+        var apiKey = Configuration.ApiKey.GetKey(assistant.ApiKey);
 
         // Create an HttpClient instance using the factory.
         // It will have the configured settings (timeout and proxy).
         var httpClient = httpClientFactory.CreateClient();
-        httpClient.Timeout = TimeSpan.FromSeconds(customAssistant.RequestTimeoutSeconds.ActualValue);
+        httpClient.Timeout = TimeSpan.FromSeconds(assistant.RequestTimeoutSeconds);
 
-        return new ModelConnection(customAssistant.Schema, endpoint, apiKey, httpClient, null);
+        return new ModelConnection(assistant.Schema, endpoint, apiKey, httpClient, null);
     }
 
     /// <summary>
@@ -110,7 +107,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
         {
             "openai" => ModelProviderSchema.OpenAIResponses,
             "google" => ModelProviderSchema.Google,
-            "anthropic" => ModelProviderSchema.Anthropic,
+            "anthropic" or "minimax" => ModelProviderSchema.Anthropic,
             _ => ModelProviderSchema.OpenAI
         };
     }

@@ -9,11 +9,6 @@ public interface IModelDefinition
     string? ModelId { get; }
 
     /// <summary>
-    /// Display name of the model, used for UI.
-    /// </summary>
-    string? Name { get; }
-
-    /// <summary>
     /// Whether the model is capable of reasoning (deep thinking).
     /// </summary>
     bool SupportsReasoning { get; }
@@ -42,4 +37,9 @@ public interface IModelDefinition
     /// Maximum number of tokens that the model can generate in a single response.
     /// </summary>
     int OutputLimit { get; }
+
+    /// <summary>
+    /// Special capabilities or optimizations that the model may have for specific tasks, such as generating titles or compressing context.
+    /// </summary>
+    ModelSpecializations Specializations { get; }
 }

@@ -24,10 +24,10 @@ public class OpenAIKernelMixin : KernelMixin
     public override IChatCompletionService ChatCompletionService { get; }
 
     public OpenAIKernelMixin(
-        CustomAssistant customAssistant,
+        Assistant assistant,
         ModelConnection connection,
         ILoggerFactory loggerFactory
-    ) : base(customAssistant, connection)
+    ) : base(assistant, connection)
     {
         // Some models don't need API key (e.g. LM Studio, Official mode)
         AuthenticationPolicy authenticationPolicy = ApiKey.IsNullOrWhiteSpace() ?

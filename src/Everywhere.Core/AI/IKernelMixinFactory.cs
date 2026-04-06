@@ -5,5 +5,5 @@ namespace Everywhere.AI;
 /// </summary>
 public interface IKernelMixinFactory
 {
-    KernelMixin Create(CustomAssistant customAssistant);
+    KernelMixin Create(Assistant assistant);
 }

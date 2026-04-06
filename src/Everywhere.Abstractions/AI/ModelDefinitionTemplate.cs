@@ -43,12 +43,15 @@ public sealed partial record ModelDefinitionTemplate : IModelDefinition
     public required int OutputLimit { get; init; }
 
     [Key(11)]
-    public string? IconUrl { get; init; }
+    public ModelSpecializations Specializations { get; init; }
 
     [Key(12)]
-    public IDynamicResourceKey? DescriptionKey { get; init; }
+    public string? IconUrl { get; init; }
 
     [Key(13)]
+    public IDynamicResourceKey? DescriptionKey { get; init; }
+
+    [Key(14)]
     public ModelPricing? Pricing { get; init; }
 
     /// <summary>

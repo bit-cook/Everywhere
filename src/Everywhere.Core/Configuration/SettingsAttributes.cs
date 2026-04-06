@@ -115,4 +115,6 @@ public class SettingsTemplatedItemAttribute : Attribute
 public class SettingsItemsAttribute : Attribute
 {
     public bool IsExpanded { get; set; }
+
+    public string? IsExpandableBindingPath { get; set; }
 }

@@ -5,6 +5,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.AI;
+using Everywhere.AI.Configurator;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Lucide.Avalonia;
@@ -62,7 +63,7 @@ public partial class CustomAssistantPageViewModel(IKernelMixinFactory kernelMixi
             {
                 Kind = LucideIconKind.Bot
             },
-            ConfiguratorType = ModelProviderConfiguratorType.PresetBased
+            ConfiguratorType = AssistantConfiguratorType.PresetBased
         };
         settings.Model.CustomAssistants.Add(newAssistant);
         settings.Model.SelectedCustomAssistant ??= newAssistant;

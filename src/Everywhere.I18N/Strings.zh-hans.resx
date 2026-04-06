@@ -1881,16 +1881,16 @@
     <data name="CustomAssistantInformationForm_IconButton_ToolTip" xml:space="preserve">
         <value>点击更换图标</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
         <value>进阶模式</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
         <value>自由配置所有的模型参数，兼容第三方模型</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
         <value>预设模式</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
         <value>在预设中选择常见模型并快速上手</value>
     </data>
     <data name="CreateApiKeyForm_NameTextBox_Label" xml:space="preserve">
@@ -1914,7 +1914,7 @@
     <data name="WelcomeView_AssistantStep_Advanced_Message2" xml:space="preserve">
         <value>请注意，我无法保证完美兼容所有第三方模型。</value>
     </data>
-    <data name="AdvancedModelProviderConfigurator_InvalidEndpoint" xml:space="preserve">
+    <data name="AdvancedAssistantConfigurator_InvalidEndpoint" xml:space="preserve">
         <value>必须是 http:// 或 https:// 开头的有效 URL</value>
     </data>
     <data name="VisualElementType_Spinner" xml:space="preserve">
@@ -2161,10 +2161,10 @@
     <data name="UserProfilePresenter_GetSupportButton_Content" xml:space="preserve">
         <value>获取支持</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
         <value>原生模式</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
         <value>官方托管服务。无需 API 密钥，开箱即用</value>
     </data>
     <data name="Common_CriticalError" xml:space="preserve">
@@ -2581,5 +2581,14 @@
     </data>
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>当前</value>
+    </data>
+    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
+        <value>配置用于对话标题自动命名的模型</value>
+    </data>
+    <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
+        <value>标题生成助手</value>
+    </data>
+    <data name="SystemAssistant_AutoSelectToggle_Content" xml:space="preserve">
+        <value>自动选择</value>
     </data>
 </root>

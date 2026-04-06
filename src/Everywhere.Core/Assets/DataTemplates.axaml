@@ -1,10 +1,10 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:aai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions" xmlns:c="clr-namespace:Everywhere.Configuration"
-  xmlns:common="clr-namespace:Everywhere.Common" xmlns:interop="clr-namespace:Everywhere.Interop"
-  xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:mdSkia="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia.Svg.Skia"
-  xmlns:plugins="clr-namespace:Everywhere.Chat.Plugins" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
-  xmlns:v="clr-namespace:Everywhere.Views">
+  xmlns:aai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions" xmlns:ai="clr-namespace:Everywhere.AI"
+  xmlns:c="clr-namespace:Everywhere.Configuration" xmlns:common="clr-namespace:Everywhere.Common"
+  xmlns:interop="clr-namespace:Everywhere.Interop" xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
+  xmlns:mdSkia="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia.Svg.Skia" xmlns:plugins="clr-namespace:Everywhere.Chat.Plugins"
+  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="clr-namespace:Everywhere.Views">
   <DataTemplate
     x:Key="{x:Type aai:ModelProviderTemplate}"
     x:DataType="aai:ModelProviderTemplate">
@@ -80,6 +80,19 @@
         </Flyout>
       </Button.Flyout>
     </Button>
+  </DataTemplate>
+
+  <DataTemplate x:Key="{x:Type ai:SystemAssistant}">
+    <DataTemplate.DataType>
+      <x:Type
+        x:TypeArguments="ai:SystemAssistant" TypeName="c:SettingsTemplatedItem"/>
+    </DataTemplate.DataType>
+
+    <ToggleSwitch
+      Margin="6"
+      IsChecked="{Binding ((ai:SystemAssistant)Value).AutoSelect, FallbackValue={x:True}, Mode=TwoWay}"
+      OffContent="{I18N {x:Static LocaleKey.SystemAssistant_AutoSelectToggle_Content}}"
+      OnContent="{I18N {x:Static LocaleKey.SystemAssistant_AutoSelectToggle_Content}}"/>
   </DataTemplate>
 
   <DataTemplate

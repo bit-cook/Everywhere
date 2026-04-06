@@ -18,17 +18,18 @@ public sealed class AnthropicKernelMixin : KernelMixin
     /// <summary>
     /// Initializes a new instance of the <see cref="AnthropicKernelMixin"/> class.
     /// </summary>
-    public AnthropicKernelMixin(CustomAssistant customAssistant, ModelConnection connection) : base(customAssistant, connection)
+    public AnthropicKernelMixin(Assistant assistant, ModelConnection connection) : base(assistant, connection)
     {
-        var anthropicClient = new AnthropicClient(
-            new ClientOptions
-            {
-                ApiKey = ApiKey,
-                HttpClient = connection.HttpClient,
-                BaseUrl = Endpoint,
-                Timeout = TimeSpan.FromSeconds(customAssistant.RequestTimeoutSeconds)
-            }).AsIChatClient();
-        _client = new OptimizedChatClient(customAssistant, ModelId, anthropicClient);
+        _client = new OptimizedChatClient(
+            new AnthropicClient(
+                new ClientOptions
+                {
+                    ApiKey = ApiKey,
+                    HttpClient = connection.HttpClient,
+                    BaseUrl = Endpoint,
+                    Timeout = TimeSpan.FromSeconds(assistant.RequestTimeoutSeconds)
+                }).AsIChatClient(),
+            this);
         ChatCompletionService = _client.AsChatCompletionService();
     }
 
@@ -37,36 +38,32 @@ public sealed class AnthropicKernelMixin : KernelMixin
         _client.Dispose();
     }
 
-    private sealed class OptimizedChatClient(CustomAssistant customAssistant, string modelId, IChatClient anthropicClient)
-        : DelegatingChatClient(anthropicClient)
+    private sealed class OptimizedChatClient(IChatClient originalClient, AnthropicKernelMixin owner) : DelegatingChatClient(originalClient)
     {
         private void BuildOptions(ref ChatOptions? options)
         {
             var chatOptions = options ??= new ChatOptions();
 
-            double? temperature = customAssistant.Temperature.IsCustomValueSet ? customAssistant.Temperature.ActualValue : null;
-            double? topP = customAssistant.TopP.IsCustomValueSet ? customAssistant.TopP.ActualValue : null;
-
-            if (temperature is not null) options.Temperature = (float)temperature.Value;
-            if (topP is not null) options.TopP = (float)topP.Value;
+            if (owner.Temperature is { } temperature) options.Temperature = (float)temperature;
+            if (owner.TopP is { } topP) options.TopP = (float)topP;
 
             options.RawRepresentationFactory = OptionsRawRepresentationFactory;
 
             object? OptionsRawRepresentationFactory(IChatClient _)
             {
-                var maxTokens = customAssistant.OutputLimit switch
+                var maxTokens = owner.OutputLimit switch
                 {
-                    > 0 => customAssistant.OutputLimit,
-                    _ when modelId.StartsWith("claude-3-haiku") => 4096,
-                    _ when modelId.StartsWith("claude-3-5-haiku") => 8192,
-                    _ when modelId.StartsWith("claude-opus-4") => 32000,
-                    _ when modelId.StartsWith("claude-opus-4-1") => 32000,
-                    _ when modelId.StartsWith("claude-opus-4-6") => 128000,
+                    > 0 => owner.OutputLimit,
+                    _ when owner.ModelId.StartsWith("claude-3-haiku") => 4096,
+                    _ when owner.ModelId.StartsWith("claude-3-5-haiku") => 8192,
+                    _ when owner.ModelId.StartsWith("claude-opus-4") => 32000,
+                    _ when owner.ModelId.StartsWith("claude-opus-4-1") => 32000,
+                    _ when owner.ModelId.StartsWith("claude-opus-4-6") => 128000,
                     _ => 64000,
                 };
 
                 ThinkingConfigParam thinking;
-                if (customAssistant.SupportsReasoning)
+                if (owner.SupportsReasoning)
                 {
                     int budgetTokens;
                     if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true ||
@@ -84,7 +81,7 @@ public sealed class AnthropicKernelMixin : KernelMixin
                         };
                     }
 
-                    if (budgetTokens == -1 && modelId.StartsWith("claude-opus-4-6"))
+                    if (budgetTokens == -1 && owner.ModelId.StartsWith("claude-opus-4-6"))
                     {
                         thinking = new ThinkingConfigParam(new ThinkingConfigAdaptive());
                     }
@@ -106,7 +103,7 @@ public sealed class AnthropicKernelMixin : KernelMixin
                 {
                     MaxTokens = maxTokens,
                     Messages = [], // Leave empty and underlying implementation will handle it
-                    Model = modelId,
+                    Model = owner.ModelId,
                     Thinking = thinking,
                     CacheControl = new CacheControlEphemeral()
                 };

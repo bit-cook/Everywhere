@@ -1,4 +1,5 @@
-﻿using Lucide.Avalonia;
+﻿using Everywhere.AI;
+using Lucide.Avalonia;
 
 namespace Everywhere.Configuration;
 
@@ -16,4 +17,11 @@ public partial class SystemAssistantSettings : SettingsBase, ISettingsCategory
 
     [HiddenSettingsItem]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_SystemAssistant_Description);
+
+    [DynamicResourceKey(
+        LocaleKey.SystemAssistantSettings_TitleGeneration_Header,
+        LocaleKey.SystemAssistantSettings_CommonDesription)]
+    [SettingsItems(IsExpandableBindingPath = $"!{nameof(TitleGeneration)}.{nameof(SystemAssistant.AutoSelect)}")]
+    [SettingsTemplatedItem]
+    public SystemAssistant TitleGeneration { get; } = new();
 }

@@ -49,8 +49,12 @@ internal static class SymbolExtension
             return ns == null || ns.IsGlobalNamespace ? string.Empty : ns.ToDisplayString();
         }
 
-        public bool IsSettingsCategory()
-            => type.BaseType?.ToDisplayString() == "Everywhere.Configuration.SettingsCategory";
+        /// <summary>
+        /// Get all members, including those in base types
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<ISymbol> GetAllMembers() =>
+            type.GetMembers().Concat(type.BaseType?.GetAllMembers() ?? []);
 
         public bool IsPartial() =>
             type.DeclaringSyntaxReferences

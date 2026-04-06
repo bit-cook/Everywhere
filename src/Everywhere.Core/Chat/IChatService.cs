@@ -1,5 +1,4 @@
 ﻿using Everywhere.AI;
-using Everywhere.StrategyEngine;
 
 namespace Everywhere.Chat;
 
@@ -28,13 +27,13 @@ public interface IChatService
     /// Run a sub-agent within the context of the current chat. The sub-agent will have access to the chat history and can send messages back to the main agent.
     /// </summary>
     /// <param name="chatContext"></param>
-    /// <param name="customAssistant"></param>
+    /// <param name="assistant"></param>
     /// <param name="assistantChatMessage"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task RunSubagentAsync(
         ChatContext chatContext,
-        CustomAssistant customAssistant,
+        Assistant assistant,
         AssistantChatMessage assistantChatMessage,
         CancellationToken cancellationToken);
 }

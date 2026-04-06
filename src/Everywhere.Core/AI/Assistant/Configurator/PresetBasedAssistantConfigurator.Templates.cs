@@ -1,9 +1,9 @@
 using System.Text.Json.Serialization;
 using Everywhere.Configuration;
 
-namespace Everywhere.AI;
+namespace Everywhere.AI.Configurator;
 
-partial class PresetBasedModelProviderConfigurator
+partial class PresetBasedAssistantConfigurator
 {
     /// <summary>
     /// Helper property to get all supported model provider templates.
@@ -44,7 +44,8 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text | Modalities.Image,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 400_000,
-                    OutputLimit = 128_000
+                    OutputLimit = 128_000,
+                    Specializations = ModelSpecializations.TitleGeneration
                 },
                 new ModelDefinitionTemplate
                 {
@@ -113,7 +114,8 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text | Modalities.Image,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_047_576,
-                    OutputLimit = 32_768
+                    OutputLimit = 32_768,
+                    Specializations = ModelSpecializations.ContextCompression
                 },
                 new ModelDefinitionTemplate
                 {
@@ -182,7 +184,8 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_000_000,
                     OutputLimit = 64_000,
-                    IsDefault = true
+                    IsDefault = true,
+                    Specializations = ModelSpecializations.ContextCompression
                 },
                 new ModelDefinitionTemplate
                 {
@@ -204,7 +207,8 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 200_000,
-                    OutputLimit = 64_000
+                    OutputLimit = 64_000,
+                    Specializations = ModelSpecializations.TitleGeneration
                 },
                 new ModelDefinitionTemplate
                 {
@@ -273,7 +277,8 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_048_576,
                     OutputLimit = 65_536,
-                    IsDefault = true
+                    IsDefault = true,
+                    Specializations = ModelSpecializations.ContextCompression
                 },
                 new ModelDefinitionTemplate
                 {
@@ -306,7 +311,8 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Audio | Modalities.Video | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_048_576,
-                    OutputLimit = 65_536
+                    OutputLimit = 65_536,
+                    Specializations = ModelSpecializations.TitleGeneration
                 },
                 new ModelDefinitionTemplate
                 {
@@ -353,7 +359,8 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 128_000,
                     OutputLimit = 64_000,
-                    IsDefault = true
+                    IsDefault = true,
+                    Specializations = ModelSpecializations.TitleGeneration | ModelSpecializations.ContextCompression
                 }
             ]
         },
@@ -390,6 +397,7 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 262_144,
                     OutputLimit = 262_144,
+                    Specializations = ModelSpecializations.TitleGeneration | ModelSpecializations.ContextCompression
                 },
                 new ModelDefinitionTemplate
                 {
@@ -469,7 +477,8 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 204_800,
-                    OutputLimit = 131_072
+                    OutputLimit = 131_072,
+                    Specializations = ModelSpecializations.TitleGeneration | ModelSpecializations.ContextCompression
                 },
                 new ModelDefinitionTemplate
                 {
@@ -539,7 +548,8 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_048_576,
                     OutputLimit = 65_536,
-                    IsDefault = true
+                    IsDefault = true,
+                    Specializations = ModelSpecializations.TitleGeneration | ModelSpecializations.ContextCompression
                 },
                 new ModelDefinitionTemplate
                 {
@@ -730,6 +740,7 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 262_000,
                     OutputLimit = 262_000,
+                    Specializations = ModelSpecializations.ContextCompression
                 },
                 new ModelDefinitionTemplate
                 {
@@ -762,7 +773,7 @@ partial class PresetBasedModelProviderConfigurator
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 164_000,
-                    OutputLimit = 164_000,
+                    OutputLimit = 164_000
                 },
                 new ModelDefinitionTemplate
                 {
@@ -774,7 +785,8 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 131_000,
                     OutputLimit = 131_000,
-                    IsDefault = true
+                    IsDefault = true,
+                    Specializations = ModelSpecializations.TitleGeneration
                 },
                 new ModelDefinitionTemplate
                 {
@@ -833,6 +845,7 @@ partial class PresetBasedModelProviderConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 64_000,
                     OutputLimit = 4_096,
+                    Specializations = ModelSpecializations.TitleGeneration | ModelSpecializations.ContextCompression
                 },
                 new ModelDefinitionTemplate
                 {

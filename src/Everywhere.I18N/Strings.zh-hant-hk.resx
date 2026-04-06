@@ -1826,16 +1826,16 @@
     <data name="CustomAssistantInformationForm_IconButton_ToolTip" xml:space="preserve">
         <value>點擊更換圖標</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
         <value>進階模式</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
         <value>自由配置所有的模型參數，兼容第三方模型</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
         <value>預設模式</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
         <value>在預設中選擇常見模型並快速上手</value>
     </data>
     <data name="CreateApiKeyForm_NameTextBox_Label" xml:space="preserve">
@@ -1859,7 +1859,7 @@
     <data name="WelcomeView_AssistantStep_Advanced_Message2" xml:space="preserve">
         <value>請注意，我無法保證完美兼容所有第三方模型。</value>
     </data>
-    <data name="AdvancedModelProviderConfigurator_InvalidEndpoint" xml:space="preserve">
+    <data name="AdvancedAssistantConfigurator_InvalidEndpoint" xml:space="preserve">
         <value>必須是 http:// 或 https:// 開頭的有效 URL</value>
     </data>
     <data name="VisualElementType_Spinner" xml:space="preserve">
@@ -2091,10 +2091,10 @@
     <data name="UserProfilePresenter_GetSupportButton_Content" xml:space="preserve">
         <value>獲取支持</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
         <value>原生模式</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
         <value>官方托管服務。無需 API 密鑰，開箱即用</value>
     </data>
     <data name="Common_CriticalError" xml:space="preserve">

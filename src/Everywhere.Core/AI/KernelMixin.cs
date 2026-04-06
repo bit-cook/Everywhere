@@ -4,49 +4,44 @@ using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace Everywhere.AI;
 
-public abstract class KernelMixin(CustomAssistant customAssistant, ModelConnection connection) : IModelDefinition, IDisposable
+public abstract class KernelMixin(Assistant assistant, ModelConnection connection) : IModelDefinition, IDisposable
 {
-    /// <summary>
-    /// The resolved connection parameters for cache comparison and SDK initialization.
-    /// </summary>
-    public ModelConnection Connection { get; } = connection;
-
     /// <summary>
     /// Convenience accessor for the resolved endpoint (already normalized, never null).
     /// </summary>
-    protected string Endpoint => Connection.Endpoint;
+    protected string Endpoint { get; } = connection.Endpoint;
 
     /// <summary>
     /// Convenience accessor for the resolved API key (null means no key needed / handled by HttpClient).
     /// </summary>
-    protected string? ApiKey => Connection.ApiKey;
+    protected string? ApiKey { get; } = connection.ApiKey;
 
-    public string ModelId { get; } = customAssistant.ModelId ??
+    public string ModelId { get; } = assistant.ModelId ??
         throw new HandledChatException(
             new InvalidOperationException("Model ID cannot be empty."),
             HandledChatExceptionType.InvalidConfiguration);
 
-    public string? Name { get; } = customAssistant.Name;
+    public bool SupportsReasoning { get; } = assistant.SupportsReasoning;
 
-    public bool SupportsReasoning { get; } = customAssistant.SupportsReasoning;
+    public bool SupportsToolCall { get; } = assistant.SupportsToolCall;
 
-    public bool SupportsToolCall { get; } = customAssistant.SupportsToolCall;
+    public Modalities InputModalities { get; } = assistant.InputModalities;
 
-    public Modalities InputModalities { get; } = customAssistant.InputModalities;
+    public Modalities OutputModalities { get; } = assistant.OutputModalities;
 
-    public Modalities OutputModalities { get; } = customAssistant.OutputModalities;
+    public int ContextLimit { get; } = assistant.ContextLimit;
 
-    public int ContextLimit { get; } = customAssistant.ContextLimit;
+    public int OutputLimit { get; } = assistant.OutputLimit;
 
-    public int OutputLimit { get; } = customAssistant.OutputLimit;
+    public ModelSpecializations Specializations { get; } = assistant.Specializations;
 
-    public ModelSpecializations Specializations { get; } = customAssistant.Specializations;
+    public double? Temperature { get; } = assistant.Temperature;
 
-    protected double? Temperature { get; } = customAssistant.Temperature.IsCustomValueSet ? customAssistant.Temperature.ActualValue : null;
-
-    protected double? TopP { get; } = customAssistant.TopP.IsCustomValueSet ? customAssistant.TopP.ActualValue : null;
+    public double? TopP { get; } = assistant.TopP;
 
     public abstract IChatCompletionService ChatCompletionService { get; }
+
+    private readonly HttpClient _httpClient = connection.HttpClient;
 
     public virtual bool IsPersistentMessageMetadataKey(string key) => false;
 
@@ -122,6 +117,6 @@ public abstract class KernelMixin(CustomAssistant customAssistant, ModelConnecti
     public virtual void Dispose()
     {
         GC.SuppressFinalize(this);
-        Connection.HttpClient.Dispose();
+        _httpClient.Dispose();
     }
 }

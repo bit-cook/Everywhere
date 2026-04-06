@@ -91,7 +91,7 @@ public class EssentialPlugin : BuiltInChatPlugin
     [DynamicResourceKey(LocaleKey.BuiltInChatPlugin_Essential_RunSubagent_Header, LocaleKey.BuiltInChatPlugin_Essential_RunSubagent_Description)]
     private async Task<string> RunSubagentAsync(
         [FromKernelServices] IChatService chatService,
-        [FromKernelServices] CustomAssistant customAssistant,
+        [FromKernelServices] Assistant assistant,
         [FromKernelServices] IChatPluginUserInterface userInterface,
         [Description("A detailed description of the task for the agent to perform")] string prompt,
         [Description("A concise title for the agent's task. Should in system language.")] string title,
@@ -112,7 +112,7 @@ public class EssentialPlugin : BuiltInChatPlugin
         // Display the chat context in the UI
         userInterface.DisplaySink.AppendChatContext(chatContext);
 
-        await chatService.RunSubagentAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken);
+        await chatService.RunSubagentAsync(chatContext, assistant, assistantChatMessage, cancellationToken);
 
         if (assistantChatMessage.Count < 1)
         {

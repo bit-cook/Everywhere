@@ -1826,16 +1826,16 @@
     <data name="CustomAssistantInformationForm_IconButton_ToolTip" xml:space="preserve">
         <value>Нажмите, чтобы изменить иконку</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
         <value>Расширенный режим</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
         <value>Свободная настройка всех параметров модели, совместима с сторонними моделями</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
         <value>Предустановленный режим</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
         <value>Выберите распространенные модели из предустановок и быстро начните работу</value>
     </data>
     <data name="CreateApiKeyForm_NameTextBox_Label" xml:space="preserve">
@@ -1859,7 +1859,7 @@
     <data name="WelcomeView_AssistantStep_Advanced_Message2" xml:space="preserve">
         <value>Обратите внимание, что я не могу гарантировать полную совместимость со всеми сторонними моделями.</value>
     </data>
-    <data name="AdvancedModelProviderConfigurator_InvalidEndpoint" xml:space="preserve">
+    <data name="AdvancedAssistantConfigurator_InvalidEndpoint" xml:space="preserve">
         <value>Должен быть действительный URL, начинающийся с http:// или https://</value>
     </data>
     <data name="VisualElementType_Spinner" xml:space="preserve">
@@ -2091,10 +2091,10 @@
     <data name="UserProfilePresenter_GetSupportButton_Content" xml:space="preserve">
         <value>Получить Поддержку</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
         <value>Официальная Модель</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
         <value>Официальный управляемый сервис. Не требуется API-ключ, готов к использованию.</value>
     </data>
     <data name="Common_CriticalError" xml:space="preserve">

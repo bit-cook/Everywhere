@@ -2,8 +2,8 @@
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:v="using:Everywhere.Views">
   <ControlTheme
-    x:Key="{x:Type v:ModelProviderConfiguratorSelector}"
-    TargetType="v:ModelProviderConfiguratorSelector">
+    x:Key="{x:Type v:AssistantConfiguratorSelector}"
+    TargetType="v:AssistantConfiguratorSelector">
     <Setter Property="Template">
       <ControlTemplate>
         <StackPanel Spacing="8">
@@ -15,8 +15,8 @@
             CornerRadius="{DynamicResource XlCornerRadius}"
             ItemsSource="{Binding ConfiguratorModels, RelativeSource={RelativeSource TemplatedParent}}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-            SelectedValue="{Binding CustomAssistant.ConfiguratorType, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
-            SelectedValueBinding="{Binding Type, DataType=v:ModelProviderConfiguratorSelector+ConfiguratorModel}">
+            SelectedValue="{Binding Assistant.ConfiguratorType, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
+            SelectedValueBinding="{Binding Type, DataType=v:AssistantConfiguratorSelector+ConfiguratorModel}">
             <ListBox.ItemsPanel>
               <ItemsPanelTemplate>
                 <UniformGrid
@@ -35,7 +35,7 @@
             </ListBox.ItemContainerTheme>
 
             <ListBox.DataTemplates>
-              <DataTemplate DataType="v:ModelProviderConfiguratorSelector+OfficialConfiguratorModel">
+              <DataTemplate DataType="v:AssistantConfiguratorSelector+OfficialConfiguratorModel">
                 <Panel>
                   <Border
                     Margin="-12,-8"
@@ -85,7 +85,7 @@
                 </Panel>
               </DataTemplate>
 
-              <DataTemplate DataType="v:ModelProviderConfiguratorSelector+ConfiguratorModel">
+              <DataTemplate DataType="v:AssistantConfiguratorSelector+ConfiguratorModel">
                 <StackPanel
                   Orientation="Vertical" Spacing="4">
                   <TextBlock
@@ -103,7 +103,7 @@
 
           <v:SettingsItemsControl
             IsVisible="{TemplateBinding IsSettingsVisible}"
-            ItemsSource="{Binding CustomAssistant.Configurator.SettingsItems, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+            ItemsSource="{Binding Assistant.Configurator.SettingsItems, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
         </StackPanel>
       </ControlTemplate>
     </Setter>

@@ -1880,16 +1880,16 @@ Scroll wheel or number keys to switch pick modes</value>
     <data name="CustomAssistantInformationForm_IconButton_ToolTip" xml:space="preserve">
         <value>Click to change icon</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
         <value>Advanced Mode</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
         <value>Freely configure all model parameters, compatible with third-party models.</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
         <value>Preset Mode</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
         <value>Select common models from presets and get started quickly.</value>
     </data>
     <data name="CreateApiKeyForm_NameTextBox_Label" xml:space="preserve">
@@ -1913,7 +1913,7 @@ Scroll wheel or number keys to switch pick modes</value>
     <data name="WelcomeView_AssistantStep_Advanced_Message2" xml:space="preserve">
         <value>Please note that I cannot guarantee perfect compatibility with all third-party models.</value>
     </data>
-    <data name="AdvancedModelProviderConfigurator_InvalidEndpoint" xml:space="preserve">
+    <data name="AdvancedAssistantConfigurator_InvalidEndpoint" xml:space="preserve">
         <value>Must be a valid URL starting with http:// or https://</value>
     </data>
     <data name="VisualElementType_Spinner" xml:space="preserve">
@@ -2160,10 +2160,10 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="UserProfilePresenter_GetSupportButton_Content" xml:space="preserve">
         <value>Get Support</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
         <value>Native Mode</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
         <value>Official managed service. No API key setup needed—it's ready when you are.</value>
     </data>
     <data name="Common_CriticalError" xml:space="preserve">
@@ -2579,6 +2579,15 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
+        <value />
+    </data>
+    <data name="SystemAssistant_AutoSelectToggle_Content" xml:space="preserve">
         <value />
     </data>
 </root>

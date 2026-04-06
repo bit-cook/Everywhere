@@ -1825,16 +1825,16 @@ Seçim modlarını değiştirmek için kaydırma tekerleğini veya sayı tuşlar
     <data name="CustomAssistantInformationForm_IconButton_ToolTip" xml:space="preserve">
         <value>İkonu değiştirmek için tıklayın</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
         <value>Gelişmiş Mod</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
         <value>Tüm model parametrelerini serbestçe yapılandırın, üçüncü taraf modellerle uyumlu</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
         <value>Ön Ayar Modu</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
         <value>Ön ayarlardan yaygın modelleri seçin ve hızlıca başlayın</value>
     </data>
     <data name="CreateApiKeyForm_NameTextBox_Label" xml:space="preserve">
@@ -1858,7 +1858,7 @@ Seçim modlarını değiştirmek için kaydırma tekerleğini veya sayı tuşlar
     <data name="WelcomeView_AssistantStep_Advanced_Message2" xml:space="preserve">
         <value>Lütfen dikkat edin, tüm üçüncü taraf modellerle mükemmel uyum garantisi veremem.</value>
     </data>
-    <data name="AdvancedModelProviderConfigurator_InvalidEndpoint" xml:space="preserve">
+    <data name="AdvancedAssistantConfigurator_InvalidEndpoint" xml:space="preserve">
         <value>http:// veya https:// ile başlayan geçerli bir URL olmalıdır</value>
     </data>
     <data name="VisualElementType_Spinner" xml:space="preserve">
@@ -2090,10 +2090,10 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="UserProfilePresenter_GetSupportButton_Content" xml:space="preserve">
         <value>Destek Al</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
         <value>Yerel Mod</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
         <value>Resmi barındırılan hizmet. API anahtarı gerektirmez, kullanıma hazır.</value>
     </data>
     <data name="Common_CriticalError" xml:space="preserve">

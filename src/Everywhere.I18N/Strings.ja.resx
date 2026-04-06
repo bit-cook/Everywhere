@@ -1831,16 +1831,16 @@
     <data name="CustomAssistantInformationForm_IconButton_ToolTip" xml:space="preserve">
         <value>アイコンを変更するにはクリック</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Header" xml:space="preserve">
         <value>高度なモード</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_AdvancedConfiguratorModel_Description" xml:space="preserve">
         <value>すべてのモデルパラメータを自由に設定し、サードパーティモデルに対応</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Header" xml:space="preserve">
         <value>プリセットモード</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_PresetBasedConfiguratorModel_Description" xml:space="preserve">
         <value>プリセットから一般的なモデルを選択してすぐに使用開始</value>
     </data>
     <data name="CreateApiKeyForm_NameTextBox_Label" xml:space="preserve">
@@ -1864,7 +1864,7 @@
     <data name="WelcomeView_AssistantStep_Advanced_Message2" xml:space="preserve">
         <value>すべてのサードパーティモデルとの完全な互換性は保証できませんのでご注意ください。</value>
     </data>
-    <data name="AdvancedModelProviderConfigurator_InvalidEndpoint" xml:space="preserve">
+    <data name="AdvancedAssistantConfigurator_InvalidEndpoint" xml:space="preserve">
         <value>http://またはhttps://で始まる有効なURLである必要があります</value>
     </data>
     <data name="VisualElementType_Spinner" xml:space="preserve">
@@ -2096,10 +2096,10 @@
     <data name="UserProfilePresenter_GetSupportButton_Content" xml:space="preserve">
         <value>サポートを受ける</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Header" xml:space="preserve">
         <value>ネイティブモード</value>
     </data>
-    <data name="ModelProviderConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
+    <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
         <value>公式ホスティングサービス。APIキーは不要で、すぐに使えます</value>
     </data>
     <data name="Common_CriticalError" xml:space="preserve">

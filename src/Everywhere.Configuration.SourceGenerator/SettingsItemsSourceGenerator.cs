@@ -49,7 +49,7 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
         }
 
         // Collect metadata for all relevant properties of the class
-        var members = type.GetMembers()
+        var members = type.GetAllMembers()
             .OfType<IPropertySymbol>()
             .Where(p => p is { IsStatic: false, GetMethod: not null, IsImplicitlyDeclared: false })
             .Where(p => !p.IsHiddenItem())
@@ -82,7 +82,7 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
             sb.Append("public ");
 
             // Append override modifier if the property is present in the base type with virtual or abstract modifier
-            var baseProperty = type.BaseType?.GetMembers().OfType<IPropertySymbol>().FirstOrDefault(p => p.Name == "SettingsItems");
+            var baseProperty = type.BaseType?.GetAllMembers().OfType<IPropertySymbol>().FirstOrDefault(p => p.Name == "SettingsItems");
             if (baseProperty != null && (baseProperty.IsVirtual || baseProperty.IsAbstract))
             {
                 sb.Append("override ");
@@ -99,18 +99,8 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
                     sb.AppendLine("if (field is not null) return field;").AppendLine();
                     sb.AppendLine("field = new global::Everywhere.Configuration.SettingsItems();");
 
-                    foreach (var meta in members)
+                    foreach (var meta in members.Where(meta => !string.IsNullOrWhiteSpace(meta.HeaderKey)))
                     {
-                        if (string.IsNullOrWhiteSpace(meta.HeaderKey))
-                        {
-                            // Report diagnostic for missing DynamicResourceKey
-                            ctx.ReportDiagnostic(
-                                Diagnostic.Create(
-                                    Diagnostics.EmptyHeaderKey,
-                                    meta.Symbol.Locations.FirstOrDefault(),
-                                    meta.Name));
-                        }
-
                         EmitItemRecursive(ctx, sb, meta, $"item_{meta.Name.Replace(".", "_")}", meta.Name, "field");
                     }
 
@@ -656,8 +646,25 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
         // 3. Emit IsExpanded
         sb.AppendLine($"{itemName}.IsExpanded = {GetNamedArgValue(settingsItemsAttribute, "IsExpanded", "false")};");
 
+        // 4. Emit IsExpandableBindingPath
+        var isExpandableBindingPath = settingsItemsAttribute.GetNamedArgument("IsExpandableBindingPath") switch
+        {
+            { IsNull: false, Value: string path } => path,
+            _ => null
+        };
+
         sb.Append($"{itemName}[!global::Everywhere.Configuration.SettingsItem.IsExpandableProperty] = ");
-        EmitBinding(sb, metadata.Name, BindingMode.OneWay, "global::Avalonia.Data.Converters.ObjectConverters.IsNotNull");
+        if (string.IsNullOrEmpty(isExpandableBindingPath))
+        {
+            // No IsExpandableBindingPath provided, use a default logic: if there are any children, it's expandable
+            EmitBinding(sb, metadata.Name, BindingMode.OneWay, "global::Avalonia.Data.Converters.ObjectConverters.IsNotNull");
+        }
+        else
+        {
+            // Emit binding for IsExpandable
+            EmitBinding(sb, isExpandableBindingPath!, BindingMode.OneWay);
+        }
+
         sb.AppendLine(";").AppendLine();
     }
 

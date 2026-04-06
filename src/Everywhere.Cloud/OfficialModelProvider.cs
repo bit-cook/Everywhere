@@ -161,6 +161,7 @@ public sealed partial class OfficialModelProvider :
         [property: JsonPropertyName("releaseDate")] string? ReleaseDate,
         [property: JsonPropertyName("deprecationDate")] string? DeprecationDate,
         [property: JsonPropertyName("modalities")] CloudModelModalities Modalities,
+        [property: JsonPropertyName("specializations")] IReadOnlyList<string>? Specializations,
         [property: JsonPropertyName("limit")] CloudModelLimitInfo LimitInfo,
         [property: JsonPropertyName("pricing")] CloudModelPricing Pricing
     )
@@ -177,6 +178,7 @@ public sealed partial class OfficialModelProvider :
                 DeprecationDate = DateOnly.TryParse(DeprecationDate, out var deprecationDate) ? deprecationDate : null,
                 InputModalities = ConvertModalities(Modalities.Input),
                 OutputModalities = ConvertModalities(Modalities.Output),
+                Specializations = ConvertSpecializations(Specializations),
                 ContextLimit = LimitInfo.Context,
                 OutputLimit = LimitInfo.Output,
                 IconUrl = Icon,
@@ -195,6 +197,20 @@ public sealed partial class OfficialModelProvider :
                 "pdf" => AI.Modalities.Pdf,
                 _ => AI.Modalities.None
             });
+
+        private static ModelSpecializations ConvertSpecializations(IReadOnlyList<string>? specializationStrings)
+        {
+            if (specializationStrings is null) return ModelSpecializations.None;
+
+            return specializationStrings.AsValueEnumerable().Aggregate(
+                ModelSpecializations.None,
+                (current, specialization) => current | specialization.ToLower() switch
+                {
+                    "title-generation" => ModelSpecializations.TitleGeneration,
+                    "context-compression" => ModelSpecializations.ContextCompression,
+                    _ => ModelSpecializations.None
+                });
+        }
 
         private static ModelPricing ConvertPricing(CloudModelPricing pricing)
         {
