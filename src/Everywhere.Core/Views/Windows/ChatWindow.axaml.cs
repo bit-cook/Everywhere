@@ -25,7 +25,8 @@ public partial class ChatWindow :
     ReactiveShadWindow<ChatWindowViewModel>,
     IReactiveHost,
     IRecipient<CloakChatWindowMessage>,
-    IRecipient<ApplicationCommand>,
+    IRecipient<FlashChatWindowMessage>,
+    IRecipient<ApplicationMessage>,
     IVisualElementAnimationTarget
 {
     public DialogHost DialogHost => PART_DialogHost;
@@ -53,6 +54,7 @@ public partial class ChatWindow :
     private static Size DefaultSize => new(400d, 600d);
 
     private readonly IWindowHelper _windowHelper;
+    private readonly INativeHelper _nativeHelper;
     private readonly Settings _settings;
     private readonly PersistentState _persistentState;
 
@@ -68,10 +70,12 @@ public partial class ChatWindow :
 
     public ChatWindow(
         IWindowHelper windowHelper,
+        INativeHelper nativeHelper,
         Settings settings,
         PersistentState persistentState)
     {
         _windowHelper = windowHelper;
+        _nativeHelper = nativeHelper;
         _settings = settings;
         _persistentState = persistentState;
 
@@ -83,7 +87,10 @@ public partial class ChatWindow :
 
         SetupDragDropHandlers();
 
+        // Don't use RegisterAll because base class has Register one, call to RegisterAll will cause exception.
         WeakReferenceMessenger.Default.Register<CloakChatWindowMessage>(this);
+        WeakReferenceMessenger.Default.Register<FlashChatWindowMessage>(this);
+        WeakReferenceMessenger.Default.Register<ApplicationMessage>(this);
     }
 
     private void SetupDragDropHandlers()
@@ -260,9 +267,28 @@ public partial class ChatWindow :
         Dispatcher.UIThread.InvokeOnDemand(() => SetCloaked(message.IsCloaked));
     }
 
-    public void Receive(ApplicationCommand command)
+    public void Receive(FlashChatWindowMessage message)
     {
-        if (command is ShowWindowCommand { Name: nameof(ChatWindowViewModel) })
+        Dispatcher.UIThread.InvokeOnDemand(() =>
+        {
+            if (!IsFocused) _windowHelper.RequestUserAttention(this);
+
+            if (!_windowHelper.GetEffectiveVisible(this) && message.Prompt is { Length: > 0 } prompt)
+            {
+                _nativeHelper.ShowDesktopNotificationAsync(prompt).ContinueWith(t =>
+                {
+                    if (t is { IsCompletedSuccessfully: true, Result: true })
+                    {
+                        Dispatcher.UIThread.InvokeOnDemand(() => SetCloaked(false));
+                    }
+                });
+            }
+        });
+    }
+
+    public void Receive(ApplicationMessage message)
+    {
+        if (message is ShowWindowMessage { Name: nameof(ChatWindowViewModel) })
         {
             Dispatcher.UIThread.InvokeOnDemand(() => SetCloaked(false));
         }
@@ -530,5 +556,4 @@ public partial class ChatWindow :
     {
         return ChatInputArea.TryGetAttachmentCenterOnScreen(attachment, out center);
     }
-
 }

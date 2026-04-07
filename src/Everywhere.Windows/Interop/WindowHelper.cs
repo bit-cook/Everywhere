@@ -226,4 +226,19 @@ public class WindowHelper : IWindowHelper
         BOOL value = false;
         PInvoke.DwmSetWindowAttribute(hWnd, DWMWINDOWATTRIBUTE.DWMWA_CLOAK, &value, (uint)sizeof(BOOL));
     }
+
+    public unsafe void RequestUserAttention(Window window)
+    {
+        if (window.TryGetPlatformHandle() is not { } handle) return;
+
+        var info = new FLASHWINFO
+        {
+            cbSize = (uint)sizeof(FLASHWINFO),
+            hwnd = (HWND)handle.Handle,
+            dwFlags = FLASHWINFO_FLAGS.FLASHW_TRAY | FLASHWINFO_FLAGS.FLASHW_TIMERNOFG,
+            uCount = uint.MaxValue,
+            dwTimeout = 0
+        };
+        PInvoke.FlashWindowEx(&info);
+    }
 }

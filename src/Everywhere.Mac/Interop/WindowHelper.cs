@@ -196,4 +196,9 @@ public class WindowHelper : IWindowHelper
     {
         return window.TryGetPlatformHandle()?.Handle is { } handle ? Runtime.GetNSObject<NSWindow>(handle) : null;
     }
+
+    public void RequestUserAttention(Window window)
+    {
+        NSApplication.SharedApplication.RequestUserAttention(NSRequestUserAttentionType.InformationalRequest);
+    }
 }

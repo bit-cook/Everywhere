@@ -856,15 +856,7 @@ public sealed partial class ChatWindowViewModel :
                 .ShowAsync(message.CancellationToken)
                 .Detach(_logger.ToExceptionHandler());
 
-            if (!IsOpened)
-            {
-                _nativeHelper
-                    .ShowDesktopNotificationAsync(message.HeaderKey.ToString() ?? LocaleResolver.Common_Info)
-                    .ContinueWith(r =>
-                    {
-                        if (r is { IsFaulted: false, Result: true }) WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
-                    });
-            }
+            WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(message.HeaderKey.ToString()));
         });
     }
 
@@ -886,17 +878,7 @@ public sealed partial class ChatWindowViewModel :
                 .ShowAsync(message.CancellationToken)
                 .Detach(_logger.ToExceptionHandler());
 
-            if (!IsOpened)
-            {
-                var notificationText = message.Questions.FirstOrDefault()?.Id ?? LocaleResolver.Common_Info;
-                _nativeHelper
-                    .ShowDesktopNotificationAsync(notificationText)
-                    .ContinueWith(r =>
-                    {
-                        if (r is { IsFaulted: false, Result: true })
-                            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
-                    });
-            }
+            WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(message.Questions.FirstOrDefault()?.Question));
         });
     }
 

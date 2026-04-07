@@ -10,6 +10,7 @@ using Everywhere.Chat.Plugins;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
+using Everywhere.Messages;
 using Everywhere.Storage;
 using Everywhere.Utilities;
 using Everywhere.Views;
@@ -427,12 +428,15 @@ public sealed partial class ChatService : IChatService
                     cancellationToken);
             }
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            e = HandledChatException.Handle(e, kernelMixin);
-            activity?.SetStatus(ActivityStatusCode.Error, e.Message.Trim());
-            assistantChatMessage.ErrorMessageKey = e.GetFriendlyMessage();
-            _logger.LogError(e, "Error generating chat response");
+            _logger.LogError(ex, "Error generating chat response");
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message.Trim());
+
+            ex = HandledChatException.Handle(ex, kernelMixin);
+            var friendlyMessage = ex.GetFriendlyMessage();
+            assistantChatMessage.ErrorMessageKey = friendlyMessage;
+            WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(friendlyMessage.ToString()));
         }
         finally
         {

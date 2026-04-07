@@ -283,6 +283,41 @@ public sealed class X11WindowManager(ILogger logger, X11Context context, X11Core
         return !isHidden;
     }
 
+    public unsafe void RequestUserAttention(X11Window window)
+    {
+        try
+        {
+            context.InvokeSync(() =>
+            {
+                var demandsAtom = context.GetAtom("_NET_WM_STATE_DEMANDS_ATTENTION", onlyIfExists: false);
+                var wmStateAtom = context.GetAtom("_NET_WM_STATE", onlyIfExists: false);
+
+                if (demandsAtom == Atom.None || wmStateAtom == Atom.None) return;
+
+                var msg = new X11Native.XClientMessageEvent
+                {
+                    type = 33, // ClientMessage
+                    window = (IntPtr)window,
+                    message_type = (IntPtr)wmStateAtom,
+                    format = 32,
+                    data_l0 = 1, // _NET_WM_STATE_ADD
+                    data_l1 = (IntPtr)demandsAtom,
+                    data_l2 = IntPtr.Zero,
+                    data_l3 = 1, // From application
+                    data_l4 = IntPtr.Zero
+                };
+                // SubstructureRedirectMask | SubstructureNotifyMask
+                X11Native.XSendEvent(context.Display, context.RootWindow, 0, 1 << 25, &msg);
+
+                context.XFlush();
+            });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to request user attention for X11 Window {WindowId}", window);
+        }
+    }
+
     public bool AnyModelDialogOpened(X11Window window)
     {
         var dialogFound = false;

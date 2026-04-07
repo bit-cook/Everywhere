@@ -172,6 +172,12 @@ public sealed class X11WindowBackend : IWindowBackend, IEventHelper
         return false;
     }
 
+    public void RequestUserAttention(AvaloniaWindow window)
+    {
+        if (window.TryGetPlatformHandle()?.Handle is { } x11Handle)
+            WindowManager.RequestUserAttention((X11Window)x11Handle);
+    }
+
     public void SendKeyboardShortcut(KeyboardShortcut shortcut)
     {
         InputHandler.SendKeyboardShortcut(shortcut);

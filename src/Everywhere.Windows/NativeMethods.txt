@@ -108,4 +108,5 @@ SHQueryUserNotificationState
 
 PeekMessage
 PostThreadMessage
-WM_USER
+
+FlashWindowEx
