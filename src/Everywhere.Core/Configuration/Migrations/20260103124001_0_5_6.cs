@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Nodes;
 using Everywhere.Chat.Plugins;
+using Everywhere.Chat.Plugins.BuiltIn;
 
 namespace Everywhere.Configuration.Migrations;
 

@@ -21,7 +21,7 @@ using PuppeteerSharp;
 using ZLinq;
 using IHttpClientFactory = System.Net.Http.IHttpClientFactory;
 
-namespace Everywhere.Chat.Plugins;
+namespace Everywhere.Chat.Plugins.BuiltIn;
 
 public partial class WebBrowserPlugin : BuiltInChatPlugin
 {

@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Security;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -16,7 +17,7 @@ using Lucide.Avalonia;
 using Microsoft.SemanticKernel;
 using ZLinq;
 
-namespace Everywhere.Chat.Plugins;
+namespace Everywhere.Chat.Plugins.BuiltIn;
 
 public class VisualContextPlugin : BuiltInChatPlugin
 {
@@ -327,7 +328,7 @@ public class VisualContextPlugin : BuiltInChatPlugin
     /// </summary>
     private IVisualElement ResolveVisualElementByHwnd(string hwndString)
     {
-        if (!long.TryParse(hwndString.AsSpan(2), System.Globalization.NumberStyles.HexNumber, null, out var hwndValue))
+        if (!long.TryParse(hwndString.AsSpan(2), NumberStyles.HexNumber, null, out var hwndValue))
         {
             throw new HandledFunctionInvokingException(
                 HandledFunctionInvokingExceptionType.ArgumentError,

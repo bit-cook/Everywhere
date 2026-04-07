@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.SemanticKernel.Plugins.Web;
 using ZLinq;
 
-namespace Everywhere.Chat.Plugins;
+namespace Everywhere.Chat.Plugins.BuiltIn;
 
 public partial class WebBrowserPlugin
 {

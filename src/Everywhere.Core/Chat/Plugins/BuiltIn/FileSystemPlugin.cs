@@ -10,7 +10,7 @@ using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
-namespace Everywhere.Chat.Plugins;
+namespace Everywhere.Chat.Plugins.BuiltIn;
 
 public class FileSystemPlugin : BuiltInChatPlugin
 {

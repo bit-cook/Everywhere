@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Configuration;
 using Everywhere.Views;
 
-namespace Everywhere.Chat.Plugins;
+namespace Everywhere.Chat.Plugins.BuiltIn;
 
 public enum WebSearchEngineProviderId
 {

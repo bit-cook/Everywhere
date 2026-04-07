@@ -46,6 +46,7 @@ public sealed class ChatPluginQuestionOption
     public bool Recommended { get; set; }
 }
 
+[Serializable]
 public sealed record ChatPluginQuestionAnswer(
     IReadOnlyList<string> Selected,
     string? FreeText

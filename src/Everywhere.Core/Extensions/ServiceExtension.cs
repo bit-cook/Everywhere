@@ -1,6 +1,7 @@
 ﻿using Everywhere.AI;
 using Everywhere.Chat;
 using Everywhere.Chat.Plugins;
+using Everywhere.Chat.Plugins.BuiltIn;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Database;

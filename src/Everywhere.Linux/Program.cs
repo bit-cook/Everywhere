@@ -69,14 +69,12 @@ public static class Program
                 .AddAvaloniaBasicServices()
                 .AddViewsAndViewModels()
                 .AddDatabaseAndStorage()
+                .AddChatEssentials()
 
                 #endregion
 
                 #region Chat Plugins
 
-                .AddTransient<BuiltInChatPlugin, VisualContextPlugin>()
-                .AddTransient<BuiltInChatPlugin, WebBrowserPlugin>()
-                .AddTransient<BuiltInChatPlugin, FileSystemPlugin>()
                 .AddTransient<BuiltInChatPlugin, FdFindPlugin>()
                 .AddTransient<BuiltInChatPlugin, BashPlugin>()
 

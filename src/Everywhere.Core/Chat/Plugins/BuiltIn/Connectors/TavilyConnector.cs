@@ -4,7 +4,7 @@ using Microsoft.SemanticKernel.Data;
 using Microsoft.SemanticKernel.Plugins.Web;
 using Microsoft.SemanticKernel.Plugins.Web.Tavily;
 
-namespace Everywhere.Chat.Plugins;
+namespace Everywhere.Chat.Plugins.BuiltIn;
 
 public partial class WebBrowserPlugin
 {

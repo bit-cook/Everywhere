@@ -5,6 +5,7 @@ using Everywhere.Chat.Permissions;
 using Lucide.Avalonia;
 using Microsoft.SemanticKernel;
 using ModelContextProtocol.Client;
+using ZLinq;
 
 namespace Everywhere.Chat.Plugins;
 
@@ -127,15 +128,29 @@ public sealed class NativeChatFunction : ChatFunction
     }
 }
 
-public class McpChatFunction : ChatFunction
+public sealed class McpChatFunction : ChatFunction
 {
+    public override ChatFunctionPermissions Permissions => ChatFunctionPermissions.MCP;
+
+    public override KernelFunction KernelFunction { get; }
+
     public McpChatFunction(McpClientTool tool)
     {
         KernelFunction = tool.AsKernelFunction();
         IsAutoApproveAllowed = true;
     }
 
-    public override ChatFunctionPermissions Permissions => ChatFunctionPermissions.MCP;
+    /// <summary>
+    /// MCP tool name SHOULD only allow: uppercase and lowercase ASCII letters (A-Z, a-z), digits (0-9), underscore (_), hyphen (-), and dot (.)
+    /// But SK only allow ASCII letters, digits, and underscores in function name, so we need to escape the tool name to make it compatible with SK.
+    /// </summary>
+    /// <param name="tool"></param>
+    private static void EscapeToolName(McpClientTool tool)
+    {
+        ref var name = ref GetName(tool);
+        name = new string(name.AsValueEnumerable().Select(c => char.IsLetterOrDigit(c) ? c : '_').ToArray());
+    }
 
-    public override KernelFunction KernelFunction { get; }
+    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_name")]
+    private static extern ref string GetName(McpClientTool tool);
 }
