@@ -14,6 +14,7 @@ using Everywhere.AttachedProperties;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
+using Everywhere.Messages;
 using Everywhere.Views;
 using LiveMarkdown.Avalonia;
 using Serilog;
@@ -22,7 +23,7 @@ using Window = Avalonia.Controls.Window;
 
 namespace Everywhere;
 
-public class App : Application, IRecipient<ApplicationCommand>
+public class App : Application, IRecipient<ApplicationMessage>
 {
     public static string Version => typeof(App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
 
@@ -245,9 +246,9 @@ public class App : Application, IRecipient<ApplicationCommand>
 
     public void ShowDebugWindow() => ShowWindow<VisualTreeDebugger>(ref _debugWindow);
 
-    public void Receive(ApplicationCommand command)
+    public void Receive(ApplicationMessage message)
     {
-        if (command is ShowWindowCommand { Name: nameof(MainView) })
+        if (message is ShowWindowMessage { Name: nameof(MainView) })
         {
             Dispatcher.UIThread.Invoke(() => ShowWindow<MainView>(ref _mainWindow));
         }

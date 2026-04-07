@@ -3,6 +3,7 @@ using System.IO.Pipes;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Configuration;
 using Everywhere.Interop;
+using Everywhere.Messages;
 using Everywhere.Patches;
 using MessagePack;
 using Serilog;
@@ -69,16 +70,16 @@ public static class Entrance
             return;
         }
 
-        if (args.FirstOrDefault(x => x.StartsWith($"{UrlProtocolCallbackCommand.Scheme}:")) is { } url)
+        if (args.FirstOrDefault(x => x.StartsWith($"{UrlProtocolCallbackMessage.Scheme}:")) is { } url)
         {
             // Bring the existing instance to the foreground.
-            await SendToHost(new UrlProtocolCallbackCommand(url)).ConfigureAwait(false);
+            await SendToHost(new UrlProtocolCallbackMessage(url)).ConfigureAwait(false);
             Environment.Exit(0);
             return;
         }
 
         // Bring the existing instance to the foreground.
-        await SendToHost(new ShowWindowCommand(nameof(ChatWindowViewModel))).ConfigureAwait(false);
+        await SendToHost(new ShowWindowMessage(nameof(ChatWindowViewModel))).ConfigureAwait(false);
         Environment.Exit(0);
     }
 
@@ -116,7 +117,7 @@ public static class Entrance
 
                 try
                 {
-                    var command = MessagePackSerializer.Deserialize<ApplicationCommand>(buffer);
+                    var command = MessagePackSerializer.Deserialize<ApplicationMessage>(buffer);
                     WeakReferenceMessenger.Default.Send(command);
                 }
                 catch (Exception ex)
@@ -152,7 +153,7 @@ public static class Entrance
             "Host pipe server stopped after {MaxRetries} consecutive errors.", maxRetries);
     }
 
-    private static async Task SendToHost(ApplicationCommand command)
+    private static async Task SendToHost(ApplicationMessage message)
     {
         const int maxAttempts = 3;
         const int connectTimeoutMs = 5000;
@@ -164,7 +165,7 @@ public static class Entrance
                 await using var client = new NamedPipeClientStream(".", BundleName, PipeDirection.Out, PipeOptions.Asynchronous);
                 await client.ConnectAsync(connectTimeoutMs);
 
-                var bytes = MessagePackSerializer.Serialize(command);
+                var bytes = MessagePackSerializer.Serialize(message);
                 var lengthBytes = BitConverter.GetBytes(bytes.Length);
 
                 await client.WriteAsync(lengthBytes);
@@ -182,7 +183,7 @@ public static class Entrance
                 Log.Error(ex, "Failed to send command to host instance after {MaxAttempts} attempts.", maxAttempts);
 
                 // Show message box if the command is ShowMainWindowCommand as a fallback
-                if (command is ShowWindowCommand)
+                if (message is ShowWindowMessage)
                 {
                     NativeMessageBox.Show(
                         LocaleResolver.Common_Info,

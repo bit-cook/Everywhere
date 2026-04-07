@@ -21,6 +21,7 @@ using Everywhere.Cloud;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
+using Everywhere.Messages;
 using Everywhere.Storage;
 using Everywhere.StrategyEngine;
 using Everywhere.Utilities;
@@ -29,10 +30,6 @@ using Microsoft.Extensions.Logging;
 using ZLinq;
 
 namespace Everywhere.ViewModels;
-
-public sealed record ActivateChatSessionMessage(IVisualElement? TargetElement = null);
-
-public sealed record CloakChatWindowMessage(bool IsCloaked);
 
 public sealed partial class ChatWindowViewModel :
     ReactiveViewModelBase,
@@ -148,7 +145,6 @@ public sealed partial class ChatWindowViewModel :
 
     private readonly IChatService _chatService;
     private readonly IVisualElementContext _visualElementContext;
-    private readonly INativeHelper _nativeHelper;
     private readonly IBlobStorage _blobStorage;
     private readonly IStrategyEngine _strategyEngine;
     private readonly ILogger<ChatWindowViewModel> _logger;
@@ -170,7 +166,6 @@ public sealed partial class ChatWindowViewModel :
         IChatPluginManager chatPluginManager,
         IChatService chatService,
         IVisualElementContext visualElementContext,
-        INativeHelper nativeHelper,
         IBlobStorage blobStorage,
         IStrategyEngine strategyEngine,
         ILogger<ChatWindowViewModel> logger)
@@ -183,7 +178,6 @@ public sealed partial class ChatWindowViewModel :
 
         _chatService = chatService;
         _visualElementContext = visualElementContext;
-        _nativeHelper = nativeHelper;
         _blobStorage = blobStorage;
         _strategyEngine = strategyEngine;
         _logger = logger;
@@ -693,7 +687,7 @@ public sealed partial class ChatWindowViewModel :
     [RelayCommand]
     private void OpenSettings()
     {
-        WeakReferenceMessenger.Default.Send<ApplicationCommand>(new ShowWindowCommand(nameof(MainView)));
+        WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(nameof(MainView)));
     }
 
     [RelayCommand]

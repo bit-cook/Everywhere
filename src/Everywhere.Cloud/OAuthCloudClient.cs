@@ -12,6 +12,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Extensions;
+using Everywhere.Messages;
 using GnomeStack.Os.Secrets;
 using Microsoft.Extensions.Logging;
 
@@ -21,7 +22,7 @@ public sealed record UserProfileUpdatedMessage(UserProfile? NewProfile);
 
 public sealed record SubscriptionInformationUpdatedMessage(SubscriptionInformation? NewSubscription);
 
-public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncInitializer, IRecipient<ApplicationCommand>
+public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncInitializer, IRecipient<ApplicationMessage>
 {
     private const string ServiceName = "com.sylinko.everywhere";
     private const string TokenDataKey = "oauth_token_data";
@@ -172,9 +173,9 @@ public partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncIn
 
     public DelegatingHandler CreateAuthenticationHandler() => new CloudAuthenticationHandler(_session, _logger);
 
-    public void Receive(ApplicationCommand message)
+    public void Receive(ApplicationMessage message)
     {
-        if (message is not UrlProtocolCallbackCommand oauth) return;
+        if (message is not UrlProtocolCallbackMessage oauth) return;
 
         _logger.LogDebug("Received URL callback: {url}", oauth.Url);
 

@@ -11,6 +11,7 @@ using Everywhere.Configuration;
 using Everywhere.Extensions;
 using Everywhere.Initialization;
 using Everywhere.Interop;
+using Everywhere.Messages;
 using Everywhere.StrategyEngine;
 using Everywhere.Windows.Chat.Plugins;
 using Everywhere.Windows.Common;
@@ -146,7 +147,7 @@ public static class Program
     {
         try
         {
-            using var registry = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{UrlProtocolCallbackCommand.Scheme}");
+            using var registry = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{UrlProtocolCallbackMessage.Scheme}");
             registry.SetValue(null, "URL: Sylinko Everywhere Protocol");
             registry.SetValue("URL Protocol", string.Empty);
 

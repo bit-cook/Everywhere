@@ -30,33 +30,10 @@ public class EssentialPlugin : BuiltInChatPlugin
         Read
     }
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum TodoStatus
-    {
-        NotStarted,
-        InProgress,
-        Completed
-    }
-
-    [Serializable]
-    public sealed class TodoItem
-    {
-        [Description("1-based unique identifier for the todo item.")]
-        public required int Id { get; set; }
-
-        [Description("Concise action-oriented todo label displayed in UI.")]
-        public required string Title { get; set; }
-
-        [Description("(Optional) Detailed context, requirements, or implementation notes.")]
-        public string? Description { get; set; }
-
-        public TodoStatus Status { get; set; } = TodoStatus.NotStarted;
-    }
-
     /// <summary>
     /// Stores to-do lists for different chat contexts.
     /// </summary>
-    private readonly ConditionalWeakTable<ChatContext, List<TodoItem>> _todoLists = new();
+    private readonly ConditionalWeakTable<ChatContext, List<ChatPluginTodoItem>> _todoLists = new();
 
     public EssentialPlugin(ILogger<EssentialPlugin> logger) : base("essential")
     {
@@ -139,7 +116,7 @@ public class EssentialPlugin : BuiltInChatPlugin
             "Complete array of all todo items (required for reset, optional for read). " +
             "ALWAYS provide complete list when rewriting - partial updates not supported. " +
             "This MUST be a JSON array instead of a stringified JSON.") ]
-        List<TodoItem>? items)
+        List<ChatPluginTodoItem>? items)
     {
         var currentList = _todoLists.GetOrCreateValue(chatContext);
 

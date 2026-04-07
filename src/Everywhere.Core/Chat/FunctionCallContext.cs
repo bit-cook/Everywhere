@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
+using Everywhere.Messages;
 using Microsoft.SemanticKernel;
 
 namespace Everywhere.Chat;

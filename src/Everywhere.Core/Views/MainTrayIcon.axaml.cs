@@ -2,6 +2,7 @@
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
+using Everywhere.Messages;
 using Everywhere.Utilities;
 
 namespace Everywhere.Views;

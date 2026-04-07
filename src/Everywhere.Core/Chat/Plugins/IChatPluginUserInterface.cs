@@ -1,16 +1,31 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using Everywhere.Chat.Permissions;
+using System.Text.Json.Serialization;
 
 namespace Everywhere.Chat.Plugins;
 
-public sealed record ChatPluginRequestConsentMessage(
-    TaskCompletionSource<ConsentDecision> Promise,
-    IDynamicResourceKey HeaderKey,
-    ChatPluginDisplayBlock? DisplayBlock,
-    bool CanRemember,
-    CancellationToken CancellationToken
-);
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ChatPluginTodoStatus
+{
+    NotStarted,
+    InProgress,
+    Completed
+}
+
+[Serializable]
+public sealed class ChatPluginTodoItem
+{
+    [Description("1-based unique identifier for the todo item.")]
+    public required int Id { get; set; }
+
+    [Description("Concise action-oriented todo label displayed in UI.")]
+    public required string Title { get; set; }
+
+    [Description("(Optional) Detailed context, requirements, or implementation notes.")]
+    public string? Description { get; set; }
+
+    public ChatPluginTodoStatus Status { get; set; } = ChatPluginTodoStatus.NotStarted;
+}
 
 [Serializable]
 public sealed class ChatPluginQuestion
@@ -50,12 +65,6 @@ public sealed class ChatPluginQuestionOption
 public sealed record ChatPluginQuestionAnswer(
     IReadOnlyList<string> Selected,
     string? FreeText
-);
-
-public sealed record ChatPluginAskQuestionMessage(
-    TaskCompletionSource<IReadOnlyList<ChatPluginQuestionAnswer>> Promise,
-    IReadOnlyList<ChatPluginQuestion> Questions,
-    CancellationToken CancellationToken
 );
 
 /// <summary>

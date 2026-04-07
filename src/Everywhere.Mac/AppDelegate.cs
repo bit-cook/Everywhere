@@ -3,6 +3,7 @@ using System.Text;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
 using Everywhere.Mac.Interop;
+using Everywhere.Messages;
 using Everywhere.ViewModels;
 using ObjCRuntime;
 using Serilog;
@@ -115,7 +116,7 @@ public partial class AppDelegate : NSApplicationDelegate
     public override bool ApplicationShouldHandleReopen(NSApplication sender, bool hasVisibleWindows)
     {
         // We handled the reopen by showing the chat window.
-        WeakReferenceMessenger.Default.Send<ApplicationCommand>(new ShowWindowCommand(nameof(ChatWindowViewModel)));
+        WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(nameof(ChatWindowViewModel)));
         return true;
     }
 }

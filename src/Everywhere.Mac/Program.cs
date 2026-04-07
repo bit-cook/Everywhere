@@ -25,7 +25,10 @@ public static class Program
     [STAThread]
     public static async Task Main(string[] args)
     {
+#if IsMacOS
         NativeMessageBox.MacOSMessageBoxHandler = MessageBoxHandler;
+#endif
+
         await Entrance.InitializeAsync(args);
         InitializeHarmony();
 
