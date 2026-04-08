@@ -56,13 +56,13 @@ public class ChatActionBubble : ContentControl
     /// <summary>
     /// Defines the <see cref="ElapsedSeconds"/> property.
     /// </summary>
-    public static readonly StyledProperty<double> ElapsedSecondsProperty =
-        AvaloniaProperty.Register<ChatActionBubble, double>(nameof(ElapsedSeconds));
+    public static readonly StyledProperty<double?> ElapsedSecondsProperty =
+        AvaloniaProperty.Register<ChatActionBubble, double?>(nameof(ElapsedSeconds));
 
     /// <summary>
     /// Gets or sets the elapsed time in seconds since the action started.
     /// </summary>
-    public double ElapsedSeconds
+    public double? ElapsedSeconds
     {
         get => GetValue(ElapsedSecondsProperty);
         set => SetValue(ElapsedSecondsProperty, value);

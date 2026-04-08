@@ -123,14 +123,14 @@
             <v:ConditionalContentControl
               x:Name="LoadingSkeleton" Margin="4,8,4,4"
               Condition="{Binding $self.IsVisible}">
-              <v:LazyContentControl.IsVisible>
+              <v:LazyIndexedContentControl.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="IsBusy"/>
                   <Binding
                     Converter="{x:Static vc:Int32Converters.IsZero}"
                     Path="Spans.Count"/>
                 </MultiBinding>
-              </v:LazyContentControl.IsVisible>
+              </v:LazyIndexedContentControl.IsVisible>
 
               <v:ConditionalContentControl.TrueContent>
                 <ControlTemplate>
@@ -262,7 +262,8 @@
                     ElapsedSeconds="{Binding ElapsedSeconds}"
                     Header="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_Assistant_DeepThinking}}"
                     Icon="Brain"
-                    IsBusy="{Binding FinishedAt, Converter={x:Static ObjectConverters.IsNull}}">
+                    IsBusy="{Binding FinishedAt, Converter={x:Static ObjectConverters.IsNull}}"
+                    IsExpanded="{Binding $self.IsBusy, Mode=OneWay, Delay=500}">
                     <Panel x:Name="ReasoningPanel">
                       <ScrollViewer
                         Classes.Collapsed="{Binding !#ExpandReasoningButton.IsChecked}"
@@ -529,15 +530,15 @@
         </DataTemplate>
 
         <DataTemplate DataType="chat:FunctionCallChatMessage">
+          <!--  Don't show elapsed time for function calls, since they may be waiting for user input and the time would be meaningless  -->
           <v:ChatActionBubble
             x:Name="FunctionCallChatActionBubble" AdornerLayer.IsClipEnabled="False"
             ClipToBounds="False"
-            ElapsedSeconds="{Binding ElapsedSeconds}"
             Header="{Binding HeaderKey^, FallbackValue={x:Null}}"
             Icon="{Binding Icon}"
             IsBusy="{Binding IsBusy}"
             IsError="{Binding ErrorMessageKey, Converter={x:Static ObjectConverters.IsNotNull}}"
-            IsExpanded="{Binding IsExpanded, Mode=TwoWay}">
+            IsExpanded="{Binding $self.IsBusy, Mode=OneWay, Delay=500}">
             <AdornerLayer.Adorner>
               <shadui:Badge
                 Width="20" Height="20"

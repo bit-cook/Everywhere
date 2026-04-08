@@ -100,9 +100,9 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
     [IgnoreMember]
     public IChatPluginDisplaySink DisplaySink => _displaySink;
 
-    [Key(11)]
-    [ObservableProperty]
-    public partial bool IsExpanded { get; set; } = true;
+    // [Key(11)]
+    // [ObservableProperty]
+    // public partial bool IsExpanded { get; set; } = true;
 
     [IgnoreMember]
     [JsonIgnore]

@@ -56,6 +56,9 @@
                   <TextBlock.IsVisible>
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
                       <TemplateBinding
+                        Converter="{x:Static ObjectConverters.IsNotNull}"
+                        Property="ElapsedSeconds"/>
+                      <TemplateBinding
                         Converter="{x:Static BoolConverters.Not}"
                         Property="IsError"/>
                       <TemplateBinding
