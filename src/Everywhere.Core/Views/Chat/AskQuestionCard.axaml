@@ -29,9 +29,10 @@
                     DockPanel.Dock="Left" Kind="CircleQuestionMark"
                     Size="{DynamicResource FontSizeL}"/>
 
-                  <TextBlock
-                    Text="{Binding CurrentQuestion.Question.Question, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
-                    TextWrapping="Wrap"/>
+                  <TextBlock TextWrapping="Wrap">
+                    <Run Text="{Binding CurrentQuestion.MultiSelectHintKey, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                    <Run Text="{Binding CurrentQuestion.Question.Question, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                  </TextBlock>
                 </DockPanel>
               </Expander.Header>
 
@@ -54,6 +55,7 @@
                           BasedOn="{StaticResource {x:Type ListBoxItem}}"
                           TargetType="ListBoxItem">
                           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                          <Setter Property="Focusable" Value="False"/>
                           <Setter Property="Padding" Value="6,4"/>
                           <Setter Property="HorizontalAlignment" Value="Stretch"/>
                           <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -73,7 +75,7 @@
                             AcceptsReturn="True" MaxLines="3"
                             Text="{Binding FreeformText}"
                             TextWrapping="Wrap"
-                            Watermark="{I18N {x:Static LocaleKey.AskQuestionCard_FreeformPlaceholder}}">
+                            Watermark="{I18N {x:Static LocaleKey.AskQuestionCard_FreeformTextBox_Watermark}}">
                             <Interaction.Behaviors>
                               <ClickEventTrigger
                                 ClickMode="Press" HandledEventsToo="True">
@@ -93,8 +95,9 @@
                   <Button
                     Classes="Ghost Compact" Grid.Column="0"
                     Command="{Binding PreviousPageCommand, RelativeSource={RelativeSource TemplatedParent}}"
-                    Content="{I18N {x:Static LocaleKey.AskQuestionCard_Previous}}"
-                    CornerRadius="{DynamicResource SmCornerRadius}"/>
+                    Content="{I18N {x:Static LocaleKey.AskQuestionCard_PreviousButton_Content}}"
+                    CornerRadius="{DynamicResource SmCornerRadius}"
+                    IsVisible="{TemplateBinding HasPreviousPage}"/>
                   <TextBlock
                     Classes="Muted" Grid.Column="1"
                     VerticalAlignment="Center"
@@ -102,8 +105,15 @@
                   <Button
                     Classes="Primary Compact" Grid.Column="2"
                     Command="{Binding NextPageCommand, RelativeSource={RelativeSource TemplatedParent}}"
-                    Content="{I18N {x:Static LocaleKey.AskQuestionCard_Next}}"
-                    CornerRadius="{DynamicResource SmCornerRadius}"/>
+                    Content="{I18N {x:Static LocaleKey.AskQuestionCard_NextButton_Content}}"
+                    CornerRadius="{DynamicResource SmCornerRadius}"
+                    IsVisible="{TemplateBinding HasNextPage}"/>
+                  <Button
+                    Classes="Primary Compact" Grid.Column="2"
+                    Command="{Binding NextPageCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                    Content="{I18N {x:Static LocaleKey.AskQuestionCard_SubmitButton_Content}}"
+                    CornerRadius="{DynamicResource SmCornerRadius}"
+                    IsVisible="{TemplateBinding HasNextPage, Converter={x:Static BoolConverters.Not}}"/>
                 </Grid>
               </StackPanel>
             </Expander>

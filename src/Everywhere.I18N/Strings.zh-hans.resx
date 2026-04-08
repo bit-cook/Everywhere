@@ -1842,13 +1842,13 @@
     <data name="BuiltInChatPlugin_Essential_AskUserQuestion_Description" xml:space="preserve">
         <value>允许助手通过交互式对话框向用户提问并收集输入。</value>
     </data>
-    <data name="AskQuestionCard_Next" xml:space="preserve">
+    <data name="AskQuestionCard_NextButton_Content" xml:space="preserve">
         <value>下一个</value>
     </data>
-    <data name="AskQuestionCard_Previous" xml:space="preserve">
+    <data name="AskQuestionCard_PreviousButton_Content" xml:space="preserve">
         <value>上一个</value>
     </data>
-    <data name="AskQuestionCard_FreeformPlaceholder" xml:space="preserve">
+    <data name="AskQuestionCard_FreeformTextBox_Watermark" xml:space="preserve">
         <value>输入你的回答…</value>
     </data>
     <data name="BuiltInChatPlugin_FileSystem_SearchFiles_OperationStarted_Message" xml:space="preserve">
@@ -2590,5 +2590,11 @@
     </data>
     <data name="ChatWindow_TodoList_Header" xml:space="preserve">
         <value>待办事项 ({0}/{1})</value>
+    </data>
+    <data name="AskQuestionCard_SubmitButton_Content" xml:space="preserve">
+        <value>提交</value>
+    </data>
+    <data name="ChatPlugin_MultiSelectHint" xml:space="preserve">
+        <value>(多选)</value>
     </data>
 </root>

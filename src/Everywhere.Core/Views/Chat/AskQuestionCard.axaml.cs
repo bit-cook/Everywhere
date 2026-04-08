@@ -33,20 +33,20 @@ public partial class AskQuestionCard : Card
     {
         public ChatPluginQuestion Question { get; }
         public SelectionMode SelectionMode { get; }
+        public IDynamicResourceKey? MultiSelectHintKey => Question.MultiSelect ? new DynamicResourceKey(LocaleKey.ChatPlugin_MultiSelectHint) : null;
         public List<OptionWrapper> OptionWrappers { get; } = [];
 
         public QuestionWrapper(ChatPluginQuestion question)
         {
             Question = question;
-            var isMultiSelect = question.MultiSelect;
-            SelectionMode = isMultiSelect ? SelectionMode.Multiple : SelectionMode.Single;
+            SelectionMode = question.MultiSelect ? SelectionMode.Multiple | SelectionMode.Toggle : SelectionMode.Single | SelectionMode.Toggle;
 
             var hasPreSelected = false;
             if (question.Options is not null)
             {
                 foreach (var option in question.Options)
                 {
-                    var isSelected = option.Recommended && (isMultiSelect || !hasPreSelected);
+                    var isSelected = option.Recommended && (question.MultiSelect || !hasPreSelected);
                     if (isSelected) hasPreSelected = true;
 
                     OptionWrappers.Add(
@@ -117,6 +117,28 @@ public partial class AskQuestionCard : Card
         private set => SetAndRaise(PageDisplayProperty, ref field, value);
     }
 
+    public static readonly DirectProperty<AskQuestionCard, bool> HasPreviousPageProperty =
+        AvaloniaProperty.RegisterDirect<AskQuestionCard, bool>(
+            nameof(HasPreviousPage),
+            o => o.HasPreviousPage);
+
+    public bool HasPreviousPage
+    {
+        get;
+        private set => SetAndRaise(HasPreviousPageProperty, ref field, value);
+    }
+
+    public static readonly DirectProperty<AskQuestionCard, bool> HasNextPageProperty =
+        AvaloniaProperty.RegisterDirect<AskQuestionCard, bool>(
+            nameof(HasNextPage),
+            o => o.HasNextPage);
+
+    public bool HasNextPage
+    {
+        get;
+        set => SetAndRaise(HasNextPageProperty, ref field, value);
+    }
+
     #endregion
 
     private int _currentIndex;
@@ -142,12 +164,17 @@ public partial class AskQuestionCard : Card
     private void NavigateTo(int index)
     {
         if (WrappedQuestions is null) return;
+
         _currentIndex = index;
         CurrentQuestion = WrappedQuestions[index];
-        PageDisplay = $"{index + 1} / {WrappedQuestions.Count}";
+        HasPreviousPage = _currentIndex > 0;
+        HasNextPage = _currentIndex < WrappedQuestions.Count - 1;
+        PreviousPageCommand.NotifyCanExecuteChanged();
+
+        PageDisplay = WrappedQuestions.Count <= 1 ? null : $"{index + 1} / {WrappedQuestions.Count}";
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HasPreviousPage))]
     private void PreviousPage()
     {
         if (_currentIndex > 0) NavigateTo(_currentIndex - 1);

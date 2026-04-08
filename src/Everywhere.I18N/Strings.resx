@@ -1841,13 +1841,13 @@ Scroll wheel or number keys to switch pick modes</value>
     <data name="BuiltInChatPlugin_Essential_AskUserQuestion_Description" xml:space="preserve">
         <value>Allowing the assistant to ask questions and gather input from the user through interactive dialogs.</value>
     </data>
-    <data name="AskQuestionCard_Next" xml:space="preserve">
+    <data name="AskQuestionCard_NextButton_Content" xml:space="preserve">
         <value>Next</value>
     </data>
-    <data name="AskQuestionCard_Previous" xml:space="preserve">
+    <data name="AskQuestionCard_PreviousButton_Content" xml:space="preserve">
         <value>Previous</value>
     </data>
-    <data name="AskQuestionCard_FreeformPlaceholder" xml:space="preserve">
+    <data name="AskQuestionCard_FreeformTextBox_Watermark" xml:space="preserve">
         <value>Type your answer...</value>
     </data>
     <data name="BuiltInChatPlugin_FileSystem_SearchFiles_OperationStarted_Message" xml:space="preserve">
@@ -2588,6 +2588,12 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="ChatWindow_TodoList_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="AskQuestionCard_SubmitButton_Content" xml:space="preserve">
+        <value>Submit</value>
+    </data>
+    <data name="ChatPlugin_MultiSelectHint" xml:space="preserve">
         <value />
     </data>
 </root>
