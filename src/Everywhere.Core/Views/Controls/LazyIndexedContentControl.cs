@@ -11,13 +11,13 @@ namespace Everywhere.Views;
 /// A ContentControl that supports lazy loading of its content based on the ItemIndex property.
 /// When not visible or attached to the visual tree, the content can be unloaded to save resources.
 /// </summary>
-public class LazyContentControl : ContentControl
+public class LazyIndexedContentControl : ContentControl
 {
     /// <summary>
     /// Identifies the <see cref="ItemIndex"/> property.
     /// </summary>
     public static readonly StyledProperty<int> ItemIndexProperty =
-        AvaloniaProperty.Register<LazyContentControl, int>(nameof(ItemIndex), -1);
+        AvaloniaProperty.Register<LazyIndexedContentControl, int>(nameof(ItemIndex), -1);
 
     /// <summary>
     /// Gets or sets the index of the item displayed in this control.
@@ -32,7 +32,7 @@ public class LazyContentControl : ContentControl
     /// Identifies the <see cref="ContentDataBinding"/> property.
     /// </summary>
     public static readonly StyledProperty<object?> ContentDataBindingProperty =
-        AvaloniaProperty.Register<LazyContentControl, object?>(nameof(ContentDataBinding));
+        AvaloniaProperty.Register<LazyIndexedContentControl, object?>(nameof(ContentDataBinding));
 
     /// <summary>
     /// Gets or sets the data context for the content of this control.
@@ -48,29 +48,29 @@ public class LazyContentControl : ContentControl
     public IAvaloniaList<IControlTemplate?> ItemTemplates { get; }
 
     /// <summary>
-    /// Initializes the static members of the <see cref="LazyContentControl"/> class.
+    /// Initializes the static members of the <see cref="LazyIndexedContentControl"/> class.
     /// </summary>
-    static LazyContentControl()
+    static LazyIndexedContentControl()
     {
-        ItemIndexProperty.Changed.AddClassHandler<LazyContentControl>(HandleItemIndexChanged);
-        ContentDataBindingProperty.Changed.AddClassHandler<LazyContentControl>(HandleContentDataContextChanged);
+        ItemIndexProperty.Changed.AddClassHandler<LazyIndexedContentControl>(HandleItemIndexChanged);
+        ContentDataBindingProperty.Changed.AddClassHandler<LazyIndexedContentControl>(HandleContentDataContextChanged);
     }
 
-    private static void HandleItemIndexChanged(LazyContentControl sender, AvaloniaPropertyChangedEventArgs args)
+    private static void HandleItemIndexChanged(LazyIndexedContentControl sender, AvaloniaPropertyChangedEventArgs args)
     {
         sender.UpdateContent();
     }
 
-    private static void HandleContentDataContextChanged(LazyContentControl sender, AvaloniaPropertyChangedEventArgs args)
+    private static void HandleContentDataContextChanged(LazyIndexedContentControl sender, AvaloniaPropertyChangedEventArgs args)
     {
         // If the content is already loaded, update its DataContext
         if (sender.Content is Control control) control.DataContext = args.NewValue ?? sender.DataContext;
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="LazyContentControl"/> class.
+    /// Initializes a new instance of the <see cref="LazyIndexedContentControl"/> class.
     /// </summary>
-    public LazyContentControl()
+    public LazyIndexedContentControl()
     {
         ItemTemplates = new AvaloniaList<IControlTemplate?>();
         ItemTemplates.CollectionChanged += OnItemTemplatesChanged;

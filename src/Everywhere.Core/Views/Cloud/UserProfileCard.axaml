@@ -157,10 +157,10 @@
                     </LucideIcon>
                   </Grid>
 
-                  <v:LazyContentControl
+                  <v:LazyIndexedContentControl
                     ContentDataBinding="{Binding Subscription}"
                     ItemIndex="{Binding Subscription.Status, Converter={x:Static vc:Int32Converters.FromEnum}, FallbackValue=-1}">
-                    <v:LazyContentControl.IsVisible>
+                    <v:LazyIndexedContentControl.IsVisible>
                       <MultiBinding Converter="{x:Static BoolConverters.And}">
                         <Binding
                           Converter="{x:Static ObjectConverters.IsNotNull}"
@@ -172,7 +172,7 @@
                           FallbackValue="{x:False}"
                           Path="Subscription.Status"/>
                       </MultiBinding>
-                    </v:LazyContentControl.IsVisible>
+                    </v:LazyIndexedContentControl.IsVisible>
 
                     <!--  Active  -->
                     <ControlTemplate x:DataType="cloud:SubscriptionInformation">
@@ -230,7 +230,7 @@
                         </TextBlock.Text>
                       </TextBlock>
                     </ControlTemplate>
-                  </v:LazyContentControl>
+                  </v:LazyIndexedContentControl>
                 </StackPanel>
 
                 <StackPanel

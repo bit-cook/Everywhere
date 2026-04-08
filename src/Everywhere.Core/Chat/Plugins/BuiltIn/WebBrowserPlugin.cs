@@ -189,7 +189,7 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
     /// <summary>
     /// Performs a web search using the provided query, count, and offset.
     /// </summary>
-    /// <param name="userInterface"></param>
+    /// <param name="displaySink"></param>
     /// <param name="query">The text to search for.</param>
     /// <param name="count">The number of results to return. Default is 10.</param>
     /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
@@ -205,14 +205,14 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
         "Results may be inaccurate.")]
     [DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_WebSearch_Header, LocaleKey.BuiltInChatPlugin_WebBrowser_WebSearch_Description)]
     private async Task<string> WebSearchAsync(
-        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("Search query")] string query,
         [Description("Number of results")] int count = 10,
         CancellationToken cancellationToken = default) // TODO: Offset is not well supported.
     {
         _logger.LogDebug("Performing web search with query: {Query}, count: {Count}", query, count);
 
-        userInterface.DisplaySink.AppendDynamicResourceKey(
+        displaySink.AppendDynamicResourceKey(
             new FormattedDynamicResourceKey(
                 LocaleKey.BuiltInChatPlugin_WebBrowser_WebSearch_Searching,
                 new DirectResourceKey(query)));
@@ -229,7 +229,7 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
                 Url: r.Url,
                 Snippet: r.Snippet))
             .ToList();
-        userInterface.DisplaySink.AppendUrls(
+        displaySink.AppendUrls(
             indexedResults.Select(r => new ChatPluginUrl(
                 r.Url,
                 new DirectResourceKey(r.Name))
@@ -368,7 +368,7 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
     [Description("Snapshot accessibility of a web page via Puppeteer, returning a json of the page content and metadata.")]
     [DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_WebSnapshot_Header, LocaleKey.BuiltInChatPlugin_WebBrowser_WebSnapshot_Description)]
     private async Task<string> WebSnapshotAsync(
-        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("Web page URL to snapshot")] string url,
         CancellationToken cancellationToken = default)
     {
@@ -394,7 +394,7 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
 #endif
                 );
 
-                userInterface.DisplaySink.AppendDynamicResourceKey(
+                displaySink.AppendDynamicResourceKey(
                     new FormattedDynamicResourceKey(
                         LocaleKey.BuiltInChatPlugin_WebBrowser_WebSnapshot_Visiting,
                         new DirectResourceKey(url)));

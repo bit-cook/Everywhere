@@ -1,10 +1,19 @@
 ﻿using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using Everywhere.Messages;
 using Everywhere.Utilities;
 using MessagePack;
 
 namespace Everywhere.Chat;
+
+[Flags]
+public enum ChatContextMetadataStates
+{
+    None = 0x0,
+    Busy = 0x1,
+    HasNotification = 0x2
+}
 
 /// <summary>Chat context metadata persisted along with the object graph.</summary>
 [MessagePackObject(AllowPrivate = true)]
@@ -80,6 +89,10 @@ public partial class ChatContextMetadata(Guid id, DateTimeOffset dateCreated, Da
     [IgnoreMember]
     [ObservableProperty]
     public partial bool IsRenaming { get; set; }
+
+    [IgnoreMember]
+    [ObservableProperty]
+    public partial ChatContextMetadataStates States { get; set; }
 
     /// <summary>
     /// Indicates whether the context is temporarily deleted and not yet removed from the database.

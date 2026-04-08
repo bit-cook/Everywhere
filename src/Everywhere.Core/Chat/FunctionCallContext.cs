@@ -1,7 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using Everywhere.Chat.Permissions;
+﻿using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
-using Everywhere.Messages;
 using Microsoft.SemanticKernel;
 
 namespace Everywhere.Chat;
@@ -15,7 +13,7 @@ public sealed record FunctionCallContext(
     ChatPlugin ChatPlugin,
     ChatFunction ChatFunction,
     FunctionCallChatMessage FunctionCallChatMessage,
-    IDictionary<string,bool> IsPermissionGrantedRecords
+    IDictionary<string, bool> IsPermissionGrantedRecords
 ) : IChatPluginUserInterface
 {
     public string PermissionKey => $"{ChatPlugin.Key}.{ChatFunction.KernelFunction.Name}";
@@ -60,16 +58,11 @@ public sealed record FunctionCallContext(
             }
         }
 
-        var promise = new TaskCompletionSource<ConsentDecision>(TaskCreationOptions.RunContinuationsAsynchronously);
-        WeakReferenceMessenger.Default.Send(
-            new ChatPluginRequestConsentMessage(
-                promise,
-                headerKey,
-                content,
-                permissionKey is not null,
-                cancellationToken));
-
-        var consentDecision = await promise.Task;
+        var consentDecision = await ChatContext.HandleConsentRequestAsync(
+            headerKey,
+            content,
+            permissionKey is not null,
+            cancellationToken);
 
         if (permissionKey is null)
         {
@@ -105,19 +98,18 @@ public sealed record FunctionCallContext(
         }
     }
 
+    public void ResetTodoItems(IReadOnlyList<ChatPluginTodoItem> todoItems)
+    {
+        ChatContext.ResetTodoItems(todoItems);
+    }
+
     public Task<IReadOnlyList<ChatPluginQuestionAnswer>> AskQuestionAsync(
         IReadOnlyList<ChatPluginQuestion> questions,
         CancellationToken cancellationToken = default)
     {
-        var promise = new TaskCompletionSource<IReadOnlyList<ChatPluginQuestionAnswer>>(TaskCreationOptions.RunContinuationsAsynchronously);
-        WeakReferenceMessenger.Default.Send(
-            new ChatPluginAskQuestionMessage(
-                promise,
-                questions,
-                cancellationToken));
-
-        return promise.Task;
+        return ChatContext.AskQuestionAsync(questions, cancellationToken);
     }
 
     #endregion
+
 }

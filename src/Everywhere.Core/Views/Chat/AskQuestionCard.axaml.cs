@@ -13,6 +13,9 @@ public partial class AskQuestionCard : Card
     {
         [ObservableProperty]
         public partial bool IsSelected { get; set; }
+
+        [RelayCommand]
+        private void Select() => IsSelected = true;
     }
 
     public sealed class NormalOptionWrapper(ChatPluginQuestionOption option) : OptionWrapper
@@ -72,6 +75,15 @@ public partial class AskQuestionCard : Card
         set => SetValue(QuestionsProperty, value);
     }
 
+    public static readonly StyledProperty<IRelayCommand<IReadOnlyList<ChatPluginQuestionAnswer>>?> CommandProperty =
+        AvaloniaProperty.Register<AskQuestionCard, IRelayCommand<IReadOnlyList<ChatPluginQuestionAnswer>>?>(nameof(Command));
+
+    public IRelayCommand<IReadOnlyList<ChatPluginQuestionAnswer>>? Command
+    {
+        get => GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
     public static readonly DirectProperty<AskQuestionCard, IReadOnlyList<QuestionWrapper>?> WrappedQuestionsProperty =
         AvaloniaProperty.RegisterDirect<AskQuestionCard, IReadOnlyList<QuestionWrapper>?>(
             nameof(WrappedQuestions),
@@ -105,25 +117,6 @@ public partial class AskQuestionCard : Card
         private set => SetAndRaise(PageDisplayProperty, ref field, value);
     }
 
-    public static readonly DirectProperty<AskQuestionCard, bool> ShowPaginationProperty =
-        AvaloniaProperty.RegisterDirect<AskQuestionCard, bool>(
-            nameof(ShowPagination),
-            o => o.ShowPagination);
-
-    public bool ShowPagination
-    {
-        get;
-        private set => SetAndRaise(ShowPaginationProperty, ref field, value);
-    }
-
-    #endregion
-
-    #region Events
-
-    public delegate void SubmittedEventHandler(IReadOnlyList<ChatPluginQuestionAnswer> answers);
-
-    public event SubmittedEventHandler? Submitted;
-
     #endregion
 
     private int _currentIndex;
@@ -138,13 +131,11 @@ public partial class AskQuestionCard : Card
         {
             WrappedQuestions = null;
             CurrentQuestion = null;
-            ShowPagination = false;
             PageDisplay = null;
             return;
         }
 
         WrappedQuestions = questions.AsValueEnumerable().Select(q => new QuestionWrapper(q)).ToList();
-        ShowPagination = WrappedQuestions.Count > 1;
         NavigateTo(0);
     }
 
@@ -171,7 +162,7 @@ public partial class AskQuestionCard : Card
         {
             NavigateTo(_currentIndex + 1);
         }
-        else if (Submitted is { } submitted)
+        else if (Command is { } command)
         {
             var answers = new ChatPluginQuestionAnswer[WrappedQuestions.Count];
             for (var i = 0; i < WrappedQuestions.Count; i++)
@@ -184,7 +175,7 @@ public partial class AskQuestionCard : Card
                 {
                     if (optionWrapper is NormalOptionWrapper { IsSelected: true, Option: { } option })
                     {
-                        selected.Add(option.Label);
+                        selected.Add(option.Content);
                     }
                     else if (optionWrapper is FreeformOptionWrapper { FreeformText: { Length: > 0 } freeform })
                     {
@@ -196,7 +187,10 @@ public partial class AskQuestionCard : Card
                 answers[i] = new ChatPluginQuestionAnswer(selected, freeformText);
             }
 
-            submitted(answers);
+            if (command.CanExecute(answers))
+            {
+                command.Execute(answers);
+            }
         }
     }
 }

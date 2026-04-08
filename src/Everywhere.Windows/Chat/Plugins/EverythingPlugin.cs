@@ -101,7 +101,7 @@ public class EverythingPlugin : BuiltInChatPlugin
     [Description("Search files using Everything search engine.")]
     [DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_Everything_SearchFiles_Header)]
     private async Task<string> SearchFilesAsync(
-        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("Standard search pattern in Everything search engine.")] string searchPattern,
         [Description("Maximum number of results to return. Default is 50 and will be limited to 1000.")]
         int maxResults = 50,
@@ -124,7 +124,7 @@ public class EverythingPlugin : BuiltInChatPlugin
                         .SendSearch(searchPattern, default)
                         .Take(Math.Min(maxResults, 1000))
                         .Select(CreateFileRecord);
-                    userInterface.DisplaySink.AppendDynamicResourceKey(
+                    displaySink.AppendDynamicResourceKey(
                         new FormattedDynamicResourceKey(
                             LocaleKey.Windows_BuiltInChatPlugin_Everything_SearchFiles_DetailMessage,
                             new DirectResourceKey(everything.Count.ToString())));

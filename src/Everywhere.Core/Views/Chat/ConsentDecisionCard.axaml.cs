@@ -4,7 +4,7 @@ using ShadUI;
 
 namespace Everywhere.Views;
 
-public partial class ConsentDecisionCard : Card
+public sealed class ConsentDecisionCard : Card
 {
     /// <summary>
     /// Defines the <see cref="CanRemember"/> property.
@@ -21,13 +21,12 @@ public partial class ConsentDecisionCard : Card
         set => SetValue(CanRememberProperty, value);
     }
 
-    public delegate void ConsentSelectedEventHandler(ConsentDecision decision);
+    public static readonly StyledProperty<IRelayCommand<ConsentDecision>?> CommandProperty =
+        AvaloniaProperty.Register<ConsentDecisionCard, IRelayCommand<ConsentDecision>?>(nameof(Command));
 
-    public event ConsentSelectedEventHandler? ConsentSelected;
-
-    [RelayCommand]
-    private void SelectConsent(ConsentDecision decision)
+    public IRelayCommand<ConsentDecision>? Command
     {
-        ConsentSelected?.Invoke(decision);
+        get => GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
     }
 }

@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
-using DynamicData;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
@@ -85,6 +85,7 @@ public class SystemPlugin : BuiltInChatPlugin
     [DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ManageReminders_Header)]
     private async Task<string> ManageRemindersAsync(
         [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("Action: Create, List, Update, Delete, Complete")] SystemAction action,
         [Description("Title (required for create)")] string? title,
         [Description("Notes (optional)")] string? notes,
@@ -153,7 +154,7 @@ public class SystemPlugin : BuiltInChatPlugin
             }
         }
 
-        userInterface.DisplaySink.AppendBlocks(detailBlock);
+        displaySink.AppendBlocks(detailBlock);
 
         string script;
         switch (action)
@@ -230,6 +231,7 @@ public class SystemPlugin : BuiltInChatPlugin
     [DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ManageCalendar_Header)]
     private async Task<string> ManageCalendarAsync(
         [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("Action: Create, List, Delete")] SystemAction action,
         [Description("Title (required for create)")] string? title,
         [Description("Start date and time (required for create, optional for list)")] DateTime? startDate,
@@ -334,7 +336,7 @@ public class SystemPlugin : BuiltInChatPlugin
             }
         }
 
-        userInterface.DisplaySink.AppendBlocks(detailBlock);
+        displaySink.AppendBlocks(detailBlock);
 
         string script;
         switch (action)
@@ -416,7 +418,7 @@ public class SystemPlugin : BuiltInChatPlugin
     [Description("Compose a new email in the Mail app.")]
     [DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_SendEmail_Header)]
     private async Task<string> SendEmailAsync(
-        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("The recipient email address")] string recipient,
         [Description("The subject of the email")] string subject,
         [Description("The content of the email")] string content,
@@ -435,8 +437,7 @@ public class SystemPlugin : BuiltInChatPlugin
         };
 
         // Don't show consent because it already shows before calling this function
-
-        userInterface.DisplaySink.AppendBlocks(detailBlock);
+        displaySink.AppendBlocks(detailBlock);
 
         var script =
             $$"""
@@ -448,7 +449,6 @@ public class SystemPlugin : BuiltInChatPlugin
                   activate
               end tell
               """;
-
         return await RunAppleScriptAsync(script, cancellationToken);
     }
 
@@ -456,7 +456,7 @@ public class SystemPlugin : BuiltInChatPlugin
     [Description("Open Apple Maps and search for a location.")]
     [DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_OpenMaps_Header)]
     private async Task<string> OpenMapsAsync(
-        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("The location or query to search for")] string query,
         CancellationToken cancellationToken)
     {
@@ -467,8 +467,7 @@ public class SystemPlugin : BuiltInChatPlugin
             new ChatPluginDynamicResourceKeyDisplayBlock(
                 new FormattedDynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_OpenMaps_Detail_Query, new DirectResourceKey(query))),
         };
-
-        userInterface.DisplaySink.AppendBlocks(detailBlock);
+        displaySink.AppendBlocks(detailBlock);
 
         var script =
             $"""
@@ -486,6 +485,7 @@ public class SystemPlugin : BuiltInChatPlugin
     [DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ManageNotes_Header)]
     private async Task<string> ManageNotesAsync(
         [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("Action: Create, List, Delete")] SystemAction action,
         [Description("Title (required for create)")] string? title,
         [Description("Content (required for create)")] string? content,
@@ -556,7 +556,7 @@ public class SystemPlugin : BuiltInChatPlugin
                 showDetails: false);
         }
 
-        userInterface.DisplaySink.AppendBlocks(detailBlock);
+        displaySink.AppendBlocks(detailBlock);
 
         string script;
         switch (action)
@@ -607,7 +607,7 @@ public class SystemPlugin : BuiltInChatPlugin
     [Description("Open a URL in the default browser.")]
     [DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_OpenUrl_Header)]
     private async Task<string> OpenUrlAsync(
-        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("The URL to open")] string url,
         CancellationToken cancellationToken)
     {
@@ -618,6 +618,7 @@ public class SystemPlugin : BuiltInChatPlugin
             new ChatPluginDynamicResourceKeyDisplayBlock(
                 new FormattedDynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_OpenUrl_Detail_Url, new DirectResourceKey(url))),
         };
+        displaySink.AppendBlocks(detailBlock);
 
         userInterface.DisplaySink.AppendBlocks(detailBlock);
 
@@ -633,6 +634,7 @@ public class SystemPlugin : BuiltInChatPlugin
     [DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ExecuteScript_Header)]
     private async Task<string> ExecuteAppleScriptAsync(
         [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("A concise description for user, explaining what you are doing")] string description,
         [Description("The AppleScript code")] string script,
         CancellationToken cancellationToken)
@@ -663,7 +665,7 @@ public class SystemPlugin : BuiltInChatPlugin
                 showDetails: false);
         }
 
-        userInterface.DisplaySink.AppendBlocks(detailBlock);
+        displaySink.AppendBlocks(detailBlock);
 
         return await RunAppleScriptAsync(script, cancellationToken);
     }

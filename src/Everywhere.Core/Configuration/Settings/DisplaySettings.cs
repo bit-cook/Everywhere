@@ -94,6 +94,7 @@ public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
             {
                 if (Application.Current is not { } app) return;
 
+                // <system:Double x:Key="FontSizeXs">10</system:Double>
                 // <system:Double x:Key="FontSizeS">12.8</system:Double>
                 // <system:Double x:Key="FontSizeM">14</system:Double>
                 // <system:Double x:Key="FontSizeL">16</system:Double>
@@ -112,6 +113,7 @@ public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
                     3 => 18d,
                     _ => 14d,
                 };
+                app.Resources["FontSizeXs"] = fontSizeM * 0.714;
                 app.Resources["FontSizeS"] = fontSizeM * 0.914;
                 app.Resources["FontSizeM"] = fontSizeM;
                 app.Resources["FontSizeL"] = fontSizeM * 1.142;
@@ -121,6 +123,7 @@ public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
                 app.Resources["FontSize4Xl"] = fontSizeM * 3.428;
 
                 var lineHeightM = fontSizeM / 2 * 3;
+                app.Resources["LineHeightXs"] = lineHeightM * 0.714;
                 app.Resources["LineHeightS"] = lineHeightM * 0.914;
                 app.Resources["LineHeightM"] = lineHeightM;
                 app.Resources["LineHeightL"] = lineHeightM * 1.142;

@@ -69,12 +69,12 @@ public class EssentialPlugin : BuiltInChatPlugin
     private async Task<string> RunSubagentAsync(
         [FromKernelServices] IChatService chatService,
         [FromKernelServices] Assistant assistant,
-        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("A detailed description of the task for the agent to perform")] string prompt,
         [Description("A concise title for the agent's task. Should in system language.")] string title,
         CancellationToken cancellationToken)
     {
-        userInterface.DisplaySink.AppendDynamicResourceKey(
+        displaySink.AppendDynamicResourceKey(
             new FormattedDynamicResourceKey(
                 LocaleKey.BuiltInChatPlugin_Essential_RunSubagent_Title,
                 new DirectResourceKey(title)),
@@ -87,7 +87,7 @@ public class EssentialPlugin : BuiltInChatPlugin
         chatContext.Add(assistantChatMessage);
 
         // Display the chat context in the UI
-        userInterface.DisplaySink.AppendChatContext(chatContext);
+        displaySink.AppendChatContext(chatContext);
 
         await chatService.RunSubagentAsync(chatContext, assistant, assistantChatMessage, cancellationToken);
 
@@ -133,19 +133,16 @@ public class EssentialPlugin : BuiltInChatPlugin
             {
                 currentList.Clear();
                 currentList.AddRange(items);
-                AppendDisplayBlock();
+                userInterface.ResetTodoItems(currentList);
+
                 return "Todo list reset successfully.";
             }
             case TodoAction.Read when currentList.Count == 0:
             {
-                AppendDisplayBlock();
                 return "Todo list is empty.";
             }
             case TodoAction.Read:
             {
-                // Display the current list to the user
-                AppendDisplayBlock();
-
                 var sb = new StringBuilder();
                 sb.AppendLine("Current Todo List:");
                 foreach (var item in currentList)
@@ -165,30 +162,6 @@ public class EssentialPlugin : BuiltInChatPlugin
                     nameof(action),
                     new ArgumentException("Invalid action.", nameof(action)));
             }
-        }
-
-        void AppendDisplayBlock()
-        {
-            if (currentList.Count == 0)
-            {
-                userInterface.DisplaySink.AppendDynamicResourceKey(
-                    new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Empty));
-                return;
-            }
-
-            var stringBuilder = new StringBuilder();
-            foreach (var item in currentList)
-            {
-                var statusIcon = item.Status switch
-                {
-                    TodoStatus.NotStarted => "🔳",
-                    TodoStatus.InProgress => "🚧",
-                    TodoStatus.Completed => "✅",
-                    _ => "🔳"
-                };
-                stringBuilder.AppendLine($"{statusIcon} {item.Title}");
-            }
-            userInterface.DisplaySink.AppendText(stringBuilder.TrimEnd().ToString());
         }
     }
 

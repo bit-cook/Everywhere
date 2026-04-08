@@ -35,6 +35,16 @@ public interface IChatContextManager : INotifyPropertyChanged
     IReadOnlyList<ChatContextHistory> AllHistory { get; }
 
     /// <summary>
+    /// Gets the number of running ChatContexts in the background. This is used to show a badge on the history menu.
+    /// </summary>
+    int BackgroundBusyCount { get; }
+
+    /// <summary>
+    /// Gets the number of notified background tasks that are not yet acknowledged by the user. This is used to show a badge on the history menu.
+    /// </summary>
+    int BackgroundNotificationCount { get; }
+
+    /// <summary>
     /// Command to load more chat context history.
     /// </summary>
     IRelayCommand<int> LoadMoreHistoryCommand { get; }

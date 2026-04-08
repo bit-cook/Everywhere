@@ -4,8 +4,7 @@
   xmlns:builtIn="clr-namespace:Everywhere.Chat.Plugins.BuiltIn" xmlns:c="clr-namespace:Everywhere.Configuration"
   xmlns:common="clr-namespace:Everywhere.Common" xmlns:interop="clr-namespace:Everywhere.Interop"
   xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:mdSkia="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia.Svg.Skia"
-  xmlns:plugins="clr-namespace:Everywhere.Chat.Plugins" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
-  xmlns:v="clr-namespace:Everywhere.Views">
+  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="clr-namespace:Everywhere.Views">
   <DataTemplate
     x:Key="{x:Type aai:ModelProviderTemplate}"
     x:DataType="aai:ModelProviderTemplate">

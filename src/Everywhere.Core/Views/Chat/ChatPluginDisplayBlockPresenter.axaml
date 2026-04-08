@@ -10,11 +10,12 @@
   <ControlTheme
     x:Key="{x:Type v:ChatPluginDisplayBlockPresenter}"
     TargetType="v:ChatPluginDisplayBlockPresenter">
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundColor}"/>
     <Setter Property="Template">
       <ControlTemplate TargetType="v:ChatPluginDisplayBlockPresenter">
         <Border
           Padding="4"
-          Background="{DynamicResource CardBackgroundColor}"
+          Background="{TemplateBinding Background}"
           CornerRadius="4">
           <ContentPresenter
             x:Name="PART_ContentPresenter"

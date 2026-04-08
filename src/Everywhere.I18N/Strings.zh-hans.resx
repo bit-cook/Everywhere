@@ -2321,9 +2321,6 @@
     <data name="SettingsCategory_Settings_Common_Description" xml:space="preserve">
         <value>配置和 Everywhere 运行相关的设置。</value>
     </data>
-    <data name="SettingsPage_Title" xml:space="preserve">
-        <value>设置</value>
-    </data>
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>配置聊天窗口的行为。</value>
     </data>
@@ -2590,5 +2587,8 @@
     </data>
     <data name="SystemAssistant_AutoSelectToggle_Content" xml:space="preserve">
         <value>自动选择</value>
+    </data>
+    <data name="ChatWindow_TodoList_Header" xml:space="preserve">
+        <value>待办事项 ({0}/{1})</value>
     </data>
 </root>

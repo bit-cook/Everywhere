@@ -51,11 +51,8 @@ public sealed class ChatPluginQuestion
 [Serializable]
 public sealed class ChatPluginQuestionOption
 {
-    [Description("Display label and value for the option")]
-    public required string Label { get; set; }
-
-    [Description("Optional secondary text shown with the option")]
-    public string? Description { get; set; }
+    [Description("Main content for the option")]
+    public required string Content { get; set; }
 
     [Description("Mark this option as the recommended default")]
     public bool Recommended { get; set; }
@@ -97,6 +94,13 @@ public interface IChatPluginUserInterface
         IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resets the to-do items displayed in the user interface. The plugin can call this method multiple times to update the to-do list as needed.
+    /// </summary>
+    /// <param name="todoItems"></param>
+    void ResetTodoItems(
+        IReadOnlyList<ChatPluginTodoItem> todoItems);
 
     /// <summary>
     /// Ask question and wait for answer.

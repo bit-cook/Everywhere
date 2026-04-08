@@ -2320,9 +2320,6 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="SettingsCategory_Settings_Common_Description" xml:space="preserve">
         <value />
     </data>
-    <data name="SettingsPage_Title" xml:space="preserve">
-        <value />
-    </data>
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value />
     </data>
@@ -2588,6 +2585,9 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="SystemAssistant_AutoSelectToggle_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChatWindow_TodoList_Header" xml:space="preserve">
         <value />
     </data>
 </root>

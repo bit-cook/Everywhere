@@ -317,8 +317,12 @@ public sealed partial class ChatService : IChatService
         builder.Services.AddSingleton(_chatContextManager);
         builder.Services.AddSingleton(chatContext);
         builder.Services.AddSingleton(assistant);
-        builder.Services.AddTransient<IChatPluginUserInterface>(static x => x.GetRequiredService<ChatContext>().FunctionCallContext.Value ??
-            throw new InvalidOperationException("No IChatPluginUserInterface is available in current function call context."));
+        builder.Services.AddTransient<IChatPluginDisplaySink>(static x =>
+            x.GetRequiredService<ChatContext>().FunctionCallContext.Value?.DisplaySink ??
+            throw new InvalidOperationException($"No {nameof(IChatPluginDisplaySink)} is available in current function call context."));
+        builder.Services.AddTransient<IChatPluginUserInterface>(static x =>
+            x.GetRequiredService<ChatContext>().FunctionCallContext.Value ??
+            throw new InvalidOperationException($"No {nameof(IChatPluginUserInterface)} is available in current function call context."));
 
         if (kernelMixin.SupportsToolCall && _persistentState.IsToolCallEnabled)
         {
@@ -905,17 +909,7 @@ public sealed partial class ChatService : IChatService
             }
 
             // The function requires permissions that are not granted.
-            var promise = new TaskCompletionSource<ConsentDecision>(TaskCreationOptions.RunContinuationsAsynchronously);
-            WeakReferenceMessenger.Default.Send(
-                new ChatPluginRequestConsentMessage(
-                    promise,
-                    headerKey,
-                    displayBlock,
-                    true,
-                    cancellationToken));
-
-            return promise.Task;
-
+            return context.ChatContext.HandleConsentRequestAsync(headerKey, displayBlock, true, cancellationToken);
         }
     }
 

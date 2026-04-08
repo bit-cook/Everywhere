@@ -6,31 +6,15 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
+using Everywhere.Chat.Permissions;
+using Everywhere.Chat.Plugins;
 using Everywhere.Common;
 using Everywhere.Interop;
+using Everywhere.Messages;
 using Everywhere.Utilities;
 using MessagePack;
 
 namespace Everywhere.Chat;
-
-/// <summary>
-/// Message sent when chat context metadata changes.
-/// </summary>
-/// <param name="context">The chat context whose metadata has changed. Null if the context has been released.</param>
-/// <param name="metadata">The metadata that has changed.</param>
-/// <param name="propertyName">
-/// DateModified -> indicates the context has been modified. Need to save.
-/// Topic -> indicates the topic has changed. Need to save.
-/// IsSelected -> indicates selection state has changed.
-/// </param>
-public class ChatContextMetadataChangedMessage(ChatContext? context, ChatContextMetadata metadata, string? propertyName)
-{
-    public ChatContext? Context { get; set; } = context;
-
-    public ChatContextMetadata Metadata { get; set; } = metadata;
-
-    public string? PropertyName { get; set; } = propertyName;
-}
 
 /// <summary>
 /// Maintains the context of the chat, including a tree of <see cref="ChatMessageNode"/> and other metadata.
@@ -52,13 +36,13 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// Messages in the current branch.
     /// </summary>
     [IgnoreMember]
-    public int Count => _branchNodes.Count;
+    public int Count => _branchNodesSourceList.Count;
 
     [IgnoreMember]
-    public IObservable<int> CountChanged => _branchNodes.CountChanged;
+    public IObservable<int> CountChanged => _branchNodesSourceList.CountChanged;
 
     [IgnoreMember]
-    public IReadOnlyList<ChatMessageNode> Items => _branchNodes.Items;
+    public IReadOnlyList<ChatMessageNode> Items => _branchNodesSourceList.Items;
 
     /// <summary>
     /// Key: VisualElement.Id
@@ -96,6 +80,17 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     [ObservableProperty]
     public partial IDynamicResourceKey? BusyMessageKey { get; private set; }
 
+    #region UserInterface
+
+    [IgnoreMember]
+    public ReadOnlyObservableCollection<ChatPluginUserInterfaceItem> ChatPluginUserInterfaceItems { get; }
+
+    [IgnoreMember]
+    [ObservableProperty]
+    public partial IReadOnlyList<ChatPluginTodoItem>? TodoItems { get; private set; }
+
+    #endregion
+
     /// <summary>
     /// Backing store for MessagePack (de)serialization: nodes are persisted as a collection, and linked by Ids.
     /// </summary>
@@ -117,9 +112,11 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// <summary>
     /// Nodes on the currently selected branch. [0] is always the root node.
     /// </summary>
-    [IgnoreMember] private readonly SourceList<ChatMessageNode> _branchNodes = new();
-
-    [IgnoreMember] private readonly IDisposable _branchNodesWithoutSystemSubscription;
+    [IgnoreMember] private readonly SourceList<ChatMessageNode> _branchNodesSourceList = new();
+    [IgnoreMember] private readonly SourceList<ChatPluginUserInterfaceItem> _chatPluginUserInterfaceItemsSourceList = new();
+    [IgnoreMember] private readonly IDisposable _displayItemsSubscription;
+    [IgnoreMember] private readonly IDisposable _chatPluginUserInterfaceItemsSubscription;
+    [IgnoreMember] private readonly IDisposable _metadataSyncSubscription;
 
     /// <summary>
     /// Constructor for MessagePack deserialization and for creating a new chat context with existing nodes.
@@ -133,7 +130,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         Metadata = metadata;
         _messageNodeMap.AddRange(messageNodes.Select(v => new KeyValuePair<Guid, ChatMessageNode>(v.Id, v)));
         _rootNode = rootNode;
-        _branchNodes.Add(rootNode);
+        _branchNodesSourceList.Add(rootNode);
 
         foreach (var node in messageNodes.Append(rootNode))
         {
@@ -147,10 +144,22 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
 
         UpdateBranchAfter(0, rootNode);
 
-        DisplayItems = _branchNodes
+        DisplayItems = _branchNodesSourceList
             .Connect()
             .Filter(node => node != rootNode)
-            .BindEx(out _branchNodesWithoutSystemSubscription);
+            .ObserveOnAvaloniaDispatcher()
+            .BindEx(out _displayItemsSubscription);
+        ChatPluginUserInterfaceItems = _chatPluginUserInterfaceItemsSourceList
+            .Connect()
+            .ObserveOnAvaloniaDispatcher()
+            .BindEx(out _chatPluginUserInterfaceItemsSubscription);
+        _metadataSyncSubscription = _chatPluginUserInterfaceItemsSourceList.CountChanged
+            .ObserveOnAvaloniaDispatcher()
+            .Subscribe(count =>
+            {
+                if (count > 0) Metadata.States |= ChatContextMetadataStates.HasNotification;
+                else Metadata.States &= ~ChatContextMetadataStates.HasNotification;
+            });
     }
 
     /// <summary>
@@ -161,14 +170,24 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         Metadata = new ChatContextMetadata(Guid.CreateVersion7(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, null);
         _rootNode = new ChatMessageNode(Guid.CreateVersion7().SetVersion(0), RootChatMessage.Shared);
         _rootNode.PropertyChanged += HandleNodePropertyChanged;
-        _branchNodes.Add(_rootNode);
+        _branchNodesSourceList.Add(_rootNode);
 
-        _branchNodesWithoutSystemSubscription = _branchNodes
+        DisplayItems = _branchNodesSourceList
             .Connect()
             .Filter(node => node != _rootNode)
-            .Bind(out var branchNodesWithoutSystem)
-            .Subscribe();
-        DisplayItems = branchNodesWithoutSystem;
+            .ObserveOnAvaloniaDispatcher()
+            .BindEx(out _displayItemsSubscription);
+        ChatPluginUserInterfaceItems = _chatPluginUserInterfaceItemsSourceList
+            .Connect()
+            .ObserveOnAvaloniaDispatcher()
+            .BindEx(out _chatPluginUserInterfaceItemsSubscription);
+        _metadataSyncSubscription = _chatPluginUserInterfaceItemsSourceList.CountChanged
+            .ObserveOnAvaloniaDispatcher()
+            .Subscribe(count =>
+            {
+                if (count > 0) Metadata.States |= ChatContextMetadataStates.HasNotification;
+                else Metadata.States &= ~ChatContextMetadataStates.HasNotification;
+            });
     }
 
     #region Busy implementation
@@ -219,12 +238,12 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// </summary>
     public void CreateBranchOn(ChatMessageNode siblingNode, ChatMessage chatMessage)
     {
-        var index = _branchNodes.Items.IndexOf(siblingNode);
+        var index = _branchNodesSourceList.Items.IndexOf(siblingNode);
         var afterNode = index switch
         {
             < 0 => throw new ArgumentException("The specified node is not in the current branch.", nameof(siblingNode)),
             0 => _rootNode,
-            _ => _branchNodes.Items[index - 1]
+            _ => _branchNodesSourceList.Items[index - 1]
         };
 
         var newNode = new ChatMessageNode(chatMessage)
@@ -248,7 +267,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// </summary>
     public void Add(ChatMessage message)
     {
-        Insert(_branchNodes.Count, new ChatMessageNode(message) { Context = this });
+        Insert(_branchNodesSourceList.Count, new ChatMessageNode(message) { Context = this });
     }
 
     /// <summary>
@@ -276,9 +295,11 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         return Disposable.Create(() => BusyMessageKey = previous);
     }
 
-    public IObservable<IChangeSet<ChatMessageNode>> Connect(Func<ChatMessageNode, bool>? predicate = null) => _branchNodes.Connect(predicate);
+    public IObservable<IChangeSet<ChatMessageNode>> Connect(Func<ChatMessageNode, bool>? predicate = null) =>
+        _branchNodesSourceList.Connect(predicate);
 
-    public IObservable<IChangeSet<ChatMessageNode>> Preview(Func<ChatMessageNode, bool>? predicate = null) => _branchNodes.Preview(predicate);
+    public IObservable<IChangeSet<ChatMessageNode>> Preview(Func<ChatMessageNode, bool>? predicate = null) =>
+        _branchNodesSourceList.Preview(predicate);
 
     private void HandleNodePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
@@ -294,20 +315,20 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// <summary>
     /// Rebuilds the current branch from the specified node forward.
     /// </summary>
-    private void UpdateBranchAfterNode(ChatMessageNode node) => UpdateBranchAfter(_branchNodes.Items.IndexOf(node), node);
+    private void UpdateBranchAfterNode(ChatMessageNode node) => UpdateBranchAfter(_branchNodesSourceList.Items.IndexOf(node), node);
 
     private void UpdateBranchAfter(int index, ChatMessageNode node)
     {
         if (index == -1)
             throw new ArgumentOutOfRangeException(nameof(index), "Node is not in the branch nodes.");
 
-        for (var i = _branchNodes.Count - 1; i > index; i--) _branchNodes.RemoveAt(i);
+        for (var i = _branchNodesSourceList.Count - 1; i > index; i--) _branchNodesSourceList.RemoveAt(i);
 
         // Follow ChoiceIndex down the tree.
         while (true)
         {
             if (node.ChoiceIndex < 0 || node.ChoiceIndex >= node.Children.Count) break;
-            _branchNodes.Add(node = _messageNodeMap[node.Children[node.ChoiceIndex]]);
+            _branchNodesSourceList.Add(node = _messageNodeMap[node.Children[node.ChoiceIndex]]);
         }
     }
 
@@ -322,7 +343,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         var afterNode = index switch
         {
             0 => _rootNode,
-            _ => _branchNodes.Items[index - 1]
+            _ => _branchNodesSourceList.Items[index - 1]
         };
 
         if (afterNode.Children.Count > 0)
@@ -351,7 +372,70 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         }
 
         _rootNode.PropertyChanged -= HandleNodePropertyChanged;
-        _branchNodesWithoutSystemSubscription.Dispose();
-        _branchNodes.Dispose();
+        _chatPluginUserInterfaceItemsSubscription.Dispose();
+        _displayItemsSubscription.Dispose();
+        _metadataSyncSubscription.Dispose();
+        _branchNodesSourceList.Dispose();
+
+        Dispatcher.UIThread.Post(() => Metadata.States = ChatContextMetadataStates.None);
+
+        GC.SuppressFinalize(this);
+    }
+
+    ~ChatContext()
+    {
+        Dispatcher.UIThread.Post(() => Metadata.States = ChatContextMetadataStates.None);
+    }
+
+    partial void OnIsBusyChanged(bool value)
+    {
+        Dispatcher.UIThread.PostOnDemand(() =>
+        {
+            if (value) Metadata.States |= ChatContextMetadataStates.Busy;
+            else Metadata.States &= ~ChatContextMetadataStates.Busy;
+        });
+    }
+
+    public async Task<ConsentDecision> HandleConsentRequestAsync(
+        IDynamicResourceKey headerKey,
+        ChatPluginDisplayBlock? content,
+        bool canRemember,
+        CancellationToken cancellationToken)
+    {
+        var item = new ChatPluginUserInterfaceConsentRequestItem(headerKey, content, canRemember, cancellationToken);
+        _chatPluginUserInterfaceItemsSourceList.Add(item);
+        WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(item.HeaderKey.ToString()));
+
+        try
+        {
+            return await item.Task;
+        }
+        finally
+        {
+            _chatPluginUserInterfaceItemsSourceList.Remove(item);
+        }
+    }
+
+    public void ResetTodoItems(IReadOnlyList<ChatPluginTodoItem> todoItems)
+    {
+        TodoItems = todoItems;
+    }
+
+    public async Task<IReadOnlyList<ChatPluginQuestionAnswer>> AskQuestionAsync(
+        IReadOnlyList<ChatPluginQuestion> questions,
+        CancellationToken cancellationToken = default)
+    {
+        var item = new ChatPluginUserInterfaceAskQuestionItem(questions, cancellationToken);
+        _chatPluginUserInterfaceItemsSourceList.Add(item);
+        WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(item.Questions.FirstOrDefault()?.Question));
+
+        try
+        {
+            return await item.Task;
+        }
+        finally
+        {
+            _chatPluginUserInterfaceItemsSourceList.Remove(item);
+        }
     }
 }

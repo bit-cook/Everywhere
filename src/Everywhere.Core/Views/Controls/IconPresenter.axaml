@@ -27,7 +27,7 @@
             </MultiBinding>
           </Border.Background>
 
-          <v:LazyContentControl
+          <v:LazyIndexedContentControl
             ContentDataBinding="{TemplateBinding Icon}"
             ItemIndex="{Binding Icon.Type, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=-1}">
             <ControlTemplate x:DataType="common:ColoredIcon">
@@ -62,7 +62,7 @@
                 </TextBlock.Foreground>
               </TextBlock>
             </ControlTemplate>
-          </v:LazyContentControl>
+          </v:LazyIndexedContentControl>
         </Border>
       </ControlTemplate>
     </Setter>

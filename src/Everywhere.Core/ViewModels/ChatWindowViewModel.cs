@@ -34,8 +34,6 @@ namespace Everywhere.ViewModels;
 public sealed partial class ChatWindowViewModel :
     ReactiveViewModelBase,
     IRecipient<ActivateChatSessionMessage>,
-    IRecipient<ChatPluginRequestConsentMessage>,
-    IRecipient<ChatPluginAskQuestionMessage>,
     IRecipient<ChatContextMetadataChangedMessage>,
     IObserver<TextSelectionData>,
     IDisposable
@@ -833,56 +831,6 @@ public sealed partial class ChatWindowViewModel :
             ChatInputAreaWatermarkKey = _defaultWatermarkKey;
         }
     }
-
-    #region IChatPluginUserInterface Recipient
-
-    public void Receive(ChatPluginRequestConsentMessage message)
-    {
-        Dispatcher.UIThread.InvokeOnDemand(() =>
-        {
-            var card = new ConsentDecisionCard
-            {
-                Header = message.HeaderKey.ToTextBlock(),
-                Content = message.DisplayBlock,
-                CanRemember = message.CanRemember
-            };
-            card.ConsentSelected += decision =>
-            {
-                message.Promise.TrySetResult(decision);
-                DialogManager.Close(card);
-            };
-            DialogManager
-                .CreateCustomDialog(card)
-                .ShowAsync(message.CancellationToken)
-                .Detach(_logger.ToExceptionHandler());
-
-            WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(message.HeaderKey.ToString()));
-        });
-    }
-
-    public void Receive(ChatPluginAskQuestionMessage message)
-    {
-        Dispatcher.UIThread.InvokeOnDemand(() =>
-        {
-            var card = new AskQuestionCard
-            {
-                Questions = message.Questions
-            };
-            card.Submitted += answers =>
-            {
-                message.Promise.TrySetResult(answers);
-                DialogManager.Close(card);
-            };
-            DialogManager
-                .CreateCustomDialog(card)
-                .ShowAsync(message.CancellationToken)
-                .Detach(_logger.ToExceptionHandler());
-
-            WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(message.Questions.FirstOrDefault()?.Question));
-        });
-    }
-
-    #endregion
 
     #region IObserver<TextSelectionData> Implementation
 

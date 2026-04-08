@@ -10,6 +10,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
 using Everywhere.Configuration;
+using Everywhere.Messages;
 using Everywhere.Storage;
 using Everywhere.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,6 +88,10 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                         }
 
                         RemoveCommand.NotifyCanExecuteChanged();
+
+                        var currentId = _current?.Metadata.Id;
+                        BackgroundBusyCount = _busyContexts.AsValueEnumerable().Count(id => id != currentId);
+                        BackgroundNotificationCount = _notificationContexts.AsValueEnumerable().Count(id => id != currentId);
                     },
                     DispatcherPriority.Background);
             });
@@ -98,6 +103,12 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     IRelayCommand IChatContextManager.UpdateRecentHistoryCommand => UpdateRecentHistoryCommand;
 
     public IReadOnlyList<ChatContextHistory> AllHistory => ApplyHistory(_allHistory, int.MaxValue);
+
+    [ObservableProperty]
+    public partial int BackgroundBusyCount { get; private set; }
+
+    [ObservableProperty]
+    public partial int BackgroundNotificationCount { get; private set; }
 
     IRelayCommand<int> IChatContextManager.LoadMoreHistoryCommand => LoadMoreHistoryCommand;
 
@@ -115,6 +126,8 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     private readonly ConcurrentDictionary<Guid, ChatContextMetadata> _metadataMap = [];
     private readonly ObservableCollection<ChatContextHistory> _recentHistory = [];
     private readonly ObservableCollection<ChatContextHistory> _allHistory = [];
+    private readonly HashSet<Guid> _busyContexts = [];
+    private readonly HashSet<Guid> _notificationContexts = [];
 
     /// <summary>
     /// A buffer for chat contexts and their metadata to be saved.
@@ -180,22 +193,42 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     /// <param name="message"></param>
     public void Receive(ChatContextMetadataChangedMessage message)
     {
-        if (message.PropertyName is not nameof(ChatContextMetadata.DateModified) and not nameof(ChatContextMetadata.Topic))
-            return; // Only care about these two properties
-
-        lock (_saveBuffer)
+        switch (message.PropertyName)
         {
-            ref var valueRef = ref CollectionsMarshal.GetValueRefOrAddDefault(_saveBuffer, message.Metadata.Id, out _);
-            if (valueRef is null) valueRef = message;
-            else
+            case nameof(ChatContextMetadata.States):
             {
-                valueRef.Context ??= message.Context;
-                valueRef.Metadata = message.Metadata;
+                Dispatcher.UIThread.PostOnDemand(() =>
+                {
+                    if (message.Metadata.States.HasFlag(ChatContextMetadataStates.Busy)) _busyContexts.Add(message.Metadata.Id);
+                    else _busyContexts.Remove(message.Metadata.Id);
+                    if (message.Metadata.States.HasFlag(ChatContextMetadataStates.HasNotification)) _notificationContexts.Add(message.Metadata.Id);
+                    else _notificationContexts.Remove(message.Metadata.Id);
+
+                    var currentId = _current?.Metadata.Id;
+                    BackgroundBusyCount = _busyContexts.AsValueEnumerable().Count(id => id != currentId);
+                    BackgroundNotificationCount = _notificationContexts.AsValueEnumerable().Count(id => id != currentId);
+                });
+                break;
+            }
+            case nameof(ChatContextMetadata.DateModified):
+            case nameof(ChatContextMetadata.Topic):
+            {
+                lock (_saveBuffer)
+                {
+                    ref var valueRef = ref CollectionsMarshal.GetValueRefOrAddDefault(_saveBuffer, message.Metadata.Id, out _);
+                    if (valueRef is null) valueRef = message;
+                    else
+                    {
+                        valueRef.Context ??= message.Context;
+                        valueRef.Metadata = message.Metadata;
+                    }
+                }
+                _saveDebounceExecutor.Trigger();
+
+                Dispatcher.UIThread.InvokeOnDemand(CreateNewCommand.NotifyCanExecuteChanged);
+                break;
             }
         }
-        _saveDebounceExecutor.Trigger();
-
-        Dispatcher.UIThread.InvokeOnDemand(CreateNewCommand.NotifyCanExecuteChanged);
     }
 
     /// <summary>
@@ -413,6 +446,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
             {
                 foreach (var metadata in metadataList)
                 {
+                    metadata.States = ChatContextMetadataStates.None;
                     _metadataMap.TryRemove(metadata.Id, out _);
                 }
 

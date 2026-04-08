@@ -80,7 +80,7 @@ public class FdFindPlugin : BuiltInChatPlugin
     [Description("Search for files and directories in a specified path using fd-find. Highly efficient for large file systems.")]
     [DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_FdFind_SearchFiles_Header)]
     private async Task<string> SearchFilesAsync(
-        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("The root directory to start searching from.")] string path,
         [Description("Regex search pattern to match file and directory names.")] string filePattern = ".*",
         [Description("Maximum number of results to return. Max is 1000.")] int maxCount = 100,
@@ -138,7 +138,7 @@ public class FdFindPlugin : BuiltInChatPlugin
 
             var finalResults = query.Take(maxCount).ToList();
 
-            userInterface.DisplaySink.AppendDynamicResourceKey(
+            displaySink.AppendDynamicResourceKey(
                 new FormattedDynamicResourceKey(
                     LocaleKey.Linux_BuiltInChatPlugin_FdFind_SearchFiles_DetailMessage,
                     new DirectResourceKey(finalResults.Count.ToString())));

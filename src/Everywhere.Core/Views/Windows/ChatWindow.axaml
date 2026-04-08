@@ -71,7 +71,6 @@
               </Style>
 
               <Style Selector="^ LucideIcon">
-                <Setter Property="Size" Value="20"/>
                 <Setter Property="HorizontalAlignment" Value="Center"/>
                 <Setter Property="VerticalAlignment" Value="Center"/>
               </Style>
@@ -152,96 +151,192 @@
               Kind="Ghost" Size="16"/>
           </ToggleButton>
 
-          <Button
-            x:Name="HistoryButton" Classes="Ghost TitleBar"
-            Command="{Binding ChatContextManager.UpdateRecentHistoryCommand}"
-            Content="{LucideIconContent History, Size=16}"
-            FlowDirection="LeftToRight"
-            IsVisible="{Binding !IsViewingHistory}"
-            ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_History_ToolTip}}">
-            <Button.Flyout>
-              <Flyout ShowMode="Transient">
-                <DockPanel>
-                  <Button
-                    Classes="NoPressedAnimation" DockPanel.Dock="Bottom"
-                    Padding="0,6"
-                    BorderBrush="{DynamicResource BorderColor}"
-                    BorderThickness="0,1,0,0"
-                    Content="{I18N {x:Static LocaleKey.ChatWindow_ViewAllHistoryButton_Content}}"
-                    CornerRadius="0,0,8,8">
-                    <Interaction.Behaviors>
-                      <ButtonClickEventTriggerBehavior>
-                        <ButtonClickEventTriggerBehavior.Actions>
-                          <HideFlyoutAction Flyout="{Binding #HistoryButton.Flyout}"/>
-                          <InvokeCommandAction
-                            Command="{Binding SwitchViewingHistoryCommand}"
-                            CommandParameter="True"/>
-                        </ButtonClickEventTriggerBehavior.Actions>
-                      </ButtonClickEventTriggerBehavior>
-                    </Interaction.Behaviors>
-                  </Button>
+          <Panel IsVisible="{Binding !IsViewingHistory}">
+            <Button
+              x:Name="HistoryButton" Classes="Ghost TitleBar"
+              Command="{Binding ChatContextManager.UpdateRecentHistoryCommand}"
+              Content="{LucideIconContent History, Size=16}"
+              FlowDirection="LeftToRight"
+              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_History_ToolTip}}">
+              <Button.Flyout>
+                <Flyout ShowMode="Transient">
+                  <DockPanel>
+                    <Button
+                      Classes="NoPressedAnimation" DockPanel.Dock="Bottom"
+                      Padding="0,6"
+                      BorderBrush="{DynamicResource BorderColor}"
+                      BorderThickness="0,1,0,0"
+                      Content="{I18N {x:Static LocaleKey.ChatWindow_ViewAllHistoryButton_Content}}"
+                      CornerRadius="0,0,8,8">
+                      <Interaction.Behaviors>
+                        <ButtonClickEventTriggerBehavior>
+                          <ButtonClickEventTriggerBehavior.Actions>
+                            <HideFlyoutAction Flyout="{Binding #HistoryButton.Flyout}"/>
+                            <InvokeCommandAction
+                              Command="{Binding SwitchViewingHistoryCommand}"
+                              CommandParameter="True"/>
+                          </ButtonClickEventTriggerBehavior.Actions>
+                        </ButtonClickEventTriggerBehavior>
+                      </Interaction.Behaviors>
+                    </Button>
 
-                  <ScrollViewer
-                    Width="200" MaxHeight="400"
-                    HorizontalContentAlignment="Stretch" HorizontalScrollBarVisibility="Disabled"
-                    VerticalScrollBarVisibility="Auto">
-                    <ItemsControl
-                      Margin="8" Padding="0"
-                      ItemsSource="{Binding ChatContextManager.RecentHistory}">
-                      <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                          <StackPanel
-                            Orientation="Vertical" Spacing="8"/>
-                        </ItemsPanelTemplate>
-                      </ItemsControl.ItemsPanel>
+                    <ScrollViewer
+                      Width="200" MaxHeight="400"
+                      HorizontalContentAlignment="Stretch" HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+                      <ItemsControl
+                        Margin="8" Padding="0"
+                        ItemsSource="{Binding ChatContextManager.RecentHistory}">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <StackPanel
+                              Orientation="Vertical" Spacing="8"/>
+                          </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
 
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="chat:ChatContextHistory">
-                          <StackPanel
-                            Orientation="Vertical" Spacing="4">
-                            <TextBlock
-                              Classes="Muted" HorizontalAlignment="Left"
-                              FontSize="{DynamicResource FontSizeS}">
-                              <TextBlock.Text>
-                                <I18N Key="{Binding Date, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
-                              </TextBlock.Text>
-                            </TextBlock>
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate DataType="chat:ChatContextHistory">
+                            <StackPanel
+                              Orientation="Vertical" Spacing="4">
+                              <TextBlock
+                                Classes="Muted" HorizontalAlignment="Left"
+                                FontSize="{DynamicResource FontSizeS}">
+                                <TextBlock.Text>
+                                  <I18N Key="{Binding Date, Converter={x:Static vc:DynamicResourceKeyConverter.Shared}}"/>
+                                </TextBlock.Text>
+                              </TextBlock>
 
-                            <ListBox
-                              Padding="0" Background="Transparent"
-                              BorderThickness="0" CornerRadius="0"
-                              ItemsSource="{Binding MetadataList}"
-                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                              SelectedItem="{Binding $parent[v:ChatWindow].ViewModel.ChatContextManager.CurrentMetadata, FallbackValue={x:Null}}">
-                              <ListBox.Styles>
-                                <Style Selector="ListBoxItem">
-                                  <Setter Property="Padding" Value="8,6"/>
-                                  <Setter Property="CornerRadius" Value="4"/>
-                                </Style>
-                              </ListBox.Styles>
+                              <ListBox
+                                Padding="0" Background="Transparent"
+                                BorderThickness="0" CornerRadius="0"
+                                ItemsSource="{Binding MetadataList}"
+                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                SelectedItem="{Binding $parent[v:ChatWindow].ViewModel.ChatContextManager.CurrentMetadata, FallbackValue={x:Null}}">
+                                <ListBox.Styles>
+                                  <Style Selector="ListBoxItem">
+                                    <Setter Property="Padding" Value="8,6"/>
+                                    <Setter Property="CornerRadius" Value="4"/>
+                                  </Style>
+                                </ListBox.Styles>
 
-                              <ListBox.ItemTemplate>
-                                <DataTemplate DataType="chat:ChatContextMetadata">
-                                  <TextBlock
-                                    Text="{Binding ActualTopic}"
-                                    TextTrimming="CharacterEllipsis"/>
-                                </DataTemplate>
-                              </ListBox.ItemTemplate>
-                            </ListBox>
-                          </StackPanel>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                  </ScrollViewer>
-                </DockPanel>
-              </Flyout>
-            </Button.Flyout>
-          </Button>
+                                <ListBox.ItemTemplate>
+                                  <DataTemplate DataType="chat:ChatContextMetadata">
+                                    <DockPanel>
+                                      <v:LazyIndexedContentControl
+                                        DockPanel.Dock="Left"
+                                        Width="{DynamicResource FontSizeM}"
+                                        Height="{DynamicResource FontSizeM}"
+                                        Margin="-2,0,4,0"
+                                        ItemIndex="{Binding States, Converter={x:Static vc:Int32Converters.FromEnum}}">
+                                        <!--  None  -->
+                                        <ControlTemplate>
+                                          <Border
+                                            Width="4" Height="4"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Background="{DynamicResource MutedColor}"
+                                            CornerRadius="2"/>
+                                        </ControlTemplate>
+
+                                        <!--  Busy  -->
+                                        <ControlTemplate>
+                                          <LucideIcon
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Foreground="{DynamicResource WarningColor60}"
+                                            Kind="CircleDashed"
+                                            Size="{DynamicResource FontSizeS}"/>
+                                        </ControlTemplate>
+
+                                        <!--  HasNotification & Busy  -->
+                                        <ControlTemplate>
+                                          <Border
+                                            Width="{DynamicResource FontSizeM}"
+                                            Height="{DynamicResource FontSizeM}"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Background="{DynamicResource ErrorColor60}"
+                                            CornerRadius="{DynamicResource FullCornerRadius}">
+                                            <TextBlock
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              FontSize="{DynamicResource FontSizeXs}"
+                                              Text="1"/>
+                                          </Border>
+                                        </ControlTemplate>
+
+                                        <!--  HasNotification  -->
+                                        <ControlTemplate>
+                                          <Border
+                                            Width="{DynamicResource FontSizeM}"
+                                            Height="{DynamicResource FontSizeM}"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            Background="{DynamicResource ErrorColor60}"
+                                            CornerRadius="{DynamicResource FullCornerRadius}">
+                                            <TextBlock
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              FontSize="{DynamicResource FontSizeS}"
+                                              Text="1"/>
+                                          </Border>
+                                        </ControlTemplate>
+                                      </v:LazyIndexedContentControl>
+
+                                      <TextBlock
+                                        Text="{Binding ActualTopic}"
+                                        TextTrimming="CharacterEllipsis"/>
+                                    </DockPanel>
+                                  </DataTemplate>
+                                </ListBox.ItemTemplate>
+                              </ListBox>
+                            </StackPanel>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </ScrollViewer>
+                  </DockPanel>
+                </Flyout>
+              </Button.Flyout>
+            </Button>
+
+            <Panel
+              x:Name="BackgroundStatusIndicator"
+              Width="{DynamicResource FontSizeM}"
+              Height="{DynamicResource FontSizeM}"
+              HorizontalAlignment="Left" VerticalAlignment="Top"
+              IsHitTestVisible="False">
+              <Panel.RenderTransform>
+                <TranslateTransform X="{Binding #BackgroundStatusIndicator.Width, Converter={x:Static vc:DoubleConverters.Multiply}, ConverterParameter=-0.4}" Y="{Binding #BackgroundStatusIndicator.Height, Converter={x:Static vc:DoubleConverters.Multiply}, ConverterParameter=-0.4}"/>
+              </Panel.RenderTransform>
+
+              <Border
+                Width="6" Height="6"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                Background="{DynamicResource InfoColor60}"
+                CornerRadius="3">
+                <Border.IsVisible>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding
+                      Converter="{x:Static vc:Int32Converters.IsNotZero}"
+                      Path="ChatContextManager.BackgroundBusyCount"/>
+                    <Binding
+                      Converter="{x:Static vc:Int32Converters.IsZero}"
+                      Path="ChatContextManager.BackgroundNotificationCount"/>
+                  </MultiBinding>
+                </Border.IsVisible>
+              </Border>
+
+              <Border
+                Background="{DynamicResource ErrorColor60}"
+                CornerRadius="{DynamicResource FullCornerRadius}"
+                IsVisible="{Binding ChatContextManager.BackgroundNotificationCount, Converter={x:Static vc:Int32Converters.IsNotZero}}">
+                <TextBlock
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  FontSize="{DynamicResource FontSizeXs}"
+                  Text="{Binding ChatContextManager.BackgroundNotificationCount}"/>
+              </Border>
+            </Panel>
+          </Panel>
 
           <Button
             Classes="Ghost TitleBar"
             Command="{Binding ChatContextManager.CreateNewCommand}"
-            Content="{LucideIconContent Plus}"
+            Content="{LucideIconContent Plus, Size=20}"
             HotKey="Ctrl+N"
             ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_CreateNew_ToolTip}}"/>
 
@@ -257,7 +352,7 @@
           <Button
             Classes="Ghost TitleBar Close"
             Command="{Binding CloseCommand}"
-            Content="{LucideIconContent X}"
+            Content="{LucideIconContent X, Size=20}"
             HotKey="Ctrl+W"
             ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_Close_ToolTip}}"/>
         </StackPanel>
@@ -303,95 +398,95 @@
           <in:AutoScrollBehavior/>
         </Interaction.Behaviors>
 
-        <Panel>
-          <Panel.Styles>
-            <Style Selector="shadui|Loading">
-              <Setter Property="Foreground" Value="{DynamicResource SukiLowText}"/>
-            </Style>
-          </Panel.Styles>
+        <StackPanel>
+          <ItemsControl
+            Margin="8" HorizontalAlignment="Center"
+            ItemsSource="{Binding StrategiesSnapshot.StrategyGroups, FallbackValue={x:Null}}">
+            <ItemsControl.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="!IsViewingHistory"/>
+                <Binding
+                  Converter="{x:Static vc:Int32Converters.NotGreaterThan}"
+                  ConverterParameter="1" Path="ChatContextManager.Current.DisplayItems.Count"/>
+                <Binding
+                  Converter="{x:Static vc:Int32Converters.GreaterThan}"
+                  ConverterParameter="0" Path="$self.ItemCount"/>
+              </MultiBinding>
+            </ItemsControl.IsVisible>
 
-          <ScrollViewer
-            Margin="8" HorizontalScrollBarVisibility="Disabled"
-            IsVisible="{Binding ChatContextManager.Current.DisplayItems.Count, Converter={x:Static vc:Int32Converters.NotGreaterThan}, ConverterParameter=1}"
-            VerticalScrollBarVisibility="Auto">
-            <ItemsControl
-              HorizontalAlignment="Center"
-              IsVisible="{Binding $self.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}"
-              ItemsSource="{Binding StrategiesSnapshot.StrategyGroups, FallbackValue={x:Null}}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel Spacing="8"/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Spacing="8"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
 
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="se:StrategyGroup">
-                  <DockPanel VerticalSpacing="8">
-                    <StackPanel
-                      DockPanel.Dock="Top" Spacing="4">
-                      <TextBlock
-                        Text="{Binding Strategy.NameKey^, Mode=OneTime}"
-                        TextWrapping="Wrap"/>
-                      <TextBlock
-                        Classes="Muted Small"
-                        Text="{Binding Strategy.DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
-                        TextWrapping="Wrap"/>
-                    </StackPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="se:StrategyGroup">
+                <DockPanel VerticalSpacing="8">
+                  <StackPanel
+                    DockPanel.Dock="Top" Spacing="4">
+                    <TextBlock
+                      Text="{Binding Strategy.NameKey^, Mode=OneTime}"
+                      TextWrapping="Wrap"/>
+                    <TextBlock
+                      Classes="Muted Small"
+                      Text="{Binding Strategy.DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
+                      TextWrapping="Wrap"/>
+                  </StackPanel>
 
-                    <ItemsControl ItemsSource="{Binding Commands, Mode=OneTime}">
-                      <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                          <WrapPanel
-                            ItemSpacing="6" LineSpacing="4"/>
-                        </ItemsPanelTemplate>
-                      </ItemsControl.ItemsPanel>
+                  <ItemsControl ItemsSource="{Binding Commands, Mode=OneTime}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <WrapPanel
+                          ItemSpacing="6" LineSpacing="4"/>
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
 
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="se:StrategyCommand">
-                          <Button
-                            Classes="Outline" Width="240"
-                            Padding="8" HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Stretch"
-                            Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
-                            CommandParameter="{Binding Mode=OneTime}"
-                            Focusable="False">
-                            <Grid
-                              ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
-                              RowDefinitions="Auto,*" RowSpacing="4">
-                              <v:IconPresenter
-                                Grid.Row="0" Grid.RowSpan="2"
-                                Grid.Column="0"
-                                Width="{DynamicResource FontSize2Xl}"
-                                Height="{DynamicResource FontSize2Xl}"
-                                Margin="4,0,-4,0" VerticalAlignment="Center"
-                                Icon="{Binding Icon, Mode=OneTime}"
-                                IconSize="{DynamicResource FontSizeL}"/>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="se:StrategyCommand">
+                        <Button
+                          Classes="Outline" Width="240"
+                          Padding="8" HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch"
+                          Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
+                          CommandParameter="{Binding Mode=OneTime}"
+                          Focusable="False">
+                          <Grid
+                            ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
+                            RowDefinitions="Auto,*" RowSpacing="4">
+                            <v:IconPresenter
+                              Grid.Row="0" Grid.RowSpan="2"
+                              Grid.Column="0"
+                              Width="{DynamicResource FontSize2Xl}"
+                              Height="{DynamicResource FontSize2Xl}"
+                              Margin="4,0,-4,0" VerticalAlignment="Center"
+                              Icon="{Binding Icon, Mode=OneTime}"
+                              IconSize="{DynamicResource FontSizeL}"/>
 
-                              <TextBlock
-                                Grid.Row="0" Grid.Column="1"
-                                Text="{Binding NameKey^, Mode=OneTime}"
-                                TextWrapping="Wrap"/>
-                              <TextBlock
-                                Classes="Muted Small" Grid.Row="1"
-                                Grid.Column="1"
-                                Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
-                                TextWrapping="Wrap"/>
-                            </Grid>
-                          </Button>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                  </DockPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </ScrollViewer>
+                            <TextBlock
+                              Grid.Row="0" Grid.Column="1"
+                              Text="{Binding NameKey^, Mode=OneTime}"
+                              TextWrapping="Wrap"/>
+                            <TextBlock
+                              Classes="Muted Small" Grid.Row="1"
+                              Grid.Column="1"
+                              Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
+                              TextWrapping="Wrap"/>
+                          </Grid>
+                        </Button>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </DockPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
 
           <v:ChatMessageItemsControl
             Margin="10,0,8,0" Padding="6,0"
             IsVisible="{Binding $self.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}"
             ItemsSource="{Binding ChatContextManager.Current.DisplayItems}"/>
-        </Panel>
+        </StackPanel>
       </ScrollViewer>
 
       <Button
@@ -415,127 +510,202 @@
           Size="{DynamicResource FontSizeXl}"/>
       </Button>
 
-      <Border
-        Grid.Row="1" Padding="8"
-        Background="{DynamicResource CardBackgroundColor}"
-        BorderBrush="{DynamicResource BorderColor60}"
-        BorderThickness="0,1,0,0">
-        <StackPanel
-          Orientation="Vertical" Spacing="4">
-          <DockPanel>
-            <DockPanel.IsVisible>
-              <MultiBinding Converter="{x:Static BoolConverters.And}">
-                <Binding
-                  Converter="{x:Static vc:Int32Converters.GreaterThan}"
-                  ConverterParameter="0" Path="#CompactStrategyCommandsItemsControl.ItemCount"/>
-                <Binding
-                  Converter="{x:Static vc:Int32Converters.GreaterThan}"
-                  ConverterParameter="1" Path="ChatContextManager.Current.DisplayItems.Count"/>
-              </MultiBinding>
-            </DockPanel.IsVisible>
+      <StackPanel
+        Grid.Row="1" Orientation="Vertical">
+        <v:ChatPluginUserInterfaceHost
+          Margin="8"
+          ItemsSource="{Binding ChatContextManager.Current.ChatPluginUserInterfaceItems}"/>
 
-            <ScrollViewer
-              HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-              <Interaction.Behaviors>
-                <HorizontalScrollViewerBehavior/>
-              </Interaction.Behaviors>
+        <Expander
+          Classes="ReverseIcon" Padding="8,4"
+          BorderThickness="0,1,0,0" CornerRadius="0"
+          IsVisible="{Binding #TodoItemsControl.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}">
+          <Expander.Header>
+            <DockPanel
+              HorizontalSpacing="4" IsHitTestVisible="False">
+              <LucideIcon
+                DockPanel.Dock="Left" Kind="ListChecks"
+                Size="{DynamicResource FontSizeL}"/>
 
-              <ItemsControl
-                x:Name="CompactStrategyCommandsItemsControl" HorizontalAlignment="Left"
-                ItemsSource="{Binding StrategiesSnapshot.StrategyCommands, FallbackValue={x:Null}}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <StackPanel
-                      Orientation="Horizontal" Spacing="4"/>
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+              <TextBlock VerticalAlignment="Center">
+                <TextBlock.Text>
+                  <I18N Key="{x:Static LocaleKey.ChatWindow_TodoList_Header}">
+                    <Binding
+                      Converter="{x:Static vc:ChatPluginTodoItemsValueConverters.ToCompletedCount}"
+                      Path="ChatContextManager.Current.TodoItems" TargetNullValue="0"/>
+                    <Binding
+                      Path="ChatContextManager.Current.TodoItems?.Count" TargetNullValue="0"/>
+                  </I18N>
+                </TextBlock.Text>
+              </TextBlock>
+            </DockPanel>
+          </Expander.Header>
 
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="se:StrategyCommand">
-                    <Button
-                      Classes="Outline Compact" Padding="6,4"
-                      Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
-                      CommandParameter="{Binding Mode=OneTime}"
-                      Focusable="False">
-                      <ToolTip.Tip>
-                        <TextBlock
-                          MaxWidth="240"
-                          Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
-                          TextWrapping="Wrap"/>
-                      </ToolTip.Tip>
+          <ItemsControl
+            x:Name="TodoItemsControl"
+            ItemsSource="{Binding ChatContextManager.Current.TodoItems}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="p:ChatPluginTodoItem">
+                <DockPanel HorizontalSpacing="4">
+                  <v:LazyIndexedContentControl
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    ItemIndex="{Binding Status, Converter={x:Static vc:Int32Converters.FromEnum}}">
+                    <!--  NotStarted  -->
+                    <ControlTemplate>
+                      <LucideIcon
+                        Foreground="{DynamicResource MutedColor}"
+                        Kind="Circle"
+                        Size="{DynamicResource FontSizeM}"/>
+                    </ControlTemplate>
 
-                      <StackPanel
-                        Orientation="Horizontal" Spacing="4">
-                        <v:IconPresenter
-                          Width="{DynamicResource FontSizeM}"
-                          Height="{DynamicResource FontSizeM}"
-                          VerticalAlignment="Center"
-                          Background="{x:Null}"
-                          Icon="{Binding Icon, Mode=OneTime}"
-                          IconSize="{DynamicResource FontSizeM}"/>
+                    <!--  In progress  -->
+                    <ControlTemplate>
+                      <LucideIcon
+                        Foreground="{DynamicResource WarningColor60}"
+                        Kind="CircleDashed"
+                        Size="{DynamicResource FontSizeM}"/>
+                    </ControlTemplate>
 
-                        <TextBlock
-                          MaxWidth="120"
-                          Text="{Binding NameKey^, Mode=OneTime}"
-                          TextTrimming="CharacterEllipsis"/>
-                      </StackPanel>
-                    </Button>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
-            </ScrollViewer>
-          </DockPanel>
+                    <!--  Completed  -->
+                    <ControlTemplate>
+                      <LucideIcon
+                        Foreground="{DynamicResource SuccessColor60}"
+                        Kind="CircleCheckBig"
+                        Size="{DynamicResource FontSizeM}"/>
+                    </ControlTemplate>
+                  </v:LazyIndexedContentControl>
 
-          <Border
-            Margin="-8,-8,-8,0" Padding="10,2"
-            Background="{DynamicResource SuccessColor20}"
-            BorderBrush="{DynamicResource BorderColor}"
-            BorderThickness="0,0,0,1"
-            IsVisible="{Binding ChatContextManager.Current.BusyMessageKey, Converter={x:Static ObjectConverters.IsNotNull}, Delay=200}">
+                  <TextBlock
+                    Classes="Muted Small" VerticalAlignment="Center"
+                    Text="{Binding Description}"/>
+                </DockPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Expander>
+
+        <Border
+          Padding="8,2"
+          Background="{DynamicResource SuccessColor20}"
+          BorderBrush="{DynamicResource BorderColor}"
+          BorderThickness="0,1,0,0"
+          IsVisible="{Binding ChatContextManager.Current.BusyMessageKey, Converter={x:Static ObjectConverters.IsNotNull}, Delay=200}">
+          <StackPanel
+            Orientation="Horizontal" Spacing="4">
+            <shadui:Loading
+              Width="{DynamicResource FontSizeM}"
+              Height="{DynamicResource FontSizeM}"/>
+            <TextBlock
+              Classes="Small"
+              Text="{Binding ChatContextManager.Current.BusyMessageKey}"/>
+          </StackPanel>
+        </Border>
+
+        <Border
+          Padding="8,2"
+          Background="{DynamicResource WarningColor20}"
+          BorderBrush="{DynamicResource BorderColor}"
+          BorderThickness="0,1,0,0"
+          IsVisible="{Binding EditingUserMessageNode, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <DockPanel LastChildFill="True">
+            <Button
+              Classes="Ghost Compact" DockPanel.Dock="Right"
+              Padding="2,1" VerticalAlignment="Center"
+              Command="{Binding $parent[v:ChatWindow].ViewModel.CancelEditingCommand}"
+              CommandParameter="{Binding}"
+              CornerRadius="4"
+              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_CancelEditingButton_ToolTip}}">
+              <StackPanel Orientation="Horizontal">
+                <LucideIcon
+                  Margin="0,1,0,-1" Kind="X"
+                  Size="14"/>
+                <TextBlock
+                  Classes="Small"
+                  Text="{I18N {x:Static LocaleKey.Common_Cancel}}"/>
+              </StackPanel>
+            </Button>
+
             <StackPanel
               Orientation="Horizontal" Spacing="4">
-              <shadui:Loading
-                Width="14" Height="14"/>
+              <LucideIcon
+                Kind="SquarePen" Size="14"/>
               <TextBlock
-                Classes="Small"
-                Text="{Binding ChatContextManager.Current.BusyMessageKey}"/>
+                Classes="Small" VerticalAlignment="Center"
+                Text="{I18N {x:Static LocaleKey.ChatWindow_EditingTextBlock_Text}}"/>
             </StackPanel>
-          </Border>
+          </DockPanel>
+        </Border>
 
-          <Border
-            Margin="-8,-8,-8,0" Padding="10,2"
-            Background="{DynamicResource WarningColor20}"
-            BorderBrush="{DynamicResource BorderColor}"
-            BorderThickness="0,0,0,1"
-            IsVisible="{Binding EditingUserMessageNode, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <DockPanel LastChildFill="True">
-              <Button
-                Classes="Ghost Compact" DockPanel.Dock="Right"
-                Padding="2,1" VerticalAlignment="Center"
-                Command="{Binding $parent[v:ChatWindow].ViewModel.CancelEditingCommand}"
-                CommandParameter="{Binding}"
-                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_CancelEditingButton_ToolTip}}">
-                <StackPanel Orientation="Horizontal">
-                  <LucideIcon
-                    Margin="0,1,0,-1" Kind="X"
-                    Size="14"/>
-                  <TextBlock
-                    Classes="Small"
-                    Text="{I18N {x:Static LocaleKey.Common_Cancel}}"/>
-                </StackPanel>
-              </Button>
+        <DockPanel>
+          <DockPanel.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding
+                Converter="{x:Static vc:Int32Converters.GreaterThan}"
+                ConverterParameter="0" Path="#CompactStrategyCommandsItemsControl.ItemCount"/>
+              <Binding
+                Converter="{x:Static vc:Int32Converters.GreaterThan}"
+                ConverterParameter="1" Path="ChatContextManager.Current.DisplayItems.Count"/>
+            </MultiBinding>
+          </DockPanel.IsVisible>
 
-              <StackPanel
-                Orientation="Horizontal" Spacing="4">
-                <LucideIcon
-                  Kind="SquarePen" Size="14"/>
-                <TextBlock
-                  Classes="Small" VerticalAlignment="Center"
-                  Text="{I18N {x:Static LocaleKey.ChatWindow_EditingTextBlock_Text}}"/>
-              </StackPanel>
-            </DockPanel>
-          </Border>
+          <ScrollViewer
+            HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+            <Interaction.Behaviors>
+              <HorizontalScrollViewerBehavior/>
+            </Interaction.Behaviors>
 
+            <ItemsControl
+              x:Name="CompactStrategyCommandsItemsControl" Padding="8,4"
+              HorizontalAlignment="Left"
+              ItemsSource="{Binding StrategiesSnapshot.StrategyCommands, FallbackValue={x:Null}}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel
+                    Orientation="Horizontal" Spacing="4"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="se:StrategyCommand">
+                  <Button
+                    Classes="Outline Compact" Padding="6,4"
+                    Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
+                    CommandParameter="{Binding Mode=OneTime}"
+                    Focusable="False">
+                    <ToolTip.Tip>
+                      <TextBlock
+                        MaxWidth="240"
+                        Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
+                        TextWrapping="Wrap"/>
+                    </ToolTip.Tip>
+
+                    <StackPanel
+                      Orientation="Horizontal" Spacing="4">
+                      <v:IconPresenter
+                        Width="{DynamicResource FontSizeM}"
+                        Height="{DynamicResource FontSizeM}"
+                        VerticalAlignment="Center"
+                        Background="{x:Null}"
+                        Icon="{Binding Icon, Mode=OneTime}"
+                        IconSize="{DynamicResource FontSizeM}"/>
+
+                      <TextBlock
+                        MaxWidth="120"
+                        Text="{Binding NameKey^, Mode=OneTime}"
+                        TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+
+        <Border
+          Padding="8"
+          Background="{DynamicResource CardBackgroundColor}"
+          BorderBrush="{DynamicResource BorderColor60}"
+          BorderThickness="0,1,0,0">
           <v:ChatInputArea
             x:Name="ChatInputArea"
             CancelCommand="{Binding CancelCommand}"
@@ -928,8 +1098,8 @@
               </DataTemplate>
             </v:ChatInputArea.LeadingContentTemplate>
           </v:ChatInputArea>
-        </StackPanel>
-      </Border>
+        </Border>
+      </StackPanel>
     </Grid>
 
     <Grid
@@ -1056,6 +1226,8 @@
                         <Grid.ColumnDefinitions>
                           <ColumnDefinition
                             Width="Auto" SharedSizeGroup="Check"/>
+                          <ColumnDefinition
+                            Width="Auto" SharedSizeGroup="Status"/>
                           <ColumnDefinition/>
                           <ColumnDefinition
                             Width="Auto" SharedSizeGroup="Date"/>
@@ -1066,14 +1238,69 @@
                         <CheckBox
                           Grid.Column="0"
                           IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+
+                        <v:LazyIndexedContentControl
+                          Grid.Column="1" DockPanel.Dock="Left"
+                          Margin="8,0,0,0" HorizontalAlignment="Center"
+                          VerticalAlignment="Center"
+                          ItemIndex="{Binding States, Converter={x:Static vc:Int32Converters.FromEnum}}">
+                          <!--  None  -->
+                          <ControlTemplate>
+                            <Border
+                              Width="4" Height="4"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Background="{DynamicResource MutedColor}"
+                              CornerRadius="2"/>
+                          </ControlTemplate>
+
+                          <!--  Busy  -->
+                          <ControlTemplate>
+                            <LucideIcon
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Foreground="{DynamicResource WarningColor60}"
+                              Kind="CircleDashed"
+                              Size="{DynamicResource FontSizeS}"/>
+                          </ControlTemplate>
+
+                          <!--  HasNotification & Busy  -->
+                          <ControlTemplate>
+                            <Border
+                              Width="{DynamicResource FontSizeM}"
+                              Height="{DynamicResource FontSizeM}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Background="{DynamicResource ErrorColor60}"
+                              CornerRadius="{DynamicResource FullCornerRadius}">
+                              <TextBlock
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                FontSize="{DynamicResource FontSizeXs}"
+                                Text="1"/>
+                            </Border>
+                          </ControlTemplate>
+
+                          <!--  HasNotification  -->
+                          <ControlTemplate>
+                            <Border
+                              Width="{DynamicResource FontSizeM}"
+                              Height="{DynamicResource FontSizeM}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Background="{DynamicResource ErrorColor60}"
+                              CornerRadius="{DynamicResource FullCornerRadius}">
+                              <TextBlock
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                FontSize="{DynamicResource FontSizeXs}"
+                                Text="1"/>
+                            </Border>
+                          </ControlTemplate>
+                        </v:LazyIndexedContentControl>
+
                         <TextBlock
-                          Grid.Column="1" Margin="8,0"
+                          Grid.Column="2" Margin="8,0"
                           VerticalAlignment="Center"
                           IsVisible="{Binding IsTemporary}"
                           Opacity="0.6"
                           Text="{I18N {x:Static LocaleKey.ChatContext_Temporary}}"/>
                         <shadui:EditableTextBlock
-                          x:Name="TopicEditableTextBlock" Grid.Column="1"
+                          x:Name="TopicEditableTextBlock" Grid.Column="2"
                           Margin="8,0" VerticalAlignment="Center"
                           FontSize="{DynamicResource FontSizeM}"
                           IsEditing="{Binding IsRenaming, Mode=TwoWay}"
@@ -1081,12 +1308,14 @@
                           Text="{Binding Topic, Mode=TwoWay}"
                           TextTrimming="CharacterEllipsis"
                           Watermark="{I18N {x:Static LocaleKey.ChatContext_Metadata_Topic_Default}}"/>
+
                         <TextBlock
-                          Grid.Column="2" VerticalAlignment="Center"
+                          Grid.Column="3" VerticalAlignment="Center"
                           Text="{Binding LocalDateModified, StringFormat='{}{0:G}'}"
                           TextTrimming="CharacterEllipsis"/>
+
                         <Button
-                          Grid.Column="3" Margin="8,0,0,0"
+                          Grid.Column="4" Margin="8,0,0,0"
                           Content="{LucideIconContent Ellipsis}">
                           <Button.Flyout>
                             <MenuFlyout>
