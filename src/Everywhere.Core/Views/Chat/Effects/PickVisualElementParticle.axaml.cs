@@ -37,6 +37,8 @@ public sealed partial class PickVisualElementParticle : VisualElementParticle
     private Size _endSize;
     private double _elapsedTimeSeconds;
     private bool _isCompleted;
+    private double _cancellingTimeSeconds;
+    private BlurEffect? _cancellingBlurEffect;
 
     public PickVisualElementParticle()
     {
@@ -75,6 +77,9 @@ public sealed partial class PickVisualElementParticle : VisualElementParticle
         _velocityY = 0d;
         _elapsedTimeSeconds = 0d;
         _isCompleted = false;
+        _cancellingTimeSeconds = 0d;
+        Effect = _cancellingBlurEffect = null;
+        Opacity = 1d;
 
         // Force a synchronous measure to establish the end size representation before flight
         if (endContent is not null)
@@ -102,7 +107,6 @@ public sealed partial class PickVisualElementParticle : VisualElementParticle
     private void InitializeFlightDynamics()
     {
         _currentPosition = _startPosition;
-
         UpdateEndPosition();
 
         var dx = _endPosition.X - _startPosition.X;
@@ -138,16 +142,25 @@ public sealed partial class PickVisualElementParticle : VisualElementParticle
 
         var deltaSeconds = deltaTimeMs / 1000d;
         _elapsedTimeSeconds += deltaSeconds;
-        _morphProgress = Math.Clamp(_elapsedTimeSeconds / MorphDurationSec, 0d, 1d);
+
+        if (_cancellingBlurEffect is not null)
+        {
+            // do cancelling animation
+            _cancellingTimeSeconds += deltaSeconds;
+            _cancellingBlurEffect.Radius = _cancellingTimeSeconds * 23d;
+            Opacity = Math.Max(1.0 - _cancellingTimeSeconds / 0.6d, 0d);
+        }
+        else if (_targetTracker?.IsCancelled is true)
+        {
+            // should cancel
+            Effect = _cancellingBlurEffect = new BlurEffect();
+        }
 
         UpdateEndPosition();
-
         var diffX = _currentPosition.X - _endPosition.X;
         var diffY = _currentPosition.Y - _endPosition.Y;
-
         var forceX = -SpringStiffness * diffX - SpringDamping * _velocityX;
         var forceY = -SpringStiffness * diffY - SpringDamping * _velocityY;
-
         _velocityX += forceX * deltaSeconds;
         _velocityY += forceY * deltaSeconds;
 
@@ -155,7 +168,10 @@ public sealed partial class PickVisualElementParticle : VisualElementParticle
         _currentSpeed = Math.Sqrt(_velocityX * _velocityX + _velocityY * _velocityY);
 
         var positionSettled = Math.Abs(diffX) < 1d && Math.Abs(diffY) < 1d && _currentSpeed < 15d;
-        if ((positionSettled && _morphProgress >= 1d) || _elapsedTimeSeconds > MaxTimeoutSec)
+        _morphProgress = Math.Clamp(_elapsedTimeSeconds / MorphDurationSec, 0d, 1d);
+
+        if (_cancellingBlurEffect is not null && _cancellingTimeSeconds > 0.6d ||
+            _cancellingBlurEffect is null && (positionSettled && _morphProgress >= 1d || _elapsedTimeSeconds > MaxTimeoutSec))
         {
             _isCompleted = true;
             _targetTracker?.OnParticleCompleted();

@@ -46,6 +46,13 @@ public sealed class VisualElementEffect(
                 return;
             }
 
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Input);
+            if (!_animationTarget.IsKeyboardFocusWithin)
+            {
+                chatAttachment.Opacity = 1d;
+                return;
+            }
+
             var (sourceBounds, startBitmap) = await Task.Run(async () =>
             {
                 var bounds = visualElement.BoundingRectangle;
@@ -75,7 +82,7 @@ public sealed class VisualElementEffect(
                     Math.Max(16, sourceBounds.Width / effectWindow.Scale),
                     Math.Max(16, sourceBounds.Height / effectWindow.Scale));
 
-                var tracker = new RunOnceTracker(this, chatAttachment);
+                var tracker = new RunOnceTracker(this, chatAttachment, _animationTarget);
                 effectWindow.AddParticle<PickVisualElementParticle>(
                     startPoint,
                     tracker,
@@ -262,8 +269,14 @@ public sealed class VisualElementEffect(
         }
     }
 
-    private sealed class RunOnceTracker(VisualElementEffect owner, ChatAttachment chatAttachment) : IParticleTargetTracker
+    private sealed class RunOnceTracker(
+        VisualElementEffect owner,
+        ChatAttachment chatAttachment,
+        IVisualElementAnimationTarget target
+    ) : IParticleTargetTracker
     {
+        public bool IsCancelled => !target.IsVisible;
+
         public bool TryGetTargetCenterOnScreen(out PixelPoint point) =>
             owner._animationTarget.TryGetAttachmentCenterOnScreen(chatAttachment, out point);
 
