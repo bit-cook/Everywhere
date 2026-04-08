@@ -10,6 +10,7 @@
     <IsDeploymentTarget>true</IsDeploymentTarget>
     <PublishTrimmed>true</PublishTrimmed>
     <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+    <NoWarn>$(NoWarn),IL2057</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
