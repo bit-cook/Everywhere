@@ -55,18 +55,16 @@ public class FdFindPlugin : BuiltInChatPlugin
     {
         try
         {
-            using var process = new Process
+            using var process = Process.Start(new ProcessStartInfo
             {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "which",
-                    Arguments = command,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-            process.Start();
+                FileName = "which",
+                Arguments = command,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            });
+            if (process is null) return false;
+
             await process.WaitForExitAsync();
             return process.ExitCode == 0;
         }
@@ -116,13 +114,11 @@ public class FdFindPlugin : BuiltInChatPlugin
 
             using var process = Process.Start(startInfo);
             if (process == null) return "Failed to start fd process.";
-            while (!process.StandardOutput.EndOfStream)
+
+            var line = await process.StandardOutput.ReadLineAsync(cancellationToken);
+            if (!string.IsNullOrEmpty(line))
             {
-                var line = await process.StandardOutput.ReadLineAsync(cancellationToken);
-                if (!string.IsNullOrEmpty(line))
-                {
-                    results.Add(CreateFileRecordFromPath(line)); 
-                }
+                results.Add(CreateFileRecordFromPath(line));
             }
 
             await process.WaitForExitAsync(cancellationToken);

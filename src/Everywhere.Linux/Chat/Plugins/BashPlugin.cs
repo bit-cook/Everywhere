@@ -5,6 +5,7 @@ using Everywhere.Chat;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
+using Everywhere.Extensions;
 using Everywhere.I18N;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
@@ -89,7 +90,7 @@ public class BashPlugin : BuiltInChatPlugin
 
         var workingDirectory = chatContextManager.EnsureWorkingDirectory(chatContext);
         var scopeName = $"everywhere-bash-{Guid.NewGuid():N}";
-        
+
         // Use systemd-run to create a scope for bash process
         var psi = new ProcessStartInfo
         {
@@ -109,11 +110,13 @@ public class BashPlugin : BuiltInChatPlugin
             if (process is null) throw new SystemException("Failed to start Bash process.");
             await using var registration = cancellationToken.Register(() =>
             {
-                _ = Task.Run(() =>
-                {
-                    // Stop the scope gracefully
-                    Process.Start("systemctl", $"--user stop {scopeName}.scope")?.WaitForExit(2000);
-                });
+                Task.Run(
+                    () =>
+                    {
+                        // Stop the scope gracefully
+                        Process.Start("systemctl", $"--user stop {scopeName}.scope").WaitForExit(2000);
+                    },
+                    cancellationToken).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
             });
 
             await process.StandardInput.WriteAsync(script);
