@@ -1,6 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Text.Encodings.Web;
+using System.Globalization;
 using System.Text.Json.Serialization;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
@@ -156,7 +156,7 @@ public class SystemPlugin : BuiltInChatPlugin
 
         displaySink.AppendBlocks(detailBlock);
 
-        string script;
+        FormattableString script;
         switch (action)
         {
             case SystemAction.Create:
@@ -173,16 +173,16 @@ public class SystemPlugin : BuiltInChatPlugin
             }
             case SystemAction.List:
             {
-                script = """
-                         tell application "Reminders"
-                             set output to ""
-                             set remList to every reminder of default list whose completed is false
-                             repeat with r in remList
-                                 set output to output & "ID: " & id of r & "|Title: " & name of r & "|Due: " & (get due date of r) & "\n"
-                             end repeat
-                             return output
-                         end tell
-                         """;
+                script = $"""
+                          tell application "Reminders"
+                              set output to ""
+                              set remList to every reminder of default list whose completed is false
+                              repeat with r in remList
+                                  set output to output & "ID: " & id of r & "|Title: " & name of r & "|Due: " & (get due date of r) & "\n"
+                              end repeat
+                              return output
+                          end tell
+                          """;
                 break;
             }
             case SystemAction.Delete:
@@ -338,7 +338,7 @@ public class SystemPlugin : BuiltInChatPlugin
 
         displaySink.AppendBlocks(detailBlock);
 
-        string script;
+        FormattableString script;
         switch (action)
         {
             case SystemAction.Create:
@@ -439,7 +439,7 @@ public class SystemPlugin : BuiltInChatPlugin
         // Don't show consent because it already shows before calling this function
         displaySink.AppendBlocks(detailBlock);
 
-        var script =
+        return await RunAppleScriptAsync(
             $$"""
               tell application "Mail"
                   set newMessage to make new outgoing message with properties {subject:"{{subject}}", content:"{{content}}", visible:true}
@@ -448,8 +448,8 @@ public class SystemPlugin : BuiltInChatPlugin
                   end tell
                   activate
               end tell
-              """;
-        return await RunAppleScriptAsync(script, cancellationToken);
+              """,
+            cancellationToken);
     }
 
     [KernelFunction("open_maps")]
@@ -469,15 +469,14 @@ public class SystemPlugin : BuiltInChatPlugin
         };
         displaySink.AppendBlocks(detailBlock);
 
-        var script =
+        return await RunAppleScriptAsync(
             $"""
              tell application "Maps"
                  activate
-                 open location "http://maps.apple.com/?q={query}"
+                 search {query}"
              end tell
-             """;
-
-        return await RunAppleScriptAsync(script, cancellationToken);
+             """,
+            cancellationToken);
     }
 
     [KernelFunction("manage_notes")]
@@ -519,12 +518,13 @@ public class SystemPlugin : BuiltInChatPlugin
         {
             try
             {
+                FormattableString actionScript = $"""
+                                                  tell application "Notes"
+                                                      return name of (first note whose id is "{id}")
+                                                  end tell
+                                                  """;
                 title = (await RunAppleScriptAsync(
-                    $"""
-                     tell application "Notes"
-                         return name of (first note whose id is "{id}")
-                     end tell
-                     """,
+                    actionScript,
                     cancellationToken)).Trim();
             }
             catch
@@ -558,7 +558,7 @@ public class SystemPlugin : BuiltInChatPlugin
 
         displaySink.AppendBlocks(detailBlock);
 
-        string script;
+        FormattableString script;
         switch (action)
         {
             case SystemAction.Create:
@@ -574,16 +574,16 @@ public class SystemPlugin : BuiltInChatPlugin
             }
             case SystemAction.List:
             {
-                script = """
-                         tell application "Notes"
-                             set output to ""
-                             set noteList to every note
-                             repeat with n in noteList
-                                 set output to output & "ID: " & id of n & "|Title: " & name of n & "\n"
-                             end repeat
-                             return output
-                         end tell
-                         """;
+                script = $"""
+                          tell application "Notes"
+                              set output to ""
+                              set noteList to every note
+                              repeat with n in noteList
+                                  set output to output & "ID: " & id of n & "|Title: " & name of n & "\n"
+                              end repeat
+                              return output
+                          end tell
+                          """;
                 break;
             }
             case SystemAction.Delete:
@@ -608,10 +608,16 @@ public class SystemPlugin : BuiltInChatPlugin
     [DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_OpenUrl_Header)]
     private async Task<string> OpenUrlAsync(
         [FromKernelServices] IChatPluginDisplaySink displaySink,
-        [Description("The URL to open")] string url,
+        [Description("The http or https URL to open")] string url,
         CancellationToken cancellationToken)
     {
         _logger.LogDebug("Opening URL: {Url}", url);
+
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var parsedUri) || 
+            (parsedUri.Scheme != Uri.UriSchemeHttp && parsedUri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new ArgumentException($"Invalid or unsupported URL scheme. Only HTTP and HTTPS are allowed");
+        }
 
         var detailBlock = new ChatPluginContainerDisplayBlock
         {
@@ -620,13 +626,7 @@ public class SystemPlugin : BuiltInChatPlugin
         };
         displaySink.AppendBlocks(detailBlock);
 
-        userInterface.DisplaySink.AppendBlocks(detailBlock);
-
-        var script = $"""
-                      open location "{url}"
-                      """;
-
-        return await RunAppleScriptAsync(script, cancellationToken);
+        return await RunAppleScriptAsync($"open location \"{url}\"", cancellationToken);
     }
 
     [KernelFunction("execute_applescript")]
@@ -667,10 +667,15 @@ public class SystemPlugin : BuiltInChatPlugin
 
         displaySink.AppendBlocks(detailBlock);
 
-        return await RunAppleScriptAsync(script, cancellationToken);
+        return await RunRawAppleScriptAsync(script, cancellationToken);
     }
 
-    private async static Task<string> RunAppleScriptAsync(string script, CancellationToken cancellationToken)
+    private static async Task<string> RunAppleScriptAsync(FormattableString script, CancellationToken cancellationToken)
+    {
+        return await RunRawAppleScriptAsync(script.ToString(AppleScriptFormatter.Shared), cancellationToken);
+    }
+
+    private static async Task<string> RunRawAppleScriptAsync(string script, CancellationToken cancellationToken)
     {
         var psi = new ProcessStartInfo
         {
@@ -707,5 +712,33 @@ public class SystemPlugin : BuiltInChatPlugin
         }
 
         return result;
+    }
+
+    private sealed class AppleScriptFormatter : IFormatProvider, ICustomFormatter
+    {
+        public static AppleScriptFormatter Shared { get; } = new();
+
+        private AppleScriptFormatter() { }
+
+        public object? GetFormat(Type? formatType) => formatType == typeof(ICustomFormatter) ? this : null;
+
+        public string Format(string? format, object? arg, IFormatProvider? formatProvider)
+        {
+            return arg switch
+            {
+                null => string.Empty,
+                RawScript rs => rs.Value,
+                FormattableString fs => fs.ToString(this),
+                string s => s.Replace("\\", "\\\\").Replace("\"", "\\\""),
+                IFormattable formattable => formattable.ToString(format, CultureInfo.InvariantCulture),
+                _ => arg.ToString() ?? string.Empty
+            };
+        }
+    }
+
+    private readonly struct RawScript(string value)
+    {
+        public string Value { get; } = value;
+        public override string ToString() => Value;
     }
 }
