@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Everywhere.Chat.Plugins;
+using Everywhere.Cloud;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Extensions;
@@ -51,6 +52,7 @@ public static class Program
                 .AddAvaloniaBasicServices()
                 .AddViewsAndViewModels()
                 .AddDatabaseAndStorage()
+                .AddCloudClient()
                 .AddChatEssentials()
 
                 #endregion

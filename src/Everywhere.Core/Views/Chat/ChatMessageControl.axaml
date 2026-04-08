@@ -417,15 +417,16 @@
                 </MultiBinding>
               </Classes.Editing>
               <SelectableTextBlock>
-                <InlineUIContainer>
+                <InlineUIContainer BaselineAlignment="Center">
                   <shadui:Badge
-                    Margin="0,0,4,0"
+                    VerticalAlignment="Center"
                     Background="{DynamicResource PrimaryColor}">
                     <TextBlock
                       Text="{Binding StrategyCommand.NameKey^}"
                       TextWrapping="Wrap"/>
                   </shadui:Badge>
                 </InlineUIContainer>
+
                 <Run Text="{Binding Content}"/>
               </SelectableTextBlock>
             </Border>

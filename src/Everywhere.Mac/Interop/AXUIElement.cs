@@ -77,12 +77,12 @@ public partial class AXUIElement : NSObject, IVisualElement
                     AXRoleAttribute.AXRadioGroup or
                     AXRoleAttribute.AXSplitGroup or
                     AXRoleAttribute.AXBrowser or
-                    AXRoleAttribute.AXWindow or // Parent of AXWindow is AXApplication
                     AXRoleAttribute.AXSheet or
                     AXRoleAttribute.AXDrawer or
                     AXRoleAttribute.AXCell => VisualElementType.Panel,
 
-                AXRoleAttribute.AXApplication or
+                AXRoleAttribute.AXWindow or
+                    AXRoleAttribute.AXApplication or
                     AXRoleAttribute.AXSystemWide => VisualElementType.TopLevel,
 
                 AXRoleAttribute.AXSplitter => VisualElementType.Splitter,

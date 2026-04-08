@@ -12,6 +12,7 @@
       "3rd\\shad-ui\\src\\ShadUI\\ShadUI.csproj",
       "3rd\\WritableJsonConfiguration\\src\\WritableJsonConfiguration\\WritableJsonConfiguration.csproj",
       "src\\Everywhere.Abstractions\\Everywhere.Abstractions.csproj",
+      "src\\Everywhere.Cloud\\Everywhere.Cloud.csproj",
       "src\\Everywhere.Configuration.SourceGenerator\\Everywhere.Configuration.SourceGenerator.csproj",
       "src\\Everywhere.Core\\Everywhere.Core.csproj",
       "src\\Everywhere.I18N.SourceGenerator\\Everywhere.I18N.SourceGenerator.csproj",

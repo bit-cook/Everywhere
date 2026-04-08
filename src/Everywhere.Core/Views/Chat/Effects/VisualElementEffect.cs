@@ -64,8 +64,10 @@ public sealed class VisualElementEffect(
 
             foreach (var effectWindow in _effectWindows)
             {
+#if !IsMacOS
                 effectWindow.Topmost = false;
-                effectWindow.Topmost = true; // Ensure the effect window is above all others to properly display the animation
+                effectWindow.Topmost = true; // Ensure the effect window is above all others to properly display the animation 
+#endif
 
                 var sourceCenter = new PixelPoint(sourceBounds.Center.X, sourceBounds.Center.Y);
                 var startPoint = effectWindow.ScreenPixelToLocal(sourceCenter);
