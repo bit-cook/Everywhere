@@ -397,7 +397,8 @@ public sealed partial class ChatService : IChatService
                     assistant.InputModalities,
                     cancellationToken);
 
-                if (!chatContext.Metadata.IsTemporary && // Do not generate titles for temporary contexts.
+                if (_settings.ChatWindow.AutomaticallyGenerateTitle &&
+                    !chatContext.Metadata.IsTemporary && // Do not generate titles for temporary contexts.
                     chatContext.Metadata.Topic.IsNullOrEmpty() &&
                     chatHistory.Count(c => c.Role == AuthorRole.User) == 1 && // Only try when there's one user message.
                     chatHistory.FirstOrDefault(c => c.Role == AuthorRole.User)?.Content is { Length: > 0 } userMessage)

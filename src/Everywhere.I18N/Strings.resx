@@ -2596,4 +2596,10 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatPlugin_MultiSelectHint" xml:space="preserve">
         <value />
     </data>
+    <data name="ChatWindowSettings_AutomaticallyGenerateTitle_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChatWindowSettings_AutomaticallyGenerateTitle_Description" xml:space="preserve">
+        <value />
+    </data>
 </root>

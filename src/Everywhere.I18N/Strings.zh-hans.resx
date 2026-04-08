@@ -855,12 +855,6 @@
     <data name="ChatWindowSettings_AutomaticallyAddElement_Description" xml:space="preserve">
         <value>启用后，在打开聊天窗口时自动将焦点元素添加为附件。</value>
     </data>
-    <data name="ChatWindowSettings_AllowRunInBackground_Header" xml:space="preserve">
-        <value>允许在后台运行</value>
-    </data>
-    <data name="ChatWindowSettings_AllowRunInBackground_Description" xml:space="preserve">
-        <value>开启后，关闭聊天窗口不会终止当前的任务。</value>
-    </data>
     <data name="HandledChatException_OperationCanceled" xml:space="preserve">
         <value>操作已取消。</value>
     </data>
@@ -2596,5 +2590,11 @@
     </data>
     <data name="ChatPlugin_MultiSelectHint" xml:space="preserve">
         <value>(多选)</value>
+    </data>
+    <data name="ChatWindowSettings_AutomaticallyGenerateTitle_Header" xml:space="preserve">
+        <value>自动总结标题</value>
+    </data>
+    <data name="ChatWindowSettings_AutomaticallyGenerateTitle_Description" xml:space="preserve">
+        <value>启用后，自动根据第一条消息总结对话标题。</value>
     </data>
 </root>

@@ -44,6 +44,15 @@ public partial class ChatWindowSettings : SettingsBase, ISettingsCategory
         LocaleKey.ChatWindowSettings_AutomaticallyAddElement_Description)]
     public partial bool AutomaticallyAddElement { get; set; } = true;
 
+    /// <summary>
+    /// When enabled, automatically generate chat title based on the content of the first message.
+    /// </summary>
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.ChatWindowSettings_AutomaticallyGenerateTitle_Header,
+        LocaleKey.ChatWindowSettings_AutomaticallyGenerateTitle_Description)]
+    public partial bool AutomaticallyGenerateTitle { get; set; } = true;
+
     [ObservableProperty]
     [DynamicResourceKey(
         LocaleKey.ChatWindowSettings_AutomaticallyAddTextSelection_Header,
