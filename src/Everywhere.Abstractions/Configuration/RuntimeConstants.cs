@@ -16,23 +16,55 @@ public static class RuntimeConstants
     /// Gets the writable data path for the application, ensuring that the directory exists.
     /// This path is typically used for storing application data, such as databases, logs, and other files that need to be persisted across sessions.
     /// </summary>
-    public static string WritableDataPath { get; }
+    public static string WritableFolderPath { get; }
+
+    /// <summary>
+    /// Gets the cache path for the application. This path is intended for storing temporary files and cache data that can be safely deleted without affecting the application's core functionality.
+    /// </summary>
+    public static string CacheFolderPath { get; }
+
+    /// <summary>
+    /// Gets the configuration path for the application.
+    /// This folder is intended to store small and user-editable configuration files, such as JSON or YAML files, that the application can read and write to manage user settings and preferences.
+    /// </summary>
+    public static string ConfigurationFolderPath { get; }
 
     static RuntimeConstants()
     {
         DeviceId = EnsureDeviceId();
-        WritableDataPath = EnsureDirectory(
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everywhere"));
+        WritableFolderPath = EnsureDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everywhere"));
+        CacheFolderPath = EnsureDirectory(Path.Combine(WritableFolderPath, "cache"));
+        ConfigurationFolderPath = EnsureDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".everywhere"));
     }
 
     /// <summary>
     /// Ensures that the specified relative path within the writable data folder exists and returns the full path.
     /// </summary>
-    /// <param name="relativePath"></param>
+    /// <param name="relativePaths"></param>
     /// <returns></returns>
-    public static string EnsureWritableDataFolderPath(string relativePath)
+    public static string EnsureWritableDataFolderPath(params ReadOnlySpan<string> relativePaths)
     {
-        return EnsureDirectory(Path.GetFullPath(Path.Combine(WritableDataPath, relativePath)));
+        return EnsureDirectory(Path.GetFullPath(Path.Combine([WritableFolderPath, ..relativePaths])));
+    }
+
+    /// <summary>
+    /// Ensures that the specified relative path within the cache folder exists and returns the full path.
+    /// </summary>
+    /// <param name="relativePaths"></param>
+    /// <returns></returns>
+    public static string EnsureCacheFolderPath(params ReadOnlySpan<string> relativePaths)
+    {
+        return EnsureDirectory(Path.GetFullPath(Path.Combine([ConfigurationFolderPath, ..relativePaths])));
+    }
+
+    /// <summary>
+    /// Ensures that the specified relative path within the configuration folder exists and returns the full path.
+    /// </summary>
+    /// <param name="relativePaths"></param>
+    /// <returns></returns>
+    public static string EnsureConfigurationFolderPath(params ReadOnlySpan<string> relativePaths)
+    {
+        return EnsureDirectory(Path.GetFullPath(Path.Combine([ConfigurationFolderPath, ..relativePaths])));
     }
 
     /// <summary>

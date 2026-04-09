@@ -247,7 +247,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                 continue;
 
             // If the directory is 3 days later and is empty, delete it
-            if ((DateTime.Now - dirDate).TotalDays > 3 && !Directory.EnumerateFileSystemEntries(dir).Any())
+            if ((DateTime.Now - dirDate).TotalDays > 3 && !Directory.EnumerateFileSystemEntries(dir).AsValueEnumerable().Any())
             {
                 try
                 {
@@ -498,7 +498,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         metadata.Id == _current?.Metadata.Id ? Task.FromResult<ChatContext?>(_current) : LoadChatContextAsync(metadata.Id, false, cancellationToken);
 
     public string EnsureWorkingDirectory(ChatContext chatContext) =>
-        RuntimeConstants.EnsureWritableDataFolderPath($"plugins/{chatContext.Metadata.DateCreated:yyyy-MM-dd}");
+        RuntimeConstants.EnsureWritableDataFolderPath("plugins", chatContext.Metadata.DateCreated.ToString("yyyy-MM-dd"));
 
     public IDictionary<string, Func<string>> GetPromptVariables(ChatContext chatContext)
     {

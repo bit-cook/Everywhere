@@ -24,7 +24,7 @@ public static class SettingsExtensions
                 // Forward compatibility: use FallbackGuidConverter to handle invalid GUIDs and set them to Guid.Empty
                 TypeDescriptor.AddAttributes(typeof(Guid), new TypeConverterAttribute(typeof(FallbackGuidConverter)));
 
-                var settingsJsonPath = Path.Combine(RuntimeConstants.WritableDataPath, "settings.json");
+                var settingsJsonPath = Path.Combine(RuntimeConstants.WritableFolderPath, "settings.json");
                 var loggerFactory = xx.GetRequiredService<ILoggerFactory>();
 
                 // Run Migrations

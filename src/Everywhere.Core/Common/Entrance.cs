@@ -39,7 +39,6 @@ public static class Entrance
     public static async ValueTask InitializeAsync(string[] args)
     {
         await InitializeSingleInstanceAsync(args);
-
         InitializeRuntimeConstants();
         Telemetry.Initialize();
         InitializeLogger();
@@ -215,8 +214,6 @@ public static class Entrance
 
     private static void InitializeLogger()
     {
-        var dataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everywhere");
-
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
             .Enrich.With<ActivityEnricher>()
@@ -224,7 +221,7 @@ public static class Entrance
                 outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
             .WriteTo.File(
                 new JsonFormatter(),
-                Path.Combine(dataPath, "logs", ".jsonl"),
+                Path.Combine(RuntimeConstants.EnsureWritableDataFolderPath("logs"), ".jsonl"),
                 rollingInterval: RollingInterval.Day)
             .WriteTo.Logger(lc => lc
                 .Filter.ByIncludingOnly(logEvent =>

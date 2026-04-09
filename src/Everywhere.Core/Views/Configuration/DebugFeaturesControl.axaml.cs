@@ -19,7 +19,7 @@ public partial class DebugFeaturesControl(
     {
         try
         {
-            var settingsPath = Path.Combine(RuntimeConstants.WritableDataPath, "settings.json");
+            var settingsPath = Path.Combine(RuntimeConstants.WritableFolderPath, "settings.json");
             var launched = await App.Launcher.LaunchFileInfoAsync(new FileInfo(settingsPath));
             if (!launched)
             {

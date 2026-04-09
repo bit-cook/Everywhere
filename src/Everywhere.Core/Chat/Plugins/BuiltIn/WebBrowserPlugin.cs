@@ -267,7 +267,7 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
         if (_browser is not null) return _browser;
 
         // Finally download and launch Puppeteer browser
-        var cachePath = RuntimeConstants.EnsureWritableDataFolderPath("cache/plugins/puppeteer");
+        var cachePath = RuntimeConstants.EnsureCacheFolderPath("plugins", "puppeteer");
         var browserFetcher = new BrowserFetcher
         {
             CacheDir = cachePath,

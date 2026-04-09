@@ -358,8 +358,7 @@ public class ChatPluginManager : IChatPluginManager
             if (Directory.Exists(workingDirectory)) return workingDirectory;
 
             // If not exists, fall back to Everywhere\cache\plugins\mcp\<plugin-id>
-            var fallbackDir = RuntimeConstants.EnsureWritableDataFolderPath(
-                Path.Combine("plugins", "mcp", mcpChatPlugin.Id.ToString("N")));
+            var fallbackDir = RuntimeConstants.EnsureWritableDataFolderPath("plugins", "mcp", mcpChatPlugin.Id.ToString("N"));
             return fallbackDir;
         }
 

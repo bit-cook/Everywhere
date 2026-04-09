@@ -32,8 +32,8 @@ public sealed class KeyValueStorage : IKeyValueStorage, IAsyncInitializer, IDisp
     {
         _logger = logger;
 
-        _primaryPath = Path.Combine(RuntimeConstants.WritableDataPath, "storage" + PrimaryExtension);
-        _tempPath = Path.Combine(RuntimeConstants.WritableDataPath, "storage" + TempExtension);
+        _primaryPath = Path.Combine(RuntimeConstants.WritableFolderPath, "storage" + PrimaryExtension);
+        _tempPath = Path.Combine(RuntimeConstants.WritableFolderPath, "storage" + TempExtension);
 
         _saveExecutor = new DebounceExecutor<bool, ThreadingTimerImpl>(
             () => true,
