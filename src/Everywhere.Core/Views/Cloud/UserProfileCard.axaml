@@ -78,7 +78,7 @@
                   <StackPanel
                     Orientation="Horizontal" Spacing="4">
                     <TextBlock
-                      Classes="Small" HorizontalAlignment="Center"
+                      Classes="Caption" HorizontalAlignment="Center"
                       FontWeight="SemiBold"
                       Text="{Binding UserProfile.Name, FallbackValue={x:Null}}"
                       TextTrimming="CharacterEllipsis"/>
@@ -176,7 +176,8 @@
 
                     <!--  Active  -->
                     <ControlTemplate x:DataType="cloud:SubscriptionInformation">
-                      <TextBlock Classes="Caption">
+                      <TextBlock
+                        Classes="Muted Small" TextWrapping="Wrap">
                         <TextBlock.Text>
                           <I18N Key="{x:Static LocaleKey.UserProfilePresenter_RenewsOnTextBlock_Text}">
                             <Binding

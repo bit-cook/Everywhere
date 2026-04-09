@@ -43,7 +43,7 @@
                   Text="{Binding Category.TitleKey^}"
                   TextWrapping="Wrap"/>
                 <TextBlock
-                  Classes="Muted Small" Grid.Row="1"
+                  Classes="Muted Caption" Grid.Row="1"
                   Grid.Column="1"
                   Text="{Binding Category.DescriptionKey^, FallbackValue={x:Null}}"
                   TextWrapping="Wrap"/>

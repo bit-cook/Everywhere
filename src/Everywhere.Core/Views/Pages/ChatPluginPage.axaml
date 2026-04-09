@@ -280,6 +280,7 @@
               <ScrollViewer
                 MaxHeight="80" HorizontalScrollBarVisibility="Disabled">
                 <TextBlock
+                  Classes="Muted Caption"
                   Text="{Binding DescriptionKey^, FallbackValue={x:Null}}"
                   TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
               </ScrollViewer>
@@ -335,7 +336,7 @@
                             </StackPanel>
 
                             <TextBlock
-                              Classes="Muted"
+                              Classes="Muted Caption"
                               Text="{Binding DescriptionKey^}"
                               TextWrapping="Wrap"/>
 

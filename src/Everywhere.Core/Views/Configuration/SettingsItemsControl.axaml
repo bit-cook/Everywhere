@@ -218,7 +218,7 @@
                     ToolTip.Tip="{I18N {x:Static LocaleKey.ExperimentalBadge_ToolTip}}"/>
                 </StackPanel>
                 <TextBlock
-                  Classes="Muted Small" IsHitTestVisible="False"
+                  Classes="Muted Caption" IsHitTestVisible="False"
                   IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                   Text="{Binding DescriptionKey^, FallbackValue={x:Null}}"
                   TextWrapping="Wrap"/>

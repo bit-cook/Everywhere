@@ -78,7 +78,7 @@
                       Text="{Binding HeaderKey^}"
                       TextWrapping="Wrap"/>
                     <TextBlock
-                      Classes="Muted Small"
+                      Classes="Muted Caption"
                       Text="{Binding DescriptionKey^}"
                       TextWrapping="Wrap"/>
                   </StackPanel>
@@ -93,7 +93,7 @@
                     Text="{Binding HeaderKey^}"
                     TextWrapping="Wrap"/>
                   <TextBlock
-                    Classes="Muted Small"
+                    Classes="Muted Caption"
                     Text="{Binding DescriptionKey^}"
                     TextWrapping="Wrap"/>
                 </StackPanel>

@@ -28,7 +28,7 @@
               TextWrapping="Wrap"/>
 
             <TextBlock
-              Classes="Small"
+              Classes="Caption"
               Text="{I18N {x:Static LocaleKey.McpTransportConfigurationForm_SchemeTabControl_Label}}"/>
             <TabControl SelectedIndex="{TemplateBinding SelectedTabIndex, Mode=TwoWay}">
               <TabItem Header="Stdio">
@@ -39,7 +39,7 @@
                     Text="{Binding StdioConfiguration.Command, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}"
                     TextWrapping="Wrap"/>
                   <TextBlock
-                    Classes="Small"
+                    Classes="Caption"
                     Text="{I18N {x:Static LocaleKey.McpTransportConfigurationForm_ArgumentsTextBox_Label}}"/>
                   <shadui:DataList
                     Classes="Draggable"
@@ -95,7 +95,7 @@
                     </TextBox.InnerRightContent>
                   </TextBox>
                   <TextBlock
-                    Classes="Small"
+                    Classes="Caption"
                     Text="{I18N {x:Static LocaleKey.McpTransportConfigurationForm_EnvironmentVariablesDataList_Label}}"/>
                   <shadui:DataList
                     AddCommand="{Binding StdioConfiguration.AddEmptyEnvironmentVariableCommand, RelativeSource={RelativeSource TemplatedParent}}"
@@ -142,7 +142,7 @@
                     shadui:ControlAssist.Label="{I18N {x:Static LocaleKey.McpTransportConfigurationForm_EndpointTextBox_Label}}"
                     Text="{Binding HttpConfiguration.Endpoint, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}"/>
                   <TextBlock
-                    Classes="Small"
+                    Classes="Caption"
                     Text="{I18N {x:Static LocaleKey.McpTransportConfigurationForm_TransportModeComboBox_Label}}"/>
                   <ComboBox
                     x:DataType="plugins:HttpMcpTransportConfiguration"
@@ -155,7 +155,7 @@
                     </ComboBox.ItemTemplate>
                   </ComboBox>
                   <TextBlock
-                    Classes="Small"
+                    Classes="Caption"
                     Text="{I18N {x:Static LocaleKey.McpTransportConfigurationForm_HeadersDataList_Label}}"/>
                   <shadui:DataList
                     AddCommand="{Binding HttpConfiguration.AddEmptyHeaderCommand, RelativeSource={RelativeSource TemplatedParent}}"
