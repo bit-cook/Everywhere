@@ -48,66 +48,6 @@ public class OpenAIKernelMixin : KernelMixin
     }
 
     /// <summary>
-    /// Hook called before sending a streaming chat request.
-    /// </summary>
-    private Task BeforeStreamingRequestAsync(IList<ChatMessage> messages, ref ChatOptions? options)
-    {
-        // If deep thinking is not supported, skip processing.
-        if (!SupportsReasoning) return Task.CompletedTask;
-
-        var opt = options ??= new ChatOptions();
-        options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-        options.RawRepresentationFactory ??= _ => RawRepresentationFactory(opt);
-
-        var lastUserMessageIndex = messages.AsValueEnumerable()
-            .Select((m, i) => new { Message = m, Index = i })
-            .Where(x => x.Message.Role == ChatRole.User)
-            .Select(x => x.Index)
-            .LastOrDefault(-1);
-        if (lastUserMessageIndex == -1 || lastUserMessageIndex == messages.Count - 1) return Task.CompletedTask;
-
-        foreach (var assistantMessage in messages.AsValueEnumerable().Skip(lastUserMessageIndex + 1).Where(m => m.Role == ChatRole.Assistant))
-        {
-            Debug.Assert(assistantMessage.RawRepresentation is OpenAI.Chat.ChatMessage);
-            if (assistantMessage.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage) continue;
-
-            if (assistantMessage.AdditionalProperties?.TryGetValue("reasoning_content", out var reasoningObj) is not true ||
-                reasoningObj is not string reasoningContent)
-            {
-                reasoningContent = string.Empty; // Set to empty string if not provided, as the field is required
-            }
-
-            var patch = new JsonPatch();
-            // patch.Set("$.reasoning_content"u8, string.Empty) will throw an exception: Empty encoded value
-            // It seems a bug in the JsonPatch implementation, so we need to encode the empty string to bytes manually.
-            patch.Set("$.reasoning_content"u8, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(reasoningContent)));
-            chatMessage.Patch = patch;
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private static ChatCompletionOptions? RawRepresentationFactory(ChatOptions chatOptions)
-    {
-        if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true) return null;
-        if (reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel) return null;
-
-        return new ChatCompletionOptions
-        {
-            Metadata =
-            {
-                { "thinking", "enabled" }
-            },
-            ReasoningEffortLevel = reasoningEffortLevel switch
-            {
-                ReasoningEffortLevel.Minimal => ChatReasoningEffortLevel.Minimal,
-                ReasoningEffortLevel.Detailed => ChatReasoningEffortLevel.High,
-                _ => (ChatReasoningEffortLevel?)null
-            },
-        };
-    }
-
-    /// <summary>
     /// optimized wrapper around MEAI's IChatClient to extract reasoning content from internal properties.
     /// </summary>
     private sealed class OptimizedOpenAIApiClient(IChatClient client, OpenAIKernelMixin owner) : DelegatingChatClient(client)
@@ -128,7 +68,7 @@ public class OpenAIKernelMixin : KernelMixin
                 original.RawRepresentation = openai;
             }
 
-            await owner.BeforeStreamingRequestAsync(messagesList, ref options).ConfigureAwait(false);
+            BeforeStreamingRequestHook(messagesList, ref options);
 
             // cache the value to avoid property changes during enumeration
             await foreach (var update in base.GetStreamingResponseAsync(messagesList, options, cancellationToken))
@@ -143,6 +83,64 @@ public class OpenAIKernelMixin : KernelMixin
             object? klass,
             IEnumerable<ChatMessage> inputs,
             ChatOptions? chatOptions);
+
+        /// <summary>
+        /// Hook called before sending a streaming chat request.
+        /// </summary>
+        private void BeforeStreamingRequestHook(List<ChatMessage> messages, ref ChatOptions? options)
+        {
+            // If deep thinking is not supported, skip processing.
+            if (!owner.SupportsReasoning) return;
+
+            var opt = options ??= new ChatOptions();
+            options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+            options.RawRepresentationFactory ??= _ => RawRepresentationFactory(opt);
+
+            var lastUserMessageIndex = messages.AsValueEnumerable()
+                .Select((m, i) => new { Message = m, Index = i })
+                .Where(x => x.Message.Role == ChatRole.User)
+                .Select(x => x.Index)
+                .LastOrDefault(-1);
+            if (lastUserMessageIndex == -1 || lastUserMessageIndex == messages.Count - 1) return;
+
+            foreach (var assistantMessage in messages.AsValueEnumerable().Skip(lastUserMessageIndex + 1).Where(m => m.Role == ChatRole.Assistant))
+            {
+                Debug.Assert(assistantMessage.RawRepresentation is OpenAI.Chat.ChatMessage);
+                if (assistantMessage.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage) continue;
+
+                if (assistantMessage.AdditionalProperties?.TryGetValue("reasoning_content", out var reasoningObj) is not true ||
+                    reasoningObj is not string reasoningContent)
+                {
+                    reasoningContent = string.Empty; // Set to empty string if not provided, as the field is required
+                }
+
+                var patch = new JsonPatch();
+                // patch.Set("$.reasoning_content"u8, string.Empty) will throw an exception: Empty encoded value
+                // It seems a bug in the JsonPatch implementation, so we need to encode the empty string to bytes manually.
+                patch.Set("$.reasoning_content"u8, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(reasoningContent)));
+                chatMessage.Patch = patch;
+            }
+        }
+
+        private static ChatCompletionOptions? RawRepresentationFactory(ChatOptions chatOptions)
+        {
+            if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true) return null;
+            if (reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel) return null;
+
+            return new ChatCompletionOptions
+            {
+                Metadata =
+                {
+                    { "thinking", "enabled" }
+                },
+                ReasoningEffortLevel = reasoningEffortLevel switch
+                {
+                    ReasoningEffortLevel.Minimal => ChatReasoningEffortLevel.Minimal,
+                    ReasoningEffortLevel.Detailed => ChatReasoningEffortLevel.High,
+                    _ => (ChatReasoningEffortLevel?)null
+                },
+            };
+        }
     }
 
     private sealed class NoneAuthenticationPolicy : AuthenticationPolicy

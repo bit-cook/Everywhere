@@ -112,7 +112,7 @@ public abstract class KernelMixin(Assistant assistant, ModelConnection connectio
     /// </summary>
     /// <param name="exception"></param>
     /// <returns></returns>
-    public virtual Exception TransformChatException(Exception exception) => exception;
+    public Exception TransformChatException(Exception exception) => connection.ChatExceptionTransformer?.Invoke(exception) ?? exception;
 
     public virtual void Dispose()
     {

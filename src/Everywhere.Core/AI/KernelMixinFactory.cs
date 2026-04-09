@@ -1,6 +1,12 @@
-﻿using Everywhere.Cloud;
+﻿using System.ClientModel;
+using System.Net;
+using System.Text.Json;
+using Anthropic.Exceptions;
+using Everywhere.Cloud;
 using Everywhere.Common;
+using Everywhere.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
 
 namespace Everywhere.AI;
 
@@ -66,7 +72,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
         // (e.g. OpenAIKernelMixin uses NoneAuthenticationPolicy, others use "official" placeholder).
         var httpClient = httpClientFactory.CreateClient(nameof(ICloudClient));
 
-        return new ModelConnection(schema, endpoint, ApiKey: null, httpClient, null);
+        return new ModelConnection(schema, endpoint, ApiKey: null, httpClient, TransformOfficialException);
     }
 
     /// <summary>
@@ -86,7 +92,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
                 new InvalidOperationException("Endpoint cannot be empty."),
                 HandledChatExceptionType.InvalidEndpoint);
 
-        var apiKey = Configuration.ApiKey.GetKey(assistant.ApiKey);
+        var apiKey = ApiKey.GetKey(assistant.ApiKey);
 
         // Create an HttpClient instance using the factory.
         // It will have the configured settings (timeout and proxy).
@@ -110,5 +116,39 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
             "anthropic" or "minimax" => ModelProviderSchema.Anthropic,
             _ => ModelProviderSchema.OpenAI
         };
+    }
+
+    private Exception TransformOfficialException(Exception exception)
+    {
+        try
+        {
+            var payload = exception switch
+            {
+                ClientResultException { Status: 502 } clientResultException when clientResultException.GetRawResponse() is { } response =>
+                    response.BufferContent().ToObjectFromJson<ApiPayload>(),
+                Anthropic5xxException { ResponseBody: { } responseBody } =>
+                    JsonSerializer.Deserialize<ApiPayload>(responseBody),
+                HttpOperationException { StatusCode: HttpStatusCode.BadGateway, ResponseContent: { } responseContent } =>
+                    JsonSerializer.Deserialize<ApiPayload>(responseContent),
+                _ => null
+            };
+
+            if (payload is not { Success: false, Error.Upstream: { } upstream })
+            {
+                return exception;
+            }
+
+            return new HttpOperationException(
+                upstream.StatusCode,
+                upstream.Body?.RootElement.GetRawText() ?? "Upstream error with no body",
+                "upstream_error",
+                exception);
+        }
+        catch (Exception ex)
+        {
+            loggerFactory.CreateLogger(nameof(ICloudClient)).LogError(ex, "Failed to transform official exception. Returning original exception.");
+
+            return exception; // If any error occurs during transformation, return the original exception to avoid masking the issue.
+        }
     }
 }
