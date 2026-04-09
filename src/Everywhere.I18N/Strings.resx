@@ -2602,4 +2602,7 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatWindowSettings_AutomaticallyGenerateTitle_Description" xml:space="preserve">
         <value />
     </data>
+    <data name="HandledSystemException_UserNotLogin" xml:space="preserve">
+        <value />
+    </data>
 </root>

@@ -7,6 +7,7 @@ using System.Security.Authentication;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Everywhere.AI;
+using Everywhere.Cloud;
 using MessagePack;
 using Microsoft.SemanticKernel;
 using OllamaSharp.Models.Exceptions;
@@ -124,6 +125,31 @@ public enum HandledSystemExceptionType
     Unknown,
 
     /// <summary>
+    /// The specified file could not be found.
+    /// </summary>
+    FileNotFound,
+
+    /// <summary>
+    /// The specified directory could not be found.
+    /// </summary>
+    DirectoryNotFound,
+
+    /// <summary>
+    /// The specified drive could not be found.
+    /// </summary>
+    DriveNotFound,
+
+    /// <summary>
+    /// The specified path is too long for the platform or API.
+    /// </summary>
+    PathTooLong,
+
+    /// <summary>
+    /// The end of the stream is reached unexpectedly.
+    /// </summary>
+    EndOfStream,
+
+    /// <summary>
     /// A general I/O error (e.g., read/write/stream failures).
     /// </summary>
     IOException,
@@ -134,29 +160,19 @@ public enum HandledSystemExceptionType
     UnauthorizedAccess,
 
     /// <summary>
-    /// The specified path is too long for the platform or API.
+    /// The user is not logged in, which may be required for certain operations that involve user-specific resources or permissions.
     /// </summary>
-    PathTooLong,
+    UserNotLogin,
 
     /// <summary>
-    /// The operation was cancelled.
+    /// The operation was canceled.
     /// </summary>
-    OperationCancelled,
+    OperationCanceled,
 
     /// <summary>
     /// The operation exceeded the allotted time.
     /// </summary>
     Timeout,
-
-    /// <summary>
-    /// The specified file could not be found.
-    /// </summary>
-    FileNotFound,
-
-    /// <summary>
-    /// The specified directory could not be found.
-    /// </summary>
-    DirectoryNotFound,
 
     /// <summary>
     /// The requested operation is not supported by the platform or API.
@@ -169,36 +185,9 @@ public enum HandledSystemExceptionType
     Security,
 
     /// <summary>
-    /// A COM interop error (HRESULT-based).
-    /// </summary>
-    COMException,
-
-#if WINDOWS
-    /// <summary>
-    /// A Win32 error (NativeErrorCode-based).
-    /// </summary>
-    Win32Exception,
-#endif
-
-    /// <summary>
-    /// A socket-related network error (e.g., connection refused, unreachable).
-    /// </summary>
-    Socket,
-
-    /// <summary>
     /// Insufficient memory to continue the execution of the program.
     /// </summary>
     OutOfMemory,
-
-    /// <summary>
-    /// The specified drive could not be found.
-    /// </summary>
-    DriveNotFound,
-
-    /// <summary>
-    /// The end of the stream is reached unexpectedly.
-    /// </summary>
-    EndOfStream,
 
     /// <summary>
     /// The data is invalid or in an unexpected format.
@@ -211,6 +200,16 @@ public enum HandledSystemExceptionType
     InvalidOperation,
 
     /// <summary>
+    /// A null argument was passed to a method that does not accept it.
+    /// </summary>
+    ArgumentNull,
+
+    /// <summary>
+    /// An argument is outside the range of valid values.
+    /// </summary>
+    ArgumentOutOfRange,
+
+    /// <summary>
     /// The argument provided to a method is not valid.
     /// </summary>
     InvalidArgument,
@@ -221,14 +220,24 @@ public enum HandledSystemExceptionType
     InvalidFormat,
 
     /// <summary>
-    /// A null argument was passed to a method that does not accept it.
+    /// Serialization related exception.
     /// </summary>
-    ArgumentNull,
+    Serialization,
 
     /// <summary>
-    /// An argument is outside the range of valid values.
+    /// A COM interop error (HRESULT-based).
     /// </summary>
-    ArgumentOutOfRange,
+    COMException,
+
+    /// <summary>
+    /// A Win32 error (NativeErrorCode-based).
+    /// </summary>
+    Win32Exception,
+
+    /// <summary>
+    /// A socket-related network error (e.g., connection refused, unreachable).
+    /// </summary>
+    Socket,
 
     /// <summary>
     /// The SSL connection could not be established.
@@ -246,14 +255,9 @@ public enum HandledSystemExceptionType
     HostNotFound,
 
     /// <summary>
-    /// Serialization related exception.
-    /// </summary>
-    Serialization,
-
-    /// <summary>
     /// An error occurred while invoking a function or method.
     /// </summary>
-    FunctionInvoking,
+    FunctionInvoking
 }
 
 /// <summary>
@@ -285,33 +289,32 @@ public class HandledSystemException : HandledException
         customFriendlyMessageKey ?? new DynamicResourceKey(
             type switch
             {
-                HandledSystemExceptionType.IOException => LocaleKey.HandledSystemException_IOException,
-                HandledSystemExceptionType.UnauthorizedAccess => LocaleKey.HandledSystemException_UnauthorizedAccess,
-                HandledSystemExceptionType.PathTooLong => LocaleKey.HandledSystemException_PathTooLong,
-                HandledSystemExceptionType.OperationCancelled => LocaleKey.HandledSystemException_OperationCancelled,
-                HandledSystemExceptionType.Timeout => LocaleKey.HandledSystemException_Timeout,
                 HandledSystemExceptionType.FileNotFound => LocaleKey.HandledSystemException_FileNotFound,
                 HandledSystemExceptionType.DirectoryNotFound => LocaleKey.HandledSystemException_DirectoryNotFound,
+                HandledSystemExceptionType.DriveNotFound => LocaleKey.HandledSystemException_DriveNotFound,
+                HandledSystemExceptionType.PathTooLong => LocaleKey.HandledSystemException_PathTooLong,
+                HandledSystemExceptionType.EndOfStream => LocaleKey.HandledSystemException_EndOfStream,
+                HandledSystemExceptionType.IOException => LocaleKey.HandledSystemException_IOException,
+                HandledSystemExceptionType.UnauthorizedAccess => LocaleKey.HandledSystemException_UnauthorizedAccess,
+                HandledSystemExceptionType.UserNotLogin => LocaleKey.HandledSystemException_UserNotLogin,
+                HandledSystemExceptionType.OperationCanceled => LocaleKey.HandledSystemException_OperationCancelled,
+                HandledSystemExceptionType.Timeout => LocaleKey.HandledSystemException_Timeout,
                 HandledSystemExceptionType.NotSupported => LocaleKey.HandledSystemException_NotSupported,
                 HandledSystemExceptionType.Security => LocaleKey.HandledSystemException_Security,
-                HandledSystemExceptionType.COMException => LocaleKey.HandledSystemException_COMException,
-#if WINDOWS
-                HandledSystemExceptionType.Win32Exception => LocaleKey.HandledSystemException_Win32Exception,
-#endif
-                HandledSystemExceptionType.Socket => LocaleKey.HandledSystemException_Socket,
                 HandledSystemExceptionType.OutOfMemory => LocaleKey.HandledSystemException_OutOfMemory,
-                HandledSystemExceptionType.DriveNotFound => LocaleKey.HandledSystemException_DriveNotFound,
-                HandledSystemExceptionType.EndOfStream => LocaleKey.HandledSystemException_EndOfStream,
                 HandledSystemExceptionType.InvalidData => LocaleKey.HandledSystemException_InvalidData,
                 HandledSystemExceptionType.InvalidOperation => LocaleKey.HandledSystemException_InvalidOperation,
-                HandledSystemExceptionType.InvalidArgument => LocaleKey.HandledSystemException_InvalidArgument,
-                HandledSystemExceptionType.InvalidFormat => LocaleKey.HandledSystemException_InvalidFormat,
                 HandledSystemExceptionType.ArgumentNull => LocaleKey.HandledSystemException_ArgumentNull,
                 HandledSystemExceptionType.ArgumentOutOfRange => LocaleKey.HandledSystemException_ArgumentOutOfRange,
+                HandledSystemExceptionType.InvalidArgument => LocaleKey.HandledSystemException_InvalidArgument,
+                HandledSystemExceptionType.InvalidFormat => LocaleKey.HandledSystemException_InvalidFormat,
+                HandledSystemExceptionType.Serialization => LocaleKey.HandledSystemException_Serialization,
+                HandledSystemExceptionType.COMException => LocaleKey.HandledSystemException_COMException,
+                HandledSystemExceptionType.Win32Exception => LocaleKey.HandledSystemException_Win32Exception,
+                HandledSystemExceptionType.Socket => LocaleKey.HandledSystemException_Socket,
                 HandledSystemExceptionType.SSLConnectionError => LocaleKey.HandledSystemException_SSLConnectionError,
                 HandledSystemExceptionType.ConnectionRefused => LocaleKey.HandledSystemException_ConnectionRefused,
                 HandledSystemExceptionType.HostNotFound => LocaleKey.HandledSystemException_HostNotFound,
-                HandledSystemExceptionType.Serialization => LocaleKey.HandledSystemException_Serialization,
                 HandledSystemExceptionType.FunctionInvoking => LocaleKey.HandledSystemException_FunctionInvoking,
                 _ => LocaleKey.HandledSystemException_Unknown,
             }),
@@ -334,18 +337,11 @@ public class HandledSystemException : HandledException
         }
 
         var context = new ExceptionParsingContext(exception);
-        new ParserChain<SpecificExceptionParser,
+        new ParserChain<GeneralExceptionParser,
             ParserChain<SocketExceptionParser,
                 ParserChain<HttpRequestExceptionParser,
                     ParserChain<ComExceptionParser,
-#if WINDOWS
-                        ParserChain<Win32ExceptionParser,
-                            GeneralExceptionParser
-                        >
-#else
-                        GeneralExceptionParser
-#endif
-                    >>>>().TryParse(ref context);
+                        Win32ExceptionParser>>>>().TryParse(ref context);
 
         return new HandledSystemException(
             originalException: exception,
@@ -381,7 +377,7 @@ public class HandledSystemException : HandledException
     /// <summary>
     /// Parses common system exceptions and IO-related subclasses.
     /// </summary>
-    private readonly struct SpecificExceptionParser : IExceptionParser
+    private readonly struct GeneralExceptionParser : IExceptionParser
     {
         public bool TryParse(ref ExceptionParsingContext context)
         {
@@ -393,16 +389,29 @@ public class HandledSystemException : HandledException
                 case DirectoryNotFoundException:
                     context.ExceptionType = HandledSystemExceptionType.DirectoryNotFound;
                     break;
+                case DriveNotFoundException:
+                    context.ExceptionType = HandledSystemExceptionType.DriveNotFound;
+                    break;
                 case PathTooLongException:
                     context.ExceptionType = HandledSystemExceptionType.PathTooLong;
+                    break;
+                case EndOfStreamException:
+                    context.ExceptionType = HandledSystemExceptionType.EndOfStream;
+                    break;
+                case IOException io:
+                    context.ExceptionType = HandledSystemExceptionType.IOException;
+                    context.ErrorCode ??= io.HResult;
                     break;
                 case UnauthorizedAccessException:
                     context.ExceptionType = HandledSystemExceptionType.UnauthorizedAccess;
                     break;
+                case UserNotLoginException:
+                    context.ExceptionType = HandledSystemExceptionType.UserNotLogin;
+                    break;
                 case OperationCanceledException:
                     context.ExceptionType = context.Exception.InnerException is TimeoutException ?
                         HandledSystemExceptionType.Timeout :
-                        HandledSystemExceptionType.OperationCancelled;
+                        HandledSystemExceptionType.OperationCanceled;
                     break;
                 case TimeoutException:
                     context.ExceptionType = HandledSystemExceptionType.Timeout;
@@ -416,18 +425,8 @@ public class HandledSystemException : HandledException
                 case OutOfMemoryException:
                     context.ExceptionType = HandledSystemExceptionType.OutOfMemory;
                     break;
-                case DriveNotFoundException:
-                    context.ExceptionType = HandledSystemExceptionType.DriveNotFound;
-                    break;
-                case EndOfStreamException:
-                    context.ExceptionType = HandledSystemExceptionType.EndOfStream;
-                    break;
                 case InvalidDataException:
                     context.ExceptionType = HandledSystemExceptionType.InvalidData;
-                    break;
-                case IOException io:
-                    context.ExceptionType = HandledSystemExceptionType.IOException;
-                    context.ErrorCode ??= io.HResult;
                     break;
                 case InvalidOperationException:
                     context.ExceptionType = HandledSystemExceptionType.InvalidOperation;
@@ -438,11 +437,15 @@ public class HandledSystemException : HandledException
                 case ArgumentOutOfRangeException:
                     context.ExceptionType = HandledSystemExceptionType.ArgumentOutOfRange;
                     break;
+                case ArgumentException:
+                    context.ExceptionType = HandledSystemExceptionType.InvalidArgument;
+                    break;
                 case FormatException:
                     context.ExceptionType = HandledSystemExceptionType.InvalidFormat;
                     break;
-                case ArgumentException:
-                    context.ExceptionType = HandledSystemExceptionType.InvalidArgument;
+                case JsonException:
+                case MessagePackSerializationException:
+                    context.ExceptionType = HandledSystemExceptionType.Serialization;
                     break;
                 default:
                     return false;
@@ -545,7 +548,6 @@ public class HandledSystemException : HandledException
         }
     }
 
-#if WINDOWS
     /// <summary>
     /// Parses Win32Exception instances (NativeErrorCode-based).
     /// </summary>
@@ -561,36 +563,6 @@ public class HandledSystemException : HandledException
             context.ExceptionType = HandledSystemExceptionType.Win32Exception;
             context.ErrorCode = win32.NativeErrorCode;
             return true;
-        }
-    }
-#endif
-
-    /// <summary>
-    /// Fallback parser for general mapping when no specialized parser matches.
-    /// </summary>
-    private readonly struct GeneralExceptionParser : IExceptionParser
-    {
-        public bool TryParse(ref ExceptionParsingContext context)
-        {
-            context.ExceptionType = context.Exception switch
-            {
-                // Keep some extra guards here for robustness
-                IOException => HandledSystemExceptionType.IOException,
-                UnauthorizedAccessException => HandledSystemExceptionType.UnauthorizedAccess,
-                OperationCanceledException => HandledSystemExceptionType.OperationCancelled,
-                TimeoutException => HandledSystemExceptionType.Timeout,
-                NotSupportedException => HandledSystemExceptionType.NotSupported,
-                SecurityException => HandledSystemExceptionType.Security,
-                JsonException or MessagePackSerializationException => HandledSystemExceptionType.Serialization,
-                _ => null
-            };
-
-            if (context.ExceptionType.HasValue && !context.ErrorCode.HasValue)
-            {
-                context.ErrorCode = context.Exception.HResult;
-            }
-
-            return context.ExceptionType.HasValue;
         }
     }
 }
@@ -676,6 +648,11 @@ public enum HandledChatExceptionType
     ServiceUnavailable,
 
     /// <summary>
+    /// The user is not logged in, which may be required for certain operations that involve user-specific resources or permissions.
+    /// </summary>
+    UserNotLogin,
+
+    /// <summary>
     /// Operation was canceled.
     /// </summary>
     OperationCanceled,
@@ -743,6 +720,7 @@ public class HandledChatException(
                         HandledChatExceptionType.Timeout => LocaleKey.HandledChatException_Timeout,
                         HandledChatExceptionType.NetworkError => LocaleKey.HandledChatException_NetworkError,
                         HandledChatExceptionType.ServiceUnavailable => LocaleKey.HandledChatException_ServiceUnavailable,
+                        HandledChatExceptionType.UserNotLogin => LocaleKey.HandledSystemException_UserNotLogin,
                         HandledChatExceptionType.OperationCanceled => LocaleKey.HandledChatException_OperationCanceled,
                         HandledChatExceptionType.SSLConnectionError => LocaleKey.HandledSystemException_SSLConnectionError,
                         HandledChatExceptionType.ConnectionRefused => LocaleKey.HandledSystemException_ConnectionRefused,
@@ -815,7 +793,7 @@ public class HandledChatException(
                         HttpRequestExceptionParser>>>().TryParse(ref context))
         {
             // Second layer: general network/socket exceptions
-            new ParserChain<GeneralExceptionParser,
+            new ParserChain<GeneralChatExceptionParser,
                 ParserChain<SocketExceptionParser,
                     HttpStatusCodeParser>>().TryParse(ref context);
         }
@@ -1052,7 +1030,7 @@ public class HandledChatException(
         }
     }
 
-    private readonly struct GeneralExceptionParser : IExceptionParser
+    private readonly struct GeneralChatExceptionParser : IExceptionParser
     {
         public bool TryParse(ref ExceptionParsingContext context)
         {
@@ -1061,6 +1039,7 @@ public class HandledChatException(
                 ModelDoesNotSupportToolsException => HandledChatExceptionType.FeatureNotSupport,
                 AuthenticationException => HandledChatExceptionType.InvalidApiKey,
                 UriFormatException => HandledChatExceptionType.InvalidEndpoint,
+                UserNotLoginException => HandledChatExceptionType.UserNotLogin,
                 OperationCanceledException => context.Exception.InnerException is TimeoutException ?
                     HandledChatExceptionType.Timeout :
                     HandledChatExceptionType.OperationCanceled,

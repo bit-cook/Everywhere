@@ -88,8 +88,8 @@ public sealed partial class ChatInputArea : TemplatedControl
     public static readonly StyledProperty<UserProfile?> UserProfileProperty =
         AvaloniaProperty.Register<ChatInputArea, UserProfile?>(nameof(UserProfile));
 
-    public static readonly StyledProperty<SubscriptionPlan?> SubscriptionProperty =
-        AvaloniaProperty.Register<ChatInputArea, SubscriptionPlan?>(nameof(Subscription));
+    public static readonly StyledProperty<SubscriptionInformation?> SubscriptionProperty =
+        AvaloniaProperty.Register<ChatInputArea, SubscriptionInformation?>(nameof(Subscription));
 
     public static readonly StyledProperty<bool> IsSendButtonEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsSendButtonEnabled), true);
@@ -229,7 +229,7 @@ public sealed partial class ChatInputArea : TemplatedControl
         set => SetValue(UserProfileProperty, value);
     }
 
-    public SubscriptionPlan? Subscription
+    public SubscriptionInformation? Subscription
     {
         get => GetValue(SubscriptionProperty);
         set => SetValue(SubscriptionProperty, value);
