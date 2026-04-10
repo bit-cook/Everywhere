@@ -371,14 +371,15 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
     }
 
     [RelayCommand]
-    private async Task CopyLogsAsync(McpChatPlugin? plugin)
+    private async Task CopyLogsAsync(ReadOnlyObservableCollection<McpChatPlugin.LogEntry>? logEntries)
     {
-        if (plugin is null) return;
+        if (logEntries is not { Count: > 0 }) return;
 
-        await App.Clipboard.SetTextAsync(string.Join('\n', plugin.LogEntries));
+        await App.Clipboard.SetTextAsync(string.Join('\n', logEntries));
         ToastManager
             .CreateToast("Logs copied to clipboard.")
             .OnBottomRight()
+            .WithDelay(3)
             .ShowSuccess();
     }
 

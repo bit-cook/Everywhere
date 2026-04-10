@@ -384,21 +384,22 @@
                     <Border
                       DockPanel.Dock="Top"
                       Background="{DynamicResource BorderColor}">
-                      <StackPanel Orientation="Horizontal">
-                        <Button
-                          Classes="Ghost" Width="32"
-                          Padding="0"
-                          Command="{Binding #Self.ViewModel.CopyLogsCommand}"
-                          CommandParameter="{Binding}"
-                          Content="{LucideIconContent Copy, Size=16}"
-                          ToolTip.Tip="{I18N {x:Static LocaleKey.ChatPluginPage_CopyLogsButton_ToolTip}}"/>
+                      <Grid ColumnDefinitions="Auto,Auto,*">
                         <ToggleSwitch
+                          Grid.Column="0" Margin="8,0"
                           VerticalAlignment="Center"
                           IsChecked="{Binding ShowTimestamp}"/>
                         <TextBlock
-                          Margin="8,0,0,0" VerticalAlignment="Center"
+                          Grid.Column="1" VerticalAlignment="Center"
                           Text="{I18N {x:Static LocaleKey.ChatPluginPage_ShowTimestampTextBlock_Text}}"/>
-                      </StackPanel>
+                        <Button
+                          Classes="Ghost Compact" Grid.Column="2"
+                          Width="32" HorizontalAlignment="Right"
+                          Command="{Binding #Self.ViewModel.CopyLogsCommand}"
+                          CommandParameter="{Binding LogEntries}"
+                          Content="{LucideIconContent Copy, Size=16}"
+                          ToolTip.Tip="{I18N {x:Static LocaleKey.ChatPluginPage_CopyLogsButton_ToolTip}}"/>
+                      </Grid>
                     </Border>
 
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
