@@ -151,8 +151,7 @@ public class App : Application, IRecipient<ApplicationMessage>
             {
                 { "os.type", OsType },
                 { "os.description", RuntimeInformation.OSDescription },
-                { "app.version", Version },
-                { "user.id", RuntimeConstants.DeviceId }
+                { "app.version", Version }
             });
     }
 

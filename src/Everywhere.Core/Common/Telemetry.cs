@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Buffers;
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Everywhere.Configuration;
 using OpenTelemetry.Trace;
@@ -120,25 +121,43 @@ public static partial class Telemetry
             ReadOnlySpan<KeyValuePair<string, object?>> tags,
             object? state) where T : struct
         {
-            Debug.Assert(tags.AsValueEnumerable().All(kv => kv.Value is not null));
+            var maxPossibleLength = tags.Length + 1;
+            var buffer = ArrayPool<KeyValuePair<string, object>>.Shared.Rent(maxPossibleLength);
 
-            switch (instrument)
+            try
             {
-                case Counter<T>:
+                var written = 0;
+                buffer[written++] = new KeyValuePair<string, object>("user.id", RuntimeConstants.DeviceId);
+                foreach (var tag in tags.AsValueEnumerable())
                 {
-                    SentrySdk.Metrics.EmitCounter(instrument.Name, measurement, tags!); // null values will be ignored by Sentry SDK
-                    break;
+                    if (tag.Value is not null)
+                    {
+                        buffer[written++] = new KeyValuePair<string, object>(tag.Key, tag.Value);
+                    }
                 }
-                case Histogram<T>:
+
+                switch (instrument)
                 {
-                    SentrySdk.Metrics.EmitDistribution(instrument.Name, measurement, MapUnit(instrument.Unit), tags!);
-                    break;
+                    case Counter<T>:
+                    {
+                        SentrySdk.Metrics.EmitCounter(instrument.Name, measurement, buffer.AsSpan(0, written));
+                        break;
+                    }
+                    case Histogram<T>:
+                    {
+                        SentrySdk.Metrics.EmitDistribution(instrument.Name, measurement, MapUnit(instrument.Unit), buffer.AsSpan(0, written));
+                        break;
+                    }
+                    case Gauge<T>:
+                    {
+                        SentrySdk.Metrics.EmitGauge(instrument.Name, measurement, MapUnit(instrument.Unit), buffer.AsSpan(0, written));
+                        break;
+                    }
                 }
-                case Gauge<T>:
-                {
-                    SentrySdk.Metrics.EmitGauge(instrument.Name, measurement, MapUnit(instrument.Unit), tags!);
-                    break;
-                }
+            }
+            finally
+            {
+                ArrayPool<KeyValuePair<string, object>>.Shared.Return(buffer);
             }
         }
 
