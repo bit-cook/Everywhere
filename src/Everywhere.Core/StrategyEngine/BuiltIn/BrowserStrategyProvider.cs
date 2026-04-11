@@ -7,13 +7,8 @@ namespace Everywhere.StrategyEngine.BuiltIn;
 /// Strategy for browser-related contexts.
 /// Provides commands for web pages, articles, and online content.
 /// </summary>
-public sealed class BrowserStrategy : StrategyBase, IBuiltInStrategy
+public sealed class BrowserStrategyProvider : BuiltInStrategyProvider
 {
-    public override string Id => "builtin.browser";
-    public override IDynamicResourceKey NameKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Browser_Name);
-    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Browser_Description);
-    public override int Priority => 50;
-
     // Common browser process names across platforms
     private static readonly string[] BrowserProcessNames =
     [
@@ -27,14 +22,14 @@ public sealed class BrowserStrategy : StrategyBase, IBuiltInStrategy
         "arc",
     ];
 
-    protected override IStrategyCondition Condition =>
+    private static IStrategyCondition Condition { get; } =
         new VisualElementCondition
         {
             ProcessNames = BrowserProcessNames,
             MinCount = 1
         };
 
-    public override IEnumerable<StrategyCommand> GetCommands(StrategyContext context) =>
+    public override IEnumerable<Strategy> GetStrategies() =>
     [
         // Translate page
         new()
@@ -44,24 +39,27 @@ public sealed class BrowserStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Browser_TranslateCommand_Description),
             Icon = LucideIconKind.Languages,
             Priority = 100,
-            UserMessage =
+            Condition = Condition,
+            Body =
                 """
                 You are a professional translator.
                 Translate the provided web page content to the user's preferred language.
                 Maintain the original formatting and structure where possible.
                 If the content is already in the target language, inform the user.
-                """
+                """,
+            ArgumentHintKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Browser_TranslateCommand_ArgumentHint)
         },
 
         // Summarize page
         new()
         {
-            Id = "summarize-page",
+            Id = "summarize",
             NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Browser_SummarizePageCommand_Name),
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Browser_SummarizePageCommand_Description),
             Icon = LucideIconKind.FileText,
             Priority = 90,
-            UserMessage =
+            Condition = Condition,
+            Body =
                 """
                 You are an expert at summarizing web content.
                 Provide a clear, structured summary of the web page including:
@@ -80,7 +78,8 @@ public sealed class BrowserStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Browser_ExtractInfoCommand_Description),
             Icon = LucideIconKind.ListChecks,
             Priority = 80,
-            UserMessage =
+            Condition = Condition,
+            Body =
                 """
                 You are an information extraction specialist.
                 Extract and organize the key information from this web page.
@@ -97,7 +96,8 @@ public sealed class BrowserStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Browser_ExplainCommand_Description),
             Icon = LucideIconKind.GraduationCap,
             Priority = 70,
-            UserMessage =
+            Condition = Condition,
+            Body =
                 """
                 You are an expert educator.
                 Explain the content on this page in simple, easy-to-understand terms.
@@ -115,8 +115,9 @@ public sealed class BrowserStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Browser_FactCheckCommand_Description),
             Icon = LucideIconKind.ShieldCheck,
             Priority = 60,
+            Condition = Condition,
             AllowedTools = ["web_search"],
-            UserMessage =
+            Body =
                 """
                 You are a fact-checking specialist.
                 Review the claims made on this page and assess their accuracy.

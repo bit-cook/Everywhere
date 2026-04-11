@@ -3,7 +3,7 @@ using Everywhere.Configuration;
 
 namespace Everywhere.Initialization;
 
-public class CustomAssistantInitializer(Settings settings) : IAsyncInitializer
+public sealed class CustomAssistantInitializer(Settings settings) : IAsyncInitializer
 {
     public AsyncInitializerIndex Index => AsyncInitializerIndex.Network + 1;
 

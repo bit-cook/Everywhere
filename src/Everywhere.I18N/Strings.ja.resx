@@ -2133,9 +2133,6 @@
     <data name="UserProfilePresenter_CancelLoginButton_Content" xml:space="preserve">
         <value>ブラウザで続行</value>
     </data>
-    <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
-        <value>{0} にて更新およびサブスクリプションポイントのリセット</value>
-    </data>
     <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
         <value>試用期間: {0} まで</value>
     </data>

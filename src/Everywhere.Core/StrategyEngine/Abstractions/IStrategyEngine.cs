@@ -12,17 +12,10 @@ public interface IStrategyEngine
     IStrategyRegistry Registry { get; }
 
     /// <summary>
-    /// Evaluates all strategies against the current context and returns matching groups.
-    /// Commands are merged, deduplicated, and sorted by priority.
+    /// Evaluates all strategies against the current context and returns matching ones.
+    /// Deduplicated and sorted by priority.
     /// </summary>
     /// <param name="context">The strategy context to evaluate.</param>
-    /// <returns>List of matching commands, sorted by priority (descending).</returns>
-    IReadOnlyList<StrategyGroup> GetStrategies(StrategyContext context);
-
-    /// <summary>
-    /// Executes a command, starting an agent session with the configured prompt and tools.
-    /// </summary>
-    /// <param name="command">The command to execute.</param>
-    /// <param name="context">The original strategy context.</param>
-    StrategyExecutionContext CreateExecutionContext(StrategyCommand command, StrategyContext context);
+    /// <returns>List of matching strategies, sorted by priority (descending).</returns>
+    IReadOnlyList<Strategy> GetStrategies(StrategyContext context);
 }

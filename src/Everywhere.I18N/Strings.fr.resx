@@ -2133,9 +2133,6 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="UserProfilePresenter_CancelLoginButton_Content" xml:space="preserve">
         <value>Continuer dans le navigateur</value>
     </data>
-    <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
-        <value>Renouvelé le {0} et réinitialisation des points d'abonnement</value>
-    </data>
     <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
         <value>Essai jusqu'au {0}</value>
     </data>

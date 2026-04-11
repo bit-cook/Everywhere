@@ -2198,7 +2198,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Continue in Browser</value>
     </data>
     <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
-        <value>{0} Renews and Resets Subscription Credits</value>
+        <value />
     </data>
     <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
         <value>Trial Until {0}</value>
@@ -2600,6 +2600,15 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="ChatWindowSettings_AutomaticallyGenerateTitle_Description" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Strategy_BuiltIn_Browser_TranslateCommand_ArgumentHint" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Strategy_BuiltIn_File_AnalyzeCodeCommand_Name" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Strategy_BuiltIn_File_AnalyzeCodeCommand_Description" xml:space="preserve">
         <value />
     </data>
     <data name="HandledSystemException_UserNotLogin" xml:space="preserve">

@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Everywhere.Chat;
+using ZLinq;
 
 namespace Everywhere.StrategyEngine.Conditions;
 
@@ -114,16 +115,6 @@ public sealed class TextCondition : IAttachmentCondition
         }
 
         // Check contains
-        if (TextContains is { Count: > 0 })
-        {
-            var hasMatch = TextContains.Any(s =>
-                text.Contains(s, StringComparison.OrdinalIgnoreCase));
-            if (!hasMatch)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return TextContains?.AsValueEnumerable().Any(s => text.Contains(s, StringComparison.OrdinalIgnoreCase)) is true;
     }
 }

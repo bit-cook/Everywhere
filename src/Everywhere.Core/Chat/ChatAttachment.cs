@@ -67,7 +67,7 @@ public partial class VisualElementAttachment : ChatAttachment
         Icon = icon;
     }
 
-    public VisualElementAttachment(IDynamicResourceKey headerKey, LucideIconKind icon, IVisualElement? element) : base(headerKey)
+    protected VisualElementAttachment(IDynamicResourceKey headerKey, LucideIconKind icon, IVisualElement? element) : base(headerKey)
     {
         Icon = icon;
         Element = element is null ? null : new ResilientReference<IVisualElement>(element);
@@ -122,7 +122,7 @@ public partial class VisualElementAttachment : ChatAttachment
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class TextSelectionAttachment : VisualElementAttachment
+public sealed partial class TextSelectionAttachment : VisualElementAttachment
 {
     /// <summary>
     /// Override to prevent serialization of HeaderKey.
@@ -208,7 +208,7 @@ public partial class TextSelectionAttachment : VisualElementAttachment
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class TextAttachment(IDynamicResourceKey headerKey, string text) : ChatAttachment(headerKey)
+public sealed partial class TextAttachment(IDynamicResourceKey headerKey, string text) : ChatAttachment(headerKey)
 {
     public override LucideIconKind Icon => LucideIconKind.TextInitial;
 
@@ -225,7 +225,7 @@ public partial class TextAttachment(IDynamicResourceKey headerKey, string text) 
 /// <param name="sha256"></param>
 /// <param name="mimeType"></param>
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class FileAttachment(
+public sealed partial class FileAttachment(
     IDynamicResourceKey headerKey,
     string filePath,
     string sha256,

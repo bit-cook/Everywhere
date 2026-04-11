@@ -2193,7 +2193,7 @@
         <value>请在浏览器继续</value>
     </data>
     <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
-        <value>{0} 续订并重置订阅积分</value>
+        <value>{0} 重置订阅积分</value>
     </data>
     <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
         <value>试用至 {0}</value>
@@ -2565,7 +2565,7 @@
         <value>临时聊天：开启后当前聊天不会被保存，切换或新建对话时即删除。</value>
     </data>
     <data name="ChatInputArea_Watermark_StrategyArgumentHint" xml:space="preserve">
-        <value>{0} (可选输入) {1}</value>
+        <value>(可选) {0}</value>
     </data>
     <data name="ChangeLogView_UpdateButton_Content" xml:space="preserve">
         <value>更新到最新版本</value>
@@ -2596,6 +2596,15 @@
     </data>
     <data name="ChatWindowSettings_AutomaticallyGenerateTitle_Description" xml:space="preserve">
         <value>启用后，自动根据第一条消息总结对话标题。</value>
+    </data>
+    <data name="Strategy_BuiltIn_Browser_TranslateCommand_ArgumentHint" xml:space="preserve">
+        <value>翻译的目标语言，默认为当前语言</value>
+    </data>
+    <data name="Strategy_BuiltIn_File_AnalyzeCodeCommand_Name" xml:space="preserve">
+        <value>分析代码</value>
+    </data>
+    <data name="Strategy_BuiltIn_File_AnalyzeCodeCommand_Description" xml:space="preserve">
+        <value>解释代码并分析潜在问题</value>
     </data>
     <data name="HandledSystemException_UserNotLogin" xml:space="preserve">
         <value>你尚未登录，请登录后再使用 Everywhere 云服务。</value>

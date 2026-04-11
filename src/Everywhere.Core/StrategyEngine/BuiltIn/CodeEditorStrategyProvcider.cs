@@ -7,36 +7,28 @@ namespace Everywhere.StrategyEngine.BuiltIn;
 /// Strategy for code editor contexts.
 /// Provides commands for code review, explanation, and refactoring.
 /// </summary>
-public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
+public sealed class CodeEditorStrategyProvcider : BuiltInStrategyProvider
 {
-    public override string Id => "builtin.code-editor";
-    public override IDynamicResourceKey NameKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_Name);
-    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_Description);
-    public override int Priority => 50;
-
-    // Common code editor process names
-    private static readonly string[] EditorProcessNames =
-    [
-        "code", "Visual Studio Code",
-        "cursor",
-        "devenv", "Visual Studio",
-        // "idea", "idea64", "IntelliJ IDEA",
-        // "pycharm", "pycharm64", "PyCharm",
-        // "webstorm", "webstorm64", "WebStorm",
-        // "rider", "rider64", "Rider",
-        // "clion", "clion64", "CLion",
-        // "goland", "goland64", "GoLand",
-        // "rustrover", "RustRover",
-        "sublime_text", "Sublime Text",
-        "atom",
-        "nvim", "vim",
-    ];
-
-    protected override IStrategyCondition Condition =>
+    private IStrategyCondition Condition { get; } =
         CompositeCondition.Or(
             new VisualElementCondition
             {
-                ProcessNames = EditorProcessNames,
+                ProcessNames =
+                [
+                    "code", "Visual Studio Code",
+                    "cursor",
+                    "devenv", "Visual Studio",
+                    // "idea", "idea64", "IntelliJ IDEA",
+                    // "pycharm", "pycharm64", "PyCharm",
+                    // "webstorm", "webstorm64", "WebStorm",
+                    // "rider", "rider64", "Rider",
+                    // "clion", "clion64", "CLion",
+                    // "goland", "goland64", "GoLand",
+                    // "rustrover", "RustRover",
+                    "sublime_text", "Sublime Text",
+                    "atom",
+                    "nvim", "vim",
+                ],
                 MinCount = 1
             },
             new FileCondition
@@ -57,7 +49,7 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
             }
         );
 
-    public override IEnumerable<StrategyCommand> GetCommands(StrategyContext context) =>
+    public override IEnumerable<Strategy> GetStrategies() =>
     [
         // Explain code
         new()
@@ -67,7 +59,8 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ExplainCommand_Description),
             Icon = LucideIconKind.MessageSquareCode,
             Priority = 100,
-            UserMessage =
+            Condition = Condition,
+            Body =
                 """
                 You are an expert programmer and code educator.
                 Explain the provided code clearly and thoroughly:
@@ -87,7 +80,8 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_ReviewCommand_Description),
             Icon = LucideIconKind.SearchCode,
             Priority = 90,
-            UserMessage =
+            Condition = Condition,
+            Body =
                 """
                 You are a senior software engineer conducting a code review.
                 Review the provided code and provide constructive feedback on:
@@ -108,7 +102,8 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_DocumentCommand_Description),
             Icon = LucideIconKind.FileCode,
             Priority = 70,
-            UserMessage =
+            Condition = Condition,
+            Body =
                 """
                 You are a technical documentation specialist.
                 Generate appropriate documentation for the provided code:
@@ -128,7 +123,8 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_FindBugsCommand_Description),
             Icon = LucideIconKind.Bug,
             Priority = 85,
-            UserMessage =
+            Condition = Condition,
+            Body =
                 """
                 You are a bug-hunting expert and static analysis specialist.
                 Analyze the provided code for potential bugs and issues:
@@ -150,7 +146,8 @@ public sealed class CodeEditorStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_CodeEditor_OptimizeCommand_Description),
             Icon = LucideIconKind.Zap,
             Priority = 60,
-            UserMessage =
+            Condition = Condition,
+            Body =
                 """
                 You are a performance optimization expert.
                 Analyze the provided code for performance issues:

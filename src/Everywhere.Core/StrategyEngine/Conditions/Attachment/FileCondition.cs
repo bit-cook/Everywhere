@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Everywhere.Chat;
+using ZLinq;
 
 namespace Everywhere.StrategyEngine.Conditions;
 
@@ -44,7 +45,7 @@ public sealed class FileCondition : AttachmentConditionBase<FileAttachment>
         if (Extensions is { Count: > 0 })
         {
             var ext = Path.GetExtension(filePath);
-            if (!Extensions.Any(e => e.Equals(ext, StringComparison.OrdinalIgnoreCase)))
+            if (!Extensions.AsValueEnumerable().Any(e => e.Equals(ext, StringComparison.OrdinalIgnoreCase)))
             {
                 return false;
             }
@@ -59,8 +60,7 @@ public sealed class FileCondition : AttachmentConditionBase<FileAttachment>
         // Check path contains
         if (PathContains is { Count: > 0 })
         {
-            var hasMatch = PathContains.Any(s =>
-                filePath.Contains(s, StringComparison.OrdinalIgnoreCase));
+            var hasMatch = PathContains.AsValueEnumerable().Any(s => filePath.Contains(s, StringComparison.OrdinalIgnoreCase));
             if (!hasMatch)
             {
                 return false;
@@ -74,13 +74,7 @@ public sealed class FileCondition : AttachmentConditionBase<FileAttachment>
             {
                 var fileInfo = new FileInfo(filePath);
                 var size = fileInfo.Length;
-
-                if (MinSize.HasValue && size < MinSize.Value)
-                {
-                    return false;
-                }
-
-                if (MaxSize.HasValue && size > MaxSize.Value)
+                if (fileInfo.Length < MinSize || size > MaxSize)
                 {
                     return false;
                 }

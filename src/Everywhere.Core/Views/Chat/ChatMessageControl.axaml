@@ -422,7 +422,7 @@
                     VerticalAlignment="Center"
                     Background="{DynamicResource PrimaryColor}">
                     <TextBlock
-                      Text="{Binding StrategyCommand.NameKey^}"
+                      Text="{Binding Strategy.NameKey^}"
                       TextWrapping="Wrap"/>
                   </shadui:Badge>
                 </InlineUIContainer>

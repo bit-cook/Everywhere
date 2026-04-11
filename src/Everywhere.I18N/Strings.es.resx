@@ -2128,9 +2128,6 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     <data name="UserProfilePresenter_CancelLoginButton_Content" xml:space="preserve">
         <value>Continúa en el navegador</value>
     </data>
-    <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
-        <value>Renovado y restablecido el {0}</value>
-    </data>
     <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
         <value>Prueba hasta el {0}</value>
     </data>

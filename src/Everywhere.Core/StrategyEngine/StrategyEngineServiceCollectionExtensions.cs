@@ -1,5 +1,3 @@
-using Everywhere.Common;
-using Everywhere.Initialization;
 using Everywhere.StrategyEngine.BuiltIn;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,14 +16,13 @@ public static class StrategyEngineServiceCollectionExtensions
         // Register core services
         services.AddSingleton<IStrategyRegistry, StrategyRegistry>();
         services.AddSingleton<IStrategyEngine, StrategyEngine>();
-        services.AddSingleton<IAsyncInitializer, StrategyEngineInitializer>();
 
         // Register built-in strategies
-        services.AddSingleton<IBuiltInStrategy, GlobalStrategy>();
-        services.AddSingleton<IBuiltInStrategy, BrowserStrategy>();
-        services.AddSingleton<IBuiltInStrategy, CodeEditorStrategy>();
-        services.AddSingleton<IBuiltInStrategy, TextSelectionStrategy>();
-        services.AddSingleton<IBuiltInStrategy, FileStrategy>();
+        services.AddSingleton<IStrategyProvider, GlobalStrategyProvider>();
+        services.AddSingleton<IStrategyProvider, BrowserStrategyProvider>();
+        services.AddSingleton<IStrategyProvider, CodeEditorStrategyProvcider>();
+        services.AddSingleton<IStrategyProvider, TextSelectionStrategyProvider>();
+        services.AddSingleton<IStrategyProvider, FileStrategyProvider>();
 
         return services;
     }

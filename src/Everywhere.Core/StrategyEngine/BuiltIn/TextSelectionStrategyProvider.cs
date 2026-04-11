@@ -1,7 +1,5 @@
-using Everywhere.Chat;
 using Everywhere.StrategyEngine.Conditions;
 using Lucide.Avalonia;
-using ZLinq;
 
 namespace Everywhere.StrategyEngine.BuiltIn;
 
@@ -9,14 +7,9 @@ namespace Everywhere.StrategyEngine.BuiltIn;
 /// Strategy for text selection contexts.
 /// Provides commands when user has selected text.
 /// </summary>
-public sealed class TextSelectionStrategy : StrategyBase, IBuiltInStrategy
+public sealed class TextSelectionStrategyProvider : BuiltInStrategyProvider
 {
-    public override string Id => "builtin.text-selection";
-    public override IDynamicResourceKey NameKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_Name);
-    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_Description);
-    public override int Priority => 60;
-
-    protected override IStrategyCondition Condition =>
+    private static readonly IStrategyCondition BaseCondition =
         new TextCondition
         {
             TargetType = AttachmentType.TextSelection,
@@ -24,21 +17,18 @@ public sealed class TextSelectionStrategy : StrategyBase, IBuiltInStrategy
             MinCount = 1
         };
 
-    public override IEnumerable<StrategyCommand> GetCommands(StrategyContext context)
+    public override IEnumerable<Strategy> GetStrategies()
     {
-        // Get the selected text for context-aware commands
-        var textSelection = context.Attachments.AsValueEnumerable().OfType<TextSelectionAttachment>().FirstOrDefault();
-        var textLength = textSelection?.Text.Length ?? 0;
-
         // Translate
-        yield return new StrategyCommand
+        yield return new Strategy
         {
-            Id = "translate",
+            Id = "text-translate",
             NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_TranslateCommand_Name),
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_TranslateCommand_Description),
             Icon = LucideIconKind.Languages,
             Priority = 100,
-            UserMessage =
+            Condition = BaseCondition,
+            Body =
                 """
                 You are a professional translator.
                 Translate the provided text accurately while preserving meaning and tone.
@@ -49,14 +39,15 @@ public sealed class TextSelectionStrategy : StrategyBase, IBuiltInStrategy
         };
 
         // Explain/Define
-        yield return new StrategyCommand
+        yield return new Strategy
         {
-            Id = "explain",
+            Id = "text-explain",
             NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_ExplainCommand_Name),
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_ExplainCommand_Description),
             Icon = LucideIconKind.BookOpen,
             Priority = 95,
-            UserMessage =
+            Condition = BaseCondition,
+            Body =
                 """
                 You are a knowledgeable assistant.
                 Explain or define the selected text clearly:
@@ -69,34 +60,38 @@ public sealed class TextSelectionStrategy : StrategyBase, IBuiltInStrategy
         };
 
         // Summarize (only for longer text)
-        if (textLength > 50)
+        yield return new Strategy
         {
-            yield return new StrategyCommand
+            Id = "text-summarize",
+            NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_SummarizeCommand_Name),
+            DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_SummarizeCommand_Description),
+            Icon = LucideIconKind.FileText,
+            Priority = 90,
+            Condition = new TextCondition
             {
-                Id = "summarize",
-                NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_SummarizeCommand_Name),
-                DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_SummarizeCommand_Description),
-                Icon = LucideIconKind.FileText,
-                Priority = 90,
-                UserMessage =
-                    """
-                    You are an expert at creating concise summaries.
-                    Summarize the provided text, capturing the main points.
-                    Be concise but don't miss important details.
-                    Use bullet points for multiple distinct points.
-                    """
-            };
-        }
+                TargetType = AttachmentType.TextSelection,
+                MinLength = 50,
+                MinCount = 1
+            },
+            Body =
+                """
+                You are an expert at creating concise summaries.
+                Summarize the provided text, capturing the main points.
+                Be concise but don't miss important details.
+                Use bullet points for multiple distinct points.
+                """
+        };
 
         // Rewrite/Rephrase
-        yield return new StrategyCommand
+        yield return new Strategy
         {
-            Id = "rewrite",
+            Id = "text-rewrite",
             NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_RewriteCommand_Name),
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_RewriteCommand_Description),
             Icon = LucideIconKind.PenLine,
             Priority = 85,
-            UserMessage =
+            Condition = BaseCondition,
+            Body =
                 """
                 You are an expert editor and writing assistant.
                 Rewrite the provided text to improve it:
@@ -109,15 +104,16 @@ public sealed class TextSelectionStrategy : StrategyBase, IBuiltInStrategy
         };
 
         // Search/Research
-        yield return new StrategyCommand
+        yield return new Strategy
         {
-            Id = "research",
+            Id = "text-research",
             NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_ResearchCommand_Name),
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_ResearchCommand_Description),
             Icon = LucideIconKind.Search,
             Priority = 80,
-            AllowedTools = ["web_search"],
-            UserMessage =
+            Condition = BaseCondition,
+            AllowedTools = ["*", "web_search"],
+            Body =
                 """
                 You are a research assistant.
                 Research the provided text/topic and provide relevant information:
@@ -129,14 +125,15 @@ public sealed class TextSelectionStrategy : StrategyBase, IBuiltInStrategy
         };
 
         // Grammar check
-        yield return new StrategyCommand
+        yield return new Strategy
         {
-            Id = "grammar",
+            Id = "text-grammar",
             NameKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_GrammarCommand_Name),
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_TextSelection_GrammarCommand_Description),
             Icon = LucideIconKind.SpellCheck,
             Priority = 75,
-            UserMessage =
+            Condition = BaseCondition,
+            Body =
                 """
                 You are a grammar and writing expert.
                 Check the provided text for:

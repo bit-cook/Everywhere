@@ -11,7 +11,7 @@ namespace Everywhere.Initialization;
 /// Initializes the settings with dynamic defined list.
 /// Also initializes an observer that automatically saves the settings when changed.
 /// </summary>
-public class SettingsInitializer : IAsyncInitializer
+public sealed class SettingsInitializer : IAsyncInitializer
 {
     public AsyncInitializerIndex Index => AsyncInitializerIndex.Settings;
 

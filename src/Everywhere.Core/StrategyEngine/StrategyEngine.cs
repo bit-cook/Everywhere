@@ -1,55 +1,31 @@
-using Everywhere.Chat;
 using Microsoft.Extensions.Logging;
+using ZLinq;
 
 namespace Everywhere.StrategyEngine;
 
 /// <summary>
 /// Default implementation of <see cref="IStrategyEngine"/>.
-/// Orchestrates strategy matching and command generation.
+/// Orchestrates strategy collection and matching.
 /// </summary>
 public sealed class StrategyEngine(IStrategyRegistry registry, ILogger<StrategyEngine> logger) : IStrategyEngine
 {
     public IStrategyRegistry Registry { get; } = registry;
 
-    public IReadOnlyList<StrategyGroup> GetStrategies(StrategyContext context)
+    public IReadOnlyList<Strategy> GetStrategies(StrategyContext context)
     {
-        ArgumentNullException.ThrowIfNull(context);
-
-        var results = new List<StrategyGroup>();
-
-        // Evaluate all strategies
-        foreach (var strategy in Registry.Strategies)
+        var results = new List<Strategy>();
+        foreach (var strategy in Registry.GetRegisteredStrategies())
         {
             try
             {
-                if (!strategy.Matches(context)) continue;
-
-                results.Add(new StrategyGroup(strategy, strategy.GetCommands(context).ToReadOnlyList()));
+                if (strategy.Condition?.Evaluate(context) is true) results.Add(strategy);
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex,
-                    "Error evaluating strategy {StrategyId}",
-                    strategy.Id);
+                logger.LogWarning(ex, "Error evaluating condition for strategy {StrategyId}", strategy.Id);
             }
         }
 
-        // TODO: merge commands and order them based on strategy priority and command metadata (e.g. CommandPriority)
-
-        return results;
-    }
-
-    public StrategyExecutionContext CreateExecutionContext(StrategyCommand command, StrategyContext context)
-    {
-        // TODO: Implement command execution
-        // This will:
-        // 1. Resolve template variables
-        // 2. Configure allowed tools
-
-        return new StrategyExecutionContext
-        {
-            SystemPrompt = command.SystemPrompt,
-            UserChatMessage = new UserChatMessage(command.UserMessage ?? string.Empty, context.Attachments)
-        };
+        return results.AsValueEnumerable().OrderByDescending(s => s.Priority).DistinctBy(s => s.Id).ToList();
     }
 }

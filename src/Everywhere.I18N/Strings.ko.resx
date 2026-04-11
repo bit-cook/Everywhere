@@ -2128,9 +2128,6 @@
     <data name="UserProfilePresenter_CancelLoginButton_Content" xml:space="preserve">
         <value>브라우저에서 계속하기</value>
     </data>
-    <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
-        <value>{0} 재구독 및 구독 포인트 초기화</value>
-    </data>
     <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
         <value>시험 사용 가능 기간: {0}</value>
     </data>

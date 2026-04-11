@@ -21,8 +21,6 @@ public class BashPlugin : BuiltInChatPlugin
 
     public override LucideIconKind? Icon => LucideIconKind.SquareTerminal;
 
-    public override bool IsDefaultEnabled => false;
-
     private readonly ILogger<BashPlugin> _logger;
 
     public BashPlugin(ILogger<BashPlugin> logger) : base("bash")

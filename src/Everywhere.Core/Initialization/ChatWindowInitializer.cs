@@ -17,7 +17,7 @@ namespace Everywhere.Initialization;
 /// <param name="shortcutListener"></param>
 /// <param name="visualElementContext"></param>
 /// <param name="logger"></param>
-public class ChatWindowInitializer(
+public sealed class ChatWindowInitializer(
     IServiceProvider serviceProvider,
     Settings settings,
     IShortcutListener shortcutListener,

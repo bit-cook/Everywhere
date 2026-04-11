@@ -7,14 +7,17 @@ namespace Everywhere.Chat;
 public sealed partial class UserStrategyMessage : UserChatMessage
 {
     [Key(4)]
-    public StrategyCommand StrategyCommand { get; }
+    public Strategy Strategy { get; }
+
+    [Key(5)]
+    public PreprocessorResult? PreprocessorResult { get; }
 
     public UserStrategyMessage(
         string content,
         IReadOnlyList<ChatAttachment> attachments,
-        StrategyCommand strategyCommand) : base(content, attachments)
+        Strategy strategy) : base(content, attachments)
     {
-        StrategyCommand = strategyCommand;
+        Strategy = strategy;
     }
 
     [SerializationConstructor]
@@ -22,9 +25,11 @@ public sealed partial class UserStrategyMessage : UserChatMessage
         string content,
         IReadOnlyList<ChatAttachment> attachments,
         DateTimeOffset createdAt,
-        StrategyCommand strategyCommand) : base(content, attachments)
+        Strategy strategy,
+        PreprocessorResult preprocessorResult) : base(content, attachments)
     {
         CreatedAt = createdAt;
-        StrategyCommand = strategyCommand;
+        Strategy = strategy;
+        PreprocessorResult = preprocessorResult;
     }
 }

@@ -1,4 +1,3 @@
-using Everywhere.StrategyEngine.Conditions;
 using Lucide.Avalonia;
 
 namespace Everywhere.StrategyEngine.BuiltIn;
@@ -7,17 +6,9 @@ namespace Everywhere.StrategyEngine.BuiltIn;
 /// Global strategy that provides always-available commands.
 /// These commands work regardless of context and have lower priority.
 /// </summary>
-public sealed class GlobalStrategy : StrategyBase, IBuiltInStrategy
+public sealed class GlobalStrategyProvider : BuiltInStrategyProvider
 {
-    public override string Id => "builtin.global";
-    public override IDynamicResourceKey NameKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Global_Name);
-    public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Global_Description);
-    public override int Priority => -100; // Low priority, context-specific strategies take precedence
-
-    protected override IStrategyCondition Condition =>
-        new HasAttachmentsCondition { MinCount = 1 };
-
-    public override IEnumerable<StrategyCommand> GetCommands(StrategyContext context) =>
+    public override IEnumerable<Strategy> GetStrategies() =>
     [
         // "What is this?" - Universal explanation command
         new()
@@ -27,7 +18,7 @@ public sealed class GlobalStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Global_WhatIsThisCommand_Description),
             Icon = LucideIconKind.Info,
             Priority = -100,
-            UserMessage =
+            Body =
                 """
                 You are a helpful assistant that explains things clearly and concisely.
                 The user has selected something and wants to understand what it is.
@@ -46,7 +37,7 @@ public sealed class GlobalStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Global_SummarizeCommand_Description),
             Icon = LucideIconKind.FileText,
             Priority = -90,
-            UserMessage =
+            Body =
                 """
                 You are a helpful assistant that creates clear, concise summaries.
                 Summarize the provided content, highlighting the key points.
@@ -63,7 +54,7 @@ public sealed class GlobalStrategy : StrategyBase, IBuiltInStrategy
             DescriptionKey = new DynamicResourceKey(LocaleKey.Strategy_BuiltIn_Global_HelpCommand_Description),
             Icon = LucideIconKind.Sparkles,
             Priority = -80,
-            UserMessage =
+            Body =
                 """
                 You are a helpful AI assistant.
                 The user needs help with something they're currently looking at or working on.

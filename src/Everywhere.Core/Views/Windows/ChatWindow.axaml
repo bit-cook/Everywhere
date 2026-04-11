@@ -400,8 +400,8 @@
 
         <StackPanel>
           <ItemsControl
-            Margin="8" HorizontalAlignment="Center"
-            ItemsSource="{Binding StrategiesSnapshot.StrategyGroups, FallbackValue={x:Null}}">
+            Margin="8,16" HorizontalAlignment="Center"
+            ItemsSource="{Binding StrategiesSnapshot, FallbackValue={x:Null}}">
             <ItemsControl.IsVisible>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
                 <Binding Path="!IsViewingHistory"/>
@@ -416,68 +416,44 @@
 
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <StackPanel Spacing="8"/>
+                <WrapPanel
+                  ItemSpacing="6" LineSpacing="4"/>
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
 
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="se:StrategyGroup">
-                <DockPanel VerticalSpacing="8">
-                  <StackPanel
-                    DockPanel.Dock="Top" Spacing="4">
+              <DataTemplate x:DataType="se:Strategy">
+                <Button
+                  Classes="Outline" Width="240"
+                  Padding="8" HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Stretch"
+                  Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
+                  CommandParameter="{Binding Mode=OneTime}"
+                  CornerRadius="{DynamicResource LgCornerRadius}"
+                  Focusable="False">
+                  <Grid
+                    ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
+                    RowDefinitions="Auto,*" RowSpacing="4">
+                    <v:IconPresenter
+                      Grid.Row="0" Grid.RowSpan="2"
+                      Grid.Column="0"
+                      Width="{DynamicResource FontSize2Xl}"
+                      Height="{DynamicResource FontSize2Xl}"
+                      Margin="4,0,-4,0" VerticalAlignment="Center"
+                      Icon="{Binding Icon, Mode=OneTime}"
+                      IconSize="{DynamicResource FontSizeL}"/>
+
                     <TextBlock
-                      Text="{Binding Strategy.NameKey^, Mode=OneTime}"
+                      Grid.Row="0" Grid.Column="1"
+                      Text="{Binding NameKey^, Mode=OneTime}"
                       TextWrapping="Wrap"/>
                     <TextBlock
-                      Classes="Muted Caption"
-                      Text="{Binding Strategy.DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
+                      Classes="Muted Caption" Grid.Row="1"
+                      Grid.Column="1"
+                      Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
                       TextWrapping="Wrap"/>
-                  </StackPanel>
-
-                  <ItemsControl ItemsSource="{Binding Commands, Mode=OneTime}">
-                    <ItemsControl.ItemsPanel>
-                      <ItemsPanelTemplate>
-                        <WrapPanel
-                          ItemSpacing="6" LineSpacing="4"/>
-                      </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate x:DataType="se:StrategyCommand">
-                        <Button
-                          Classes="Outline" Width="240"
-                          Padding="8" HorizontalAlignment="Stretch"
-                          HorizontalContentAlignment="Stretch"
-                          Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
-                          CommandParameter="{Binding Mode=OneTime}"
-                          Focusable="False">
-                          <Grid
-                            ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12"
-                            RowDefinitions="Auto,*" RowSpacing="4">
-                            <v:IconPresenter
-                              Grid.Row="0" Grid.RowSpan="2"
-                              Grid.Column="0"
-                              Width="{DynamicResource FontSize2Xl}"
-                              Height="{DynamicResource FontSize2Xl}"
-                              Margin="4,0,-4,0" VerticalAlignment="Center"
-                              Icon="{Binding Icon, Mode=OneTime}"
-                              IconSize="{DynamicResource FontSizeL}"/>
-
-                            <TextBlock
-                              Grid.Row="0" Grid.Column="1"
-                              Text="{Binding NameKey^, Mode=OneTime}"
-                              TextWrapping="Wrap"/>
-                            <TextBlock
-                              Classes="Muted Caption" Grid.Row="1"
-                              Grid.Column="1"
-                              Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
-                              TextWrapping="Wrap"/>
-                          </Grid>
-                        </Button>
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </DockPanel>
+                  </Grid>
+                </Button>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
           </ItemsControl>
@@ -657,7 +633,7 @@
             <ItemsControl
               x:Name="CompactStrategyCommandsItemsControl" Padding="8,4"
               HorizontalAlignment="Left"
-              ItemsSource="{Binding StrategiesSnapshot.StrategyCommands, FallbackValue={x:Null}}">
+              ItemsSource="{Binding StrategiesSnapshot, FallbackValue={x:Null}}">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                   <StackPanel
@@ -666,7 +642,7 @@
               </ItemsControl.ItemsPanel>
 
               <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="se:StrategyCommand">
+                <DataTemplate x:DataType="se:Strategy">
                   <Button
                     Classes="Outline Compact" Padding="6,4"
                     Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
@@ -715,7 +691,7 @@
             IsSendButtonEnabled="{Binding !IsBusy}"
             IsToolCallEnabled="{Binding PersistentState.IsToolCallEnabled, Mode=TwoWay}"
             IsToolCallSupported="{Binding Settings.Model.SelectedCustomAssistant.SupportsToolCall, FallbackValue={x:False}}"
-            LeadingContent="{Binding SelectedStrategyCommand, Mode=TwoWay}"
+            LeadingContent="{Binding SelectedStrategy, Mode=TwoWay}"
             MaxChatAttachmentCount="{Binding PersistentState.MaxChatAttachmentCount}"
             MaxLength="{Binding ChatInputAreaTextMaxLength}"
             RemoveAttachmentCommand="{Binding RemoveAttachmentCommand}"
@@ -1081,7 +1057,7 @@
             </v:ChatInputArea.SettingsMenuItemsSource>
 
             <v:ChatInputArea.LeadingContentTemplate>
-              <DataTemplate x:DataType="se:StrategyCommand">
+              <DataTemplate x:DataType="se:Strategy">
                 <shadui:Badge Background="{DynamicResource PrimaryColor}">
                   <StackPanel
                     Orientation="Horizontal" Spacing="4">

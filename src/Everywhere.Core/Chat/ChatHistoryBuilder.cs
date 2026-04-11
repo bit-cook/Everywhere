@@ -84,11 +84,11 @@ public static class ChatHistoryBuilder
     {
         switch (chatMessage)
         {
-            case AssistantChatMessage assistant:
+            case AssistantChatMessage assistantChatMessage:
             {
                 var items = new ChatMessageContentItemCollection();
                 var metadata = new MetadataDictionary(1);
-                foreach (var span in assistant.Items)
+                foreach (var span in assistantChatMessage.Items)
                 {
                     switch (span)
                     {
@@ -187,24 +187,27 @@ public static class ChatHistoryBuilder
                 }
                 break;
             }
-            case UserChatMessage user:
+            case UserChatMessage userChatMessage:
             {
                 var items = new ChatMessageContentItemCollection();
-                foreach (var chatAttachment in user.Attachments.AsValueEnumerable().ToList())
+                foreach (var chatAttachment in userChatMessage.Attachments.AsValueEnumerable().ToList())
                 {
                     await PopulateKernelContentsAsync(chatAttachment, items, supportedModalities, cancellationToken);
                 }
 
-                if (user is UserStrategyMessage { StrategyCommand.UserMessage: { Length: > 0 } userMessage })
+                if (userChatMessage is UserStrategyMessage { Strategy.Body: { Length: > 0 } strategyBody } userStrategyMessage)
                 {
                     // If UserMessage template is provided, render the content with the template.
-                    var renderedContent = promptRenderer.RenderStrategyUserPrompt(userMessage, user.Content);
+                    var renderedContent = promptRenderer.RenderStrategyUserPrompt(
+                        strategyBody,
+                        userChatMessage.Content,
+                        userStrategyMessage.PreprocessorResult);
                     items.Add(new TextContent(renderedContent));
                 }
                 else
                 {
                     // No attachments, just add the content directly.
-                    items.Add(new TextContent(user.Content));
+                    items.Add(new TextContent(userChatMessage.Content));
                 }
 
                 yield return new ChatMessageContent(AuthorRole.User, items);

@@ -12,9 +12,9 @@ using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Messages;
 using Everywhere.Storage;
+using Everywhere.StrategyEngine;
 using Everywhere.Utilities;
 using Everywhere.Views;
-using LiveMarkdown.Avalonia;
 using Lucide.Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -99,7 +99,7 @@ public sealed partial class ChatService : IChatService
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
 
-                var systemPromptOverride = message.As<UserStrategyMessage>()?.StrategyCommand.SystemPrompt;
+                var systemPromptOverride = message.As<UserStrategyMessage>()?.Strategy.SystemPrompt;
                 await GenerateAsync(
                     chatContext,
                     customAssistant,
@@ -170,7 +170,7 @@ public sealed partial class ChatService : IChatService
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
 
-                var systemPromptOverride = newMessage.As<UserStrategyMessage>()?.StrategyCommand.SystemPrompt;
+                var systemPromptOverride = newMessage.As<UserStrategyMessage>()?.Strategy.SystemPrompt;
                 await GenerateAsync(
                     chatContext,
                     customAssistant,
@@ -532,17 +532,17 @@ public sealed partial class ChatService : IChatService
                     {
                         case StreamingChatMessageContent { Content.Length: > 0 } chatMessageContent:
                         {
-                            await HandleTextMessageAsync(chatMessageContent.Content);
+                            HandleTextMessage(chatMessageContent.Content);
                             break;
                         }
                         case StreamingTextContent { Text.Length: > 0 } textContent:
                         {
-                            await HandleTextMessageAsync(textContent.Text);
+                            HandleTextMessage(textContent.Text);
                             break;
                         }
                         case StreamingReasoningContent reasoningContent:
                         {
-                            await HandleReasoningMessageAsync(reasoningContent.Text);
+                            HandleReasoningMessage(reasoningContent.Text);
                             break;
                         }
                     }
@@ -572,10 +572,10 @@ public sealed partial class ChatService : IChatService
                         }
                     }
 
-                    DispatcherOperation<ObservableStringBuilder> HandleTextMessageAsync(string text) => Dispatcher.UIThread.InvokeAsync(() =>
+                    void HandleTextMessage(string text) => Dispatcher.UIThread.Post(() =>
                         EnsureSpan<AssistantChatMessageTextSpan>(false).ContentMarkdownBuilder.Append(text));
 
-                    DispatcherOperation<ObservableStringBuilder> HandleReasoningMessageAsync(string text) => Dispatcher.UIThread.InvokeAsync(() =>
+                    void HandleReasoningMessage(string text) => Dispatcher.UIThread.Post(() =>
                         EnsureSpan<AssistantChatMessageReasoningSpan>(false).ReasoningMarkdownBuilder.Append(text));
                 }
 
@@ -1079,27 +1079,30 @@ public sealed partial class ChatService : IChatService
 
         public string RenderPrompt(string prompt) => RenderPrompt(prompt, promptVariables);
 
-        public string RenderStrategyUserPrompt(string userMessage, string? argument)
+        public string RenderStrategyUserPrompt(string strategyBody, string? userInput, PreprocessorResult? preprocessorResult)
         {
             var stringBuilder = new StringBuilder();
             stringBuilder.Append(
                 RenderPrompt(
-                    userMessage,
+                    strategyBody,
                     promptVariables
                         .AsValueEnumerable()
                         .Concat(
                         [
-                            new KeyValuePair<string, Func<string>>("Argument", () => argument ?? string.Empty),
+                            new KeyValuePair<string, Func<string>>("Argument", () => userInput ?? string.Empty),
                         ])
+                        .Concat(
+                            preprocessorResult?.Variables?.Select(static kv => new KeyValuePair<string, Func<string>>(kv.Key, () => kv.Value)) ?? []
+                        )
                         .GroupBy(kvp => kvp.Key)
                         .ToDictionary(g => g.Key, g => g.Last().Value)));
 
-            if (!argument.IsNullOrEmpty())
+            if (!userInput.IsNullOrEmpty())
             {
                 stringBuilder
                     .AppendLine()
                     .AppendLine("<UserRequestStart>")
-                    .Append(argument);
+                    .Append(userInput);
             }
 
             return stringBuilder.ToString();

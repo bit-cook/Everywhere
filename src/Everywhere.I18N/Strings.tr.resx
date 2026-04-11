@@ -2127,9 +2127,6 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="UserProfilePresenter_CancelLoginButton_Content" xml:space="preserve">
         <value>Tarayıcıda devam et</value>
     </data>
-    <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
-        <value>{0} yenile ve abonelik puanlarını sıfırla</value>
-    </data>
     <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
         <value>Deneme süresi {0} tarihine kadar</value>
     </data>

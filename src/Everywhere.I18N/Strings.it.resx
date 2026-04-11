@@ -2128,9 +2128,6 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="UserProfilePresenter_CancelLoginButton_Content" xml:space="preserve">
         <value>Continua nel browser</value>
     </data>
-    <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
-        <value>Rinnova {0} e ripristina i punti abbonamento</value>
-    </data>
     <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
         <value>Prova fino al {0}</value>
     </data>

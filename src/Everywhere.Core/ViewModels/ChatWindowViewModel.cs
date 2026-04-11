@@ -8,7 +8,6 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -98,7 +97,7 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [ObservableProperty]
-    public partial StrategiesSnapshot? StrategiesSnapshot { get; private set; }
+    public partial IReadOnlyList<Strategy>? StrategiesSnapshot { get; private set; }
 
     /// <summary>
     /// Indicates whether the file picker is currently open.
@@ -116,7 +115,7 @@ public sealed partial class ChatWindowViewModel :
     public bool CanEdit => !IsBusy && EditingUserMessageNode is null;
 
     [ObservableProperty]
-    public partial StrategyCommand? SelectedStrategyCommand { get; set; }
+    public partial Strategy? SelectedStrategy { get; set; }
 
     public static int ChatInputAreaTextMaxLength => 100_000;
 
@@ -590,7 +589,7 @@ public sealed partial class ChatWindowViewModel :
         if (message is null) return;
         message = message.Trim();
 
-        if (message.Length == 0 && SelectedStrategyCommand is null) return;
+        if (message.Length == 0 && SelectedStrategy is null) return;
 
         ChatAttachment[]? attachments = null;
         _chatAttachmentsSource.Edit(list =>
@@ -600,10 +599,10 @@ public sealed partial class ChatWindowViewModel :
         });
 
         UserChatMessage userMessage;
-        if (SelectedStrategyCommand is { } selectedStrategyCommand)
+        if (SelectedStrategy is { } selectedStrategy)
         {
-            userMessage = new UserStrategyMessage(message, attachments!, selectedStrategyCommand);
-            SelectedStrategyCommand = null;
+            userMessage = new UserStrategyMessage(message, attachments!, selectedStrategy);
+            SelectedStrategy = null;
         }
         else
         {
@@ -627,11 +626,11 @@ public sealed partial class ChatWindowViewModel :
         if (userChatMessageNode is not { Message: UserChatMessage userChatMessage }) return;
 
         var textBeforeEdit = ChatInputAreaText;
-        var strategyCommandBeforeEdit = SelectedStrategyCommand;
+        var strategyCommandBeforeEdit = SelectedStrategy;
 
         EditingUserMessageNode = userChatMessageNode;
         ChatInputAreaText = userChatMessage.Content;
-        SelectedStrategyCommand = userChatMessage.As<UserStrategyMessage>()?.StrategyCommand;
+        SelectedStrategy = userChatMessage.As<UserStrategyMessage>()?.Strategy;
 
         _chatAttachmentsSource.Edit(list =>
         {
@@ -661,7 +660,7 @@ public sealed partial class ChatWindowViewModel :
         });
 
         ChatInputAreaText = _snapshotBeforeEdit?.Text;
-        SelectedStrategyCommand = _snapshotBeforeEdit?.StrategyCommand;
+        SelectedStrategy = _snapshotBeforeEdit?.Strategy;
     }
 
     [RelayCommand(CanExecute = nameof(IsNotBusy))]
@@ -803,28 +802,27 @@ public sealed partial class ChatWindowViewModel :
         RetryCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
 
-        UpdateWatermark(value, SelectedStrategyCommand);
+        UpdateWatermark(value, SelectedStrategy);
     }
 
-    partial void OnSelectedStrategyCommandChanged(StrategyCommand? value)
+    partial void OnSelectedStrategyChanged(Strategy? value)
     {
         UpdateWatermark(IsBusy, value);
     }
 
-    private void UpdateWatermark(bool isBusy, StrategyCommand? selectedStrategyCommand)
+    private void UpdateWatermark(bool isBusy, Strategy? selectedStrategy)
     {
         if (isBusy)
         {
             ChatInputAreaWatermarkKey = Greetings.GetRandomTip();
         }
-        else if (selectedStrategyCommand is not null)
+        else if (selectedStrategy is not null)
         {
-            ChatInputAreaWatermarkKey = selectedStrategyCommand.ArgumentHintKey is null ?
-                selectedStrategyCommand.DescriptionKey :
+            ChatInputAreaWatermarkKey = selectedStrategy.ArgumentHintKey is null ?
+                selectedStrategy.DescriptionKey :
                 new FormattedDynamicResourceKey(
                     LocaleKey.ChatInputArea_Watermark_StrategyArgumentHint,
-                    selectedStrategyCommand.DescriptionKey,
-                    selectedStrategyCommand.ArgumentHintKey);
+                    selectedStrategy.ArgumentHintKey);
         }
         else
         {
@@ -863,9 +861,7 @@ public sealed partial class ChatWindowViewModel :
         {
             // TODO: use GetItems
             var context = StrategyContext.FromAttachments(attachments.ToList());
-            var strategyGroups = _strategyEngine.GetStrategies(context);
-
-            Dispatcher.UIThread.Post(() => StrategiesSnapshot = new StrategiesSnapshot(context, strategyGroups));
+            StrategiesSnapshot = _strategyEngine.GetStrategies(context);
         }
         catch (Exception ex)
         {
@@ -884,12 +880,12 @@ public sealed partial class ChatWindowViewModel :
         object collection);
 
     [RelayCommand]
-    private void SelectStrategy(StrategyCommand strategyCommand)
+    private void SelectStrategy(Strategy strategy)
     {
-        SelectedStrategyCommand = strategyCommand;
+        SelectedStrategy = strategy;
     }
 
     #endregion
 
-    private sealed record ChatInputAreaSnapshot(string? Text, IReadOnlyList<ChatAttachment>? Attachments, StrategyCommand? StrategyCommand);
+    private sealed record ChatInputAreaSnapshot(string? Text, IReadOnlyList<ChatAttachment>? Attachments, Strategy? Strategy);
 }

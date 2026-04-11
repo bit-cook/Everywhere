@@ -2127,9 +2127,6 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     <data name="UserProfilePresenter_CancelLoginButton_Content" xml:space="preserve">
         <value>Im Browser fortfahren</value>
     </data>
-    <data name="UserProfilePresenter_RenewsOnTextBlock_Text" xml:space="preserve">
-        <value>{0} Abonnement erneuern und Punkte zurücksetzen</value>
-    </data>
     <data name="UserProfilePresenter_TrialUntilTextBlock_Text" xml:space="preserve">
         <value>Testversion bis {0}</value>
     </data>

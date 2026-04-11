@@ -10,7 +10,7 @@ namespace Everywhere.Initialization;
 /// </summary>
 /// <param name="softwareUpdater"></param>
 /// <param name="settings"></param>
-public class UpdaterInitializer(ISoftwareUpdater softwareUpdater, Settings settings) : IAsyncInitializer
+public sealed class UpdaterInitializer(ISoftwareUpdater softwareUpdater, Settings settings) : IAsyncInitializer
 {
     private readonly ReusableCancellationTokenSource _cancellationTokenSource = new();
 
