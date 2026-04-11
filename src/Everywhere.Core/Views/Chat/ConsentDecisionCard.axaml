@@ -46,7 +46,8 @@
                   Margin="-8,0"
                   Background="{DynamicResource SecondaryCardBackgroundColor}"
                   BorderBrush="{DynamicResource BorderColor}"
-                  BorderThickness="0,1">
+                  BorderThickness="0,1"
+                  IsVisible="{TemplateBinding Content, Converter={x:Static ObjectConverters.IsNotNull}}">
                   <ScrollViewer
                     MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
                     <v:ChatPluginDisplayBlockPresenter

@@ -7,13 +7,24 @@ namespace Everywhere.Extensions;
 
 public static class DynamicDataExtension
 {
-
     /// <summary>
     /// A convenience method to add the disposable to a collection.
     /// </summary>
     /// <param name="disposable"></param>
     /// <param name="disposables"></param>
     public static void AddTo(this IDisposable disposable, ICollection<IDisposable> disposables) => disposables.Add(disposable);
+
+    /// <summary>
+    /// Clears the source list and adds the new data.
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="data"></param>
+    /// <typeparam name="T"></typeparam>
+    public static void Reset<T>(this IExtendedList<T> source, IEnumerable<T> data)
+    {
+        source.Clear();
+        source.AddRange(data);
+    }
 
     /// <param name="source"></param>
     /// <typeparam name="T"></typeparam>

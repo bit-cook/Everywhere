@@ -884,7 +884,7 @@ public sealed partial class ChatService : IChatService
             }
             else
             {
-                if (context.ChatFunction is NativeChatFunction { OnPermissionConsent: { } onPermissionConsent })
+                if (context.ChatFunction is BuiltInChatFunction { OnPermissionConsent: { } onPermissionConsent })
                 {
                     return onPermissionConsent(content) switch
                     {

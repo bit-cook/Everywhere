@@ -639,8 +639,7 @@ public sealed partial class ChatWindowViewModel :
                 list.Count == 0 ? null : list.ToReadOnlyList(),
                 strategyCommandBeforeEdit);
 
-            list.Clear();
-            list.AddRange(userChatMessage.Attachments.Where(a => a is not VisualElementAttachment { IsElementValid: false }));
+            list.Reset(userChatMessage.Attachments.Where(a => a is not VisualElementAttachment { IsElementValid: false }));
         });
     }
 

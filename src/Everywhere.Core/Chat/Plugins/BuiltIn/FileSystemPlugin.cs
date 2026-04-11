@@ -12,7 +12,7 @@ using Microsoft.SemanticKernel;
 
 namespace Everywhere.Chat.Plugins.BuiltIn;
 
-public class FileSystemPlugin : BuiltInChatPlugin
+public sealed class FileSystemPlugin : BuiltInChatPlugin
 {
     private static TimeSpan RegexTimeout => TimeSpan.FromSeconds(3);
 
@@ -29,39 +29,39 @@ public class FileSystemPlugin : BuiltInChatPlugin
         _functionsSource.Edit(list =>
         {
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     SearchFiles,
                     ChatFunctionPermissions.FileRead));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     GetFileInformation,
                     ChatFunctionPermissions.FileRead));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     SearchFileContentAsync,
                     ChatFunctionPermissions.FileRead));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     ReadFileAsync,
                     ChatFunctionPermissions.FileRead));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     MoveFile,
                     ChatFunctionPermissions.FileAccess));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     DeleteFilesAsync,
                     ChatFunctionPermissions.FileAccess));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     CreateDirectory,
                     ChatFunctionPermissions.FileAccess));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     WriteToFileAsync,
                     ChatFunctionPermissions.FileAccess));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     ReplaceFileContentAsync,
                     ChatFunctionPermissions.FileAccess));
         });

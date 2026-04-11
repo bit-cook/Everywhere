@@ -16,7 +16,7 @@ using Microsoft.SemanticKernel;
 
 namespace Everywhere.Windows.Chat.Plugins;
 
-public class PowerShellPlugin : BuiltInChatPlugin
+public sealed class PowerShellPlugin : BuiltInChatPlugin
 {
     public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_Header);
 
@@ -33,7 +33,7 @@ public class PowerShellPlugin : BuiltInChatPlugin
         _logger = logger;
 
         _functionsSource.Add(
-            new NativeChatFunction(
+            new BuiltInChatFunction(
                 ExecuteScriptAsync,
                 ChatFunctionPermissions.ShellExecute,
                 isAutoApproveAllowed: false,

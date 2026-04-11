@@ -19,7 +19,7 @@ using ZLinq;
 
 namespace Everywhere.Chat.Plugins.BuiltIn;
 
-public class VisualContextPlugin : BuiltInChatPlugin
+public sealed class VisualContextPlugin : BuiltInChatPlugin
 {
     public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualContext_Header);
     public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualContext_Description);
@@ -45,20 +45,20 @@ public class VisualContextPlugin : BuiltInChatPlugin
         _functionsSource.Edit(list =>
         {
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     ListWindows,
                     ChatFunctionPermissions.ScreenRead));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     CaptureVisualElementAsync,
                     ChatFunctionPermissions.ScreenRead));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     GetVisualTree,
                     ChatFunctionPermissions.ScreenRead,
                     isExperimental: true));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     ExecuteVisualActionsAsync,
                     ChatFunctionPermissions.ScreenAccess,
                     isExperimental: true));

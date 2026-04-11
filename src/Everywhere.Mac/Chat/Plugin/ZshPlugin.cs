@@ -12,7 +12,7 @@ using Microsoft.SemanticKernel;
 
 namespace Everywhere.Mac.Chat.Plugin;
 
-public class ZshPlugin : BuiltInChatPlugin
+public sealed class ZshPlugin : BuiltInChatPlugin
 {
     public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_Header);
 
@@ -29,7 +29,7 @@ public class ZshPlugin : BuiltInChatPlugin
         _logger = logger;
 
         _functionsSource.Add(
-            new NativeChatFunction(
+            new BuiltInChatFunction(
                 ExecuteScriptAsync,
                 ChatFunctionPermissions.ShellExecute,
                 isAutoApproveAllowed: false,

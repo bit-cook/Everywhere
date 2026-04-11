@@ -104,11 +104,11 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
         _functionsSource.Edit(list =>
         {
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     WebSearchAsync,
                     ChatFunctionPermissions.NetworkAccess));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     WebSnapshotAsync,
                     ChatFunctionPermissions.NetworkAccess));
         });

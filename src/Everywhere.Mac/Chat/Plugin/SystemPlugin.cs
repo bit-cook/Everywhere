@@ -13,7 +13,7 @@ using Microsoft.SemanticKernel;
 
 namespace Everywhere.Mac.Chat.Plugin;
 
-public class SystemPlugin : BuiltInChatPlugin
+public sealed class SystemPlugin : BuiltInChatPlugin
 {
     public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_Header);
 
@@ -30,31 +30,31 @@ public class SystemPlugin : BuiltInChatPlugin
         _functionsSource.Edit(list =>
         {
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     ManageRemindersAsync,
                     ChatFunctionPermissions.None));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     ManageCalendarAsync,
                     ChatFunctionPermissions.None));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     SendEmailAsync,
                     ChatFunctionPermissions.None));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     OpenMapsAsync,
                     ChatFunctionPermissions.None));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     ManageNotesAsync,
                     ChatFunctionPermissions.None));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     OpenUrlAsync,
                     ChatFunctionPermissions.NetworkAccess));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     ExecuteAppleScriptAsync,
                     ChatFunctionPermissions.ShellExecute));
         });

@@ -13,7 +13,7 @@ namespace Everywhere.Linux.Chat.Plugins;
 /// <summary>
 /// A plugin that integrates with the `fd` (fd-find) command-line tool to provide fast file search on Linux.
 /// </summary>
-public class FdFindPlugin : BuiltInChatPlugin
+public sealed class FdFindPlugin : BuiltInChatPlugin
 {
     public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_FdFind_Header);
     public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_FdFind_Description);
@@ -25,7 +25,7 @@ public class FdFindPlugin : BuiltInChatPlugin
     public FdFindPlugin() : base("fdfind")
     {
         _functionsSource.Add(
-            new NativeChatFunction(
+            new BuiltInChatFunction(
                 SearchFilesAsync,
                 ChatFunctionPermissions.FileRead));
     }

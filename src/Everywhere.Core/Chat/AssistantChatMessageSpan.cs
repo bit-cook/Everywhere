@@ -106,11 +106,7 @@ public sealed partial class AssistantChatMessageFunctionCallSpan :
     private IEnumerable<FunctionCallChatMessage> SerializableFunctionCalls
     {
         get => _functionCallsSource.Items;
-        set => _functionCallsSource.Edit(list =>
-        {
-            list.Clear();
-            list.AddRange(value);
-        });
+        set => _functionCallsSource.Edit(list => list.Reset(value));
     }
 
     [IgnoreMember] private readonly SourceList<FunctionCallChatMessage> _functionCallsSource = new();

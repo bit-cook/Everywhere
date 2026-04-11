@@ -9,7 +9,7 @@ using ZLinq;
 
 namespace Everywhere.Chat.Plugins.BuiltIn;
 
-public partial class WebBrowserPlugin
+public sealed partial class WebBrowserPlugin
 {
     private partial class BoChaConnector : IWebSearchEngineConnector
     {

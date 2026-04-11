@@ -14,7 +14,7 @@ namespace Everywhere.Chat.Plugins.BuiltIn;
 /// Provides essential functionalities for chat interactions.
 /// e.g., run_subagent, manage_todo_list, etc.
 /// </summary>
-public class EssentialPlugin : BuiltInChatPlugin
+public sealed class EssentialPlugin : BuiltInChatPlugin
 {
     public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_Essential_Header);
     public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_Essential_Description);
@@ -42,16 +42,16 @@ public class EssentialPlugin : BuiltInChatPlugin
         _functionsSource.Edit(list =>
         {
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     RunSubagentAsync,
                     ChatFunctionPermissions.None,
                     isAllowedInSubagent: false));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     ManageTodoList,
                     ChatFunctionPermissions.None));
             list.Add(
-                new NativeChatFunction(
+                new BuiltInChatFunction(
                     AskUserQuestionAsync,
                     ChatFunctionPermissions.None));
         });

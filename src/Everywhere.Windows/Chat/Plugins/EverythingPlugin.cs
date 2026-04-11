@@ -19,7 +19,7 @@ namespace Everywhere.Windows.Chat.Plugins;
 /// <summary>
 /// A plugin that integrates with the `Everything` search engine to provide file search capabilities within the chat application.
 /// </summary>
-public class EverythingPlugin : BuiltInChatPlugin
+public sealed class EverythingPlugin : BuiltInChatPlugin
 {
     public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_Everything_Header);
 
@@ -70,7 +70,7 @@ public class EverythingPlugin : BuiltInChatPlugin
             TimeSpan.FromMinutes(5));
 
         _functionsSource.Add(
-            new NativeChatFunction(
+            new BuiltInChatFunction(
                 SearchFilesAsync,
                 ChatFunctionPermissions.FileRead));
     }

@@ -71,11 +71,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
     private IEnumerable<ChatPluginDisplayBlock> SerializableDisplayBlocks
     {
         get => _displaySink.Items;
-        set => _displaySink.Edit(list =>
-        {
-            list.Clear();
-            list.AddRange(value);
-        });
+        set => _displaySink.Edit(list => list.Reset(value));
     }
 
     /// <summary>

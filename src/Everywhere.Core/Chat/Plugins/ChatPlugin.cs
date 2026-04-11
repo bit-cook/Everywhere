@@ -1,11 +1,13 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Linq;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using Everywhere.Chat.Permissions;
 using Everywhere.Common;
 using Everywhere.Configuration;
+using Everywhere.Utilities;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -14,7 +16,7 @@ using ZLinq;
 namespace Everywhere.Chat.Plugins;
 
 [ObservableObject]
-public abstract partial class ChatPlugin : KernelPlugin, IDisposable
+public abstract partial class ChatPlugin(string name) : KernelPlugin(name), IDisposable
 {
     public abstract string Key { get; }
 
@@ -49,39 +51,63 @@ public abstract partial class ChatPlugin : KernelPlugin, IDisposable
     /// <summary>
     /// Gets the list of functions provided by this plugin for Binding use in the UI.
     /// </summary>
-    public ReadOnlyObservableCollection<ChatFunction> Functions { get; }
+    public abstract ReadOnlyObservableCollection<ChatFunction> Functions { get; }
 
     /// <summary>
     /// Gets the SettingsItems for this chat function.
     /// </summary>
     public virtual IReadOnlyList<SettingsItem>? SettingsItems => null;
 
-    public override int FunctionCount => _functionsSource.Items.Count(f => f.IsEnabled);
+    public abstract IEnumerable<ChatFunction> GetEnabledFunctions();
 
-    protected readonly SourceList<ChatFunction> _functionsSource = new();
+    public abstract void Dispose();
+}
+
+public abstract class ChatPlugin<TChatFunction> : ChatPlugin where TChatFunction : ChatFunction
+{
+    public override ReadOnlyObservableCollection<ChatFunction> Functions { get; }
+
+    public override int FunctionCount
+    {
+        get
+        {
+            var count = 0;
+            _functionsSource.Edit(list =>
+            {
+                count = list.AsValueEnumerable().Count(f => f.IsEnabled); // Use edit to avoid copy
+            });
+            return count;
+        }
+    }
+
+    protected readonly SourceList<TChatFunction> _functionsSource = new();
     private readonly IDisposable _functionsConnection;
 
     protected ChatPlugin(string name) : base(name)
     {
         Functions = _functionsSource
             .Connect()
+            .Cast(ChatFunction (x) => x)
             .ObserveOnAvaloniaDispatcher()
             .BindEx(out _functionsConnection);
     }
 
-    public IEnumerable<ChatFunction> GetEnabledFunctions() => _functionsSource.Items.Where(f => f.IsEnabled);
+    public override IEnumerable<ChatFunction> GetEnabledFunctions() => _functionsSource.Items.Where(f => f.IsEnabled);
 
     public override IEnumerator<KernelFunction> GetEnumerator() =>
         _functionsSource.Items.Where(f => f.IsEnabled).Select(f => f.KernelFunction).GetEnumerator();
 
     public override bool TryGetFunction(string name, [NotNullWhen(true)] out KernelFunction? function)
     {
-        function = _functionsSource.Items.AsValueEnumerable().Where(f => f.IsEnabled).Select(f => f.KernelFunction)
+        function = _functionsSource.Items
+            .AsValueEnumerable()
+            .Where(f => f.IsEnabled)
+            .Select(f => f.KernelFunction)
             .FirstOrDefault(f => f.Name == name);
         return function is not null;
     }
 
-    public virtual void Dispose()
+    public override void Dispose()
     {
         _functionsSource.Dispose();
         _functionsConnection.Dispose();
@@ -93,7 +119,7 @@ public abstract partial class ChatPlugin : KernelPlugin, IDisposable
 /// Chat kernel plugin implemented natively in Everywhere.
 /// </summary>
 /// <param name="name"></param>
-public abstract class BuiltInChatPlugin(string name) : ChatPlugin(name)
+public abstract class BuiltInChatPlugin(string name) : ChatPlugin<BuiltInChatFunction>(name)
 {
     public override sealed string Key => $"builtin.{Name}";
 
@@ -105,7 +131,7 @@ public abstract class BuiltInChatPlugin(string name) : ChatPlugin(name)
 /// <summary>
 /// Chat kernel plugin implemented with MCP.
 /// </summary>
-public sealed partial class McpChatPlugin : ChatPlugin, ILogger
+public sealed partial class McpChatPlugin : ChatPlugin<McpChatFunction>, ILogger
 {
     /// <summary>
     /// Represents a log entry for the MCP plugin.
@@ -113,7 +139,7 @@ public sealed partial class McpChatPlugin : ChatPlugin, ILogger
     /// <param name="Timestamp"></param>
     /// <param name="Level"></param>
     /// <param name="Message"></param>
-    public record LogEntry(DateTime Timestamp, LogLevel Level, string Message)
+    public sealed record LogEntry(DateTime Timestamp, LogLevel Level, string Message)
     {
         public override string ToString()
         {
@@ -157,9 +183,11 @@ public sealed partial class McpChatPlugin : ChatPlugin, ILogger
     /// <summary>
     /// Gets the log entries of this plugin.
     /// </summary>
+    [ObjectObserverIgnore]
     public ReadOnlyObservableCollection<LogEntry> LogEntries { get; }
 
     private const int MaxLogEntries = 1000;
+    private const int PurgeThreshold = 200;
 
     private readonly SourceList<LogEntry> _logEntriesSource = new();
     private readonly IDisposable _logEntriesConnection;
@@ -182,19 +210,16 @@ public sealed partial class McpChatPlugin : ChatPlugin, ILogger
 
         LogEntries = _logEntriesSource
             .Connect()
+            .Buffer(TimeSpan.FromMilliseconds(250))
+            .FlattenBufferResult()
             .ObserveOnAvaloniaDispatcher()
             .BindEx(out _logEntriesConnection);
     }
 
-    /// <summary>
-    /// Sets the functions provided by this MCP plugin.
-    /// </summary>
-    /// <param name="functions"></param>
-    public void SetFunctions(IEnumerable<McpChatFunction> functions) => _functionsSource.Edit(list =>
+    public void EditFunctions(Action<IExtendedList<McpChatFunction>> updateAction)
     {
-        list.Clear();
-        list.AddRange(functions);
-    });
+        _functionsSource.Edit(updateAction);
+    }
 
     void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
@@ -202,7 +227,7 @@ public sealed partial class McpChatPlugin : ChatPlugin, ILogger
         _logEntriesSource.Edit(list =>
         {
             list.Add(new LogEntry(DateTime.Now, logLevel, message));
-            if (list.Count > MaxLogEntries)
+            if (list.Count > MaxLogEntries + PurgeThreshold)
             {
                 list.RemoveRange(0, list.Count - MaxLogEntries);
             }

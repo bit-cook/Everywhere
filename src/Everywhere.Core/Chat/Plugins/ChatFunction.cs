@@ -5,7 +5,6 @@ using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins.Mcp;
 using Lucide.Avalonia;
 using Microsoft.SemanticKernel;
-using ZLinq;
 
 namespace Everywhere.Chat.Plugins;
 
@@ -49,7 +48,7 @@ public abstract partial class ChatFunction : ObservableObject
     public virtual ChatPluginDisplayBlock? GetFriendlyCallContent(FunctionCallContent content) => null;
 }
 
-public sealed class NativeChatFunction : ChatFunction
+public sealed class BuiltInChatFunction : ChatFunction
 {
     public override IDynamicResourceKey HeaderKey { get; }
 
@@ -73,7 +72,7 @@ public sealed class NativeChatFunction : ChatFunction
     private readonly DynamicResourceKey? _descriptionKey;
     private readonly IFriendlyFunctionCallContentRenderer? _renderer;
 
-    public NativeChatFunction(
+    public BuiltInChatFunction(
         Delegate method,
         ChatFunctionPermissions permissions,
         LucideIconKind? icon = null,
@@ -132,11 +131,22 @@ public class McpChatFunction : ChatFunction
 {
     public override ChatFunctionPermissions Permissions => ChatFunctionPermissions.MCP;
 
-    public override KernelFunction KernelFunction { get; }
+    public override KernelFunction KernelFunction => _kernelFunction;
 
-    public McpChatFunction(ManagedMcpClientTool tool)
+    internal string OriginalName { get; private set; }
+
+    private KernelFunction _kernelFunction;
+
+    internal McpChatFunction(ManagedMcpClientTool tool)
     {
-        KernelFunction = tool.AsKernelFunction();
+        OriginalName = tool.ProtocolTool.Name;
+        _kernelFunction = tool.AsKernelFunction();
         IsAutoApproveAllowed = true;
+    }
+
+    internal void Update(ManagedMcpClientTool tool)
+    {
+        OriginalName = tool.ProtocolTool.Name;
+        _kernelFunction = tool.AsKernelFunction();
     }
 }

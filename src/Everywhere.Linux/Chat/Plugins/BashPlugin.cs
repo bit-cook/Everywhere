@@ -13,7 +13,7 @@ using Microsoft.SemanticKernel;
 
 namespace Everywhere.Linux.Chat.Plugins;
 
-public class BashPlugin : BuiltInChatPlugin
+public sealed class BashPlugin : BuiltInChatPlugin
 {
     public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_Bash_Header);
 
@@ -28,7 +28,7 @@ public class BashPlugin : BuiltInChatPlugin
         _logger = logger;
 
         _functionsSource.Add(
-            new NativeChatFunction(
+            new BuiltInChatFunction(
                 ExecuteScriptAsync,
                 ChatFunctionPermissions.ShellExecute));
     }

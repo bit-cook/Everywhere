@@ -75,7 +75,7 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
     public ObservableCollection<IContentTabItem> ContentTabItems { get; } = [];
 
     [RelayCommand]
-    private async Task AddMcpPluginAsync()
+    private async Task AddMcpPluginAsync(CancellationToken cancellationToken)
     {
         var form = new McpTransportConfigurationForm();
         var result = await DialogManager
@@ -84,17 +84,28 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
                 LocaleResolver.Common_OK,
                 (_, e) => e.Cancel = !form.Configuration.Validate())
             .WithCancelButton(LocaleResolver.Common_Cancel)
-            .ShowAsync();
+            .ShowAsync(cancellationToken);
         if (result != DialogResult.Primary) return;
         if (form.Configuration.HasErrors) return;
 
+        McpChatPlugin newPlugin;
         try
         {
-            SelectedPlugin = manager.CreateMcpPlugin(form.Configuration);
+            SelectedPlugin = newPlugin = manager.CreateMcpPlugin(form.Configuration);
         }
         catch (Exception e)
         {
             ToastExceptionHandler.HandleException(e, "Failed to add MCP Plugin");
+            return;
+        }
+
+        try
+        {
+            await manager.StartMcpClientAsync(newPlugin, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            ToastExceptionHandler.HandleException(e, "Failed to start MCP Plugin");
         }
     }
 

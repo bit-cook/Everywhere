@@ -126,11 +126,7 @@ public sealed partial class AssistantChatMessage :
         set
         {
             if (value is null) return;
-            _spansSource.Edit(list =>
-            {
-                list.Clear();
-                list.AddRange(value);
-            });
+            _spansSource.Edit(list => list.Reset(value));
         }
     }
 

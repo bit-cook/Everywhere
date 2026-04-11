@@ -138,14 +138,7 @@ public sealed partial class TextDifference : ObservableObject, IDisposable
     private IEnumerable<TextChange> SerializableChanges
     {
         get => _changesSource.Items;
-        set
-        {
-            _changesSource.Edit(list =>
-            {
-                list.Clear();
-                list.AddRange(value);
-            });
-        }
+        set => _changesSource.Edit(list => list.Reset(value));
     }
 
     /// <summary>
