@@ -396,7 +396,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         });
     }
 
-    public async Task<ConsentDecision> HandleConsentRequestAsync(
+    public async Task<ConsentDecisionResult> HandleConsentRequestAsync(
         IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content,
         bool canRemember,

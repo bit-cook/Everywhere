@@ -80,7 +80,7 @@ public sealed class ZshPlugin : BuiltInChatPlugin
         if (!consent)
         {
             throw new HandledException(
-                new UnauthorizedAccessException("User denied consent for Zsh script execution."),
+                new UnauthorizedAccessException(consent.FormatReason("User denied consent for Zsh script execution.")),
                 new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_ExecuteScript_DenyMessage),
                 showDetails: false);
         }

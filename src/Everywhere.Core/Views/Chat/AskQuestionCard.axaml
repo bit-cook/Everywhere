@@ -111,7 +111,7 @@
                   <Button
                     Classes="Primary Compact" Grid.Column="2"
                     Command="{Binding NextPageCommand, RelativeSource={RelativeSource TemplatedParent}}"
-                    Content="{I18N {x:Static LocaleKey.AskQuestionCard_SubmitButton_Content}}"
+                    Content="{I18N {x:Static LocaleKey.Common_Submit}}"
                     CornerRadius="{DynamicResource SmCornerRadius}"
                     IsVisible="{TemplateBinding HasNextPage, Converter={x:Static BoolConverters.Not}}"/>
                 </Grid>

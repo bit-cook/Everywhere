@@ -39,7 +39,7 @@ public sealed class ChatPluginUserInterfaceConsentRequestItem(
     ChatPluginDisplayBlock? displayBlock,
     bool canRemember,
     CancellationToken cancellationToken
-) : ChatPluginUserInterfaceItem<ConsentDecision>(cancellationToken)
+) : ChatPluginUserInterfaceItem<ConsentDecisionResult>(cancellationToken)
 {
     public IDynamicResourceKey HeaderKey { get; } = headerKey;
 

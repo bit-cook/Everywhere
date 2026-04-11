@@ -2590,9 +2590,6 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatWindow_TodoList_Header" xml:space="preserve">
         <value />
     </data>
-    <data name="AskQuestionCard_SubmitButton_Content" xml:space="preserve">
-        <value>Submit</value>
-    </data>
     <data name="ChatPlugin_MultiSelectHint" xml:space="preserve">
         <value />
     </data>
@@ -2612,6 +2609,15 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="HandledSystemException_UserNotLogin" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ConsentDecisionCard_DenyWithReasonMenuItem_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Common_Submit" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ConsentDecisionCard_ReasonTextBox_Watermark" xml:space="preserve">
         <value />
     </data>
 </root>

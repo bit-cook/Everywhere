@@ -585,7 +585,7 @@
           IsVisible="{Binding EditingUserMessageNode, Converter={x:Static ObjectConverters.IsNotNull}}">
           <DockPanel LastChildFill="True">
             <Button
-              Classes="Ghost Compact" DockPanel.Dock="Right"
+              Classes="Ghost Compact Uniform" DockPanel.Dock="Right"
               Padding="2,1" VerticalAlignment="Center"
               Command="{Binding $parent[v:ChatWindow].ViewModel.CancelEditingCommand}"
               CommandParameter="{Binding}"
@@ -644,7 +644,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="se:Strategy">
                   <Button
-                    Classes="Outline Compact" Padding="6,4"
+                    Classes="Outline Compact Uniform" Padding="6,4"
                     Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
                     CommandParameter="{Binding Mode=OneTime}"
                     Focusable="False">
@@ -1050,7 +1050,7 @@
               </StackPanel>
 
               <Button
-                Classes="Secondary Compact" Margin="0,4,0,0"
+                Classes="Secondary Compact Uniform" Margin="0,4,0,0"
                 shadui:ButtonAssist.Icon="{LucideIconContent Settings2}"
                 Command="{Binding OpenSettingsCommand}"
                 Content="{I18N {x:Static LocaleKey.ChatWindow_ChatInputArea_SettingsMenuItems_MoreSettings}}"/>

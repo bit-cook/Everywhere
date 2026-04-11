@@ -831,7 +831,7 @@ public sealed partial class ChatService : IChatService
             // Check permissions. If permissions are not granted, request user consent.
             var permissionKey = context.PermissionKey;
             var consentDecision = await ProcessConsentAsync(permissionKey);
-            switch (consentDecision)
+            switch (consentDecision.Decision)
             {
                 case ConsentDecision.AlwaysAllow:
                 {
@@ -845,7 +845,7 @@ public sealed partial class ChatService : IChatService
                 }
                 case ConsentDecision.Deny:
                 {
-                    return new FunctionResultContent(content, "Error: Function execution denied by user.");
+                    return new FunctionResultContent(content, consentDecision.FormatReason("Function execution denied by user."));
                 }
             }
 
@@ -862,7 +862,7 @@ public sealed partial class ChatService : IChatService
 
         return resultContent;
 
-        Task<ConsentDecision> ProcessConsentAsync(string permissionKey)
+        Task<ConsentDecisionResult> ProcessConsentAsync(string permissionKey)
         {
             // Check if the permission is already granted in the current chat context
             if (!_settings.Plugin.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isPermissionGranted))
@@ -872,7 +872,7 @@ public sealed partial class ChatService : IChatService
 
             if (isPermissionGranted)
             {
-                return Task.FromResult(ConsentDecision.AllowOnce);
+                return Task.FromResult(ConsentDecisionResult.AllowOnce);
             }
 
             FormattedDynamicResourceKey headerKey;
@@ -888,9 +888,9 @@ public sealed partial class ChatService : IChatService
                 {
                     return onPermissionConsent(content) switch
                     {
-                        true => Task.FromResult(ConsentDecision.AllowOnce),
-                        false => Task.FromResult(ConsentDecision.Deny),
-                        null => Task.FromResult(ConsentDecision.AllowOnce) // Default to allow once if the
+                        true => Task.FromResult(ConsentDecisionResult.AllowOnce),
+                        false => Task.FromResult(ConsentDecisionResult.Deny()),
+                        null => Task.FromResult(ConsentDecisionResult.AllowOnce) // Default to allow once
                     };
                 }
 

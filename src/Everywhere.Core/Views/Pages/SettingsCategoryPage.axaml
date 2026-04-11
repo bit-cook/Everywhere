@@ -11,7 +11,7 @@
       Dock="Top" HorizontalSpacing="4">
       <!--  Back Button  -->
       <Button
-        Classes="Ghost Compact" DockPanel.Dock="Left"
+        Classes="Ghost Compact Uniform" DockPanel.Dock="Left"
         Width="36" Height="36"
         VerticalAlignment="Center"
         Command="{Binding $parent[v:MainView].ViewModel.NavigateToTypeCommand}"

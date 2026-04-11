@@ -57,14 +57,15 @@
                 </Border>
 
                 <DockPanel
-                  HorizontalAlignment="Right" HorizontalSpacing="4">
+                  HorizontalAlignment="Right" HorizontalSpacing="4"
+                  IsVisible="{TemplateBinding IsReasonInputVisible, Converter={x:Static BoolConverters.Not}}">
                   <shadui:ButtonGroup
                     DockPanel.Dock="Left"
                     CornerRadius="{DynamicResource SmCornerRadius}"
                     Orientation="Horizontal">
                     <Button
                       Classes="Primary Compact"
-                      Command="{Binding Command, RelativeSource={RelativeSource TemplatedParent}}"
+                      Command="{Binding SubmitCommand, RelativeSource={RelativeSource TemplatedParent}}"
                       CommandParameter="{x:Static permissions:ConsentDecision.AllowOnce}"
                       Content="{I18N {x:Static LocaleKey.ConsentDecision_AllowOnce}}"/>
                     <Button
@@ -73,12 +74,12 @@
                       <Button.Flyout>
                         <MenuFlyout>
                           <MenuItem
-                            Command="{Binding $parent[v:ConsentDecisionCard].Command}"
+                            Command="{Binding $parent[v:ConsentDecisionCard].SubmitCommand}"
                             CommandParameter="{x:Static permissions:ConsentDecision.AllowSession}"
                             Header="{I18N {x:Static LocaleKey.ConsentDecision_AllowSession}}"/>
                           <MenuItem
                             Classes="Destructive"
-                            Command="{Binding $parent[v:ConsentDecisionCard].Command}"
+                            Command="{Binding $parent[v:ConsentDecisionCard].SubmitCommand}"
                             CommandParameter="{x:Static permissions:ConsentDecision.AlwaysAllow}"
                             Header="{I18N {x:Static LocaleKey.ConsentDecision_AlwaysAllow}}"/>
                         </MenuFlyout>
@@ -90,12 +91,55 @@
                     </Button>
                   </shadui:ButtonGroup>
 
+                  <shadui:ButtonGroup
+                    CornerRadius="{DynamicResource SmCornerRadius}"
+                    Orientation="Horizontal">
+                    <Button
+                      Classes="Secondary Compact"
+                      Command="{Binding SubmitCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                      CommandParameter="{x:Static permissions:ConsentDecision.Deny}"
+                      Content="{I18N {x:Static LocaleKey.ConsentDecision_Deny}}"/>
+                    <Button
+                      Classes="Secondary Compact"
+                      IsVisible="{TemplateBinding CanDenyWithReason}">
+                      <Button.Flyout>
+                        <MenuFlyout>
+                          <MenuItem
+                            Command="{Binding $parent[v:ConsentDecisionCard].SetIsReasonInputVisibleCommand}"
+                            CommandParameter="{x:True}"
+                            Header="{I18N {x:Static LocaleKey.ConsentDecisionCard_DenyWithReasonMenuItem_Header}}"/>
+                        </MenuFlyout>
+                      </Button.Flyout>
+
+                      <LucideIcon
+                        Kind="ChevronDown"
+                        Size="{DynamicResource FontSizeM}"/>
+                    </Button>
+                  </shadui:ButtonGroup>
+                </DockPanel>
+
+                <DockPanel
+                  HorizontalAlignment="Stretch" HorizontalSpacing="4"
+                  IsVisible="{TemplateBinding IsReasonInputVisible}">
                   <Button
-                    Classes="Secondary Compact"
-                    Command="{Binding Command, RelativeSource={RelativeSource TemplatedParent}}"
+                    Classes="Secondary Compact" DockPanel.Dock="Left"
+                    Command="{Binding SetIsReasonInputVisibleCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                    CommandParameter="{x:False}"
+                    Content="{I18N {x:Static LocaleKey.Common_Cancel}}"/>
+
+                  <Button
+                    Classes="Primary Compact" DockPanel.Dock="Right"
+                    Command="{Binding SubmitCommand, RelativeSource={RelativeSource TemplatedParent}}"
                     CommandParameter="{x:Static permissions:ConsentDecision.Deny}"
-                    Content="{I18N {x:Static LocaleKey.ConsentDecision_Deny}}"
-                    CornerRadius="{DynamicResource SmCornerRadius}"/>
+                    Content="{I18N {x:Static LocaleKey.Common_Submit}}"/>
+
+                  <TextBox
+                    Classes="Compact" VerticalAlignment="Stretch"
+                    VerticalContentAlignment="Stretch" AcceptsReturn="False"
+                    AcceptsTab="False" MaxLines="1"
+                    Text="{TemplateBinding Reason, Mode=TwoWay}"
+                    TextWrapping="NoWrap"
+                    Watermark="{I18N {x:Static LocaleKey.ConsentDecisionCard_ReasonTextBox_Watermark}}"/>
                 </DockPanel>
               </StackPanel>
             </Expander>

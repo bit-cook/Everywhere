@@ -2585,9 +2585,6 @@
     <data name="ChatWindow_TodoList_Header" xml:space="preserve">
         <value>待办事项 ({0}/{1})</value>
     </data>
-    <data name="AskQuestionCard_SubmitButton_Content" xml:space="preserve">
-        <value>提交</value>
-    </data>
     <data name="ChatPlugin_MultiSelectHint" xml:space="preserve">
         <value>(多选)</value>
     </data>
@@ -2608,5 +2605,14 @@
     </data>
     <data name="HandledSystemException_UserNotLogin" xml:space="preserve">
         <value>你尚未登录，请登录后再使用 Everywhere 云服务。</value>
+    </data>
+    <data name="ConsentDecisionCard_DenyWithReasonMenuItem_Header" xml:space="preserve">
+        <value>拒绝并输入原因</value>
+    </data>
+    <data name="Common_Submit" xml:space="preserve">
+        <value>提交</value>
+    </data>
+    <data name="ConsentDecisionCard_ReasonTextBox_Watermark" xml:space="preserve">
+        <value>输入拒绝原因</value>
     </data>
 </root>

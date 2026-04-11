@@ -79,7 +79,7 @@ public sealed class BashPlugin : BuiltInChatPlugin
         if (!consent)
         {
             throw new HandledException(
-                new UnauthorizedAccessException("User denied consent for Bash script execution."),
+                new UnauthorizedAccessException(consent.FormatReason("User denied consent for Bash script execution.")),
                 new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_Bash_ExecuteScript_DenyMessage),
                 showDetails: false);
         }

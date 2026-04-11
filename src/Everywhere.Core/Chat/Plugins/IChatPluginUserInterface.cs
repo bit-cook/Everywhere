@@ -64,6 +64,20 @@ public sealed record ChatPluginQuestionAnswer(
     string? FreeText
 );
 
+public readonly record struct RequestConsentResult(bool IsAccepted, string? Reason)
+{
+    public static RequestConsentResult Accepted => new(true, null);
+
+    public static RequestConsentResult Denied(string? reason = null) => new(false, reason);
+
+    public static implicit operator bool(RequestConsentResult result) => result.IsAccepted;
+
+    public string FormatReason(string prefix)
+    {
+        return Reason.IsNullOrWhiteSpace() ? prefix : $"{prefix} Reason: {Reason}";
+    }
+}
+
 /// <summary>
 /// Allows chat plugins to interact with the user interface.
 /// </summary>
@@ -89,7 +103,7 @@ public interface IChatPluginUserInterface
     /// <param name="content"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<bool> RequestConsentAsync(
+    Task<RequestConsentResult> RequestConsentAsync(
         string? id,
         IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content = null,

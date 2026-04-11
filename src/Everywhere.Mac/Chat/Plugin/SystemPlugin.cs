@@ -148,7 +148,7 @@ public sealed class SystemPlugin : BuiltInChatPlugin
             if (!consent)
             {
                 throw new HandledException(
-                    new UnauthorizedAccessException("User denied consent for managing reminders."),
+                    new UnauthorizedAccessException(consent.FormatReason("User denied consent for managing reminders.")),
                     new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ManageReminders_DenyMessage),
                     showDetails: false);
             }
@@ -330,7 +330,7 @@ public sealed class SystemPlugin : BuiltInChatPlugin
             if (!consent)
             {
                 throw new HandledException(
-                    new UnauthorizedAccessException("User denied consent for managing calendar."),
+                    new UnauthorizedAccessException(consent.FormatReason("User denied consent for managing calendar.")),
                     new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ManageCalendar_DenyMessage),
                     showDetails: false);
             }
@@ -551,7 +551,7 @@ public sealed class SystemPlugin : BuiltInChatPlugin
         if (!consent)
         {
             throw new HandledException(
-                new UnauthorizedAccessException("User denied consent for managing notes."),
+                new UnauthorizedAccessException(consent.FormatReason("User denied consent for managing notes.")),
                 new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ManageNotes_DenyMessage),
                 showDetails: false);
         }
@@ -613,7 +613,7 @@ public sealed class SystemPlugin : BuiltInChatPlugin
     {
         _logger.LogDebug("Opening URL: {Url}", url);
 
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var parsedUri) || 
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var parsedUri) ||
             (parsedUri.Scheme != Uri.UriSchemeHttp && parsedUri.Scheme != Uri.UriSchemeHttps))
         {
             throw new ArgumentException($"Invalid or unsupported URL scheme. Only HTTP and HTTPS are allowed");
@@ -660,7 +660,7 @@ public sealed class SystemPlugin : BuiltInChatPlugin
         if (!consent)
         {
             throw new HandledException(
-                new UnauthorizedAccessException("User denied consent for AppleScript execution."),
+                new UnauthorizedAccessException(consent.FormatReason("User denied consent for AppleScript execution.")),
                 new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ExecuteScript_DenyMessage),
                 showDetails: false);
         }

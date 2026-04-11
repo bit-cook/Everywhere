@@ -86,7 +86,7 @@
                     TextWrapping="Wrap">
                     <TextBox.InnerRightContent>
                       <Button
-                        Classes="Ghost Compact"
+                        Classes="Ghost"
                         Command="{Binding $parent[v:McpTransportConfigurationForm].BrowseWorkingDirectory}">
                         <LucideIcon
                           Kind="FolderPen"

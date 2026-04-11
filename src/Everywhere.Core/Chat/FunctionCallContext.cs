@@ -40,7 +40,7 @@ public sealed record FunctionCallContext(
 
     public IChatPluginDisplaySink DisplaySink => FunctionCallChatMessage.DisplaySink;
 
-    public async Task<bool> RequestConsentAsync(
+    public async Task<RequestConsentResult> RequestConsentAsync(
         string? id,
         IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content = null,
@@ -54,7 +54,7 @@ public sealed record FunctionCallContext(
             ChatContext.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isSessionGranted);
             if (isGloballyGranted || isSessionGranted)
             {
-                return true;
+                return RequestConsentResult.Accepted;
             }
         }
 
@@ -67,33 +67,33 @@ public sealed record FunctionCallContext(
         if (permissionKey is null)
         {
             // no id provided, so we cannot remember the decision
-            return consentDecision switch
+            return consentDecision.Decision switch
             {
-                ConsentDecision.AllowOnce => true,
-                _ => false,
+                ConsentDecision.AllowOnce => RequestConsentResult.Accepted,
+                _ => RequestConsentResult.Denied(),
             };
         }
 
-        switch (consentDecision)
+        switch (consentDecision.Decision)
         {
             case ConsentDecision.AlwaysAllow:
             {
                 IsPermissionGrantedRecords[permissionKey] = true;
-                return true;
+                return RequestConsentResult.Accepted;
             }
             case ConsentDecision.AllowSession:
             {
                 ChatContext.IsPermissionGrantedRecords[permissionKey] = true;
-                return true;
+                return RequestConsentResult.Accepted;
             }
             case ConsentDecision.AllowOnce:
             {
-                return true;
+                return RequestConsentResult.Accepted;
             }
             case ConsentDecision.Deny:
             default:
             {
-                return false;
+                return RequestConsentResult.Denied(consentDecision.Reason);
             }
         }
     }

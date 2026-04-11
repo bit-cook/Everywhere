@@ -85,7 +85,7 @@
                       </StackPanel.Styles>
 
                       <ToggleButton
-                        x:Name="ApiKeyVisibleToggleButton" Classes="Ghost Compact"
+                        x:Name="ApiKeyVisibleToggleButton" Classes="Ghost Compact Uniform"
                         DockPanel.Dock="Right" VerticalAlignment="Center"
                         IsChecked="{Binding IsApiKeyVisible, Mode=TwoWay}">
                         <LucideIcon
@@ -93,7 +93,7 @@
                           Size="{DynamicResource FontSizeL}"/>
                       </ToggleButton>
                       <Button
-                        Classes="Ghost Compact" Margin="2,0,0,0"
+                        Classes="Ghost Compact Uniform" Margin="2,0,0,0"
                         Command="{Binding CopyApiKeyToClipboardCommand}"
                         ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Copy}}">
                         <LucideIcon
@@ -101,7 +101,7 @@
                           Size="{DynamicResource FontSizeL}"/>
                       </Button>
                       <Button
-                        x:Name="DeleteApiKeyButton" Classes="Ghost Compact"
+                        x:Name="DeleteApiKeyButton" Classes="Ghost Compact Uniform"
                         ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Delete}}">
                         <LucideIcon
                           Foreground="{DynamicResource DestructiveColor}"

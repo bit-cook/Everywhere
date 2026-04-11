@@ -86,7 +86,7 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
         if (!consent)
         {
             throw new HandledException(
-                new UnauthorizedAccessException("User denied consent for PowerShell script execution."),
+                new UnauthorizedAccessException(consent.FormatReason("User denied consent for PowerShell script execution.")),
                 new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_DenyMessage),
                 showDetails: false);
         }
