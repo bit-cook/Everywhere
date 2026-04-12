@@ -601,7 +601,7 @@ public sealed partial class ChatWindowViewModel :
         UserChatMessage userMessage;
         if (SelectedStrategy is { } selectedStrategy)
         {
-            userMessage = new UserStrategyMessage(message, attachments!, selectedStrategy);
+            userMessage = new UserStrategyChatMessage(message, attachments!, selectedStrategy);
             SelectedStrategy = null;
         }
         else
@@ -630,7 +630,7 @@ public sealed partial class ChatWindowViewModel :
 
         EditingUserMessageNode = userChatMessageNode;
         ChatInputAreaText = userChatMessage.Content;
-        SelectedStrategy = userChatMessage.As<UserStrategyMessage>()?.Strategy;
+        SelectedStrategy = userChatMessage.As<UserStrategyChatMessage>()?.Strategy;
 
         _chatAttachmentsSource.Edit(list =>
         {

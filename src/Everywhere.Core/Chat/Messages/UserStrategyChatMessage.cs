@@ -4,7 +4,7 @@ using MessagePack;
 namespace Everywhere.Chat;
 
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public sealed partial class UserStrategyMessage : UserChatMessage
+public sealed partial class UserStrategyChatMessage : UserChatMessage
 {
     [Key(4)]
     public Strategy Strategy { get; }
@@ -12,7 +12,7 @@ public sealed partial class UserStrategyMessage : UserChatMessage
     [Key(5)]
     public PreprocessorResult? PreprocessorResult { get; }
 
-    public UserStrategyMessage(
+    public UserStrategyChatMessage(
         string content,
         IReadOnlyList<ChatAttachment> attachments,
         Strategy strategy) : base(content, attachments)
@@ -21,7 +21,7 @@ public sealed partial class UserStrategyMessage : UserChatMessage
     }
 
     [SerializationConstructor]
-    private UserStrategyMessage(
+    private UserStrategyChatMessage(
         string content,
         IReadOnlyList<ChatAttachment> attachments,
         DateTimeOffset createdAt,

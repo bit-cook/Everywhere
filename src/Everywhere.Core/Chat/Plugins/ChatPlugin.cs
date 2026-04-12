@@ -58,7 +58,7 @@ public abstract partial class ChatPlugin(string name) : KernelPlugin(name), IDis
     /// </summary>
     public virtual IReadOnlyList<SettingsItem>? SettingsItems => null;
 
-    public abstract IEnumerable<ChatFunction> GetEnabledFunctions();
+    public abstract IEnumerable<ChatFunction> GetChatFunctions();
 
     public abstract void Dispose();
 }
@@ -92,7 +92,7 @@ public abstract class ChatPlugin<TChatFunction> : ChatPlugin where TChatFunction
             .BindEx(out _functionsConnection);
     }
 
-    public override IEnumerable<ChatFunction> GetEnabledFunctions() => _functionsSource.Items.Where(f => f.IsEnabled);
+    public override IEnumerable<ChatFunction> GetChatFunctions() => _functionsSource.Items;
 
     public override IEnumerator<KernelFunction> GetEnumerator() =>
         _functionsSource.Items.Where(f => f.IsEnabled).Select(f => f.KernelFunction).GetEnumerator();

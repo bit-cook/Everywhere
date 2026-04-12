@@ -195,7 +195,7 @@ public static class ChatHistoryBuilder
                     await PopulateKernelContentsAsync(chatAttachment, items, supportedModalities, cancellationToken);
                 }
 
-                if (userChatMessage is UserStrategyMessage { Strategy.Body: { Length: > 0 } strategyBody } userStrategyMessage)
+                if (userChatMessage is UserStrategyChatMessage { Strategy.Body: { Length: > 0 } strategyBody } userStrategyMessage)
                 {
                     // If UserMessage template is provided, render the content with the template.
                     var renderedContent = promptRenderer.RenderStrategyUserPrompt(

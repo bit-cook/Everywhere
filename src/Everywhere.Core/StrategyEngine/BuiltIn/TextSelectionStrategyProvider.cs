@@ -112,7 +112,10 @@ public sealed class TextSelectionStrategyProvider : BuiltInStrategyProvider
             Icon = LucideIconKind.Search,
             Priority = 80,
             Condition = BaseCondition,
-            AllowedTools = ["*", "web_search"],
+            Tools = new Dictionary<string, bool>(1)
+            {
+                { "builtin.web_browser.*", true }
+            },
             Body =
                 """
                 You are a research assistant.

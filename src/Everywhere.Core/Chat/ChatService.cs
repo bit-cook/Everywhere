@@ -99,7 +99,7 @@ public sealed partial class ChatService : IChatService
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
 
-                var systemPromptOverride = message.As<UserStrategyMessage>()?.Strategy.SystemPrompt;
+                var systemPromptOverride = message.As<UserStrategyChatMessage>()?.Strategy.SystemPrompt;
                 await GenerateAsync(
                     chatContext,
                     customAssistant,
@@ -170,7 +170,7 @@ public sealed partial class ChatService : IChatService
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
 
-                var systemPromptOverride = newMessage.As<UserStrategyMessage>()?.Strategy.SystemPrompt;
+                var systemPromptOverride = newMessage.As<UserStrategyChatMessage>()?.Strategy.SystemPrompt;
                 await GenerateAsync(
                     chatContext,
                     customAssistant,
@@ -326,12 +326,15 @@ public sealed partial class ChatService : IChatService
 
         if (kernelMixin.SupportsToolCall && _persistentState.IsToolCallEnabled)
         {
-            var needToStartMcp = _chatPluginManager.McpPlugins.AsValueEnumerable().Any(p => p is { IsEnabled: true, IsRunning: false });
-            using var _ = needToStartMcp ? chatContext.SetBusyMessage(new DynamicResourceKey(LocaleKey.ChatContext_BusyMessage_StartingMcp)) : null;
+            var userMessage = chatContext.Items.AsValueEnumerable().Select(n => n.Message).OfType<UserChatMessage>().LastOrDefault();
 
-            var chatPluginScope = await _chatPluginManager.CreateScopeAsync(isSubagent, cancellationToken);
+            var chatPluginScope = await _chatPluginManager.CreateScopeAsync(
+                isSubagent,
+                userMessage?.As<UserStrategyChatMessage>()?.Strategy.Tools,
+                chatContext,
+                cancellationToken);
             builder.Services.AddSingleton(chatPluginScope);
-            activity?.SetTag("plugins.count", chatPluginScope.Plugins.AsValueEnumerable().Count());
+            activity?.SetTag("plugins.count", chatPluginScope.Plugins.Count);
 
             foreach (var plugin in chatPluginScope.Plugins)
             {
@@ -925,6 +928,9 @@ public sealed partial class ChatService : IChatService
             // Another generation is in progress, skip generating title to avoid token waste and confusion.
             return;
         }
+
+        // First trim userMassage as temporary title or fallback
+        metadata.Topic = userMessage.Length > 16 ? $"{userMessage[..16]}..." : userMessage;
 
         KernelMixin kernelMixin;
         try

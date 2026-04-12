@@ -53,9 +53,19 @@ public sealed partial record Strategy
     [Key(3)] public string? SystemPrompt { get; init; }
 
     /// <summary>
-    /// Allowed tool/plugin names for this command.
+    /// Allowed tool/plugin names for this command. null for default.
     /// </summary>
-    [Key(4)] public IReadOnlyList<string>? AllowedTools { get; init; }
+    /// <remarks>
+    /// Wildcard is allowed. e.g.
+    /// { "builtin.visual_tree.*": true, "builtin.web_browser.web_*": true, "builtin.web_browser.web_search": false }
+    ///
+    /// Note that `builtin.visual_tree.*` and `builtin.visual_tree` are different.
+    /// Thr former means all functions in `builtin.visual_tree` should be applied (enable or disable) no matter whether then are enabled.
+    /// But the latter only means the `builtin.visual_tree` should be applied, functions will keep their original state.
+    ///
+    /// When applying, keys first ordered then apply one by one, latter overrides former.
+    /// </remarks>
+    [Key(4)] public IReadOnlyDictionary<string, bool>? Tools { get; init; }
 
     /// <summary>
     /// List of preprocessor IDs to run before executing this strategy.

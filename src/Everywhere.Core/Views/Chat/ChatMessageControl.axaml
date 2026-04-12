@@ -395,7 +395,7 @@
           </StackPanel>
         </DataTemplate>
 
-        <DataTemplate x:DataType="chat:UserStrategyMessage">
+        <DataTemplate x:DataType="chat:UserStrategyChatMessage">
           <StackPanel
             Classes="ChatMessage User" Margin="36,0,0,0"
             HorizontalAlignment="Right" shadui:Timeline.Anchor="0,0"

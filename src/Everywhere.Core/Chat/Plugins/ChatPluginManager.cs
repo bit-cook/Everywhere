@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
+using System.Text.RegularExpressions;
 using DynamicData;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins.Mcp;
@@ -276,46 +277,132 @@ public class ChatPluginManager : IChatPluginManager
         _mcpPluginsSource.Remove(mcpChatPlugin);
     }
 
-    public async Task<IChatPluginScope> CreateScopeAsync(bool isSubagent, CancellationToken cancellationToken)
+    public async Task<IChatPluginScope> CreateScopeAsync(
+        bool isSubagent,
+        IReadOnlyDictionary<string, bool>? tools,
+        IChatBusyStateIndicator? busyIndicator,
+        CancellationToken cancellationToken)
     {
-        var builtInPlugins = _builtInPluginsSource.Items
-            .AsValueEnumerable()
-            .Where(p => p.IsEnabled && (!isSubagent || p.IsAllowedInSubagent))
-            .ToList();
+        // Ensure that functions in the scope do not have the same name.
+        var functionNameDeduplicator = new HashSet<string>();
+        var resultPlugins = new List<ChatPluginSnapshot>();
+        IDisposable? startingMcpMessageDisplay = null;
 
-        var mcpPlugins = new List<McpChatPlugin>();
-        foreach (var mcpPlugin in _mcpPluginsSource.Items.AsValueEnumerable().Where(p => p.IsEnabled).ToList())
+        try
         {
-            // Activate MCP plugins. We only activate the mcp that has no loaded functions
-            // Others has cached functions and can be lazy called
-            if (mcpPlugin.FunctionCount == 0)
+            foreach (var plugin in _builtInPluginsSource.Items
+                         .Where(p => !isSubagent || p.IsAllowedInSubagent)
+                         .Cast<ChatPlugin>()
+                         .Concat(_mcpPluginsSource.Items))
             {
-                try
+                if (!IsPluginAllowed(plugin)) continue;
+
+                if (plugin is McpChatPlugin mcpChatPlugin)
                 {
-                    await StartMcpClientAsync(mcpPlugin, cancellationToken);
+                    startingMcpMessageDisplay ??=
+                        busyIndicator?.SetBusyMessage(new DynamicResourceKey(LocaleKey.ChatContext_BusyMessage_StartingMcp));
+
+                    try
+                    {
+                        await StartMcpClientAsync(mcpChatPlugin, cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new HandledException(
+                            ex,
+                            new FormattedDynamicResourceKey(
+                                LocaleKey.ChatPluginManager_Common_FailedToStartMcpPlugin,
+                                new DirectResourceKey(mcpChatPlugin.Name)));
+                    }
                 }
-                catch (Exception ex)
+
+                var actualFunctions = plugin.GetChatFunctions()
+                    .AsValueEnumerable()
+                    .Where(f => !isSubagent || f is not BuiltInChatFunction { IsAllowedInSubagent: false })
+                    .Where(f => IsFunctionAllowed(plugin, f))
+                    .ToList();
+
+                if (actualFunctions.Count > 0 || plugin is McpChatPlugin)
                 {
-                    throw new HandledException(
-                        ex,
-                        new FormattedDynamicResourceKey(
-                            LocaleKey.ChatPluginManager_Common_FailedToStartMcpPlugin,
-                            new DirectResourceKey(mcpPlugin.Name)));
+                    resultPlugins.Add(new ChatPluginSnapshot(plugin, functionNameDeduplicator, actualFunctions));
                 }
             }
 
-            mcpPlugins.Add(mcpPlugin);
+            return new ChatPluginScope(resultPlugins);
+        }
+        finally
+        {
+            startingMcpMessageDisplay?.Dispose();
         }
 
-        // Ensure that functions in the scope do not have the same name.
-        var functionNameDeduplicator = new HashSet<string>();
-        return new ChatPluginScope(
-            builtInPlugins
-                .AsValueEnumerable()
-                .Cast<ChatPlugin>()
-                .Concat(mcpPlugins)
-                .Select(p => new ChatPluginSnapshot(p, functionNameDeduplicator, isSubagent))
-                .ToList());
+
+        bool IsPluginAllowed(ChatPlugin plugin)
+        {
+            var isAllowed = plugin.IsEnabled;
+            if (tools == null) return isAllowed;
+
+            foreach (var kvp in tools)
+            {
+                var dotIndex = kvp.Key.LastIndexOf('.');
+                var pluginPattern = dotIndex < 0 ? kvp.Key : kvp.Key[..dotIndex];
+
+                // Use simple Glob to Regex conversion
+                var regexPattern = "^" + Regex.Escape(pluginPattern).Replace("\\*", ".*").Replace("\\?", ".") + "$";
+                var pluginRegex = new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+                if (pluginRegex.IsMatch(plugin.Key))
+                {
+                    if (dotIndex < 0)
+                    {
+                        isAllowed = kvp.Value;
+                    }
+                    else if (kvp.Value)
+                    {
+                        // Any rule enabling functions in this plugin forces the plugin to be enabled
+                        isAllowed = true;
+                    }
+                }
+            }
+            return isAllowed;
+        }
+
+        bool IsFunctionAllowed(ChatPlugin plugin, ChatFunction function)
+        {
+            var isAllowed = function.IsEnabled;
+            if (tools == null) return isAllowed;
+
+            var fullFuncName = $"{plugin.Key}.{function.KernelFunction.Metadata.Name}";
+
+            foreach (var kvp in tools)
+            {
+                var dotIndex = kvp.Key.LastIndexOf('.');
+                if (dotIndex < 0)
+                {
+                    // Rule targets plugin layer
+                    var pluginRegexPattern = "^" + Regex.Escape(kvp.Key).Replace("\\*", ".*").Replace("\\?", ".") + "$";
+                    var pluginRegex = new Regex(pluginRegexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+                    // If plugin is explicitly disabled, the function is as well.
+                    // Otherwise, we keep its state as is.
+                    if (pluginRegex.IsMatch(plugin.Name) && !kvp.Value)
+                    {
+                        isAllowed = false;
+                    }
+                }
+                else
+                {
+                    // Rule targets function layer
+                    var functionRegexPattern = "^" + Regex.Escape(kvp.Key).Replace("\\*", ".*").Replace("\\?", ".") + "$";
+                    var funcRegex = new Regex(functionRegexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+                    if (funcRegex.IsMatch(fullFuncName))
+                    {
+                        isAllowed = kvp.Value;
+                    }
+                }
+            }
+            return isAllowed;
+        }
     }
 
     private class ChatPluginScope(List<ChatPluginSnapshot> pluginSnapshots) : IChatPluginScope
@@ -419,14 +506,11 @@ public class ChatPluginManager : IChatPluginManager
         public ChatPluginSnapshot(
             ChatPlugin originalChatPlugin,
             HashSet<string> functionNameDeduplicator,
-            bool isSubagent) : base(originalChatPlugin.Name)
+            IReadOnlyList<ChatFunction> actualFunctions) : base(originalChatPlugin.Name)
         {
             _originalChatPlugin = originalChatPlugin;
             AllowedPermissions = originalChatPlugin.AllowedPermissions.ActualValue;
-            _actualFunctions = originalChatPlugin
-                .GetEnabledFunctions()
-                .AsValueEnumerable()
-                .Where(f => !isSubagent || f is not BuiltInChatFunction { IsAllowedInSubagent: false })
+            _actualFunctions = actualFunctions
                 .Select(EnsureUniqueFunctionName)
                 .ToList();
 
@@ -461,7 +545,7 @@ public class ChatPluginManager : IChatPluginManager
 
         public override IEnumerator<KernelFunction> GetEnumerator() => _actualFunctions.Select(f => f.KernelFunction).GetEnumerator();
 
-        public override IEnumerable<ChatFunction> GetEnabledFunctions() => _actualFunctions;
+        public override IEnumerable<ChatFunction> GetChatFunctions() => _actualFunctions;
 
         public override void Dispose() { }
     }

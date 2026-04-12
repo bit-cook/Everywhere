@@ -21,7 +21,7 @@ namespace Everywhere.Chat;
 /// The current branch is derived by following each node's <see cref="ChatMessageNode.ChoiceIndex"/>.
 /// </summary>
 [MessagePackObject(AllowPrivate = true)]
-public sealed partial class ChatContext : ObservableObject, IObservableList<ChatMessageNode>
+public sealed partial class ChatContext : ObservableObject, IObservableList<ChatMessageNode>, IChatBusyStateIndicator
 {
     [Key(0)]
     public ChatContextMetadata Metadata { get; }

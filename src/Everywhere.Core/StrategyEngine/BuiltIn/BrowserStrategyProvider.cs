@@ -116,7 +116,10 @@ public sealed class BrowserStrategyProvider : BuiltInStrategyProvider
             Icon = LucideIconKind.ShieldCheck,
             Priority = 60,
             Condition = Condition,
-            AllowedTools = ["web_search"],
+            Tools = new Dictionary<string, bool>(1)
+            {
+                { "builtin.web_browser.*", true }
+            },
             Body =
                 """
                 You are a fact-checking specialist.
