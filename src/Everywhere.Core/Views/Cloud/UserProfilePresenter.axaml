@@ -30,7 +30,7 @@
             <Button.Flyout>
               <Flyout VerticalOffset="-8">
                 <v:UserProfileCard
-                  Width="240"
+                  Width="240" Margin="8"
                   ShowActionsButton="{TemplateBinding ShowActionsButton}"
                   Subscription="{TemplateBinding Subscription}"
                   UserProfile="{TemplateBinding UserProfile}"/>
@@ -56,7 +56,7 @@
 
           <shadui:Badge
             Width="16" Height="16"
-            Margin="0,-8,-8,0" Padding="0"
+            Margin="0,-4,-4,0" Padding="0"
             HorizontalAlignment="Right" VerticalAlignment="Top"
             Background="{DynamicResource ErrorColor}"
             Content="!" CornerRadius="8"
