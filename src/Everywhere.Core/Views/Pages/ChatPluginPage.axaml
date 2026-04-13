@@ -450,5 +450,19 @@
         </DockPanel>
       </DataTemplate>
     </shadui:NavigationView.ContentTemplate>
+
+    <shadui:NavigationView.EmptyContent>
+      <StackPanel
+        HorizontalAlignment="Center" VerticalAlignment="Center"
+        Spacing="16">
+        <Image
+          Height="128" HorizontalAlignment="Center"
+          Source="avares://Everywhere.Core/Assets/Images/EmptyList.png" Stretch="Uniform"/>
+        <TextBlock
+          Classes="p"
+          Text="{I18N {x:Static LocaleKey.ChatPluginPage_EmptyContent_SelectInstruction}}"
+          TextAlignment="Center" TextWrapping="Wrap"/>
+      </StackPanel>
+    </shadui:NavigationView.EmptyContent>
   </shadui:NavigationView>
 </UserControl>

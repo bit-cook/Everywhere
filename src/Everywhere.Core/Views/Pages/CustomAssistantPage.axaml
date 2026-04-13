@@ -69,6 +69,7 @@
     <shadui:NavigationView.Header>
       <StackPanel
         Margin="0,0,12,8" HorizontalAlignment="Right"
+        IsVisible="{Binding SelectedCustomAssistant, Converter={x:Static ObjectConverters.IsNotNull}}"
         Orientation="Horizontal" Spacing="6">
         <Button
           Classes="Secondary" VerticalAlignment="Center"
@@ -76,7 +77,6 @@
           shadui:ButtonAssist.ShowProgress="{Binding CheckConnectivityCommand.IsRunning}"
           Command="{Binding CheckConnectivityCommand}"
           Content="{I18N {x:Static LocaleKey.CustomAssistantPage_CheckConnectivityButton_Content}}"
-          IsEnabled="{Binding SelectedCustomAssistant, Converter={x:Static ObjectConverters.IsNotNull}}"
           ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistantPage_CheckConnectivityButton_ToolTip}}"/>
 
         <shadui:ButtonGroup
@@ -86,7 +86,6 @@
             shadui:ButtonAssist.Icon="{LucideIconContent Copy}"
             Command="{Binding DuplicateCustomAssistantCommand}"
             Content="{I18N {x:Static LocaleKey.CustomAssistantPage_DuplicateCustomAssistantButton_Content}}"
-            IsEnabled="{Binding SelectedCustomAssistant, Converter={x:Static ObjectConverters.IsNotNull}}"
             ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistantPage_DuplicateCustomAssistantButton_ToolTip}}"/>
           <Button
             Classes="Secondary"
@@ -94,7 +93,6 @@
             Command="{Binding DeleteCustomAssistantCommand}"
             Content="{I18N {x:Static LocaleKey.CustomAssistantPage_DeleteCustomAssistantButton_Content}}"
             Foreground="{DynamicResource DestructiveColor}"
-            IsEnabled="{Binding SelectedCustomAssistant, Converter={x:Static ObjectConverters.IsNotNull}}"
             ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistantPage_DeleteCustomAssistantButton_ToolTip}}"/>
         </shadui:ButtonGroup>
       </StackPanel>
@@ -109,5 +107,25 @@
         </ScrollViewer>
       </DataTemplate>
     </shadui:NavigationView.ContentTemplate>
+
+    <shadui:NavigationView.EmptyContent>
+      <StackPanel
+        HorizontalAlignment="Center" VerticalAlignment="Center"
+        Spacing="16">
+        <Image
+          Height="128" HorizontalAlignment="Center"
+          Source="avares://Everywhere.Core/Assets/Images/EmptyList.png" Stretch="Uniform"/>
+        <TextBlock
+          Classes="p"
+          IsVisible="{Binding !!CustomAssistants.Count}"
+          Text="{I18N {x:Static LocaleKey.CustomAssistantPage_EmptyContent_SelectInstruction}}"
+          TextAlignment="Center" TextWrapping="Wrap"/>
+        <TextBlock
+          Classes="p"
+          IsVisible="{Binding !CustomAssistants.Count}"
+          Text="{I18N {x:Static LocaleKey.CustomAssistantPage_EmptyContent_EmptyListInstruction}}"
+          TextAlignment="Center" TextWrapping="Wrap"/>
+      </StackPanel>
+    </shadui:NavigationView.EmptyContent>
   </shadui:NavigationView>
 </UserControl>

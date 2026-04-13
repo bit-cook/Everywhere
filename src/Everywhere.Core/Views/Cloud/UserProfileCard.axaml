@@ -18,8 +18,9 @@
                 <StackPanel
                   HorizontalAlignment="Center" Spacing="4">
                   <Image
-                    Width="56" Height="56"
-                    HorizontalAlignment="Center" Source="avares://Everywhere.Core/Assets/Everywhere.png"/>
+                    Height="80" Margin="0,0,0,8"
+                    HorizontalAlignment="Center" Source="avares://Everywhere.Core/Assets/Images/Cloud.png"
+                    Stretch="Uniform"/>
                   <TextBlock
                     Classes="Large" HorizontalAlignment="Center"
                     FontWeight="SemiBold"

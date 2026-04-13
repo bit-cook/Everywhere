@@ -2626,4 +2626,13 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="HandledChatException_TopPNotSupport" xml:space="preserve">
         <value />
     </data>
+    <data name="CustomAssistantPage_EmptyContent_SelectInstruction" xml:space="preserve">
+        <value />
+    </data>
+    <data name="CustomAssistantPage_EmptyContent_EmptyListInstruction" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChatPluginPage_EmptyContent_SelectInstruction" xml:space="preserve">
+        <value />
+    </data>
 </root>
