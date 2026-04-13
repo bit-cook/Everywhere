@@ -628,6 +628,16 @@ public enum HandledChatExceptionType
     ImageNotSupport,
 
     /// <summary>
+    /// Selected model does not support "temperature" customization or the provided value is out of range.
+    /// </summary>
+    TemperatureNotSupport,
+
+    /// <summary>
+    /// Selected model does not support "top_p" customization or the provided value is out of range.
+    /// </summary>
+    TopPNotSupport,
+
+    /// <summary>
     /// Service does not support requests from your current region or location.
     /// </summary>
     RegionNotSupport,
@@ -716,6 +726,8 @@ public class HandledChatException(
                         HandledChatExceptionType.EmptyResponse => LocaleKey.HandledChatException_EmptyResponse,
                         HandledChatExceptionType.FeatureNotSupport => LocaleKey.HandledChatException_FeatureNotSupport,
                         HandledChatExceptionType.ImageNotSupport => LocaleKey.HandledChatException_ImageNotSupport,
+                        HandledChatExceptionType.TemperatureNotSupport => LocaleKey.HandledChatException_TemperatureNotSupport,
+                        HandledChatExceptionType.TopPNotSupport => LocaleKey.HandledChatException_TopPNotSupport,
                         HandledChatExceptionType.RegionNotSupport => LocaleKey.HandledChatException_RegionNotSupport,
                         HandledChatExceptionType.Timeout => LocaleKey.HandledChatException_Timeout,
                         HandledChatExceptionType.NetworkError => LocaleKey.HandledChatException_NetworkError,
@@ -848,6 +860,16 @@ public class HandledChatException(
             if (message.Contains("image_url", StringComparison.OrdinalIgnoreCase))
             {
                 return HandledChatExceptionType.ImageNotSupport;
+            }
+
+            if (message.Contains("temperature", StringComparison.OrdinalIgnoreCase))
+            {
+                return HandledChatExceptionType.TemperatureNotSupport;
+            }
+
+            if (message.Contains("top_p", StringComparison.OrdinalIgnoreCase) || message.Contains("topP", StringComparison.OrdinalIgnoreCase) )
+            {
+                return HandledChatExceptionType.TopPNotSupport;
             }
 
             if (message.Contains("region", StringComparison.OrdinalIgnoreCase) ||

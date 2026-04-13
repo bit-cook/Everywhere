@@ -2620,4 +2620,10 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ConsentDecisionCard_ReasonTextBox_Watermark" xml:space="preserve">
         <value />
     </data>
+    <data name="HandledChatException_TemperatureNotSupport" xml:space="preserve">
+        <value />
+    </data>
+    <data name="HandledChatException_TopPNotSupport" xml:space="preserve">
+        <value />
+    </data>
 </root>

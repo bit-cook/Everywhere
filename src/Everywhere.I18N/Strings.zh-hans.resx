@@ -2615,4 +2615,10 @@
     <data name="ConsentDecisionCard_ReasonTextBox_Watermark" xml:space="preserve">
         <value>输入拒绝原因</value>
     </data>
+    <data name="HandledChatException_TemperatureNotSupport" xml:space="preserve">
+        <value>模型不支持 tempurature 参数，或者参数超出模型范围。恢复到默认值可以解决此问题。</value>
+    </data>
+    <data name="HandledChatException_TopPNotSupport" xml:space="preserve">
+        <value>模型不支持 top_p 参数，或者参数超出模型范围。恢复到默认值可以解决此问题。</value>
+    </data>
 </root>
