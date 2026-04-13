@@ -18,9 +18,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Everywhere.Cloud;
 
-public sealed record UserProfileUpdatedMessage(UserProfile? NewProfile);
+public sealed record UserProfileUpdatedMessage;
 
-public sealed record SubscriptionInformationUpdatedMessage(SubscriptionInformation? NewSubscription);
+public sealed record SubscriptionInformationUpdatedMessage;
 
 public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncInitializer, IRecipient<ApplicationMessage>
 {
@@ -50,6 +50,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
 
     // Concurrency control for the UI entry point to prevent multiple login windows
     private readonly SemaphoreSlim _loginLock = new(1, 1);
+    private readonly SemaphoreSlim _userDataLock = new(1, 1); // Prevent concurrent user data refreshes
 
     public OAuthCloudClient(IHttpClientFactory httpClientFactory, ILogger<OAuthCloudClient> logger)
     {
@@ -123,31 +124,51 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
 
     public async Task ReloadUserDataAsync(CancellationToken cancellationToken)
     {
-        // Ensure we have valid tokens, triggering a refresh if necessary.
-        // According to BetterAuth docs, /userinfo needs to be authenticated with the Access Token (Opaque), not the ID token (JWT).
-        var tokenData = await _session.GetValidTokenDataAsync(cancellationToken);
-        var accessToken = tokenData?.AccessToken;
+        if (!await _userDataLock.WaitAsync(0, cancellationToken)) return; // Prevent concurrent refreshes
 
-        if (string.IsNullOrEmpty(accessToken))
+        try
         {
-            throw new UserNotLoginException("Cannot refresh user profile without an access token.");
+            // Ensure we have valid tokens, triggering a refresh if necessary.
+            // According to BetterAuth docs, /userinfo needs to be authenticated with the Access Token (Opaque), not the ID token (JWT).
+            var tokenData = await _session.GetValidTokenDataAsync(cancellationToken);
+            var accessToken = tokenData?.AccessToken;
+
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                throw new UserNotLoginException("Cannot refresh user profile without an access token.");
+            }
+
+            using var httpClient = _httpClientFactory.CreateClient();
+
+            var request = new HttpRequestMessage(HttpMethod.Get, UserInfoEndpoint);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await httpClient.SendAsync(request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            UserProfile = await response.Content.ReadFromJsonAsync<UserProfile>(
+                UserProfileJsonSerializerContext.Default.Options,
+                cancellationToken: cancellationToken);
+            WeakReferenceMessenger.Default.Send(new UserProfileUpdatedMessage());
+
+            // The subscription info is not included in the user profile response, so we need a separate call.
+            await RefreshSubscriptionAsync(cancellationToken);
+
+            // Add a 3 second debounce
+            await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken);
         }
-
-        using var httpClient = _httpClientFactory.CreateClient();
-
-        var request = new HttpRequestMessage(HttpMethod.Get, UserInfoEndpoint);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-        var response = await httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
-
-        UserProfile = await response.Content.ReadFromJsonAsync<UserProfile>(
-            UserProfileJsonSerializerContext.Default.Options,
-            cancellationToken: cancellationToken);
-        WeakReferenceMessenger.Default.Send(new UserProfileUpdatedMessage(UserProfile));
-
-        // The subscription info is not included in the user profile response, so we need a separate call.
-        await RefreshSubscriptionAsync(cancellationToken);
+        catch (OperationCanceledException)
+        {
+            // ignore
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to refresh user profile.");
+        }
+        finally
+        {
+            _userDataLock.Release();
+        }
     }
 
     private async Task RefreshSubscriptionAsync(CancellationToken cancellationToken)
@@ -163,7 +184,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             cancellationToken);
 
         Subscription = payload.EnsureData();
-        WeakReferenceMessenger.Default.Send(new SubscriptionInformationUpdatedMessage(Subscription));
+        WeakReferenceMessenger.Default.Send(new SubscriptionInformationUpdatedMessage());
 
         if (Subscription.Plan == SubscriptionPlan.Banned)
         {

@@ -2232,7 +2232,7 @@
         <value>正在同步...</value>
     </data>
     <data name="WelcomeView_SoftLoginStep_SkipButton_Content" xml:space="preserve">
-        <value>我想使用自己的 API 密钥</value>
+        <value>我要自己配置模型</value>
     </data>
     <data name="HandledChatException_RegionNotSupport" xml:space="preserve">
         <value>服务不支持当前所在地区或位置的请求。</value>
