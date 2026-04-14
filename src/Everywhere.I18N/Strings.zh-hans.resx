@@ -2630,4 +2630,7 @@
     <data name="ChatPluginPage_EmptyContent_SelectInstruction" xml:space="preserve">
         <value>在左侧选择一个项目查看详情</value>
     </data>
+    <data name="IconEditor_SearchBox_Watermark" xml:space="preserve">
+        <value>搜索...</value>
+    </data>
 </root>

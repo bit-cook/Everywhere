@@ -97,6 +97,10 @@
     </AvaloniaResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Assets\EmojiBase\" />
+  </ItemGroup>
+
   <Import Project="..\Build.Generate.Telemetry.targets"/>
   <Import Project="..\Build.Generate.Cloud.targets"/>
 

@@ -1,29 +1,28 @@
-﻿using Avalonia.Controls;
+﻿using System.Collections.ObjectModel;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+using System.Reactive.Linq;
+using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Avalonia.Platform;
+using DynamicData;
 using Everywhere.Common;
+using FuzzySharp;
 using Lucide.Avalonia;
+using MessagePack;
+using Serilog;
+using ZLinq;
 
 namespace Everywhere.Views;
 
+[MessagePackObject]
+public readonly partial record struct EmojiEntry([property: Key(0)] string Emoji, [property: Key(1)] IReadOnlyList<string> Tags);
+
 [TemplatePart(Name = "PART_IconTypeTabControl", Type = typeof(TabControl))]
-public class IconEditor : TemplatedControl
+public sealed class IconEditor : TemplatedControl
 {
-    public static IReadOnlyList<LucideIconKind> AvailableKinds => Enum.GetValues<LucideIconKind>();
-
-    public static IReadOnlyList<string> AvailableEmojis =>
-    [
-        "🧠", "🤖", "💭", "🧩", "🧮", "🧑‍💻", "👩‍💻", "👨‍💻", "🧑‍🔬", "👩‍🔬", "👨‍🔬", "🧑‍🏫", "💡", "🪄", "⚙️", "💾", "💻", "🖥️", "🧱", "🧰",
-        "📡", "🛰️", "🧬", "📟", "⌨️", "🔌", "🧲", "💬", "🗨️", "🗯️", "📣", "🗣️", "📝", "✏️", "📖", "📰", "🔤", "🔠", "🔡", "🌐",
-        "🌏", "☁️", "📶", "💫", "🔗", "🧭", "🔮", "🎨", "✨", "🌟", "🎆", "🎇", "🧚‍♂️", "🧞", "🧑‍🎨", "👩‍🎨", "👩‍🏫", "🧑‍🚀", "👩‍🚀", "🤝",
-        "💁‍♀️", "💁‍♂️", "📊", "📈", "📉", "🧾", "📋", "🗂️", "🗃️", "🔬", "⚗️", "🧫", "🧪", "🎛️", "🪫", "🔋", "🖲️", "💞", "🌸", "🌈",
-        "🪐", "🌍", "🌎", "🥳", "🤩", "🫤", "😡", "🥵", "😅", "🤔", "😋", "🤣", "😄", "😁", "😂", "😉", "😎", "😘", "🥰", "🤗",
-        "🤔", "🫡", "🤨", "😐", "😑", "😶", "🫥", "😶‍🌫️", "🙄", "😏", "😣", "😥", "😮", "🤐", "😯", "😪", "😫", "🥱", "😴", "😌",
-        "😛", "😜", "😝", "🤤", "😒", "😓", "😔", "😕", "🫤", "🙃", "🫠", "🤑", "😲", "☹️", "🙁", "😞", "😖", "😟", "😤", "😢",
-        "😭", "😦", "😧", "😨", "😩", "🤯", "😬", "😮‍💨", "😰"
-    ];
-
     public static readonly StyledProperty<ColoredIcon?> IconProperty = AvaloniaProperty.Register<IconEditor, ColoredIcon?>(nameof(Icon));
 
     public ColoredIcon? Icon
@@ -32,8 +31,118 @@ public class IconEditor : TemplatedControl
         set => SetValue(IconProperty, value);
     }
 
+    public static readonly DirectProperty<IconEditor, ReadOnlyObservableCollection<LucideIconKind>> LucideItemsSourceProperty =
+        AvaloniaProperty.RegisterDirect<IconEditor, ReadOnlyObservableCollection<LucideIconKind>>(
+            nameof(LucideItemsSource),
+            o => o.LucideItemsSource);
+
+    public ReadOnlyObservableCollection<LucideIconKind> LucideItemsSource { get; }
+
+    public static readonly DirectProperty<IconEditor, ReadOnlyObservableCollection<string>> EmojiItemsSourceProperty =
+        AvaloniaProperty.RegisterDirect<IconEditor, ReadOnlyObservableCollection<string>>(
+            nameof(EmojiItemsSource),
+            o => o.EmojiItemsSource);
+
+    public ReadOnlyObservableCollection<string> EmojiItemsSource { get; }
+
+    public static readonly StyledProperty<string?> QueryTextProperty = AvaloniaProperty.Register<IconEditor, string?>(nameof(QueryText));
+
+    public string? QueryText
+    {
+        get => GetValue(QueryTextProperty);
+        set => SetValue(QueryTextProperty, value);
+    }
+
+    private static readonly IReadOnlyList<(LucideIconKind Kind, string Name)> CachedLucideIcons =
+        Enum.GetValues<LucideIconKind>()
+            .AsValueEnumerable()
+            .Select(x => (Kind: x, Name: x.ToString()))
+            .ToList();
+
+    private readonly SourceList<LucideIconKind> _lucideItemsSourceList = new();
+    private readonly SourceList<string> _emojiItemsSourceList = new();
+    private readonly CompositeDisposable _disposables = new(1);
+
     private IDisposable? _iconTypeTabControlSelectionChangedSubscription;
     private TabControl? _iconTypeTabControl;
+
+    public IconEditor()
+    {
+        LucideItemsSource = _lucideItemsSourceList
+            .Connect()
+            .ObserveOnAvaloniaDispatcher()
+            .BindEx(_disposables);
+        EmojiItemsSource = _emojiItemsSourceList
+            .Connect()
+            .ObserveOnAvaloniaDispatcher()
+            .BindEx(_disposables);
+
+        EmojiSearchEngine.Shared.LoadDictionariesAsync(LocaleManager.CurrentLocale).ContinueWith(_ =>
+        {
+            this.GetObservable(QueryTextProperty)
+                .Select(q => q ?? string.Empty)
+                .DistinctUntilChanged()
+                .Throttle(TimeSpan.FromMilliseconds(200))
+                .Select(query => Observable.FromAsync(token => PerformSearchAsync(query, token)))
+                .Switch()
+                .ObserveOnAvaloniaDispatcher()
+                .Subscribe(results =>
+                {
+                    _lucideItemsSourceList.Edit(list =>
+                    {
+                        list.Clear();
+                        if (Icon?.Kind is { } kind)
+                        {
+                            list.Add(kind); // Put selected item first
+                            list.AddRange(results.Lucide.Where(k => k != kind));
+                        }
+                        else
+                        {
+                            list.AddRange(results.Lucide);
+                        }
+                    });
+
+                    _emojiItemsSourceList.Edit(list =>
+                    {
+                        list.Clear();
+                        if (Icon?.Text is { } text)
+                        {
+                            list.Add(text); // Put selected item first
+                            list.AddRange(results.Emoji.Where(e => !e.Equals(text, StringComparison.OrdinalIgnoreCase)));
+                        }
+                        else
+                        {
+                            list.AddRange(results.Emoji);
+                        }
+                    });
+                })
+                .DisposeWith(_disposables);
+        }).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
+    }
+
+    private async Task<(IEnumerable<LucideIconKind> Lucide, IEnumerable<string> Emoji)> PerformSearchAsync(
+        string query,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return (CachedLucideIcons.Select(x => x.Kind), EmojiSearchEngine.Shared.GetDefaultView());
+        }
+
+        return await Task.Run(
+            () =>
+            {
+                var lucideResults = CachedLucideIcons
+                    .Where(x => x.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    .Select(x => x.Kind);
+                var emojiResults = EmojiSearchEngine.Shared.Search(query, cancellationToken: cancellationToken);
+
+                return (lucideResults, emojiResults);
+            },
+            cancellationToken);
+    }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
@@ -66,5 +175,158 @@ public class IconEditor : TemplatedControl
         if (_iconTypeTabControl?.Items is not IEnumerable items) return;
         var tabItem = items.OfType<TabItem>().FirstOrDefault(ti => ti.Tag is ColoredIconType t && t == type);
         if (tabItem != null) _iconTypeTabControl.SelectedItem = tabItem;
+    }
+
+    private sealed class EmojiSearchEngine
+    {
+        public static EmojiSearchEngine Shared { get; } = new();
+
+        private volatile IReadOnlyList<EmojiEntry> _database = [];
+        private LocaleName? _lastLoadedLocale;
+        private readonly SemaphoreSlim _loadLock = new(1, 1);
+
+        public async Task LoadDictionariesAsync(LocaleName locale)
+        {
+            if (_lastLoadedLocale == locale) return;
+
+            await _loadLock.WaitAsync();
+            try
+            {
+                if (_lastLoadedLocale == locale) return;
+
+                var newDatabase = await Task.Run(() =>
+                {
+                    var defaultUri = new Uri("avares://Everywhere.Core/Assets/EmojiBase/En.bin");
+                    var defaultData = LoadEmojiEntries(defaultUri);
+                    if (defaultData is null)
+                    {
+                        Log.ForContext<EmojiSearchEngine>().Error("Failed to load default emoji dictionary from {Uri}", defaultUri);
+                        return null;
+                    }
+                    if (locale == LocaleName.En)
+                    {
+                        return null;
+                    }
+
+                    var localizedUri = new Uri(
+                        $"avares://Everywhere.Core/Assets/EmojiBase/{locale switch {
+                            LocaleName.ZhHans => "Zh",
+                            LocaleName.ZhHantHk => "ZhHant",
+                            _ => locale.ToString()
+                        }}.bin");
+                    var localizedData = LoadEmojiEntries(localizedUri);
+                    if (localizedData is null)
+                    {
+                        return defaultData;
+                    }
+
+                    var newDatabase = new List<EmojiEntry>(defaultData.Count);
+                    var defaultDictionary = defaultData.AsValueEnumerable().ToDictionary(x => x.Emoji, x => x);
+                    foreach (var entry in localizedData)
+                    {
+                        var combinedTags = new List<string>(entry.Tags);
+                        if (defaultDictionary.TryGetValue(entry.Emoji, out var enItem))
+                        {
+                            combinedTags.AddRange(enItem.Tags);
+                        }
+                        newDatabase.Add(
+                            entry with
+                            {
+                                Tags = combinedTags
+                            });
+                    }
+
+                    return newDatabase;
+                });
+
+                if (newDatabase != null)
+                {
+                    _database = newDatabase;
+                    _lastLoadedLocale = locale;
+                }
+            }
+            finally
+            {
+                _loadLock.Release();
+            }
+        }
+
+        public IEnumerable<string> GetDefaultView() => _database.Select(e => e.Emoji);
+
+        public IEnumerable<string> Search(string query, int limit = 50, CancellationToken cancellationToken = default)
+        {
+            query = query.Trim();
+            var results = new List<(string Emoji, int Score)>(limit);
+            var checkCounter = 0;
+
+            foreach (var entry in _database)
+            {
+                if ((++checkCounter & 127) == 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                }
+
+                if (entry.Emoji.Equals(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    results.Add((entry.Emoji, 100));
+                    continue;
+                }
+
+                var maxScore = 0;
+                foreach (var tag in entry.Tags)
+                {
+                    if (tag.Equals(query, StringComparison.OrdinalIgnoreCase))
+                    {
+                        maxScore = 100;
+                        break;
+                    }
+
+                    if (tag.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+                    {
+                        maxScore = Math.Max(maxScore, 90);
+                    }
+                    else if (tag.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    {
+                        maxScore = Math.Max(maxScore, 80);
+                    }
+                    else
+                    {
+                        var fuzzyScore = Fuzz.PartialRatio(query, tag);
+                        if (fuzzyScore > 60)
+                        {
+                            maxScore = Math.Max(maxScore, (int)(fuzzyScore * 0.8));
+                        }
+                    }
+                }
+
+                if (maxScore > 0)
+                {
+                    results.Add((entry.Emoji, maxScore));
+                }
+            }
+
+            return results
+                .AsValueEnumerable()
+                .OrderByDescending(x => x.Score)
+                .Take(limit)
+                .Select(x => x.Emoji)
+                .ToList();
+        }
+
+        private static IReadOnlyList<EmojiEntry>? LoadEmojiEntries(Uri uri)
+        {
+            if (!AssetLoader.Exists(uri)) return null;
+
+            try
+            {
+                using var stream = AssetLoader.Open(uri);
+                return MessagePackSerializer.Deserialize<IReadOnlyList<EmojiEntry>>(stream);
+            }
+            catch (Exception ex)
+            {
+                Log.ForContext<EmojiSearchEngine>().Error(ex, "Failed to load emoji dictionary from {Uri}", uri);
+                return null;
+            }
+        }
     }
 }

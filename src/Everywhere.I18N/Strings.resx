@@ -2635,4 +2635,7 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatPluginPage_EmptyContent_SelectInstruction" xml:space="preserve">
         <value />
     </data>
+    <data name="IconEditor_SearchBox_Watermark" xml:space="preserve">
+        <value />
+    </data>
 </root>
