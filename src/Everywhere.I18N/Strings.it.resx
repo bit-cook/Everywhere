@@ -512,9 +512,6 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>Il modello supporta il pensiero profondo prima di rispondere. Se il modello non lo supporta, attivare questa opzione potrebbe causare errori durante la conversazione.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Supporto per Pensiero Profondo</value>
-    </data>
     <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
         <value>Lunghezza massima del contesto della conversazione (context_limit). Questo influenzerà la strategia per costruire il contesto visivo, impostalo il più possibile su un valore reale.</value>
     </data>

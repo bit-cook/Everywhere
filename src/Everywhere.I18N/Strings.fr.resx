@@ -512,9 +512,6 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>Le modèle prend en charge la réflexion avant de répondre. Si le modèle ne prend pas en charge cette option, l'activer peut entraîner des erreurs lors des conversations.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Support de la réflexion approfondie</value>
-    </data>
     <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
         <value>Longueur maximale du contexte de la conversation (context_limit). Cela influencera la stratégie de construction du contexte visuel, veuillez le définir autant que possible à une valeur réelle.</value>
     </data>

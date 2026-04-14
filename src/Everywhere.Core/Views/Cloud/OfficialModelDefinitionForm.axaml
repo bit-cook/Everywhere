@@ -238,7 +238,7 @@
                     </Border>
                     <Border
                       Grid.Row="0" Grid.Column="1">
-                      <TextBlock Text="{Binding SelectedItem.InputModalities, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                      <v:ModalitiesPresenter Modalities="{Binding SelectedItem.InputModalities, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
                     </Border>
                     <Border
                       Classes="Header" Grid.Row="1"
@@ -247,7 +247,7 @@
                     </Border>
                     <Border
                       Grid.Row="1" Grid.Column="1">
-                      <TextBlock Text="{Binding SelectedItem.SupportsReasoning, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                      <TextBlock Text="{Binding SelectedItem.SupportsReasoning, Converter={x:Static vc:BooleanToEmojiConverter.Shared}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
                     </Border>
                     <Border
                       Classes="Header" Grid.Row="2"
@@ -283,7 +283,7 @@
                     </Border>
                     <Border
                       Grid.Row="0" Grid.Column="1">
-                      <TextBlock Text="{Binding SelectedItem.OutputModalities, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                      <v:ModalitiesPresenter Modalities="{Binding SelectedItem.OutputModalities, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
                     </Border>
                     <Border
                       Classes="Header" Grid.Row="1"

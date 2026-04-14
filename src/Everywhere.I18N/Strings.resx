@@ -534,7 +534,7 @@
         <value>The model supports thinking before answering. Enabling this option may cause errors during conversation if the model does not support it.</value>
     </data>
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Deep Thinking Support</value>
+        <value>Deep Thinking</value>
     </data>
     <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
         <value>Maximum context length for the conversation (context_limit). This will affect the strategy for building visual context, so please set it to a realistic value.</value>

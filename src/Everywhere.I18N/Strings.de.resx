@@ -511,9 +511,6 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>Das Modell unterstützt zuerst Denken, dann Antworten. Wenn das Modell dies nicht unterstützt, kann das Aktivieren dieser Option zu Fehlern im Gespräch führen.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Unterstützung für tiefes Denken</value>
-    </data>
     <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
         <value>Maximale Kontextlänge der Konversation (context_limit). Dies beeinflusst die Strategie zum Aufbau des visuellen Kontexts, bitte so realistisch wie möglich einstellen.</value>
     </data>

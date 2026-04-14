@@ -512,9 +512,6 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>Модель поддерживает предварительное обдумывание перед ответом. Если модель не поддерживает, включение этой опции может привести к ошибкам в диалоге.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Поддержка глубокого мышления</value>
-    </data>
     <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
         <value>Максимальная длина контекста диалога (context_limit). Это повлияет на стратегию построения визуального контекста, постарайтесь установить реальное значение.</value>
     </data>

@@ -534,7 +534,7 @@
         <value>模型支持先思考再回答。如果模型不支持，开启此选项可能会导致对话时出现错误。</value>
     </data>
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>支持深度思考</value>
+        <value>深度思考</value>
     </data>
     <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
         <value>对话的最大上下文长度 (context_limit)。此项会影响构建视觉上下文的策略，请尽可能设为真实值。</value>
@@ -2544,7 +2544,7 @@
         <value>请选择一个模型来查看详细信息。我会持续更新来跟进最新模型。</value>
     </data>
     <data name="OfficialModelDefinitionForm_DeprecationToast_Text" xml:space="preserve">
-        <value>当前模型预计于 {0} 下架。</value>
+        <value>当前模型预计于 {0} 下架</value>
     </data>
     <data name="ChatWindowSettings_EnableVisualElementPickAnimation_Header" xml:space="preserve">
         <value>元素飞入特效</value>

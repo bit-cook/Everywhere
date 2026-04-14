@@ -512,9 +512,6 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>모델은 먼저 생각한 후 답변을 지원합니다. 모델이 지원하지 않는 경우 이 옵션을 활성화하면 대화 중 오류가 발생할 수 있습니다.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>심층 사고 지원</value>
-    </data>
     <data name="CustomAssistant_ContextLimit_Description" xml:space="preserve">
         <value>대화의 최대 컨텍스트 길이 (context_limit). 이 값은 시각적 컨텍스트를 구축하는 전략에 영향을 미치므로 가능한 실제 값으로 설정하세요.</value>
     </data>
