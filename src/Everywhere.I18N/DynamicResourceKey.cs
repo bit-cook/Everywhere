@@ -24,6 +24,8 @@ public partial interface IDynamicResourceKey : IObservable<object?>
     /// <summary>
     /// Just returns this, since Avalonia do not support {Binding .^} nor default implement of interface
     /// </summary>
+    [JsonIgnore]
+    [IgnoreMember]
     IDynamicResourceKey Self { get; }
 }
 
