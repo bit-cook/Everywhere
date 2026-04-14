@@ -20,6 +20,21 @@ public static class DynamicDataExtension
     /// <param name="source"></param>
     /// <param name="data"></param>
     /// <typeparam name="T"></typeparam>
+    public static void Reset<T>(this ISourceList<T> source, IEnumerable<T> data) where T : notnull
+    {
+        source.Edit(list =>
+        {
+            list.Clear();
+            list.AddRange(data);
+        });
+    }
+
+    /// <summary>
+    /// Clears the source list and adds the new data.
+    /// </summary>
+    /// <param name="source"></param>
+    /// <param name="data"></param>
+    /// <typeparam name="T"></typeparam>
     public static void Reset<T>(this IExtendedList<T> source, IEnumerable<T> data)
     {
         source.Clear();

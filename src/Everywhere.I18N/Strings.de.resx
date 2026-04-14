@@ -1029,9 +1029,6 @@ Im Prompt können Platzhalter verwendet werden, die in {} enthalten sind und vor
     <data name="HandledSystemException_SSLConnectionError" xml:space="preserve">
         <value>Die SSL-Verbindung konnte nicht hergestellt werden. Bitte überprüfen Sie Ihre Netzwerkeinstellungen oder das Zertifikat.</value>
     </data>
-    <data name="HandledSystemException_ConnectionRefused" xml:space="preserve">
-        <value>Die Verbindung wurde vom Server verweigert. Bitte überprüfen Sie, ob der Dienst läuft und erreichbar ist.</value>
-    </data>
     <data name="HandledSystemException_HostNotFound" xml:space="preserve">
         <value>Der Host konnte nicht gefunden werden. Bitte überprüfen Sie die Adresse und Ihre Netzwerkverbindung.</value>
     </data>

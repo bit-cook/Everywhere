@@ -12,6 +12,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Extensions;
+using Everywhere.I18N;
 using Everywhere.Messages;
 using GnomeStack.Os.Secrets;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,12 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
     [ObservableProperty]
     public partial SubscriptionInformation? Subscription { get; private set; }
 
+    [ObservableProperty]
+    public partial CloudClientLoginStatus LoginStatus { get; set; }
+
+    [ObservableProperty]
+    public partial IDynamicResourceKey? LastLoginErrorKey { get; private set; }
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OAuthCloudClient> _logger;
 
@@ -68,14 +75,17 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
 
         try
         {
-            // 1. Attempt silent login/refresh first using existing session
-            if (await _session.GetValidTokenDataAsync(cancellationToken) != null)
+            LastLoginErrorKey = null;
+
+            if (await _session.GetValidTokenDataAsync(true, cancellationToken) != null)
             {
-                await ReloadUserDataAsync(cancellationToken);
+                LoginStatus = CloudClientLoginStatus.AutoLoggingIn;
+                await ReloadUserDataAsync(true, cancellationToken);
+                LoginStatus = CloudClientLoginStatus.LoggedIn;
                 return;
             }
 
-            // 2. Start interactive OAuth flow
+            LoginStatus = CloudClientLoginStatus.NotLoggedIn;
             using var flow = new InteractiveOAuthFlow(_httpClientFactory, cancellationToken);
             _activeAuthFlow = flow; // Expose to the message receiver for URL callbacks
 
@@ -86,18 +96,25 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             // Wait for the OS protocol callback or timeout (managed entirely within the flow context)
             var tokenData = await flow.WaitForCodeAndExchangeAsync();
 
-            // 3. Save the new session and fetch user data
             _session.SetToken(tokenData);
-            await ReloadUserDataAsync(cancellationToken);
+            await ReloadUserDataAsync(true, cancellationToken);
+
+            LoginStatus = CloudClientLoginStatus.LoggedIn;
         }
         catch (OperationCanceledException)
         {
-            _logger.LogInformation("User cancelled the login process or it timed out.");
+            // Ignore
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to complete login flow.");
-            _session.Clear();
+            // Don't clear the existing session here - the refresh token from a previous
+            // successful login may still be valid. Clearing it would force the user to
+            // re-authenticate even if only the interactive flow failed (e.g., timeout,
+            // browser error, network glitch during the new flow).
+
+            LoginStatus = CloudClientLoginStatus.LoginFailed;
+            LastLoginErrorKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
         }
         finally
         {
@@ -122,7 +139,9 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         }
     }
 
-    public async Task ReloadUserDataAsync(CancellationToken cancellationToken)
+    Task ICloudClient.ReloadUserDataAsync(CancellationToken cancellationToken) => ReloadUserDataAsync(false, cancellationToken);
+
+    private async Task ReloadUserDataAsync(bool throwOnError, CancellationToken cancellationToken)
     {
         if (!await _userDataLock.WaitAsync(0, cancellationToken)) return; // Prevent concurrent refreshes
 
@@ -130,7 +149,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         {
             // Ensure we have valid tokens, triggering a refresh if necessary.
             // According to BetterAuth docs, /userinfo needs to be authenticated with the Access Token (Opaque), not the ID token (JWT).
-            var tokenData = await _session.GetValidTokenDataAsync(cancellationToken);
+            var tokenData = await _session.GetValidTokenDataAsync(true, cancellationToken);
             var accessToken = tokenData?.AccessToken;
 
             if (string.IsNullOrEmpty(accessToken))
@@ -161,7 +180,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         {
             // ignore
         }
-        catch (Exception ex)
+        catch (Exception ex) when (!throwOnError)
         {
             _logger.LogError(ex, "Failed to refresh user profile.");
         }
@@ -215,32 +234,40 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
     public Task InitializeAsync()
     {
         // Fire and forget the initialization to avoid blocking app startup.
-        InitializeInternalAsync().Detach();
+        InitializeCoreAsync().Detach();
         return Task.CompletedTask;
     }
 
-    private async Task InitializeInternalAsync()
+    private async Task InitializeCoreAsync()
     {
         if (!await _loginLock.WaitAsync(0)) return; // Prevent reentry for initialization
 
         try
         {
+            LoginStatus = CloudClientLoginStatus.AutoLoggingIn;
             _session.LoadFromVault();
 
             // Try to refresh token and restore user data silently if a refresh token exists
             if (_session.HasRefreshToken)
             {
-                var tokenData = await _session.GetValidTokenDataAsync(CancellationToken.None);
-                if (tokenData != null)
+                var tokenData = await _session.GetValidTokenDataAsync(true, CancellationToken.None);
+                if (tokenData is not null)
                 {
-                    await ReloadUserDataAsync(CancellationToken.None);
+                    await ReloadUserDataAsync(true, CancellationToken.None);
+                    LoginStatus = CloudClientLoginStatus.LoggedIn;
+                    return;
                 }
             }
+
+            LoginStatus = CloudClientLoginStatus.NotLoggedIn;
         }
         catch (Exception ex)
         {
             // Expected if the user has never logged in or if stored tokens are invalid/expired.
             _logger.LogInformation(ex, "Silent login failed during initialization.");
+
+            LoginStatus = CloudClientLoginStatus.LoginFailed;
+            LastLoginErrorKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
         }
         finally
         {
@@ -439,7 +466,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             }
         }
 
-        public void Clear()
+        private void Clear()
         {
             _tokenData = null;
             try
@@ -456,7 +483,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         /// Ensures the current token data is valid. If it's nearing expiry, automatically triggers a refresh.
         /// Returns the latest TokenData object, allowing callers to extract IdToken or AccessToken as needed.
         /// </summary>
-        public async Task<TokenData?> GetValidTokenDataAsync(CancellationToken cancellationToken)
+        public async Task<TokenData?> GetValidTokenDataAsync(bool throwOnError, CancellationToken cancellationToken)
         {
             if (_tokenData is null) return null;
 
@@ -464,11 +491,11 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             if (!_tokenData.IsTokenExpiredOrNearingExpiry) return _tokenData;
 
             // If it's expired or nearing expiry, attempt to refresh it
-            var refreshed = await TryRefreshAsync(cancellationToken);
+            var refreshed = await TryRefreshAsync(throwOnError, cancellationToken);
             return refreshed ? _tokenData : null;
         }
 
-        public async Task<bool> TryRefreshAsync(CancellationToken cancellationToken)
+        public async Task<bool> TryRefreshAsync(bool throwOnError, CancellationToken cancellationToken)
         {
             if (!HasRefreshToken) return false;
 
@@ -495,14 +522,14 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
                 SetToken(newTokenData);
                 return true;
             }
-            catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.BadRequest)
+            catch (HttpRequestException ex) when (!throwOnError && ex.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.BadRequest)
             {
                 // Refresh token is explicitly rejected by the server (e.g., revoked, expired)
                 logger.LogWarning(ex, "Refresh token rejected by server. Clearing local session.");
                 Clear();
                 return false;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!throwOnError)
             {
                 // Network errors or other transient issues. Keep the current session, it might recover later.
                 logger.LogWarning(ex, "Token refresh failed due to network or unknown error.");
@@ -552,7 +579,10 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
     /// <summary>
     /// Shared HTTP logic for requesting tokens (used by both initial exchange and refresh).
     /// </summary>
-    private static async Task<TokenData> RequestTokenInternalAsync(IHttpClientFactory factory, Dictionary<string, string> parameters, CancellationToken ct)
+    private static async Task<TokenData> RequestTokenInternalAsync(
+        IHttpClientFactory factory,
+        Dictionary<string, string> parameters,
+        CancellationToken ct)
     {
         using var httpClient = factory.CreateClient();
         var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint)
@@ -580,7 +610,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             // 1. Proactively get a valid token data and extract the IdToken (JWT)
-            var tokenData = await session.GetValidTokenDataAsync(cancellationToken);
+            var tokenData = await session.GetValidTokenDataAsync(false, cancellationToken);
             var idToken = tokenData?.IdToken;
 
             if (string.IsNullOrEmpty(idToken))
@@ -605,7 +635,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             logger.LogDebug("Received 401 Unauthorized, attempting to force refresh token...");
 
             // 2. If we get a 401, the server might have invalidated the token early. Force a refresh.
-            var refreshed = await session.TryRefreshAsync(cancellationToken);
+            var refreshed = await session.TryRefreshAsync(false, cancellationToken);
             if (!refreshed) return response;
 
             // 3. Extract the new IdToken after successful refresh

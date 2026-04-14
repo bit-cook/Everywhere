@@ -1,6 +1,15 @@
 ﻿using System.ComponentModel;
+using Everywhere.I18N;
 
 namespace Everywhere.Cloud;
+
+public enum CloudClientLoginStatus
+{
+    NotLoggedIn,
+    LoggedIn,
+    AutoLoggingIn,
+    LoginFailed
+}
 
 /// <summary>
 /// Interface for cloud client operations, handling authentication and user profile management.
@@ -19,6 +28,16 @@ public interface ICloudClient : INotifyPropertyChanged
     /// This property raises <see cref="INotifyPropertyChanged.PropertyChanged"/> when updated.
     /// </summary>
     SubscriptionInformation? Subscription { get; }
+
+    /// <summary>
+    /// Gets the current login status of the cloud client, indicating whether the user is logged in, logging in, or if a login attempt has failed.
+    /// </summary>
+    CloudClientLoginStatus LoginStatus { get; }
+
+    /// <summary>
+    /// Gets the resource key for the last error message encountered during login or data retrieval operations. Returns null if there are no errors.
+    /// </summary>
+    IDynamicResourceKey? LastLoginErrorKey { get; }
 
     /// <summary>
     /// Initiates the OAuth 2.0 (PKCE) login flow.

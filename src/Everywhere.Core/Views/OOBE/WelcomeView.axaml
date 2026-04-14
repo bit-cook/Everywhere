@@ -1,12 +1,11 @@
 <UserControl
   x:Class="Everywhere.Views.WelcomeView" xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ai="clr-namespace:Everywhere.AI"
-  xmlns:configurator="clr-namespace:Everywhere.AI.Configurator" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-  xmlns:in="clr-namespace:Everywhere.Interactions" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="clr-namespace:Everywhere.Views"
-  xmlns:vm="clr-namespace:Everywhere.ViewModels" d:DesignHeight="450"
-  d:DesignWidth="800" x:DataType="vm:WelcomeViewModel"
-  mc:Ignorable="d">
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:configurator="clr-namespace:Everywhere.AI.Configurator"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:in="clr-namespace:Everywhere.Interactions"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
+  xmlns:v="clr-namespace:Everywhere.Views" xmlns:vm="clr-namespace:Everywhere.ViewModels"
+  d:DesignHeight="450" d:DesignWidth="800"
+  x:DataType="vm:WelcomeViewModel" mc:Ignorable="d">
   <Grid
     Width="800" MinHeight="600"
     Margin="0,0,0,16" ColumnDefinitions="Auto,*"
@@ -131,9 +130,7 @@
 
             <v:UserProfileCard
               Width="240" Margin="8"
-              HorizontalAlignment="Left" ShowActionsButton="False"
-              Subscription="{Binding ViewModel.CloudClient.Subscription}"
-              UserProfile="{Binding ViewModel.CloudClient.UserProfile}"/>
+              HorizontalAlignment="Left" ShowActionsButton="False"/>
           </ListBox>
         </DataTemplate>
 
@@ -154,9 +151,7 @@
 
             <v:UserProfileCard
               Width="240" Margin="8"
-              HorizontalAlignment="Left" ShowActionsButton="False"
-              Subscription="{Binding ViewModel.CloudClient.Subscription}"
-              UserProfile="{Binding ViewModel.CloudClient.UserProfile}"/>
+              HorizontalAlignment="Left" ShowActionsButton="False"/>
           </ListBox>
         </DataTemplate>
 

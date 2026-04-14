@@ -76,7 +76,7 @@ public sealed partial class OfficialModelProvider :
 
             var cloudModelDefinitions = payload.EnsureData();
             var result = cloudModelDefinitions.AsValueEnumerable().Select(m => m.ToModelDefinitionTemplate()).ToList();
-            _modelDefinitionsSource.Edit(list => list.Reset(result));
+            _modelDefinitionsSource.Reset(result);
             _persistentState.OfficialModelDefinitionTemplate = result;
 
             _nextFetchCooldownTime = DateTimeOffset.Now.AddSeconds(10);

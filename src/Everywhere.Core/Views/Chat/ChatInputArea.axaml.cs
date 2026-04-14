@@ -85,11 +85,8 @@ public sealed partial class ChatInputArea : TemplatedControl
             nameof(SettingsMenuItemsSource),
             o => o.SettingsMenuItemsSource);
 
-    public static readonly StyledProperty<UserProfile?> UserProfileProperty =
-        AvaloniaProperty.Register<ChatInputArea, UserProfile?>(nameof(UserProfile));
-
-    public static readonly StyledProperty<SubscriptionInformation?> SubscriptionProperty =
-        AvaloniaProperty.Register<ChatInputArea, SubscriptionInformation?>(nameof(Subscription));
+    public static readonly StyledProperty<ICloudClient?> CloudClientProperty =
+        AvaloniaProperty.Register<ChatInputArea, ICloudClient?>(nameof(CloudClient));
 
     public static readonly StyledProperty<bool> IsSendButtonEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsSendButtonEnabled), true);
@@ -223,16 +220,10 @@ public sealed partial class ChatInputArea : TemplatedControl
         set => SetAndRaise(SettingsMenuItemsSourceProperty, ref field, value);
     } = new AvaloniaList<object>();
 
-    public UserProfile? UserProfile
+    public ICloudClient? CloudClient
     {
-        get => GetValue(UserProfileProperty);
-        set => SetValue(UserProfileProperty, value);
-    }
-
-    public SubscriptionInformation? Subscription
-    {
-        get => GetValue(SubscriptionProperty);
-        set => SetValue(SubscriptionProperty, value);
+        get => GetValue(CloudClientProperty);
+        set => SetValue(CloudClientProperty, value);
     }
 
     public bool IsSendButtonEnabled

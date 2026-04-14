@@ -55,9 +55,7 @@
       <shadui:NavigationBar.Footer>
         <v:UserProfilePresenter
           Margin="8" HorizontalAlignment="Left"
-          FontSize="20" Size="36"
-          Subscription="{Binding CloudClient.Subscription}"
-          UserProfile="{Binding CloudClient.UserProfile}"/>
+          FontSize="20" Size="36"/>
       </shadui:NavigationBar.Footer>
     </shadui:NavigationBar>
 

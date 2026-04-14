@@ -1070,7 +1070,7 @@ Placeholders can be used in the prompt, enclosed in {}, which will be replaced w
         <value>The SSL connection could not be established. Please check your network settings or certificate.</value>
     </data>
     <data name="HandledSystemException_ConnectionRefused" xml:space="preserve">
-        <value>The connection was refused by the server. Please check if the service is running and accessible.</value>
+        <value />
     </data>
     <data name="HandledSystemException_HostNotFound" xml:space="preserve">
         <value>The host could not be found. Please check the address and your network connection.</value>
@@ -2636,6 +2636,15 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="IconEditor_SearchBox_Watermark" xml:space="preserve">
+        <value />
+    </data>
+    <data name="UserProfilePresenter_ErrorTextBlock_Text" xml:space="preserve">
+        <value />
+    </data>
+    <data name="UserProfilePresenter_RetryButton_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="UserProfilePresenter_LoggingInTextBlock_Text" xml:space="preserve">
         <value />
     </data>
 </root>

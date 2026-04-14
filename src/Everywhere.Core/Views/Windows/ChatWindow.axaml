@@ -696,9 +696,7 @@
             MaxLength="{Binding ChatInputAreaTextMaxLength}"
             RemoveAttachmentCommand="{Binding RemoveAttachmentCommand}"
             SelectedCustomAssistant="{Binding Settings.Model.SelectedCustomAssistant, Mode=TwoWay}"
-            Subscription="{Binding CloudClient.Subscription}"
             Text="{Binding ChatInputAreaText, Mode=TwoWay}"
-            UserProfile="{Binding CloudClient.UserProfile}"
             Watermark="{Binding ChatInputAreaWatermarkKey^, FallbackValue={x:Null}}">
             <v:ChatInputArea.Transitions>
               <Transitions>
@@ -798,7 +796,7 @@
                                     <ColumnDefinition/>
                                   </Grid.ColumnDefinitions>
 
-                                  <Panel Name="PART_ExpandCollapseChevronContainer">
+                                  <Panel x:Name="PART_ExpandCollapseChevronContainer">
                                     <ToggleButton
                                       x:Name="PART_ExpandCollapseChevron" Focusable="False"
                                       IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}">

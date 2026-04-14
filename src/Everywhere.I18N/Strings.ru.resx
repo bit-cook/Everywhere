@@ -1030,9 +1030,6 @@
     <data name="HandledSystemException_SSLConnectionError" xml:space="preserve">
         <value>Не удалось установить SSL-соединение. Пожалуйста, проверьте настройки сети или сертификат.</value>
     </data>
-    <data name="HandledSystemException_ConnectionRefused" xml:space="preserve">
-        <value>Соединение было отклонено сервером. Пожалуйста, проверьте, работает ли служба и доступна ли она.</value>
-    </data>
     <data name="HandledSystemException_HostNotFound" xml:space="preserve">
         <value>Хост не найден. Пожалуйста, проверьте адрес и соединение с сетью.</value>
     </data>

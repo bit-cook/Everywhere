@@ -3,28 +3,13 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 using Everywhere.Cloud;
+using Everywhere.Common;
 
 namespace Everywhere.Views;
 
 public class UserProfilePresenter : TemplatedControl
 {
-    public static readonly StyledProperty<UserProfile?> UserProfileProperty =
-        AvaloniaProperty.Register<UserProfilePresenter, UserProfile?>(nameof(UserProfile));
-
-    public UserProfile? UserProfile
-    {
-        get => GetValue(UserProfileProperty);
-        set => SetValue(UserProfileProperty, value);
-    }
-
-    public static readonly StyledProperty<SubscriptionInformation?> SubscriptionProperty =
-        AvaloniaProperty.Register<UserProfilePresenter, SubscriptionInformation?>(nameof(Subscription));
-
-    public SubscriptionInformation? Subscription
-    {
-        get => GetValue(SubscriptionProperty);
-        set => SetValue(SubscriptionProperty, value);
-    }
+    public static ICloudClient CloudClient { get; } = ServiceLocator.Resolve<ICloudClient>();
 
     public static readonly StyledProperty<double> SizeProperty =
         AvaloniaProperty.Register<UserProfilePresenter, double>(nameof(Size), 16d);

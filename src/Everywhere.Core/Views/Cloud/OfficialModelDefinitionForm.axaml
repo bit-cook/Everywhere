@@ -358,8 +358,7 @@
                   <v:UserProfileCard
                     Width="240" Margin="16"
                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                    ShowActionsButton="False"
-                    UserProfile="{Binding UserProfile}"/>
+                    ShowActionsButton="False"/>
                 </Border>
               </ControlTemplate>
             </v:ConditionalContentControl.TrueContent>

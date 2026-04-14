@@ -1030,9 +1030,6 @@ Nel prompt possono essere utilizzati segnaposto, racchiusi in {}, che verranno s
     <data name="HandledSystemException_SSLConnectionError" xml:space="preserve">
         <value>Impossibile stabilire la connessione SSL. Controlla le impostazioni di rete o il certificato.</value>
     </data>
-    <data name="HandledSystemException_ConnectionRefused" xml:space="preserve">
-        <value>La connessione è stata rifiutata dal server. Controlla se il servizio è in esecuzione e accessibile.</value>
-    </data>
     <data name="HandledSystemException_HostNotFound" xml:space="preserve">
         <value>L'host non è stato trovato. Controlla l'indirizzo e la tua connessione di rete.</value>
     </data>

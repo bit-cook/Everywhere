@@ -1030,9 +1030,6 @@ Se pueden usar marcadores de posición en la palabra clave, que están contenido
     <data name="HandledSystemException_SSLConnectionError" xml:space="preserve">
         <value>No se pudo establecer la conexión SSL. Por favor, verifica tu configuración de red o el certificado.</value>
     </data>
-    <data name="HandledSystemException_ConnectionRefused" xml:space="preserve">
-        <value>La conexión fue rechazada por el servidor. Por favor, verifica si el servicio está en funcionamiento y accesible.</value>
-    </data>
     <data name="HandledSystemException_HostNotFound" xml:space="preserve">
         <value>No se pudo encontrar el host. Por favor, verifica la dirección y tu conexión de red.</value>
     </data>

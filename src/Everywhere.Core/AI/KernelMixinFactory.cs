@@ -126,7 +126,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
             {
                 ClientResultException { Status: 502 } clientResultException when clientResultException.GetRawResponse() is { } response =>
                     response.BufferContent().ToObjectFromJson<ApiPayload>(),
-                Anthropic5xxException { ResponseBody: { } responseBody } =>
+                Anthropic5xxException { StatusCode: HttpStatusCode.BadGateway, ResponseBody: { } responseBody } =>
                     JsonSerializer.Deserialize<ApiPayload>(responseBody),
                 HttpOperationException { StatusCode: HttpStatusCode.BadGateway, ResponseContent: { } responseContent } =>
                     JsonSerializer.Deserialize<ApiPayload>(responseContent),

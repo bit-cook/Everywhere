@@ -365,9 +365,7 @@
             <v:UserProfilePresenter
               BorderBrush="{DynamicResource BorderColor}"
               BorderThickness="1" ShowActionsButton="False"
-              Size="30"
-              Subscription="{TemplateBinding Subscription}"
-              UserProfile="{TemplateBinding UserProfile}"/>
+              Size="30"/>
           </StackPanel>
 
           <StackPanel

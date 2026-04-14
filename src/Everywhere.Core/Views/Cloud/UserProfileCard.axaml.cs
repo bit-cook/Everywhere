@@ -8,25 +8,9 @@ using Everywhere.Database;
 
 namespace Everywhere.Views;
 
-public partial class UserProfileCard : TemplatedControl
+public sealed partial class UserProfileCard : TemplatedControl
 {
-    public static readonly StyledProperty<UserProfile?> UserProfileProperty =
-        AvaloniaProperty.Register<UserProfilePresenter, UserProfile?>(nameof(UserProfile));
-
-    public UserProfile? UserProfile
-    {
-        get => GetValue(UserProfileProperty);
-        set => SetValue(UserProfileProperty, value);
-    }
-
-    public static readonly StyledProperty<SubscriptionInformation?> SubscriptionProperty =
-        AvaloniaProperty.Register<UserProfileCard, SubscriptionInformation?>(nameof(Subscription));
-
-    public SubscriptionInformation? Subscription
-    {
-        get => GetValue(SubscriptionProperty);
-        set => SetValue(SubscriptionProperty, value);
-    }
+    public static ICloudClient CloudClient { get; } = ServiceLocator.Resolve<ICloudClient>();
 
     public static readonly StyledProperty<bool> ShowActionsButtonProperty =
         AvaloniaProperty.Register<UserProfileCard, bool>(nameof(ShowActionsButton), true);
@@ -40,8 +24,6 @@ public partial class UserProfileCard : TemplatedControl
     public PersistentState PersistentState { get; } = ServiceLocator.Resolve<PersistentState>();
 
     public IChatDbSynchronizer CloudSynchronizer { get; } = ServiceLocator.Resolve<IChatDbSynchronizer>();
-
-    private static readonly ICloudClient CloudClient = ServiceLocator.Resolve<ICloudClient>();
 
     /// <summary>
     /// make this static so that busy state can be shared across all instances of UserProfileCard,

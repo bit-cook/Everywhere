@@ -1033,9 +1033,6 @@
     <data name="HandledSystemException_SSLConnectionError" xml:space="preserve">
         <value>無法建立 SSL 連接。請檢查您的網絡設置或證書。</value>
     </data>
-    <data name="HandledSystemException_ConnectionRefused" xml:space="preserve">
-        <value>伺服器拒絕了連接。請檢查服務是否正在運行且可訪問。</value>
-    </data>
     <data name="HandledSystemException_HostNotFound" xml:space="preserve">
         <value>找不到主機。請檢查地址和您的網絡連接。</value>
     </data>
@@ -2072,15 +2069,6 @@
     </data>
     <data name="UserProfilePresenter_CloudDescriptionTextBlock_Text" xml:space="preserve">
         <value>註冊即享免費積分，獲得開箱即用的主流模型。更有雲同步等功能持續上線中……</value>
-    </data>
-    <data name="UserProfilePresenter_LoginButton_Content" xml:space="preserve">
-        <value>登錄</value>
-    </data>
-    <data name="UserProfilePresenter_LoginToCloudTextBlock_Text" xml:space="preserve">
-        <value>登錄 Everywhere 雲服務</value>
-    </data>
-    <data name="UserProfilePresenter_LogoutButton_Content" xml:space="preserve">
-        <value>退出登錄</value>
     </data>
     <data name="UserProfilePresenter_PlanCreditsTextBlock_Text" xml:space="preserve">
         <value>訂閱積分</value>

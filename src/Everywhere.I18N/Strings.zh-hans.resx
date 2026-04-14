@@ -1065,7 +1065,7 @@
         <value>无法建立 SSL 连接。请检查您的网络设置或证书。</value>
     </data>
     <data name="HandledSystemException_ConnectionRefused" xml:space="preserve">
-        <value>连接被服务器拒绝。请检查服务是否正在运行且可访问。</value>
+        <value>连接被服务器拒绝，请检查网络连接和代理设置。</value>
     </data>
     <data name="HandledSystemException_HostNotFound" xml:space="preserve">
         <value>找不到主机。请检查地址和您的网络连接。</value>
@@ -2138,13 +2138,13 @@
         <value>注册即享免费积分，获得开箱即用的主流模型。更有云同步等功能持续上线中……</value>
     </data>
     <data name="UserProfilePresenter_LoginButton_Content" xml:space="preserve">
-        <value>登录</value>
+        <value>登入</value>
     </data>
     <data name="UserProfilePresenter_LoginToCloudTextBlock_Text" xml:space="preserve">
-        <value>登录 Everywhere 云服务</value>
+        <value>登入 Everywhere 云服务</value>
     </data>
     <data name="UserProfilePresenter_LogoutButton_Content" xml:space="preserve">
-        <value>退出登录</value>
+        <value>退出账号</value>
     </data>
     <data name="UserProfilePresenter_PlanCreditsTextBlock_Text" xml:space="preserve">
         <value>订阅积分</value>
@@ -2538,7 +2538,7 @@
         <value>欢迎使用原生模式。你需要先进行身份验证以使用我们提供的云服务。</value>
     </data>
     <data name="WelcomeView_HardLoginStep_Message2" xml:space="preserve">
-        <value>请登录以获取你的积分数据，或返回上一步选择其他模式。</value>
+        <value>请登入以获取你的积分数据，或返回上一步选择其他模式。</value>
     </data>
     <data name="WelcomeView_AssistantStep_Official_Message1" xml:space="preserve">
         <value>请选择一个模型来查看详细信息。我会持续更新来跟进最新模型。</value>
@@ -2604,7 +2604,7 @@
         <value>解释代码并分析潜在问题</value>
     </data>
     <data name="HandledSystemException_UserNotLogin" xml:space="preserve">
-        <value>你尚未登录，请登录后再使用 Everywhere 云服务。</value>
+        <value>你尚未登入，请登入后再使用 Everywhere 云服务。</value>
     </data>
     <data name="ConsentDecisionCard_DenyWithReasonMenuItem_Header" xml:space="preserve">
         <value>拒绝并输入原因</value>
@@ -2632,5 +2632,11 @@
     </data>
     <data name="IconEditor_SearchBox_Watermark" xml:space="preserve">
         <value>搜索...</value>
+    </data>
+    <data name="UserProfilePresenter_ErrorTextBlock_Text" xml:space="preserve">
+        <value>无法登入到云服务</value>
+    </data>
+    <data name="UserProfilePresenter_LoggingInTextBlock_Text" xml:space="preserve">
+        <value>正在登入</value>
     </data>
 </root>
