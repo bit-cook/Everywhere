@@ -2139,9 +2139,6 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     <data name="UserProfilePresenter_LoginButton_Content" xml:space="preserve">
         <value>Iniciar Sesión</value>
     </data>
-    <data name="UserProfilePresenter_LoginToCloudTextBlock_Text" xml:space="preserve">
-        <value>Iniciar sesión en el servicio en la nube de Everywhere</value>
-    </data>
     <data name="UserProfilePresenter_LogoutButton_Content" xml:space="preserve">
         <value>Cerrar Sesión</value>
     </data>

@@ -404,7 +404,7 @@
                   Classes="Large" HorizontalAlignment="Center"
                   FontWeight="SemiBold"
                   Text="{I18N {x:Static LocaleKey.UserProfilePresenter_ErrorTextBlock_Text}}"
-                  TextWrapping="Wrap"/>
+                  TextAlignment="Center" TextWrapping="Wrap"/>
                 <TextBlock
                   Classes="Caption Muted" HorizontalAlignment="Center"
                   IsVisible="{Binding $self.Text, Converter={x:Static ObjectConverters.IsNotNull}}"

@@ -2139,9 +2139,6 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="UserProfilePresenter_LoginButton_Content" xml:space="preserve">
         <value>Se Connecter</value>
     </data>
-    <data name="UserProfilePresenter_LoginToCloudTextBlock_Text" xml:space="preserve">
-        <value>Connectez-vous aux services cloud d'Everywhere</value>
-    </data>
     <data name="UserProfilePresenter_LogoutButton_Content" xml:space="preserve">
         <value>Se Déconnecter</value>
     </data>

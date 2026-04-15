@@ -2140,7 +2140,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Login</value>
     </data>
     <data name="UserProfilePresenter_LoginToCloudTextBlock_Text" xml:space="preserve">
-        <value>Log in to Everywhere Cloud Service</value>
+        <value>Everywhere Cloud Service</value>
     </data>
     <data name="UserProfilePresenter_LogoutButton_Content" xml:space="preserve">
         <value>Logout</value>
@@ -2321,10 +2321,10 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>The selected assistant does not support the current file type.</value>
     </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
-        <value>Always On Top</value>
+        <value>Always Topmost</value>
     </data>
     <data name="ChatWindowPinMode_TopmostOnInput" xml:space="preserve">
-        <value>On Top When Inputting</value>
+        <value>Topmost When Typing</value>
     </data>
     <data name="ShortcutSettings_PickVisualElement_Header" xml:space="preserve">
         <value>Select Visual Element</value>

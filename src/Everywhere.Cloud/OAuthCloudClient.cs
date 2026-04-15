@@ -125,7 +125,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
 
     public async Task LogoutAsync(CancellationToken cancellationToken)
     {
-        if (!await _loginLock.WaitAsync(0, cancellationToken)) return; // Prevent logout during login flow
+        if (!await _loginLock.WaitAsync(0, cancellationToken)) return; // Prevent logout during login flow\
 
         try
         {
@@ -135,6 +135,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         }
         finally
         {
+            LoginStatus = CloudClientLoginStatus.NotLoggedIn;
             _loginLock.Release();
         }
     }

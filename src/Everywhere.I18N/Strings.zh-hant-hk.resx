@@ -2140,7 +2140,7 @@
         <value>登入</value>
     </data>
     <data name="UserProfilePresenter_LoginToCloudTextBlock_Text" xml:space="preserve">
-        <value>登入 Everywhere 雲服務</value>
+        <value>Everywhere 雲服務</value>
     </data>
     <data name="UserProfilePresenter_LogoutButton_Content" xml:space="preserve">
         <value>退出帳號</value>
