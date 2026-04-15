@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -53,33 +55,59 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Restore
-      run: dotnet restore Everywhere.Linux.slnf -r ${{ matrix.runtime }}
+      run: |
+        dotnet restore Everywhere.Linux.slnf \
+          -r ${{ matrix.runtime }}
 
     - name: Publish
+      env:
+        CODE_SIGN_KEY: ${{ secrets.CODE_SIGN_KEY }}
+        PACKAGE_SIGNING_KEY: ${{ secrets.PACKAGE_SIGNING_KEY }}
+        SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        CLIENT_ID: ${{ secrets.CLIENT_ID }}
+        AI_GATEWAY_BASE_URL: ${{ vars.AI_GATEWAY_BASE_URL }}
+        AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
+        CLOUD_SYNC_BASE_URL: ${{ vars.CLOUD_SYNC_BASE_URL }}
       run: |
-        dotnet publish src/Everywhere.Linux/Everywhere.Linux.csproj -c Release -r ${{ matrix.runtime }} -o ./publish -p:Version=${{ env.VERSION }} --self-contained true --no-restore -p:SentryDsn=${{ secrets.SENTRY_DSN }}
+        dotnet publish src/Everywhere.Linux/Everywhere.Linux.csproj \
+          -c Release \
+          -r ${{ matrix.runtime }} \
+          -o ./publish \
+          -p:Version="$env:VERSION" \
+          /p:SentryDsn="$SENTRY_DSN" \
+          /p:ClientId="$CLIENT_ID" \
+          /p:AIGatewayBaseUrl="$AI_GATEWAY_BASE_URL" \
+          /p:AuthBaseUrl="$AUTH_BASE_URL" \
+          /p:CloudSyncBaseUrl="$CLOUD_SYNC_BASE_URL" \
+          --self-contained true \
+          --no-restore
 
     - name: Build Deb Package
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       run: |
         chmod +x ./src/Everywhere.Linux/packaging_deb.sh
         ./src/Everywhere.Linux/packaging_deb.sh ${{ matrix.runtime }} ${{ env.VERSION }} ./publish
 
     - name: Install AppImage Build Dependencies
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       run: |
         sudo apt-get update
         sudo apt-get install -y squashfs-tools libfuse2
 
     - name: Create Archive
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       run: |
         sudo apt-get update && sudo apt-get install -y zstd
         tar -I 'zstd -19 -T0' -cf Everywhere-${{ matrix.asset_name }}-v${{ env.VERSION }}.tar.zst -C ./publish .
 
     - name: Build AppImage
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       run: |
         chmod +x build-appimage.sh
         ./build-appimage.sh ${{ matrix.runtime }} ${{ matrix.asset_name }} ./publish false ${{ env.VERSION }}
 
     - name: Upload Release Assets
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       uses: softprops/action-gh-release@v2
       with:
         files: |

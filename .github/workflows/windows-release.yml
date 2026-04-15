@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -46,32 +48,6 @@ jobs:
         $version = $env:GITHUB_REF -replace 'refs/tags/v', ''
         echo "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
-    - name: Extract Release Notes from CHANGELOG.md
-      id: get_release_notes
-      shell: pwsh
-      run: |
-        $changelog = Get-Content -Path CHANGELOG.md -Raw
-        $version = "${{ env.VERSION }}"
-        # Use regex to match the content from the current version's header
-        # to the next version's header or the end of the file.
-        # (?s) makes . match newlines, (?m) makes ^ match the start of a line.
-        $pattern = "(?sm)(^##\s+\[v$([regex]::Escape($version))\].*?)(?=^##\s+\[v|\z)"
-        $match = [regex]::Match($changelog, $pattern)
-        
-        if (-not $match.Success) {
-          Write-Error "Could not find release notes for v${version} in CHANGELOG.md"
-          exit 1
-        }
-        
-        # Remove the first line (the version header)
-        $releaseBody = $match.Value.Split([System.Environment]::NewLine, 2)[1].Trim()
-        
-        # Set the multi-line output for the step
-        $delimiter = "EOF_$(Get-Random)"
-        echo "body<<$delimiter" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        echo $releaseBody | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        echo "$delimiter" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v4.3.1
       with:
@@ -81,11 +57,13 @@ jobs:
       uses: microsoft/setup-msbuild@v2
 
     - name: Install Inno Setup
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       shell: pwsh
       run: |
         choco install innosetup
 
     - name: Install SimplySignDesktop
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       shell: pwsh
       run: |
         $msiPath = "tools/sign_windows/SimplySignDesktop-9.3.3.71-64-bit-en.msi"
@@ -124,16 +102,32 @@ jobs:
     - name: Restore
       shell: pwsh
       run: |
-        dotnet restore Everywhere.Windows.slnf -r win-x64
+        dotnet restore Everywhere.Windows.slnf `
+          -r win-x64
 
     - name: Publish Everywhere.Windows
       shell: pwsh
       env:
         SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        CLIENT_ID: ${{ secrets.CLIENT_ID }}
+        AI_GATEWAY_BASE_URL: ${{ vars.AI_GATEWAY_BASE_URL }}
+        AUTH_BASE_URL: ${{ vars.AUTH_BASE_URL }}
+        CLOUD_SYNC_BASE_URL: ${{ vars.CLOUD_SYNC_BASE_URL }}
       run: |
-        dotnet publish src/Everywhere.Windows/Everywhere.Windows.csproj -c Release --self-contained true -p:Version="$env:VERSION" -p:SentryDsn="$env:SENTRY_DSN" -o ./publish --no-restore
+        dotnet publish src/Everywhere.Windows/Everywhere.Windows.csproj `
+          -c Release `
+          --self-contained true `
+          -p:Version="$env:VERSION" `
+          -p:SentryDsn="$env:SENTRY_DSN" `
+          -p:ClientId="$env:CLIENT_ID" `
+          -p:AIGatewayBaseUrl="$env:AI_GATEWAY_BASE_URL" `
+          -p:AuthBaseUrl="$env:AUTH_BASE_URL" `
+          -p:CloudSyncBaseUrl="$env:CLOUD_SYNC_BASE_URL" `
+          -o ./publish `
+          --no-restore
 
     - name: Login, Compile, and Sign
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       shell: pwsh
       env:
         SIGN_USERNAME: ${{ secrets.CERTUM_USERNAME }}
@@ -144,18 +138,15 @@ jobs:
         python -u tools/sign_windows/sign.py ./publish tools/installer.iss
 
     - name: Create release zip
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       shell: pwsh
       run: |
         Compress-Archive -Path ./publish/* -DestinationPath ./Everywhere-Windows-x64-v$env:VERSION.zip
 
-    - name: Create GitHub Release
-      id: create_release
+    - name: Upload Release Assets
+      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       uses: softprops/action-gh-release@v2
       with:
-        name: Everywhere v${{env.VERSION}}
-        body: ${{ steps.get_release_notes.outputs.body }}
-        draft: false
-        prerelease: false
         files: |
           ./Everywhere-Windows-x64-v${{env.VERSION}}.zip
           ./Everywhere-Windows-x64-Setup-v${{env.VERSION}}.exe
