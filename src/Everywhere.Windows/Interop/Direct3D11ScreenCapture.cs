@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Windows.Graphics;
@@ -9,9 +10,10 @@ using Windows.System;
 using Windows.UI.Composition;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Dwm;
 using Windows.Win32.System.WinRT;
+using Windows.Win32.UI.WindowsAndMessaging;
 using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using ShadUI.Extensions;
@@ -38,6 +40,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
     public int Stride { get; private set; }
 
     private readonly IDCompositionDevice2? _dCompositionDevice2;
+    private readonly InvisibleWindow? _hostWindow;
     private readonly nint _hThumbnailId;
     private readonly IDCompositionVisual2? _dCompositionVisual;
     private readonly ID3D11Device? _d3D11Device;
@@ -65,7 +68,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
 
     // https://blog.adeltax.com/dwm-thumbnails-but-with-idcompositionvisual/
     // https://gist.github.com/ADeltaX/aea6aac248604d0cb7d423a61b06e247
-    private Direct3D11ScreenCapture(nint sourceHWnd, nint targetHWnd, PixelRect relativeRect)
+    private Direct3D11ScreenCapture(nint sourceHWnd, PixelRect relativeRect)
     {
         try
         {
@@ -81,6 +84,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
             }
 
             // Create the shared thumbnail visual
+            _hostWindow = new InvisibleWindow();
             var thumbProperties = new DWM_THUMBNAIL_PROPERTIES
             {
                 dwFlags = DwmThumbnailPropertyFlags.RectDestination | DwmThumbnailPropertyFlags.Visible,
@@ -88,7 +92,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
                 fVisible = true,
             };
             DwmpCreateSharedThumbnailVisual(
-                (HWND)targetHWnd,
+                _hostWindow.HWnd,
                 (HWND)sourceHWnd,
                 2, // Undocumented flag
                 ref thumbProperties,
@@ -234,6 +238,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
             _session?.Dispose();
             _framePool?.Dispose();
             _dCompositionVisual?.Dispose();
+            _hostWindow?.Dispose();
             _dCompositionDevice2?.Dispose();
         });
     }
@@ -243,14 +248,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
         PixelRect relativeRect,
         CancellationToken cancellationToken = default)
     {
-        var screenCapture = await Dispatcher.UIThread.InvokeOnDemandAsync(() =>
-        {
-            var targetHWnd = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop ?
-                desktop.Windows.FirstOrDefault()?.TryGetPlatformHandle()?.Handle ??
-                throw new InvalidOperationException("Failed to get main window handle.") :
-                throw new InvalidOperationException("Unsupported application lifetime.");
-            return new Direct3D11ScreenCapture(sourceHWnd, targetHWnd, relativeRect);
-        });
+        var screenCapture = await Dispatcher.UIThread.InvokeOnDemandAsync(() => new Direct3D11ScreenCapture(sourceHWnd, relativeRect));
 
         try
         {
@@ -311,4 +309,73 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
         [In] nint pDCompositionDesktopDevice,
         [Out] out nint pDCompositionVisual,
         [Out] out nint hThumbnailId);
+
+    private sealed class InvisibleWindow : IDisposable
+    {
+        public HWND HWnd { get; private set; }
+
+        private readonly WNDPROC _wndProc;
+        private string? _className;
+
+        public unsafe InvisibleWindow()
+        {
+            var hInstance = PInvoke.GetModuleHandle(default(PCWSTR));
+            _className = "InvisibleDCompHost_" + Guid.NewGuid().ToString("N");
+            fixed (char* pClassName = _className)
+            {
+                var wndClass = new WNDCLASSEXW
+                {
+                    cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
+                    lpfnWndProc = _wndProc = PInvoke.DefWindowProc,
+                    hInstance = hInstance,
+                    lpszClassName = pClassName
+                };
+                if (PInvoke.RegisterClassEx(wndClass) == 0)
+                {
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                }
+
+                HWnd = PInvoke.CreateWindowEx(
+                    WINDOW_EX_STYLE.WS_EX_TOOLWINDOW | WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP,
+                    pClassName,
+                    pClassName,
+                    WINDOW_STYLE.WS_POPUP | WINDOW_STYLE.WS_VISIBLE,
+                    0,
+                    0,
+                    1,
+                    1,
+                    hInstance: hInstance);
+            }
+
+            if (HWnd.IsNull)
+            {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+
+            var cloak = 1;
+            PInvoke.DwmSetWindowAttribute(HWnd, DWMWINDOWATTRIBUTE.DWMWA_CLOAK, &cloak, sizeof(int));
+        }
+
+        public unsafe void Dispose()
+        {
+            if (!HWnd.IsNull)
+            {
+                PInvoke.DestroyWindow(HWnd);
+                HWnd = HWND.Null;
+            }
+
+            if (_className is not null)
+            {
+                var hInstance = PInvoke.GetModuleHandle(default(PCWSTR));
+                fixed (char* pClassName = _className)
+                {
+                    PInvoke.UnregisterClass(pClassName, hInstance);
+                }
+
+                _className = null;
+            }
+
+            GC.KeepAlive(_wndProc);
+        }
+    }
 }
