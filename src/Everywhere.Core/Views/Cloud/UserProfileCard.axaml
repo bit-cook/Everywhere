@@ -392,9 +392,10 @@
 
           <!--  Error State  -->
           <ControlTemplate x:DataType="v:UserProfileCard">
-            <StackPanel Spacing="16">
+            <StackPanel Spacing="4">
               <StackPanel
-                HorizontalAlignment="Center" Spacing="4">
+                Margin="0,0,0,12" HorizontalAlignment="Center"
+                Spacing="4">
                 <Image
                   Height="80" Margin="0,0,0,8"
                   HorizontalAlignment="Center" Source="avares://Everywhere.Core/Assets/Images/Error.png"
@@ -416,6 +417,13 @@
                 shadui:ButtonAssist.Icon="{LucideIconContent RefreshCcw}"
                 Command="{Binding LoginCommand, Mode=OneTime}"
                 Content="{I18N {x:Static LocaleKey.Common_Retry}}"
+                IsVisible="{Binding !LoginCommand.IsRunning}"/>
+
+              <Button
+                Classes="Secondary" HorizontalAlignment="Stretch"
+                shadui:ButtonAssist.Icon="{LucideIconContent LogOut}"
+                Command="{Binding LogoutCommand, Mode=OneTime}"
+                Content="{I18N {x:Static LocaleKey.UserProfilePresenter_LogoutButton_Content}}"
                 IsVisible="{Binding !LoginCommand.IsRunning}"/>
 
               <Button

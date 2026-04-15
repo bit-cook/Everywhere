@@ -301,13 +301,13 @@
               HorizontalAlignment="Left" VerticalAlignment="Top"
               IsHitTestVisible="False">
               <Panel.RenderTransform>
-                <TranslateTransform X="{Binding #BackgroundStatusIndicator.Width, Converter={x:Static vc:DoubleConverters.Multiply}, ConverterParameter=-0.4}" Y="{Binding #BackgroundStatusIndicator.Height, Converter={x:Static vc:DoubleConverters.Multiply}, ConverterParameter=-0.4}"/>
+                <TranslateTransform X="{Binding #BackgroundStatusIndicator.Width, Converter={x:Static vc:DoubleConverters.Multiply}, ConverterParameter=-0.3}" Y="{Binding #BackgroundStatusIndicator.Height, Converter={x:Static vc:DoubleConverters.Multiply}, ConverterParameter=-0.3}"/>
               </Panel.RenderTransform>
 
               <Border
                 Width="6" Height="6"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
-                Background="{DynamicResource InfoColor60}"
+                Background="{DynamicResource WarningColor60}"
                 CornerRadius="3">
                 <Border.IsVisible>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">

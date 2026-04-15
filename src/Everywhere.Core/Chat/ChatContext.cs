@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reactive.Disposables;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -23,6 +24,12 @@ namespace Everywhere.Chat;
 [MessagePackObject(AllowPrivate = true)]
 public sealed partial class ChatContext : ObservableObject, IObservableList<ChatMessageNode>, IChatBusyStateIndicator
 {
+    /// <summary>
+    /// Keeps a strong reference to busy chat contexts to prevent them from being garbage collected.
+    /// </summary>
+    // ReSharper disable once CollectionNeverQueried.Local
+    private static readonly HashSet<ChatContext> BusyChatContexts = [];
+
     [Key(0)]
     public ChatContextMetadata Metadata { get; }
 
@@ -207,12 +214,16 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         if (IsBusy) return false;
 
         IsBusy = true;
+        BusyChatContexts.Add(this);
         var cancellationToken = _cancellationTokenSource.Token;
 
         Task.Run(() => action(cancellationToken), cancellationToken)
             .ContinueWith(
                 t =>
                 {
+                    Debug.Assert(Dispatcher.UIThread.CheckAccess());
+
+                    BusyChatContexts.Remove(this);
                     IsBusy = false;
                     if (t.Exception is { } exception) exceptionHandler.HandleException(exception.InnerException ?? exception);
                 },
