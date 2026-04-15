@@ -346,7 +346,8 @@ public static class VisualElementExtension
             if (pixelSize.Width <= 0 || pixelSize.Height <= 0) return null;
 
             var info = new SKImageInfo(pixelSize.Width, pixelSize.Height, ToSkColorType(data.Format), ToSkAlphaType(data.AlphaFormat));
-            return SKImage.FromPixels(info, data.Data, data.Stride);
+            using var skData = SKData.CreateCopy(data.Data, data.Stride * pixelSize.Height);
+            return SKImage.FromPixels(info, skData, data.Stride);
 
             static SKColorType ToSkColorType(PixelFormat fmt)
             {
