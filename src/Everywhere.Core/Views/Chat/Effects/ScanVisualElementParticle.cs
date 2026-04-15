@@ -94,7 +94,7 @@ public class ScanVisualElementParticle : VisualElementParticle
                 
                 const float SCAN_SPEED = 2.2;
                 const float EVAPORATION_SPEED = 0.6;
-                const float GLOW = 0.7;
+                const float GLOW = 6.0;
                 const float OPACITY = 1.0;
                 const float EDGE_WIDTH = 8.0;
                 
@@ -137,7 +137,7 @@ public class ScanVisualElementParticle : VisualElementParticle
                     
                     float scanEdge = 1.8 - (u_progress * 2.4);
                     // Add noise to the diagonal line
-                    float edgeNoise = (sin(p.x * 2.0) + cos(p.y * 1.5)) * 0.08;
+                    float edgeNoise = (sin(p.x * 2.0) + cos(p.y * 1.5)) * 0.012;
                     
                     // Calculate distance based on the diagonal axis instead of just uv.y
                     float dist = scanAxis - scanEdge + edgeNoise;
@@ -146,9 +146,12 @@ public class ScanVisualElementParticle : VisualElementParticle
                     float evaporateTail = smoothstep(1.0, 0.0, dist * EVAPORATION_SPEED);
                     
                     float scanVisibility = frontEdge * evaporateTail;
+                    float dynamicThicknessVariation = (sin(p.y * 2.0 + t) * cos(p.x * 3.0 - t)) * 0.15;
+                    float glowStartBoundary = -0.15 + dynamicThicknessVariation;
+                    float glowEndBoundary = 0.40 + dynamicThicknessVariation;
                 
                     // Glow on the leading edge of the scan
-                    float leadingEdgeGlow = smoothstep(-0.08, 0.0, dist) * smoothstep(0.18, 0.0, dist);
+                    float leadingEdgeGlow = smoothstep(glowStartBoundary, 0.0, dist) * smoothstep(glowEndBoundary, 0.0, dist);
                     fluidColor += leadingEdgeGlow * float3(1.0, 0.9, 0.9) * GLOW;
                 
                     // --- Laplacian Edge Detect ---
@@ -156,7 +159,8 @@ public class ScanVisualElementParticle : VisualElementParticle
                     //  1   1   1
                     //  1  -8   1
                     //  1   1   1
-                    float w = EDGE_WIDTH;
+                    float fluidNoise = (sin(p.y * 1.5 + t) * cos(p.x * 2.5 - t)) * 0.5 + 0.5;
+                    float w = EDGE_WIDTH * (0.2 + fluidNoise * 1.4);
                     
                     // Sample the 8 surrounding neighbors
                     float a00 = eval(fragCoord + float2(-w, -w));
@@ -175,7 +179,7 @@ public class ScanVisualElementParticle : VisualElementParticle
                     float laplacian = a00 + a10 + a20 + a01 + a21 + a02 + a12 + a22 - 8.0 * centerAlpha;
                     
                     // Take the absolute value because the Laplacian transitions from positive to negative across an edge
-                    float edgeIntensity = clamp(abs(laplacian), 0.0, 1.0);
+                    float edgeIntensity = clamp(abs(laplacian) * (1.5 + fluidNoise * 1.5), 0.0, 1.0);
                 
                     float finalAlpha = scanVisibility * edgeIntensity * smoothstep(0.5, 1.0, centerAlpha) * OPACITY;
                     return half4(fluidColor * finalAlpha, finalAlpha); // premultiplied color
@@ -204,7 +208,7 @@ public class ScanVisualElementParticle : VisualElementParticle
             _timeSeconds = (float)timeSeconds;
             _bounds = new Rect(0d, 0d, owner.Width, owner.Height);
             _windowMaskRef = owner._windowMaskRef;
-            _progress = (float)owner._animationProgress;
+            _progress = (float)owner._animationProgress * 1.2f;
             _windowMaskRef?.AddRef();
         }
 
@@ -247,15 +251,16 @@ public class ScanVisualElementParticle : VisualElementParticle
             using var children = new SKRuntimeEffectChildren(FluidEffect);
             children.Add("u_mask", maskShader);
 
-            using var fluidShader = FluidEffect.ToShader(uniforms, children);
-            using var blurFilter = SKImageFilter.CreateBlur(9f, 9f);
-
-            using var fluidPaint = new SKPaint();
-            fluidPaint.Shader = fluidShader;
-            fluidPaint.ImageFilter = blurFilter;
-            fluidPaint.BlendMode = SKBlendMode.SrcIn;
-            fluidPaint.IsAntialias = true;
-            canvas.DrawRect(drawRect, fluidPaint);
+            using (var fluidShader = FluidEffect.ToShader(uniforms, children))
+            using (var blurFilter = SKImageFilter.CreateBlur(5f, 5f))
+            using (var fluidPaint = new SKPaint())
+            {
+                fluidPaint.Shader = fluidShader;
+                fluidPaint.ImageFilter = blurFilter;
+                fluidPaint.BlendMode = SKBlendMode.SrcIn;
+                fluidPaint.IsAntialias = true;
+                canvas.DrawRect(drawRect, fluidPaint);
+            }
 
             canvas.RestoreToCount(saveCount);
         }
