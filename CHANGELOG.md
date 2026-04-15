@@ -1,3 +1,124 @@
+## [v0.7.0](https://github.com/DearVa/Everywhere/releases/tag/v0.7.0) - 2026-04-15
+
+## 📢 Overview
+
+This release brings you 2 core features: official Cloud Services and Strategy Engine, fully enhancing the out-of-the-box AI experience and convenient automated task processing capabilities. In addition, this update covers up to 19 new features, 27 improvements, and 15 bug fixes, dedicated to creating a smoother, smarter, and more stable user experience.
+
+## ☁️ Cloud Services
+
+In 0.7.0, we have integrated official Cloud Services into Everywhere, providing you with a more out-of-the-box AI experience:
+
+- 🧠 **Out-of-the-box AI Models**: The initial batch of services has integrated large language models from OpenAI, Gemini, Anthropic, and DeepSeek. No API configuration is required; log in to call them directly.
+- 💬 **Cross-platform Chat Cloud Sync**: Added cloud sync for chat history, letting your inspiration flow seamlessly across different devices. (Note: Currently, only text message sync is supported; image and file attachment sync will be updated in future versions.)
+- 🔑 **BYOK (Bring Your Own Key)**: If you prefer to bring your own key, the addition of cloud services will not affect your local configuration. You can still use it freely as before.
+
+🎉 Click the avatar in the bottom left corner of Everywhere to register/log in. Complete registration now to receive 500,000 credits. For more service and billing details, please visit the [website](https://everywhere.sylinko.com/pricing).
+
+## 🧩 Strategy Engine
+
+Strategy Engine is now live! With the Strategy Engine, Everywhere can intelligently perceive your context and needs, dispatching assistants with one click to resolve complex tasks.
+
+It currently covers various common scenarios such as browsers, text selection, images, and documents. More practical strategies will continue to be expanded in the future.
+
+*(!!! Image !!!)*
+
+In future releases, the Strategy Engine will serve as one of Everywhere's core features, gradually rolling out the following capabilities:
+
+- **Custom Strategies**: Users can create and configure personalized strategies according to their needs, defining trigger conditions, prompts, and tool lists via `STRATEGY.md` file to achieve no-code automation.
+- **Preprocessors**: Allows preprocessing inputs before strategy execution, such as context parameter extraction and attachment format conversion, to enhance the applicability and effectiveness of strategies.
+- **Strategy Workshop**: Allows developers and users to share various custom strategies, aiming to build a rich and diverse strategy ecosystem.
+
+## 🖥️ UI
+
+**Revamped main page navigation design and optimized UX**
+*(!!! Image !!!)*
+
+**Refactored changelog page, allowing you to view the latest release notes before updating**
+*(!!! Image !!!)*
+
+**Introduced `ask_user_question` tool**
+
+When handling complex tasks, if the assistant encounters uncertainties, it can now actively pause and ask you questions, waiting for you to confirm details before proceeding.
+*(!!! Image !!!)*
+
+## ✨ Features
+
+### 🎉 Core Experience
+
+- 🔥 **Concurrent Chats Support**: Now supports running multiple chats simultaneously. Each session processes inputs and outputs independently (#284).
+- 🔥 **Custom System Assistant**: Chat title generation is now handled by an independent system assistant, automatically selecting the most suitable model in native and preset modes, with fully customizable configuration.
+- Editing a user message during a chat will now create a new branch.
+- Added MiniMax (minimaxi.com) to the list of preset model providers.
+
+### 🛠️ Interaction & Workflow
+
+- 🔥 When rejecting a tool call from the assistant, you can now provide a "reason for rejection". This helps the assistant understand your intention and correct its subsequent behavior (#304).
+- Added "Always on Top" and "On Top When Typing" options to chat window (#295).
+- Added global shortcuts for "Pick Visual Element" and "Take Screenshot" (#269).
+- Added a "Maximum Context Rounds" option to control context length (#156).
+
+### 💻 UI & Experience
+
+- 🔥 Added a search function to the assistant's avatar editor and expanded more Emoji options.
+- Added support for Mermaid diagram rendering (#218).
+- When chat window is in the background or minimized, system will show a notification if a conversation is completed, authorization is needed, or an error occurs.
+- Introduced brand new dynamic visual feedback when selecting visual elements and building context *(can be disabled in settings)*.
+- Added tokens/s statistics (#323).
+- Supported using middle mouse button click to quickly delete attachments in the chat input area.
+- Added a toggle option for automatic chat title generation.
+- When manually checking for updates, error reasons will be prompted if network or server anomalies occur.
+- Added a caching mechanism for the MCP plugin tool list.
+
+## 🚀 Improvements
+
+- 🔥 Tool execution and confirmation UI are now directly embedded in chat flow rather than interrupting with dialogs. You can switch chats or abort operations at any time.
+- 🔥 The assistant's deep thinking and tool execution bubbles now collapse automatically, and unnecessary "Time Elapsed" displays have been removed, making the chat interface cleaner.
+- 🔥 The app now filters out unsupported attachments based on input modalities supported by the current model, preventing model errors caused by unsupported attachments like images (#297, #330).
+- Improved the performance and stability of Markdown rendering.
+- Added supplementary hint texts and images to some pages.
+- Moved the "Temporary Chat" button to the title bar of chat window.
+- Improved the editing experience when setting up shortcut keys.
+- Each conversation now supports sending up to 50 attachments.
+- Optimized the visual context construction algorithm, improving performance when handling long content (#300).
+- Added more parameter settings for assistants, such as modalities and context input limits; some parameters have been renamed.
+- Temperature and Top-p parameters are now precise to two decimal places (#318).
+- Optimized the description text and error messages for Temperature and Top-p parameters.
+- Improved the stability of inter-process communication, reducing occasional communication errors.
+- When encountering issues, in-chat error reporting will display more detailed error messages to help understand and troubleshoot problems.
+- Improved the readability and instructiveness of numerous error messages.
+- Improved the stability of Tavily search engine.
+- Added an automatic reconnection mechanism for MCP plugins to avoid 4xx errors caused by long-time connections (#232).
+- Optimized format compatibility when importing MCP tools from JSON.
+- Improved the compatibility of OpenAI Chat Completions.
+- Optimized the loading process of system tray icon upon application startup.
+- Optimized time parameters in system prompts to increase model cache hit rate.
+- (Windows) Added an official digital signature to the installer to enhance security and reduce false positives from antivirus software.
+- (Windows) Optimized the textual description for "Startup as Administrator" (#326).
+- (macOS) Strengthened the security of system tools to prevent potential command template injection risks.
+
+## 🐛 Bug Fixes
+
+- Fixed an issue where files could not be dragged into the chat window while the assistant was generating a reply.
+- Fixed an issue where chat titles sometimes failed to generate automatically.
+- Fixed an issue where the chat history list would sometimes freeze, preventing past records from loading.
+- Fixed an issue where the chat window could not be brought up by shortcuts in specific scenarios.
+- Fixed an occasional crash issue that could occur when deleting chat history.
+- Fixed an issue where assistant configurations did not take effect correctly upon startup.
+- Fixed an issue where the app would sometimes incorrectly prevent the computer from shutting down normally.
+- Fixed an issue where Ollama models did not display deep thinking content.
+- Fixed an issue where, in rare cases, tool calls from Gemini models might have parameter errors.
+- Fixed an issue where the "Copy Logs to Clipboard" button on the MCP plugin page was broken.
+- Fixed an issue where the `reasoning_content` field was not correctly processed for some models.
+- (Windows) Fixed an issue where the element selector displayed an offset when multiple monitors were connected.
+- (Windows) Fixed an issue where the selected range did not match the actual position when picking visual elements.
+- (Windows) Fixed an issue where capturing screen elements could cause the software to crash in certain situations.
+- (Windows) Fixed an issue that could trigger an `ERROR_NO_ASSOCIATION` (No associated program found) error when opening or editing settings files (#333).
+- Other various minor fixes and stability improvements.
+
+**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.6.7...v0.7.0
+
+
+
 ## [v0.6.7](https://github.com/DearVa/Everywhere/releases/tag/v0.6.7) - 2026-03-01
 
 ### ✨ Features
