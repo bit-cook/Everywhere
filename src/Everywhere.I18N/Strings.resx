@@ -422,8 +422,8 @@
     <data name="AboutPage_Version" xml:space="preserve">
         <value>Version: </value>
     </data>
-    <data name="AboutPage_GithubRepo" xml:space="preserve">
-        <value>Github Repo</value>
+    <data name="AboutPage_GitHubRepo" xml:space="preserve">
+        <value>GitHub Repo</value>
     </data>
     <data name="AboutPage_OpenSourceLicenses" xml:space="preserve">
         <value>Open Source Licenses</value>

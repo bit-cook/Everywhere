@@ -401,8 +401,8 @@
     <data name="AboutPage_Version" xml:space="preserve">
         <value>버전: </value>
     </data>
-    <data name="AboutPage_GithubRepo" xml:space="preserve">
-        <value>Github 저장소</value>
+    <data name="AboutPage_GitHubRepo" xml:space="preserve">
+        <value>GitHub 저장소</value>
     </data>
     <data name="AboutPage_OpenSourceLicenses" xml:space="preserve">
         <value>오픈 소스 라이선스</value>

@@ -7,7 +7,7 @@
   <v:ReactiveUserControl.Styles>
     <Style Selector="DockPanel#RootPanel">
       <Style Selector="^ &gt; TransitioningContentControl">
-        <Setter Property="Margin" Value="0,14,16,16"/>
+        <Setter Property="Margin" Value="0,14,12,16"/>
       </Style>
     </Style>
     <Style Selector="DockPanel#RootPanel.narrow">

@@ -400,7 +400,7 @@
     <data name="AboutPage_Version" xml:space="preserve">
         <value>Sürüm: </value>
     </data>
-    <data name="AboutPage_GithubRepo" xml:space="preserve">
+    <data name="AboutPage_GitHubRepo" xml:space="preserve">
         <value>GitHub Deposu</value>
     </data>
     <data name="AboutPage_OpenSourceLicenses" xml:space="preserve">

@@ -36,7 +36,7 @@
         TextElement.Foreground="{DynamicResource InfoColor}"/>
       <HyperlinkButton
         VerticalAlignment="Center"
-        Content="{I18N {x:Static LocaleKey.AboutPage_GithubRepo}}"
+        Content="{I18N {x:Static LocaleKey.AboutPage_GitHubRepo}}"
         NavigateUri="https://github.com/DearVa/Everywhere"
         TextElement.Foreground="{DynamicResource InfoColor}"/>
       <HyperlinkButton
