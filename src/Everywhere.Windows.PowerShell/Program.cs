@@ -15,7 +15,17 @@ public static partial class Program
         Console.OutputEncoding = Encoding.UTF8;
 
         var path = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location);
-        var modulesPath = Path.Combine(path ?? ".", "runtimes", "win", "lib", "net9.0", "Modules");
+        var modulesPath = Path.Combine(
+            path ?? ".",
+            "runtimes",
+            "win",
+            "lib",
+#if NET10_0
+            "net10.0",
+#else
+#error "Please Update Me!"
+#endif
+            "Modules");
 
         var modulesPathBuilder = new StringBuilder();
         modulesPathBuilder.Append(Path.GetFullPath(modulesPath)).Append(';');
@@ -50,13 +60,13 @@ public static partial class Program
         }
 
         using var powerShell = System.Management.Automation.PowerShell.Create(runspace);
-        
+
         // Use *>&1 to redirect all streams (Error, Warning, Verbose, Debug, Information) to the Success stream.
         // Then pipe to Out-String to format everything as text (e.g. "WARNING: ...").
         powerShell.AddScript($"& {{ {scriptBuilder} }} *>&1 | Out-String");
 
         var results = await powerShell.InvokeAsync();
-        
+
         // Since we redirected Error stream to Success stream, HadErrors might be false, 
         // or even if true, the error details are already in 'results'.
         // We only check for infrastructure errors here if needed, but generally we want to return everything to the caller.
