@@ -424,7 +424,7 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="se:Strategy">
                 <Button
-                  Classes="Outline" Width="240"
+                  Classes="Outline" Width="180"
                   Padding="8" HorizontalAlignment="Stretch"
                   HorizontalContentAlignment="Stretch"
                   Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
@@ -437,19 +437,21 @@
                     <v:IconPresenter
                       Grid.Row="0" Grid.RowSpan="2"
                       Grid.Column="0"
-                      Width="{DynamicResource FontSize2Xl}"
-                      Height="{DynamicResource FontSize2Xl}"
-                      Margin="4,0,-4,0" VerticalAlignment="Center"
+                      Width="{DynamicResource FontSizeXl}"
+                      Height="{DynamicResource FontSizeXl}"
+                      Margin="4,0,-4,0" VerticalAlignment="Top"
                       Icon="{Binding Icon, Mode=OneTime}"
-                      IconSize="{DynamicResource FontSizeL}"/>
+                      IconSize="{DynamicResource FontSizeM}"/>
 
                     <TextBlock
                       Grid.Row="0" Grid.Column="1"
+                      FontWeight="Black"
                       Text="{Binding NameKey^, Mode=OneTime}"
                       TextWrapping="Wrap"/>
                     <TextBlock
                       Classes="Muted Caption" Grid.Row="1"
-                      Grid.Column="1"
+                      Grid.Column="0" Grid.ColumnSpan="2"
+                      Margin="4,0"
                       Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
                       TextWrapping="Wrap"/>
                   </Grid>

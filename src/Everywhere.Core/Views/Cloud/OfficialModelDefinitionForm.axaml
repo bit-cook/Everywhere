@@ -31,10 +31,28 @@
             <DockPanel
               HorizontalAlignment="Left" HorizontalSpacing="8"
               LastChildFill="True">
+              <DockPanel.Styles>
+                <Style Selector="Button#RefreshButton[IsEnabled=False] LucideIcon">
+                  <Style.Animations>
+                    <Animation
+                      IterationCount="Infinite" Duration="0:0:1">
+                      <KeyFrame Cue="0%">
+                        <Setter Property="RotateTransform.Angle" Value="0.0"/>
+                      </KeyFrame>
+                      <KeyFrame Cue="100%">
+                        <Setter Property="RotateTransform.Angle" Value="-360.0"/>
+                      </KeyFrame>
+                    </Animation>
+                  </Style.Animations>
+                </Style>
+              </DockPanel.Styles>
+
               <Button
-                Classes="Ghost" DockPanel.Dock="Right"
-                Width="36" Padding="0"
+                x:Name="RefreshButton" Classes="Ghost"
+                DockPanel.Dock="Right" Width="36"
+                Padding="0"
                 Command="{Binding RefreshCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                IsEnabled="{Binding !OfficialModelProvider.IsBusy, RelativeSource={RelativeSource TemplatedParent}}"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Refresh}}">
                 <LucideIcon
                   Kind="RefreshCcw"

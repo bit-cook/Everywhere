@@ -1,6 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json.Serialization;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
 using Everywhere.AI;
@@ -14,20 +14,21 @@ using ZLinq;
 namespace Everywhere.Cloud;
 
 public sealed partial class OfficialModelProvider :
+    ObservableObject,
     IOfficialModelProvider,
     IRecipient<UserProfileUpdatedMessage>,
     IRecipient<SubscriptionInformationUpdatedMessage>,
     IAsyncInitializer,
     IDisposable
 {
-    public ReadOnlyObservableCollection<ModelDefinitionTemplate> ModelDefinitions { get; }
+    public ISourceList<ModelDefinitionTemplate> ModelDefinitions { get; } = new SourceList<ModelDefinitionTemplate>();
+
+    [ObservableProperty]
+    public partial bool IsBusy { get; private set; }
 
     private readonly PersistentState _persistentState;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OfficialModelProvider> _logger;
-
-    private readonly SourceList<ModelDefinitionTemplate> _modelDefinitionsSource = new();
-    private readonly IDisposable _modelDefinitionsSubscription;
 
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
     private DateTimeOffset _nextFetchCooldownTime = DateTimeOffset.MinValue;
@@ -40,12 +41,8 @@ public sealed partial class OfficialModelProvider :
 
         if (persistentState.OfficialModelDefinitionTemplate is not null)
         {
-            _modelDefinitionsSource.AddRange(persistentState.OfficialModelDefinitionTemplate);
+            ModelDefinitions.AddRange(persistentState.OfficialModelDefinitionTemplate);
         }
-
-        ModelDefinitions = _modelDefinitionsSource.Connect()
-            .ObserveOnAvaloniaDispatcher()
-            .BindEx(out _modelDefinitionsSubscription);
 
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
@@ -64,6 +61,8 @@ public sealed partial class OfficialModelProvider :
             if (CloudConstants.AIGatewayBaseUrl.IsNullOrEmpty()) return;
             if (DateTimeOffset.Now < _nextFetchCooldownTime) return; // Enforce a cooldown between fetches to avoid hammering the endpoint.
 
+            IsBusy = true;
+
             using var httpClient = _httpClientFactory.CreateClient(nameof(ICloudClient));
             var request = new HttpRequestMessage(HttpMethod.Get, $"{CloudConstants.AIGatewayBaseUrl}/v1/models");
 
@@ -76,14 +75,14 @@ public sealed partial class OfficialModelProvider :
 
             var cloudModelDefinitions = payload.EnsureData();
             var result = cloudModelDefinitions.AsValueEnumerable().Select(m => m.ToModelDefinitionTemplate()).ToList();
-            _modelDefinitionsSource.Reset(result);
+            ModelDefinitions.Reset(result);
             _persistentState.OfficialModelDefinitionTemplate = result;
 
             _nextFetchCooldownTime = DateTimeOffset.Now.AddSeconds(10);
         }
         catch (UserNotLoginException)
         {
-            _modelDefinitionsSource.Clear();
+            ModelDefinitions.Clear();
             _nextFetchCooldownTime = DateTimeOffset.Now;
         }
         catch (OperationCanceledException)
@@ -113,6 +112,7 @@ public sealed partial class OfficialModelProvider :
         }
         finally
         {
+            IsBusy = false;
             _refreshLock.Release();
         }
     }
@@ -131,8 +131,7 @@ public sealed partial class OfficialModelProvider :
 
     public void Dispose()
     {
-        _modelDefinitionsSource.Dispose();
-        _modelDefinitionsSubscription.Dispose();
+        ModelDefinitions.Dispose();
         _refreshLock.Dispose();
         WeakReferenceMessenger.Default.UnregisterAll(this);
     }

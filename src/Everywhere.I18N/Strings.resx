@@ -687,7 +687,7 @@
         <value>Everywhere has been updated to the latest version 🎉</value>
     </data>
     <data name="ChangeLogView_Title" xml:space="preserve">
-        <value/>
+        <value>Change Log</value>
     </data>
     <data name="WelcomeView_QQGroupHyperlinkButton_Content" xml:space="preserve">
         <value>QQ Group</value>
@@ -922,7 +922,7 @@ My intelligence is powered by large language models, and I need your help to con
         <value>Default Assistant</value>
     </data>
     <data name="CustomAssistantPage_Title" xml:space="preserve">
-        <value />
+        <value>Assistants</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_Content" xml:space="preserve">
         <value>Create</value>
@@ -2303,7 +2303,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Shortcut</value>
     </data>
     <data name="SettingsCategory_Settings_SystemAssistant_Header" xml:space="preserve">
-        <value />
+        <value>System Assistant</value>
     </data>
     <data name="SettingsCategory_Settings_SystemAssistant_Description" xml:space="preserve">
         <value />

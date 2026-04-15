@@ -916,7 +916,7 @@
         <value>默认助手</value>
     </data>
     <data name="CustomAssistantPage_Title" xml:space="preserve">
-        <value>助手配置</value>
+        <value>助手</value>
     </data>
     <data name="CustomAssistantPage_CreateNewCustomAssistantButton_Content" xml:space="preserve">
         <value>创建</value>

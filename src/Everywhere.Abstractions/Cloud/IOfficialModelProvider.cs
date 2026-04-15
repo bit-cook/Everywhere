@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+﻿using DynamicData;
 using Everywhere.AI;
 using Everywhere.Common;
 
@@ -13,7 +13,12 @@ public interface IOfficialModelProvider
     /// This should be an observable collection that notifies subscribers when the list of model definitions changes.
     /// This should refresh before & after get is called.
     /// </summary>
-    ReadOnlyObservableCollection<ModelDefinitionTemplate> ModelDefinitions { get; }
+    ISourceList<ModelDefinitionTemplate> ModelDefinitions { get; }
+
+    /// <summary>
+    /// Indicates whether the provider is currently fetching or refreshing the model definitions.
+    /// </summary>
+    bool IsBusy { get; }
 
     /// <summary>
     /// Manually refresh the list of model definitions from the official source.

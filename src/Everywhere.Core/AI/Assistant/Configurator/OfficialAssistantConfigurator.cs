@@ -49,7 +49,7 @@ public sealed partial class OfficialAssistantConfigurator : AssistantConfigurato
             return _owner;
         }
 
-        if (ServiceLocator.Resolve<IOfficialModelProvider>().ModelDefinitions.FirstOrDefault(m => m.Specializations.HasFlag(specialization)) is
+        if (ServiceLocator.Resolve<IOfficialModelProvider>().ModelDefinitions.Items.FirstOrDefault(m => m.Specializations.HasFlag(specialization)) is
             { } modelDefinitionTemplate)
         {
             var systemAssistant = new SystemAssistant
