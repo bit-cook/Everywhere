@@ -435,6 +435,10 @@ public sealed partial class ChatService : IChatService
                     functionCallContents,
                     cancellationToken);
             }
+
+            if (!isSubagent)
+                WeakReferenceMessenger.Default.Send(
+                    new FlashChatWindowMessage(assistantChatMessage.Items.LastOrDefault()?.As<AssistantChatMessageTextSpan>()?.Content));
         }
         catch (Exception ex)
         {
@@ -444,7 +448,8 @@ public sealed partial class ChatService : IChatService
             ex = HandledChatException.Handle(ex, kernelMixin);
             var friendlyMessage = ex.GetFriendlyMessage();
             assistantChatMessage.ErrorMessageKey = friendlyMessage;
-            WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(friendlyMessage.ToString()));
+
+            if (!isSubagent) WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(friendlyMessage.ToString()));
         }
         finally
         {
