@@ -19,6 +19,14 @@
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
   </PropertyGroup>
 
+  <!-- Workaround for TextMateSharp.Grammars libonigwrap.dylib failing in install_name_tool due to lack of header padding -->
+  <Target Name="_SkipInstallNameToolForLibOnigWrap" BeforeTargets="_InstallNameTool">
+    <Message Text="Skipping install_name_tool for libonigwrap.dylib to avoid 'larger updated load commands do not fit' error..." Importance="high" />
+    <ItemGroup>
+      <_DynamicLibraryToReidentify Remove="@(_DynamicLibraryToReidentify)" Condition="'%(Filename)' == 'libonigwrap'" />
+    </ItemGroup>
+  </Target>
+
   <PropertyGroup>
     <ApplicationManifest>Info.plist</ApplicationManifest>
   </PropertyGroup>
