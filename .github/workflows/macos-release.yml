@@ -107,7 +107,7 @@ jobs:
           /p:RuntimeIdentifier=${{ matrix.runtime }} \
           /p:CodesignKey="$CODE_SIGN_KEY" \
           /p:PackageSigningKey="$PACKAGE_SIGNING_KEY" \
-          /p:Version="$env:VERSION" \
+          /p:Version="$VERSION" \
           /p:SentryDsn="$SENTRY_DSN" \
           /p:ClientId="$CLIENT_ID" \
           /p:AIGatewayBaseUrl="$AI_GATEWAY_BASE_URL" \
