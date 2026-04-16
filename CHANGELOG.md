@@ -20,7 +20,7 @@ Strategy Engine is now live! With the Strategy Engine, Everywhere can intelligen
 
 It currently covers various common scenarios such as browsers, text selection, images, and documents. More practical strategies will continue to be expanded in the future.
 
-<img width="1200" height="800" alt="strategy-engine" src="https://github.com/user-attachments/assets/2b45476b-ff8a-4b0f-8df0-1a16a47cc27b" />
+![strategy-engine](https://github.com/user-attachments/assets/2b45476b-ff8a-4b0f-8df0-1a16a47cc27b)
 
 In future releases, the Strategy Engine will serve as one of Everywhere's core features, gradually rolling out the following capabilities:
 
@@ -32,13 +32,13 @@ In future releases, the Strategy Engine will serve as one of Everywhere's core f
 
 **Revamped main page navigation design and optimized UX**
 
-<img width="800" height="600" alt="new-navigation" src="https://github.com/user-attachments/assets/34be93d4-ea85-4791-891c-60b9b6dca737" />
+![new-navigation](https://github.com/user-attachments/assets/34be93d4-ea85-4791-891c-60b9b6dca737)
 
 ---
 
 **Refactored changelog page, allowing you to view the latest release notes before updating**
 
-<img width="800" height="600" alt="new-changelog-page" src="https://github.com/user-attachments/assets/71b2176d-8739-4fc3-af4b-1f4b5b9d0d1b" />
+![new-changelog-page](https://github.com/user-attachments/assets/71b2176d-8739-4fc3-af4b-1f4b5b9d0d1b)
 
 ---
 
@@ -46,7 +46,7 @@ In future releases, the Strategy Engine will serve as one of Everywhere's core f
 
 When handling complex tasks, if the assistant encounters uncertainties, it can now actively pause and ask you questions, waiting for you to confirm details before proceeding.
 
-<img width="800" height="600" alt="ask-user-question-tool" src="https://github.com/user-attachments/assets/e9daf5e0-a1db-4c73-b3b3-47e0d412dbf6" />
+![ask-user-question-tool](https://github.com/user-attachments/assets/e9daf5e0-a1db-4c73-b3b3-47e0d412dbf6)
 
 ---
 
@@ -62,7 +62,7 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 ### 🛠️ Interaction & Workflow
 
 - 🔥 When rejecting a tool call from the assistant, you can now provide a "reason for rejection". This helps the assistant understand your intention and correct its subsequent behavior (#304).
-- Added "Always on Top" and "On Top When Typing" options to chat window (#295).
+- Added "Always Topmost" and "Topmost When Typing" options to chat window (#295).
 - Added global shortcuts for "Pick Visual Element" and "Take Screenshot" (#269).
 - Added a "Maximum Context Rounds" option to control context length (#156).
 
