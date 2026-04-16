@@ -42,6 +42,21 @@
     <UseHardenedRuntime>true</UseHardenedRuntime>
   </PropertyGroup>
 
+  <!-- Workaround for TextMateSharp libonigwrap.dylib failing in install_name_tool and causing dyld crash on launch -->
+  <Target Name="_HideLibOnigWrapFromMacSdk" BeforeTargets="_ComputeDynamicLibrariesToReidentify;_LinkNativeExecutable;_InstallNameTool">
+    <Message Text="Intercepting libonigwrap.dylib to prevent dyld static linking crashes..." Importance="high" />
+    <ItemGroup>
+      <_ExtractedLibOnigWrap Include="@(_FileNativeReference)" Condition="'%(Filename)' == 'libonigwrap'" />
+      <_FileNativeReference Remove="@(_ExtractedLibOnigWrap)" />
+      <_DynamicLibraryToReidentify Remove="@(_DynamicLibraryToReidentify)" Condition="'%(Filename)' == 'libonigwrap'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_CopyLibOnigWrapToBundle" AfterTargets="_CreateAppBundle">
+    <MakeDir Directories="$(AppBundleDir)/Contents/MonoBundle" Condition="!Exists('$(AppBundleDir)/Contents/MonoBundle')" />
+    <Copy SourceFiles="@(_ExtractedLibOnigWrap)" DestinationFolder="$(AppBundleDir)/Contents/MonoBundle" Condition="'@(_ExtractedLibOnigWrap)' != ''" />
+  </Target>
+
   <!-- When not publishing, we sign the build output for local debugging -->
   <Target Name="SignOnBuild" AfterTargets="Build" Condition="'$(IsPublish)' != 'true'">
     <Message Text="[Dev Workflow] Processing build output for local debugging..." Importance="high"/>
