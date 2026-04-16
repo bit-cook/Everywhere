@@ -150,6 +150,15 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
                     }
                 }
             }
+            catch (OperationCanceledException) { }
+            catch (TimeoutException ex)
+            {
+                _logger.LogError(ex, "Failed to load GitHub releases.");
+                throw new HandledSystemException(
+                    ex,
+                    HandledSystemExceptionType.Timeout,
+                    new DynamicResourceKey(LocaleKey.FriendlyExceptionMessage_HttpRequest_RequestTimeout));
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to load GitHub releases.");
