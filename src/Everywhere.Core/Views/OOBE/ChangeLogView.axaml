@@ -101,12 +101,12 @@
             <Setter Property="FontSize" Value="{DynamicResource FontSizeM}"/>
             <Setter Property="Background" Value="{DynamicResource SecondaryColor}"/>
             <Setter Property="Foreground" Value="{DynamicResource SecondaryForegroundColor}"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
           </Style>
         </shadui:ButtonGroup.Styles>
 
-        <HyperlinkButton
-          VerticalAlignment="Center"
-          NavigateUri="{Binding SelectedReleaseInfo.HtmlUrl, FallbackValue={x:Null}}">
+        <HyperlinkButton NavigateUri="{Binding SelectedReleaseInfo.HtmlUrl, FallbackValue={x:Null}}">
           <StackPanel
             Orientation="Horizontal" Spacing="4">
             <Image
@@ -130,8 +130,7 @@
             <TextBlock Text="{I18N {x:Static LocaleKey.ChangeLogView_ViewOnGitHubHyperlinkButton_Content}}"/>
           </StackPanel>
         </HyperlinkButton>
-        <HyperlinkButton
-          VerticalAlignment="Center" NavigateUri="https://everywhere.sylinko.com">
+        <HyperlinkButton NavigateUri="https://everywhere.sylinko.com">
           <StackPanel
             Orientation="Horizontal" Spacing="4">
             <LucideIcon
@@ -140,8 +139,7 @@
             <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_OfficialDocsHyperlinkButton_Content}}"/>
           </StackPanel>
         </HyperlinkButton>
-        <HyperlinkButton
-          VerticalAlignment="Center" NavigateUri="https://aka.sylinko.com/everywhere-discord">
+        <HyperlinkButton NavigateUri="https://aka.sylinko.com/everywhere-discord">
           <StackPanel
             Orientation="Horizontal" Spacing="4">
             <Image
@@ -165,8 +163,7 @@
             <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_DiscordHyperlinkButton_Content}}"/>
           </StackPanel>
         </HyperlinkButton>
-        <HyperlinkButton
-          VerticalAlignment="Center" NavigateUri="https://aka.sylinko.com/everywhere-qq-group">
+        <HyperlinkButton NavigateUri="https://aka.sylinko.com/everywhere-qq-group">
           <StackPanel
             Orientation="Horizontal" Spacing="4">
             <Image
