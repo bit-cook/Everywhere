@@ -79,8 +79,8 @@ public static class Program
         );
 
         NSApplication.CheckForIllegalCrossThreadCalls = false;
-        NSApplication.SharedApplication.Delegate = new AppDelegate();
         NSApplication.Init();
+        NSApplication.SharedApplication.Delegate = new AppDelegate();
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args, ShutdownMode.OnExplicitShutdown);
     }
 

@@ -19,6 +19,9 @@
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ApplicationManifest>Info.plist</ApplicationManifest>
+  </PropertyGroup>
 
   <!-- $(IsPublish) is set to 'true' when running 'dotnet publish /p:IsPublish=true' -->
   <PropertyGroup Condition="'$(IsPublish)' != 'true'">

@@ -69,6 +69,7 @@ public static class Entrance
             return;
         }
 
+#if IsWindows
         if (args.FirstOrDefault(x => x.StartsWith($"{UrlProtocolCallbackMessage.Scheme}:")) is { } url)
         {
             // Bring the existing instance to the foreground.
@@ -76,6 +77,7 @@ public static class Entrance
             Environment.Exit(0);
             return;
         }
+#endif
 
         // Bring the existing instance to the foreground.
         await SendToHost(new ShowWindowMessage(nameof(ChatWindowViewModel))).ConfigureAwait(false);
