@@ -28,11 +28,11 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
     private const string ServiceName = "com.sylinko.everywhere";
     private const string TokenDataKey = "oauth_token_data";
 
-    private const string AuthorizeEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/authorize";
-    private const string TokenEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/token";
-    private const string UserInfoEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/userinfo";
-    private const string RevokeEndpoint = $"{CloudConstants.AuthBaseUrl}/api/auth/oauth2/revoke";
-    private const string SubscriptionEndpoint = $"{CloudConstants.AuthBaseUrl}/api/subscription";
+    private const string AuthorizeEndpoint = $"{CloudConstants.AccountBaseUrl}/api/auth/oauth2/authorize";
+    private const string TokenEndpoint = $"{CloudConstants.AccountBaseUrl}/api/auth/oauth2/token";
+    private const string UserInfoEndpoint = $"{CloudConstants.AccountBaseUrl}/api/auth/oauth2/userinfo";
+    private const string RevokeEndpoint = $"{CloudConstants.AccountBaseUrl}/api/auth/oauth2/revoke";
+    private const string SubscriptionEndpoint = $"{CloudConstants.AccountBaseUrl}/api/subscription";
     private const string RedirectUri = "sylinko-everywhere://callback";
     private const string Scopes = "openid profile email offline_access";
 
