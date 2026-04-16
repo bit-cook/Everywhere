@@ -173,11 +173,11 @@
             <DockPanel
               HorizontalSpacing="32" VerticalSpacing="8">
               <DockPanel.Styles>
-                <Style Selector="ContentControl.right">
-                  <Setter Property="DockPanel.Dock" Value="Right"/>
-                </Style>
-                <Style Selector="ContentControl.bottom">
+                <Style Selector="ContentControl">
                   <Setter Property="DockPanel.Dock" Value="Bottom"/>
+                  <Style Selector="^.right:not(.FullSize)">
+                    <Setter Property="DockPanel.Dock" Value="Right"/>
+                  </Style>
                 </Style>
               </DockPanel.Styles>
 
@@ -185,6 +185,15 @@
                 x:Name="PART_SettingsItemContentControl" VerticalAlignment="Center"
                 Content="{Binding}"
                 IsVisible="{Binding !IsEmpty}">
+                <Classes.FullSize>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding
+                      ElementName="HeaderTextBlock" Path="!IsVisible"/>
+                    <Binding
+                      ElementName="DescriptionTextBlock" Path="!IsVisible"/>
+                  </MultiBinding>
+                </Classes.FullSize>
+
                 <Interaction.Behaviors>
                   <shadui:AdaptiveRatioBehavior
                     DenominatorControl="{Binding $parent[DockPanel]}"
@@ -207,7 +216,8 @@
                 <StackPanel
                   Orientation="Horizontal" Spacing="6">
                   <TextBlock
-                    VerticalAlignment="Center" IsHitTestVisible="False"
+                    x:Name="HeaderTextBlock" VerticalAlignment="Center"
+                    FontWeight="SemiBold" IsHitTestVisible="False"
                     IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                     Text="{Binding HeaderKey^, FallbackValue={x:Null}}"
                     TextWrapping="Wrap"/>
@@ -219,7 +229,8 @@
                     ToolTip.Tip="{I18N {x:Static LocaleKey.ExperimentalBadge_ToolTip}}"/>
                 </StackPanel>
                 <TextBlock
-                  Classes="Muted Caption" IsHitTestVisible="False"
+                  x:Name="DescriptionTextBlock" Classes="Muted Caption"
+                  IsHitTestVisible="False"
                   IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                   Text="{Binding DescriptionKey^, FallbackValue={x:Null}}"
                   TextWrapping="Wrap"/>

@@ -94,8 +94,10 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             await App.Launcher.LaunchUriAsync(new Uri(authorizeUrl));
 
             // Wait for the OS protocol callback or timeout (managed entirely within the flow context)
-            var tokenData = await flow.WaitForCodeAndExchangeAsync();
+            var code = await flow.WaitForCode();
 
+            LoginStatus = CloudClientLoginStatus.AutoLoggingIn;
+            var tokenData = await flow.ExchangeCodeAsync(code);
             _session.SetToken(tokenData);
             await ReloadUserDataAsync(true, cancellationToken);
 
@@ -103,7 +105,14 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         }
         catch (OperationCanceledException)
         {
-            // Ignore
+            try
+            {
+                await LogoutCoreAsync(false, cancellationToken);
+            }
+            catch
+            {
+                // Ignore
+            }
         }
         catch (Exception ex)
         {
@@ -123,9 +132,11 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         }
     }
 
-    public async Task LogoutAsync(CancellationToken cancellationToken)
+    public Task LogoutAsync(CancellationToken cancellationToken) => LogoutCoreAsync(true, cancellationToken);
+
+    private async Task LogoutCoreAsync(bool acquireLock, CancellationToken cancellationToken)
     {
-        if (!await _loginLock.WaitAsync(0, cancellationToken)) return; // Prevent logout during login flow\
+        if (acquireLock && !await _loginLock.WaitAsync(0, cancellationToken)) return; // Prevent logout during login flow\
 
         try
         {
@@ -136,7 +147,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         finally
         {
             LoginStatus = CloudClientLoginStatus.NotLoggedIn;
-            _loginLock.Release();
+            if (acquireLock) _loginLock.Release();
         }
     }
 
@@ -392,11 +403,10 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             }
         }
 
-        public async Task<TokenData> WaitForCodeAndExchangeAsync()
-        {
-            var code = await _authCodeTcs.Task;
+        public Task<string> WaitForCode() => _authCodeTcs.Task;
 
-            // Exchange Authorization Code for Access Token
+        public async Task<TokenData> ExchangeCodeAsync(string code)
+        {
             var parameters = new Dictionary<string, string>
             {
                 { "grant_type", "authorization_code" },

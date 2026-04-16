@@ -327,27 +327,25 @@
                   </TextBlock>
 
                   <StackPanel
+                    IsVisible="{Binding Path=CloudSynchronizer.IsCloudSyncing}"
                     Orientation="Horizontal" Spacing="4">
                     <shadui:Loading
                       Width="{DynamicResource FontSizeS}"
-                      Height="{DynamicResource FontSizeS}"
-                      IsVisible="{Binding Path=CloudSynchronizer.IsCloudSyncing}"/>
+                      Height="{DynamicResource FontSizeS}"/>
                     <TextBlock
                       Classes="Caption Muted"
-                      IsVisible="{Binding Path=CloudSynchronizer.IsCloudSyncing}"
                       Text="{I18N {x:Static LocaleKey.UserProfilePresenter_SynchronizingTextBlock_Text}}"/>
                   </StackPanel>
 
                   <StackPanel
+                    IsVisible="{Binding Path=PersistentState.LastCloudSynchronizationErrorMessageKey, Converter={x:Static ObjectConverters.IsNotNull}}"
                     Orientation="Horizontal" Spacing="4">
                     <TextBlock
                       Classes="Caption"
                       Foreground="{DynamicResource WarningColor}"
-                      IsVisible="{Binding Path=PersistentState.LastCloudSynchronizationErrorMessageKey, Converter={x:Static ObjectConverters.IsNotNull}}"
                       Text="{I18N {x:Static LocaleKey.UserProfilePresenter_LastSynchronizationErrorTextBlock_Text}}"/>
                     <LucideIcon
                       Foreground="{DynamicResource WarningColor}"
-                      IsVisible="{Binding Path=PersistentState.LastCloudSynchronizationErrorMessageKey, Converter={x:Static ObjectConverters.IsNotNull}}"
                       Kind="CircleQuestionMark"
                       Size="{DynamicResource FontSizeS}"
                       ToolTip.Placement="Top"
