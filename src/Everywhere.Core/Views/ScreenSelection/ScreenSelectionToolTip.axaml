@@ -34,7 +34,6 @@
               Text="{TemplateBinding SizeInfo}"/>
 
             <ListBox
-              Width="{Binding $parent[DockPanel].Bounds.Width}"
               ItemsSource="{Binding AllowedModes, RelativeSource={RelativeSource TemplatedParent}}"
               SelectedItem="{TemplateBinding Mode}">
               <ListBox.ItemsPanel>

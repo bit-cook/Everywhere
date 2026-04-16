@@ -2,7 +2,7 @@
   <Target Name="GenerateCloudConstants" BeforeTargets="CoreCompile">
     <PropertyGroup>
       <ClientId Condition="'$(ClientId)' == ''"/>
-      <OAccountBaseUrl Condition="'$(AccountBaseUrl)' == ''"/>
+      <AccountBaseUrl Condition="'$(AccountBaseUrl)' == ''"/>
       <AIGatewayBaseUrl Condition="'$(AIGatewayBaseUrl)' == ''"/>
       <CloudSyncBaseUrl Condition="'$(CloudSyncBaseUrl)' == ''"/>
       <GenerateCloudConstants>$(IntermediateOutputPath)CloudConstants.g.cs</GenerateCloudConstants>

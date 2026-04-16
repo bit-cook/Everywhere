@@ -406,7 +406,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                             LocaleKey.ChatContextManager_DeletingToast_Content,
                             new DirectResourceKey(metadataList.Count)).ToString())
                         .WithProgress(progress)
-                        .WithDelay(5d)
+                        .WithDurationSeconds(5d)
                         .WithAction(DynamicResourceKey.Resolve(LocaleKey.Common_Undo), ButtonStyle.Ghost)
                         .ShowInfoAsync()
                         .ContinueWith(t =>

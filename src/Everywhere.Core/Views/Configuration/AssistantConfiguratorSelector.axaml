@@ -10,7 +10,6 @@
           <!--  ReSharper disable once Xaml.StaticResourceNotResolved  -->
           <ListBox
             x:Name="PART_ListBox"
-            Width="{Binding $parent[DockPanel].Bounds.Width}"
             Background="{DynamicResource CardBackgroundColor}"
             CornerRadius="{DynamicResource XlCornerRadius}"
             ItemsSource="{Binding ConfiguratorModels, RelativeSource={RelativeSource TemplatedParent}}"

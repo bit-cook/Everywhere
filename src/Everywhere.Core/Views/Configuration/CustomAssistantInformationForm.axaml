@@ -7,9 +7,7 @@
     TargetType="v:CustomAssistantInformationForm">
     <Setter Property="Template">
       <ControlTemplate>
-        <DockPanel
-          Width="{Binding $parent[DockPanel].Bounds.Width}"
-          HorizontalSpacing="16">
+        <DockPanel HorizontalSpacing="16">
           <Button
             DockPanel.Dock="Left" Padding="0"
             VerticalAlignment="Top"

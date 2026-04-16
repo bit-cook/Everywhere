@@ -59,7 +59,7 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
     [ObservableProperty]
     [HiddenSettingsItem]
     [NotifyPropertyChangedFor(nameof(Configurator))]
-    public partial AssistantConfiguratorType ConfiguratorType { get; set; }
+    public partial AssistantConfiguratorType ConfiguratorType { get; set; } = AssistantConfiguratorType.Official;
 
     [ObservableProperty]
     [HiddenSettingsItem]

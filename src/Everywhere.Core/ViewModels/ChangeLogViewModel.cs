@@ -180,7 +180,6 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
                 .WithContent(LocaleResolver.CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate)
                 .WithProgress(progress)
                 .WithCancellationTokenSource(cancellationTokenSource)
-                .WithDelay(0d)
                 .OnBottomRight()
                 .ShowInfo();
             await SoftwareUpdater.PerformUpdateAsync(progress, cancellationTokenSource.Token);

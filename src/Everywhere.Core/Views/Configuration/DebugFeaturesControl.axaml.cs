@@ -92,7 +92,7 @@ public partial class DebugFeaturesControl(
                 .WithContent(LocaleResolver.DebugFeaturesControl_CreateDumpToast_Content)
                 .DismissOnClick()
                 .OnBottomRight()
-                .WithDelay(1000)
+                .WithDurationSeconds(1)
                 .ShowWarning();
             await Task.Delay(500); // Give the toast time to show before freezing the UI.
 

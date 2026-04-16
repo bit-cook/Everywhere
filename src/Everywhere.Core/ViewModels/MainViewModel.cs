@@ -163,7 +163,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
             NavigateTo(_serviceProvider.GetRequiredService<ChangeLogView>());
             ToastManager
                 .CreateToast(LocaleResolver.MainViewModel_UpgradeSuccessfulToast_Title)
-                .WithDelay(5000)
+                .WithDurationSeconds(5)
                 .ShowAsync();
         }
 
