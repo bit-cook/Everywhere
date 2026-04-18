@@ -27,7 +27,7 @@ public partial class VisualElementContext
         private static readonly TextAttributeId IsSelectionActivePropertyId =
             TextAttributeId.Register(AutomationType.UIA3, 30034, "IsSelectionActive");
 
-        public string Id { get; } = string.Join('.', element.Properties.RuntimeId.ValueOrDefault ?? []);
+        public string Id { get; } = string.Join('.', element.Properties.RuntimeId.ValueOrDefault?.Select(x => x.ToString("X")) ?? []);
 
         public IVisualElement? Parent
         {
