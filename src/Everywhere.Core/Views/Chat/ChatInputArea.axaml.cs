@@ -293,6 +293,7 @@ public sealed partial class ChatInputArea : TemplatedControl
         try
         {
             SetAndRaise(TextProperty, ref _text, textEditor.Text?.TrimStart('\uFFFC'));
+            RaiseEvent(new TextChangedEventArgs(TextBox.TextChangedEvent, this)); // For ChatWindow Handling
         }
         finally
         {
