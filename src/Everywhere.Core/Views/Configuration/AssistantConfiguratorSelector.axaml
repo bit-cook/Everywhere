@@ -101,6 +101,7 @@
           </ListBox>
 
           <v:SettingsItemsControl
+            Margin="0"
             IsVisible="{TemplateBinding IsSettingsVisible}"
             ItemsSource="{Binding Assistant.Configurator.SettingsItems, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
         </StackPanel>

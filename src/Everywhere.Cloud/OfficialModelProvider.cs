@@ -216,7 +216,7 @@ public sealed partial class OfficialModelProvider :
                     t.Pricing.Input * CreditsMultiplier,
                     t.Pricing.Output * CreditsMultiplier,
                     t.Pricing.CachedInput * CreditsMultiplier))).ToList();
-            return new ModelPricing(tiers, ModelPricingUnit.CreditPerToken);
+            return new ModelPricing(tiers, ModelPricingUnit.MCreditPerMToken);
         }
     }
 

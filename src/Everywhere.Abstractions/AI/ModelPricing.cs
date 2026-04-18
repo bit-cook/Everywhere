@@ -6,8 +6,8 @@ namespace Everywhere.AI;
 
 public enum ModelPricingUnit
 {
-    [DynamicResourceKey(LocaleKey.ModelPricingUnit_CreditPerToken)]
-    CreditPerToken,
+    [DynamicResourceKey(LocaleKey.ModelPricingUnit_MCreditPerMToken)]
+    MCreditPerMToken,
     [DynamicResourceKey(LocaleKey.ModelPricingUnit_UsdPerMToken)]
     UsdPerMToken
 }
@@ -84,7 +84,7 @@ public sealed partial class ModelPricing(IReadOnlyList<PricingTier> tiers, Model
         FormattedDynamicResourceKey GetPricingKey(PricingTier tier) => new(
             Unit switch
             {
-                ModelPricingUnit.CreditPerToken => LocaleKey.ModelPricingUnit_CreditPerToken,
+                ModelPricingUnit.MCreditPerMToken => LocaleKey.ModelPricingUnit_MCreditPerMToken,
                 ModelPricingUnit.UsdPerMToken => LocaleKey.ModelPricingUnit_UsdPerMToken,
                 _ => LocaleKey.Empty
             },

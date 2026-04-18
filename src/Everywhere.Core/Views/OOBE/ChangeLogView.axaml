@@ -3,7 +3,9 @@
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
   xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:vc="clr-namespace:Everywhere.ValueConverters"
-  xmlns:vm="clr-namespace:Everywhere.ViewModels" d:DesignHeight="450"
+  xmlns:vm="clr-namespace:Everywhere.ViewModels"
+  xmlns:common="clr-namespace:Everywhere.Common"
+  d:DesignHeight="450"
   d:DesignWidth="800"
   x:DataType="{x:Type vm:ChangeLogViewModel}"
   mc:Ignorable="d">
@@ -130,7 +132,7 @@
             <TextBlock Text="{I18N {x:Static LocaleKey.ChangeLogView_ViewOnGitHubHyperlinkButton_Content}}"/>
           </StackPanel>
         </HyperlinkButton>
-        <HyperlinkButton NavigateUri="https://everywhere.sylinko.com">
+        <HyperlinkButton NavigateUri="{x:Static common:LinkConstants.OfficialWebsiteUri}">
           <StackPanel
             Orientation="Horizontal" Spacing="4">
             <LucideIcon
@@ -139,7 +141,7 @@
             <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_OfficialDocsHyperlinkButton_Content}}"/>
           </StackPanel>
         </HyperlinkButton>
-        <HyperlinkButton NavigateUri="https://aka.sylinko.com/everywhere-discord">
+        <HyperlinkButton NavigateUri="{x:Static common:LinkConstants.AkaDiscordUri}">
           <StackPanel
             Orientation="Horizontal" Spacing="4">
             <Image
@@ -163,7 +165,7 @@
             <TextBlock Text="{I18N {x:Static LocaleKey.WelcomeView_DiscordHyperlinkButton_Content}}"/>
           </StackPanel>
         </HyperlinkButton>
-        <HyperlinkButton NavigateUri="https://aka.sylinko.com/everywhere-qq-group">
+        <HyperlinkButton NavigateUri="{x:Static common:LinkConstants.AkaQQGroupUri}">
           <StackPanel
             Orientation="Horizontal" Spacing="4">
             <Image

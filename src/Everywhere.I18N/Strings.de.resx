@@ -2268,9 +2268,6 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     <data name="ModelPricingUnit_UsdPerMToken" xml:space="preserve">
         <value>Pro Million Tokens {0} USD</value>
     </data>
-    <data name="ModelPricingUnit_CreditPerToken" xml:space="preserve">
-        <value>Pro Token {0} Credits</value>
-    </data>
     <data name="ModelPricing_NotGreaterThanTierDescription" xml:space="preserve">
         <value>Tokens ≤ {1}, {0}</value>
     </data>

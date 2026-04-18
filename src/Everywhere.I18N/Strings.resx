@@ -2269,8 +2269,8 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ModelPricingUnit_UsdPerMToken" xml:space="preserve">
         <value>USD</value>
     </data>
-    <data name="ModelPricingUnit_CreditPerToken" xml:space="preserve">
-        <value>Per token {0} credits</value>
+    <data name="ModelPricingUnit_MCreditPerMToken" xml:space="preserve">
+        <value />
     </data>
     <data name="ModelPricing_NotGreaterThanTierDescription" xml:space="preserve">
         <value>When token count ≤ {1}, {0}</value>
@@ -2637,5 +2637,8 @@ Use scroll wheel or number keys to switch selection mode</value>
     </data>
     <data name="UserProfilePresenter_LoggingInTextBlock_Text" xml:space="preserve">
         <value>Logging in</value>
+    </data>
+    <data name="OfficialModelDefinitionForm_PricingTextBlock_Text" xml:space="preserve">
+        <value>View Pricing Details</value>
     </data>
 </root>

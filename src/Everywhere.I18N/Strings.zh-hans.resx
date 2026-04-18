@@ -2270,8 +2270,8 @@
     <data name="ModelPricingUnit_UsdPerMToken" xml:space="preserve">
         <value>每百万 Token {0} 美元</value>
     </data>
-    <data name="ModelPricingUnit_CreditPerToken" xml:space="preserve">
-        <value>每 Token {0} 积分</value>
+    <data name="ModelPricingUnit_MCreditPerMToken" xml:space="preserve">
+        <value>每 1M Token {0}M 积分</value>
     </data>
     <data name="ModelPricing_NotGreaterThanTierDescription" xml:space="preserve">
         <value>Token 数 ≤ {1} 时，{0}</value>
@@ -2638,5 +2638,8 @@
     </data>
     <data name="UserProfilePresenter_LoggingInTextBlock_Text" xml:space="preserve">
         <value>正在登录</value>
+    </data>
+    <data name="OfficialModelDefinitionForm_PricingTextBlock_Text" xml:space="preserve">
+        <value>查看定价详情</value>
     </data>
 </root>

@@ -3,7 +3,8 @@
   xmlns:ai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions" xmlns:cloud="clr-namespace:Everywhere.Cloud;assembly=Everywhere.Abstractions"
   xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:mdSkia="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia.Svg.Skia"
   xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="using:Everywhere.Views"
-  xmlns:vc="clr-namespace:Everywhere.ValueConverters">
+  xmlns:vc="clr-namespace:Everywhere.ValueConverters"
+  xmlns:common="clr-namespace:Everywhere.Common">
   <ControlTheme
     x:Key="{x:Type v:OfficialModelDefinitionForm}"
     TargetType="v:OfficialModelDefinitionForm">
@@ -176,10 +177,16 @@
 
             <StackPanel
               Margin="0,8,0,0" Spacing="8">
-              <TextBlock
-                Classes="Large"
-                Text="{I18N {x:Static LocaleKey.OfficialModelDefinitionForm_DetailsTextBlock_Text}}"
-                TextTrimming="CharacterEllipsis"/>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock
+                  Classes="Large"
+                  Text="{I18N {x:Static LocaleKey.OfficialModelDefinitionForm_DetailsTextBlock_Text}}"
+                  TextTrimming="CharacterEllipsis"/>
+                <HyperlinkButton Content="{I18N {x:Static LocaleKey.OfficialModelDefinitionForm_PricingTextBlock_Text}}"
+                                 FontSize="{DynamicResource FontSizeS}"
+                                 VerticalAlignment="Bottom"
+                                 NavigateUri="{x:Static common:LinkConstants.OfficialWebsitePricingUri}"/>
+              </StackPanel>
 
               <shadui:Toast
                 MaxWidth="2000" Margin="0"

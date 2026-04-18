@@ -2268,9 +2268,6 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="ModelPricingUnit_UsdPerMToken" xml:space="preserve">
         <value>Her milyon token {0} dolar</value>
     </data>
-    <data name="ModelPricingUnit_CreditPerToken" xml:space="preserve">
-        <value>Her token {0} kredi</value>
-    </data>
     <data name="ModelPricing_NotGreaterThanTierDescription" xml:space="preserve">
         <value>Token sayısı ≤ {1} olduğunda, {0}</value>
     </data>

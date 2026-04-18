@@ -2269,9 +2269,6 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="ModelPricingUnit_UsdPerMToken" xml:space="preserve">
         <value>{0} USD per Milione di Token</value>
     </data>
-    <data name="ModelPricingUnit_CreditPerToken" xml:space="preserve">
-        <value>{0} Crediti per Token</value>
-    </data>
     <data name="ModelPricing_NotGreaterThanTierDescription" xml:space="preserve">
         <value>Quando il numero di token ≤ {1}, {0}</value>
     </data>

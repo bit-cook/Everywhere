@@ -2269,9 +2269,6 @@
     <data name="ModelPricingUnit_UsdPerMToken" xml:space="preserve">
         <value>每百萬詞元 {0} 美元</value>
     </data>
-    <data name="ModelPricingUnit_CreditPerToken" xml:space="preserve">
-        <value>每詞元 {0} 積分</value>
-    </data>
     <data name="ModelPricing_NotGreaterThanTierDescription" xml:space="preserve">
         <value>詞元數 ≤ {1} 時，{0}</value>
     </data>
