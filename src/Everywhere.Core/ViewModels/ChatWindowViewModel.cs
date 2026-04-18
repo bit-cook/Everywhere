@@ -564,7 +564,7 @@ public sealed partial class ChatWindowViewModel :
         using var memoryStream = new MemoryStream();
         bitmap.Save(memoryStream, 100);
 
-        var blob = await _blobStorage.StorageBlobAsync(memoryStream, "image/png", cancellationToken);
+        var blob = await _blobStorage.StorageBlobAsync(memoryStream, "image/png", cancellationToken: cancellationToken);
         return new FileAttachment(
             new DynamicResourceKey(string.Empty),
             blob.LocalPath,

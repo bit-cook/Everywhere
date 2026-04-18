@@ -561,7 +561,7 @@ public sealed partial class ChatService : IChatService
                         (binaryContent.Metadata?.TryGetValue("thumbnail", out var isThumbnail) is not true || isThumbnail is false))
                     {
                         using var memoryStream = new MemoryStream(binaryContent.Data.Value.ToArray());
-                        var blob = await _blobStorage.StorageBlobAsync(memoryStream, binaryContent.MimeType, cancellationToken);
+                        var blob = await _blobStorage.StorageBlobAsync(memoryStream, binaryContent.MimeType, cancellationToken: cancellationToken);
                         EnsureSpan<AssistantChatMessageImageSpan>(true).ImageOutput = new FileAttachment(
                             new DynamicResourceKey(string.Empty),
                             blob.LocalPath,

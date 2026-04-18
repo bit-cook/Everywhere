@@ -148,7 +148,7 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
         using (var stream = new MemoryStream())
         {
             bitmap.Save(stream, 100);
-            blob = await _blobStorage.StorageBlobAsync(stream, "image/png", cancellationToken);
+            blob = await _blobStorage.StorageBlobAsync(stream, "image/png", cancellationToken: cancellationToken);
         }
 
         return new FileAttachment(

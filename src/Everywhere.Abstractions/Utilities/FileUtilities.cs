@@ -404,6 +404,11 @@ public static class FileUtilities
             .Select(kv => kv.Key);
     }
 
+    public static string? GetExtensionByMimeType(string mimeType)
+    {
+        return KnownMimeTypes.FirstOrDefault(kv => string.Equals(kv.Value, mimeType, StringComparison.OrdinalIgnoreCase)).Key;
+    }
+
     /// <summary>
     /// Converts a byte size into a human-readable string with appropriate units.
     /// e.g., 1024 -> "1 KB", 1048576 -> "1 MB"
