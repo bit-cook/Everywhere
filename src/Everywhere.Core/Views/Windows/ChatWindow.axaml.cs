@@ -167,7 +167,6 @@ public partial class ChatWindow :
         {
             var value = change.NewValue as bool?;
             _persistentState.IsChatWindowPinned = value;
-            ShowInTaskbar = value is true or null;
             Topmost = value is not null; // false: topmost, null: normal, true: topmost
             _windowHelper.SetCloaked(this, false); // Uncloak when pinned state changes to ensure visibility
         }
@@ -298,7 +297,6 @@ public partial class ChatWindow :
     {
         if (value)
         {
-            ShowInTaskbar = false;
             _windowHelper.SetCloaked(this, true);
         }
         else
@@ -331,7 +329,6 @@ public partial class ChatWindow :
                 }
             }
 
-            ShowInTaskbar = IsWindowPinned is true or null;
             _windowHelper.SetCloaked(this, false);
             ChatInputArea.Focus();
         }
