@@ -81,7 +81,7 @@ public sealed class AnthropicKernelMixin : KernelMixin
                         };
                     }
 
-                    if (budgetTokens == -1 && owner.ModelId.StartsWith("claude-opus-4-6"))
+                    if (budgetTokens == -1 && (owner.ModelId.StartsWith("claude-opus-4-6") || owner.ModelId.StartsWith("claude-opus-4-7")))
                     {
                         thinking = new ThinkingConfigParam(new ThinkingConfigAdaptive());
                     }

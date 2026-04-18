@@ -10,7 +10,7 @@ partial class PresetBasedAssistantConfigurator
     /// </summary>
     [JsonIgnore]
     [HiddenSettingsItem]
-    private static ModelProviderTemplate[] ModelProviderTemplates { get; } =
+    public static ModelProviderTemplate[] ModelProviderTemplates { get; } =
     [
         new()
         {
@@ -39,6 +39,17 @@ partial class PresetBasedAssistantConfigurator
                 {
                     ModelId = "gpt-5.4-mini",
                     Name = "GPT-5.4 mini",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 400_000,
+                    OutputLimit = 128_000
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "gpt-5.4-nano",
+                    Name = "GPT-5.4 nano",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image,
@@ -96,9 +107,21 @@ partial class PresetBasedAssistantConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
+                    ModelId = "gpt-5-nano",
+                    Name = "GPT-5 nano",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 400_000,
+                    // InputLimit = 272_000,
+                    OutputLimit = 128_000
+                },
+                new ModelDefinitionTemplate
+                {
                     ModelId = "o4-mini",
                     Name = "o4-mini",
-                    SupportsReasoning = false,
+                    SupportsReasoning = true,
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image,
                     OutputModalities = Modalities.Text,
@@ -111,7 +134,7 @@ partial class PresetBasedAssistantConfigurator
                     Name = "GPT 4.1",
                     SupportsReasoning = false,
                     SupportsToolCall = true,
-                    InputModalities = Modalities.Text | Modalities.Image,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_047_576,
                     OutputLimit = 32_768,
@@ -123,7 +146,7 @@ partial class PresetBasedAssistantConfigurator
                     Name = "GPT 4.1 mini",
                     SupportsReasoning = false,
                     SupportsToolCall = true,
-                    InputModalities = Modalities.Text | Modalities.Image,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_047_576,
                     OutputLimit = 32_768
@@ -134,7 +157,7 @@ partial class PresetBasedAssistantConfigurator
                     Name = "GPT-4o",
                     SupportsReasoning = false,
                     SupportsToolCall = true,
-                    InputModalities = Modalities.Text | Modalities.Image,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 128_000,
                     OutputLimit = 16_384
@@ -154,9 +177,9 @@ partial class PresetBasedAssistantConfigurator
             [
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "claude-opus-4-6",
-                    Name = "Claude Opus 4.6",
-                    SupportsReasoning = true,
+                    ModelId = "claude-opus-4-7",
+                    Name = "Claude Opus 4.7",
+                    SupportsReasoning = true, // Adaptive Only, spacial case
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
@@ -165,7 +188,18 @@ partial class PresetBasedAssistantConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "claude-opus-4-5-20251101",
+                    ModelId = "claude-opus-4-6",
+                    Name = "Claude Opus 4.6",
+                    SupportsReasoning = true, // Adaptive Only, spacial case
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 1_000_000,
+                    OutputLimit = 128_000
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "claude-opus-4-5",
                     Name = "Claude Opus 4.5",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
@@ -189,7 +223,7 @@ partial class PresetBasedAssistantConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "claude-sonnet-4-5-20250929",
+                    ModelId = "claude-sonnet-4-5",
                     Name = "Claude Sonnet 4.5",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
@@ -200,7 +234,7 @@ partial class PresetBasedAssistantConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "claude-haiku-4-5-20251001",
+                    ModelId = "claude-haiku-4-5",
                     Name = "Claude Haiku 4.5",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
@@ -212,7 +246,7 @@ partial class PresetBasedAssistantConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "claude-opus-4-1-20250805",
+                    ModelId = "claude-opus-4-1",
                     Name = "Claude Opus 4.1",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
@@ -223,10 +257,11 @@ partial class PresetBasedAssistantConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "claude-opus-4-20250514",
+                    ModelId = "claude-opus-4-0",
                     Name = "Claude Opus 4",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
+                    DeprecationDate = new DateOnly(2026, 6, 15),
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 200_000,
@@ -234,10 +269,11 @@ partial class PresetBasedAssistantConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "claude-sonnet-4-20250514",
+                    ModelId = "claude-sonnet-4-0",
                     Name = "Claude Sonnet 4",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
+                    DeprecationDate = new DateOnly(2026, 6, 15),
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 200_000,
@@ -346,7 +382,7 @@ partial class PresetBasedAssistantConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 128_000,
+                    ContextLimit = 131_072,
                     OutputLimit = 8_192
                 },
                 new ModelDefinitionTemplate
@@ -599,7 +635,7 @@ partial class PresetBasedAssistantConfigurator
                 {
                     ModelId = "anthropic/claude-opus-4.6",
                     Name = "Anthropic: Claude Opus 4.6",
-                    SupportsReasoning = false,
+                    SupportsReasoning = true,
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
@@ -625,8 +661,8 @@ partial class PresetBasedAssistantConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 200_000,
-                    OutputLimit = 128_000,
+                    ContextLimit = 202_752,
+                    OutputLimit = 131_072,
                 },
                 new ModelDefinitionTemplate
                 {
@@ -659,13 +695,13 @@ partial class PresetBasedAssistantConfigurator
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Audio | Modalities.Video | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_048_576,
-                    OutputLimit = 65_535,
+                    OutputLimit = 65_536,
                 },
                 new ModelDefinitionTemplate
                 {
                     ModelId = "anthropic/claude-opus-4.5",
                     Name = "Anthropic: Claude Opus 4.5",
-                    SupportsReasoning = false,
+                    SupportsReasoning = true,
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
@@ -676,7 +712,7 @@ partial class PresetBasedAssistantConfigurator
                 {
                     ModelId = "anthropic/claude-sonnet-4.5",
                     Name = "Anthropic: Claude Sonnet 4.5",
-                    SupportsReasoning = false,
+                    SupportsReasoning = true,
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
