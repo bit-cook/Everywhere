@@ -511,6 +511,13 @@ public sealed partial class ChatInputArea : TemplatedControl
                     return;
                 }
             }
+
+            if (e.Key == Key.V)
+            {
+                var pastingEvent = new RoutedEventArgs(TextBox.PastingFromClipboardEvent, this);
+                RaiseEvent(pastingEvent);
+                e.Handled = pastingEvent.Handled;
+            }
         }
 
         switch (e.Key)
@@ -584,6 +591,10 @@ public sealed partial class ChatInputArea : TemplatedControl
 
             var clipboard = TopLevel.GetTopLevel(textEditor)?.Clipboard;
             if (clipboard is null) return;
+
+            var pastingEvent = new RoutedEventArgs(TextBox.PastingFromClipboardEvent, this);
+            RaiseEvent(pastingEvent);
+            if (pastingEvent.Handled) return;
 
             document.BeginUpdate();
             try
