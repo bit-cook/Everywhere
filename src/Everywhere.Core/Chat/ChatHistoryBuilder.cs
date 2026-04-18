@@ -277,8 +277,24 @@ public static class ChatHistoryBuilder
             case FileAttachment file:
             {
                 var fileInfo = new FileInfo(file.FilePath);
-                if (!fileInfo.Exists || fileInfo.Length <= 0 || fileInfo.Length > 25 * 1024 * 1024) // TODO: Configurable max file size?
+                if (!fileInfo.Exists)
                 {
+                    contents.Add(GetOmittedContent("file not found"));
+                    break;
+                }
+                if (fileInfo.Length == 0)
+                {
+                    contents.Add(GetOmittedContent("file is empty"));
+                    break;
+                }
+                if (fileInfo.Length > 25 * 1024 * 1024) // TODO: Configurable max file size?
+                {
+                    contents.Add(GetOmittedContent($"file size {fileInfo.Length} exceeds the maximum supported size 25MB"));
+                    break;
+                }
+                if (!supportedModalities.SupportsMimeType(file.MimeType))
+                {
+                    contents.Add(GetOmittedContent("file type is not supported by the current model"));
                     break;
                 }
 
@@ -286,25 +302,6 @@ public static class ChatHistoryBuilder
                 try
                 {
                     await using var stream = fileInfo.OpenRead();
-                    var extension = Path.GetExtension(file.FilePath).ToLowerInvariant();
-                    if (!FileUtilities.KnownMimeTypes.TryGetValue(extension, out var mimeType))
-                    {
-                        mimeType = await FileUtilities.DetectMimeTypeAsync(stream, cancellationToken);
-                    }
-
-                    if (!supportedModalities.SupportsMimeType(mimeType))
-                    {
-                        contents.Add(
-                            new TextContent(
-                                $"""
-                                 <Attachment type="file" path="{SecurityElement.Escape(file.FilePath)}" mimeType="{SecurityElement.Escape(file.MimeType)}" description="{SecurityElement.Escape(file.Description)}">
-                                 Content omitted because file type is not supported
-                                 </Attachment>
-                                 """));
-
-                        break;
-                    }
-
                     data = await File.ReadAllBytesAsync(file.FilePath, cancellationToken);
                 }
                 catch (Exception ex)
@@ -332,6 +329,13 @@ public static class ChatHistoryBuilder
                     });
                 contents.Add(new TextContent("</Attachment>"));
                 break;
+
+                TextContent GetOmittedContent(string reason) => new(
+                    $"""
+                     <Attachment type="file" path="{SecurityElement.Escape(file.FilePath)}" mimeType="{SecurityElement.Escape(file.MimeType)}" description="{SecurityElement.Escape(file.Description)}">
+                     Content omitted because {reason}
+                     </Attachment>
+                     """);
             }
         }
     }
