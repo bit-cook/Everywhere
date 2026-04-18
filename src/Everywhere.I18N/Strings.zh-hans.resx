@@ -1849,7 +1849,7 @@
         <value>📂 {0}</value>
     </data>
     <data name="CustomAssistant_ConfiguratorSelector_Header" xml:space="preserve">
-        <value>配置服务提供商</value>
+        <value>服务提供商</value>
     </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>添加 API 密钥</value>
@@ -2259,7 +2259,7 @@
         <value>输出价格</value>
     </data>
     <data name="OfficialModelDefinitionForm_SelectModelTextBlock_Text" xml:space="preserve">
-        <value>选择模型</value>
+        <value>模型</value>
     </data>
     <data name="OfficialModelDefinitionForm_DetailsTextBlock_Text" xml:space="preserve">
         <value>模型详情</value>

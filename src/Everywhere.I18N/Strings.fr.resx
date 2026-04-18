@@ -1847,9 +1847,6 @@ Molette de défilement ou touches numériques pour changer de mode de sélection
     <data name="BuiltInChatPlugin_FileSystem_SearchFiles_OperationStarted_Message" xml:space="preserve">
         <value>📂 {0}</value>
     </data>
-    <data name="CustomAssistant_ConfiguratorSelector_Header" xml:space="preserve">
-        <value>Configurer le Fournisseur de Services</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>Ajouter une clé API</value>
     </data>
@@ -2256,9 +2253,6 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     </data>
     <data name="CustomAssistant_OutputPrice_Header" xml:space="preserve">
         <value>Prix de Sortie</value>
-    </data>
-    <data name="OfficialModelDefinitionForm_SelectModelTextBlock_Text" xml:space="preserve">
-        <value>Sélectionner un Modèle</value>
     </data>
     <data name="OfficialModelDefinitionForm_DetailsTextBlock_Text" xml:space="preserve">
         <value>Détails du Modèle</value>

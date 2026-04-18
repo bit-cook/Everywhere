@@ -459,16 +459,16 @@
         <value>Pin Window (Ctrl+D)</value>
     </data>
     <data name="ChatWindowPinMode_RememberPrevious" xml:space="preserve">
-        <value>Remember previous status</value>
+        <value>Remember Previous Status</value>
     </data>
     <data name="ChatWindowPinMode_AlwaysPinned" xml:space="preserve">
-        <value>Always pinned</value>
+        <value>Always Pinned</value>
     </data>
     <data name="ChatWindowPinMode_AlwaysUnpinned" xml:space="preserve">
-        <value>Always unpinned</value>
+        <value>Always Unpinned</value>
     </data>
     <data name="ChatWindowPinMode_PinOnInput" xml:space="preserve">
-        <value>Pin on input</value>
+        <value>Pin When Typing</value>
     </data>
     <data name="VisualContextDetailLevel_Detailed" xml:space="preserve">
         <value>Detailed</value>
@@ -609,7 +609,7 @@
         <value>Automatic Update</value>
     </data>
     <data name="SoftwareSettings_IsAutomaticUpdateCheckEnabled_Description" xml:space="preserve">
-        <value>If enabled, Everywhere will periodically check for updates (only when Everywhere is running, without adding extra load to the system).</value>
+        <value>If enabled, Everywhere will periodically check for updates (only when Everywhere is running, no extra load to the system).</value>
     </data>
     <data name="CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate" xml:space="preserve">
         <value>Downloading update...</value>
@@ -925,13 +925,13 @@ My intelligence is powered by large language models, and I need your help to con
         <value>Name</value>
     </data>
     <data name="CustomAssistant_Name_Description" xml:space="preserve">
-        <value>Specify the name of the assistant, used solely for display and differentiation purposes.</value>
+        <value>Specify the name of the assistant for display and differentiation purposes.</value>
     </data>
     <data name="CustomAssistant_Description_Header" xml:space="preserve">
         <value>Description</value>
     </data>
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
-        <value>Specify the description of the assistant, used solely for display and differentiation purposes.</value>
+        <value>Specify the description of the assistant for display and differentiation purposes.</value>
     </data>
     <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
         <value>The system prompt will be sent to the model at the beginning of the conversation and will be kept up to date with each message sent.
@@ -1848,7 +1848,7 @@ Scroll wheel or number keys to switch pick modes</value>
         <value>📂 {0}</value>
     </data>
     <data name="CustomAssistant_ConfiguratorSelector_Header" xml:space="preserve">
-        <value>Configure Service Provider</value>
+        <value>Service Provider</value>
     </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>Add API Key</value>
@@ -2158,7 +2158,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Native Mode</value>
     </data>
     <data name="AssistantConfiguratorSelector_OfficialConfiguratorModel_Description" xml:space="preserve">
-        <value>Official managed service. No API key setup needed—it's ready when you are.</value>
+        <value>Official service. No API key setup needed—it's ready when you are.</value>
     </data>
     <data name="Common_CriticalError" xml:space="preserve">
         <value>Critical Error</value>
@@ -2258,7 +2258,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Output Price</value>
     </data>
     <data name="OfficialModelDefinitionForm_SelectModelTextBlock_Text" xml:space="preserve">
-        <value>Select Model</value>
+        <value>Model</value>
     </data>
     <data name="OfficialModelDefinitionForm_DetailsTextBlock_Text" xml:space="preserve">
         <value>Model Details</value>
