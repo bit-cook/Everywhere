@@ -339,7 +339,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
                 var wndClass = new WNDCLASSEXW
                 {
                     cbSize = (uint)Marshal.SizeOf<WNDCLASSEXW>(),
-                    lpfnWndProc = _wndProc = PInvoke.DefWindowProc,
+                    lpfnWndProc = _wndProc = WndProc,
                     hInstance = hInstance,
                     lpszClassName = pClassName
                 };
@@ -349,10 +349,14 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
                 }
 
                 HWnd = PInvoke.CreateWindowEx(
-                    WINDOW_EX_STYLE.WS_EX_TOOLWINDOW | WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP,
+                    WINDOW_EX_STYLE.WS_EX_TOOLWINDOW |
+                    WINDOW_EX_STYLE.WS_EX_NOREDIRECTIONBITMAP |
+                    WINDOW_EX_STYLE.WS_EX_NOACTIVATE |
+                    WINDOW_EX_STYLE.WS_EX_LAYERED |
+                    WINDOW_EX_STYLE.WS_EX_TRANSPARENT,
                     pClassName,
                     pClassName,
-                    WINDOW_STYLE.WS_POPUP | WINDOW_STYLE.WS_VISIBLE,
+                    WINDOW_STYLE.WS_POPUP | WINDOW_STYLE.WS_DISABLED,
                     0,
                     0,
                     1,
@@ -367,6 +371,28 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
 
             var cloak = 1;
             PInvoke.DwmSetWindowAttribute(HWnd, DWMWINDOWATTRIBUTE.DWMWA_CLOAK, &cloak, sizeof(int));
+
+            PInvoke.ShowWindow(HWnd, SHOW_WINDOW_CMD.SW_SHOWNOACTIVATE);
+        }
+
+        private static LRESULT WndProc(HWND hWnd, uint msg, WPARAM wParam, LPARAM lParam)
+        {
+            switch (msg)
+            {
+                case (uint)WINDOW_MESSAGE.WM_MOUSEACTIVATE:
+                    return new LRESULT(3); // MA_NOACTIVATE
+                case (uint)WINDOW_MESSAGE.WM_NCHITTEST:
+                    // -1 = HTTRANSPARENT
+                    return new LRESULT(-1);
+                case (uint)WINDOW_MESSAGE.WM_ACTIVATE:
+                case (uint)WINDOW_MESSAGE.WM_SETFOCUS:
+                case (uint)WINDOW_MESSAGE.WM_KILLFOCUS:
+                case (uint)WINDOW_MESSAGE.WM_ACTIVATEAPP:
+                case (uint)WINDOW_MESSAGE.WM_NCACTIVATE:
+                    return default; // Do not activate or take focus
+                default:
+                    return PInvoke.DefWindowProc(hWnd, msg, wParam, lParam);
+            }
         }
 
         public unsafe void Dispose()
