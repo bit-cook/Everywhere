@@ -1,3 +1,29 @@
+## [v0.7.1](https://github.com/DearVa/Everywhere/releases/tag/v0.7.1) - 2026-04-19
+
+> ⚠️ This update fixes many issues from the 0.7.0 release, including critical crashes. We highly recommend all users to update immediately.
+
+### ✨ Features & 🚀 Improvements
+
+- Added Claude Opus 4.7 and more latest models in the preset mode, and corrected some previously misconfigured parameters.
+- Optimized the local file cache by adding proper file extensions for easier local management and inspection.
+- Polished text descriptions within the UI and added more quick navigation links.
+
+### 🐛 Bug Fixes
+
+- **🔥 (Windows)**: Fixed a crash occurring on some systems when bringing up the chat window via shortcuts, which was caused by the "Element Fly-in Effect" (#344).
+- **🔥 (Windows)** Refactored the visual element selector, completely resolving the issue where using global shortcuts to select elements could cause modifier keys like `Ctrl` or `Alt` to get stuck.
+- **🔥 (Windows)**: Fixed an issue where the chat window would disappear immediately when using shortcuts to pick visual elements while the window was unpinned and the "Element Fly-in Effect" was enabled.
+- Fixed an issue where images and file attachments could not be pasted directly into the chat input area.
+- Fixed an issue where pasted images could not be correctly read by models (#349).
+- Fixed an issue where the "Topmost When Typing" and "Pin When Typing" options were not taking effect.
+- Fixed an issue where in-app toast notifications would sometimes disappear instantly.
+- **(Windows)** Fixed an issue where toggling the chat window's pinned/unpinned state would cause screen flickering, which previously interrupted IME input.
+- **(macOS)** Fixed an issue where file attachments could not be properly selected and added within the chat window.
+
+**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.7.0...v0.7.1
+
+
+
 ## [v0.7.0](https://github.com/DearVa/Everywhere/releases/tag/v0.7.0) - 2026-04-15
 
 ## 📢 Overview
