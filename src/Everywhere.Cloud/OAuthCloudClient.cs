@@ -116,6 +116,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         }
         catch (Exception ex)
         {
+            ex = HandledSystemException.Handle(ex);
             _logger.LogError(ex, "Failed to complete login flow.");
             // Don't clear the existing session here - the refresh token from a previous
             // successful login may still be valid. Clearing it would force the user to
@@ -123,7 +124,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             // browser error, network glitch during the new flow).
 
             LoginStatus = CloudClientLoginStatus.LoginFailed;
-            LastLoginErrorKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
+            LastLoginErrorKey = ex.GetFriendlyMessage();
         }
         finally
         {

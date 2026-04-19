@@ -2294,7 +2294,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Common</value>
     </data>
     <data name="SettingsCategory_Settings_Shortcut_Header" xml:space="preserve">
-        <value>Shortcut</value>
+        <value>Shortcuts</value>
     </data>
     <data name="SettingsCategory_Settings_SystemAssistant_Header" xml:space="preserve">
         <value>System Assistant</value>

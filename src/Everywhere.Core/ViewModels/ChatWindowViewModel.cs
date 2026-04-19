@@ -515,10 +515,27 @@ public sealed partial class ChatWindowViewModel :
     {
         if (string.IsNullOrWhiteSpace(filePath)) return;
 
-        var attachment = await FileAttachment.CreateAsync(
-            filePath,
-            description: description,
-            cancellationToken: cancellationToken);
+        FileAttachment attachment;
+        try
+        {
+            attachment = await FileAttachment.CreateAsync(
+                filePath,
+                description: description,
+                cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            ex = HandledSystemException.Handle(ex);
+            _logger.LogError(ex, "Failed to create file attachment for {FilePath}", filePath);
+
+            ToastManager
+                .CreateToast(LocaleResolver.Common_Error)
+                .WithContent(ex.GetFriendlyMessage().ToTextBlock())
+                .DismissOnClick()
+                .OnBottomRight()
+                .ShowError();
+            return;
+        }
 
         if (Settings.Model.SelectedCustomAssistant?.InputModalities is { } modalities)
         {
