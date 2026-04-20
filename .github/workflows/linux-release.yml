@@ -5,8 +5,11 @@ on:
     tags:
       - 'v*.*.*'
   release:
-    types: [published]
+    types: [created]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-linux:
@@ -110,9 +113,10 @@ jobs:
       if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       uses: softprops/action-gh-release@v2
       with:
+        draft: false
+        make_latest: true
+        tag_name: v${{ env.VERSION }}
         files: |
           Everywhere-${{ matrix.asset_name }}-v${{ env.VERSION }}.deb
           Releases/Everywhere-${{ matrix.asset_name }}-v${{ env.VERSION }}.AppImage
           Everywhere-${{ matrix.asset_name }}-v${{ env.VERSION }}.tar.zst
-        append_body: true
-        make_latest: true
