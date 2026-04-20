@@ -2316,9 +2316,6 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>Konfigurieren Sie das Verhalten des Chatfensters.</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>Der ausgewählte Assistent unterstützt den aktuellen Dateityp nicht</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>Immer im Vordergrund</value>
     </data>

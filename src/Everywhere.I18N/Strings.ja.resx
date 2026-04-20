@@ -2317,9 +2317,6 @@
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>チャットウィンドウの動作を設定します。</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>選択したアシスタントは現在のファイルタイプをサポートしていません</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>常に最前面</value>
     </data>

@@ -2317,9 +2317,6 @@
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>配置聊天窗口的行為。</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>所選助手不支持當前文件類型</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>總是置頂</value>
     </data>

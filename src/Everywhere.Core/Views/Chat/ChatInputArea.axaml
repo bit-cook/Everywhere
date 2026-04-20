@@ -1,9 +1,9 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:ai="clr-namespace:Everywhere.AI" xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit"
-  xmlns:in="clr-namespace:Everywhere.Interactions" xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
-  xmlns:system="clr-namespace:System;assembly=System.Runtime" xmlns:v="clr-namespace:Everywhere.Views"
-  xmlns:vc="clr-namespace:Everywhere.ValueConverters">
+  xmlns:aai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions" xmlns:ai="clr-namespace:Everywhere.AI"
+  xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit" xmlns:in="clr-namespace:Everywhere.Interactions"
+  xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI" xmlns:system="clr-namespace:System;assembly=System.Runtime"
+  xmlns:v="clr-namespace:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters">
 
   <DataTemplate
     x:Key="{x:Type ai:CustomAssistant}"
@@ -176,7 +176,8 @@
             <v:ChatAttachmentItemsControl
               x:Name="PART_ChatAttachmentItemsControl"
               ItemsSource="{TemplateBinding ChatAttachmentItemsSource}"
-              RemoveCommand="{TemplateBinding RemoveAttachmentCommand}"/>
+              RemoveCommand="{TemplateBinding RemoveAttachmentCommand}"
+              SupportedModalities="{Binding SelectedCustomAssistant?.InputModalities, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={x:Static aai:Modalities.None}}"/>
           </ScrollViewer>
 
           <StackPanel

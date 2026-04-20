@@ -13,7 +13,6 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
 using DynamicData.Binding;
-using Everywhere.AI;
 using Everywhere.Chat;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
@@ -411,9 +410,7 @@ public sealed partial class ChatWindowViewModel :
                     }
                 }
             }
-            else if (Settings.Model.SelectedCustomAssistant?.InputModalities.SupportsImage is true &&
-                     formats.Contains(DataFormat.Bitmap) &&
-                     await Clipboard.TryGetBitmapAsync() is { } bitmap)
+            else if (formats.Contains(DataFormat.Bitmap) && await Clipboard.TryGetBitmapAsync() is { } bitmap)
             {
                 _chatAttachmentsSource.Add(await Task.Run(() => CreateFromBitmapAsync(bitmap, cancellationToken), cancellationToken));
             }
@@ -535,20 +532,6 @@ public sealed partial class ChatWindowViewModel :
                 .OnBottomRight()
                 .ShowError();
             return;
-        }
-
-        if (Settings.Model.SelectedCustomAssistant?.InputModalities is { } modalities)
-        {
-            if (!modalities.SupportsMimeType(attachment.MimeType))
-            {
-                ToastManager
-                    .CreateToast(LocaleResolver.ChatWindowViewModel_UnsupportedAttachment)
-                    .WithContent(attachment.FilePath)
-                    .DismissOnClick()
-                    .OnBottomRight()
-                    .ShowWarning();
-                return;
-            }
         }
 
         _chatAttachmentsSource.Add(attachment);
@@ -870,7 +853,6 @@ public sealed partial class ChatWindowViewModel :
     {
         try
         {
-            // TODO: use GetItems
             var context = StrategyContext.FromAttachments(attachments.ToList());
             StrategiesSnapshot = _strategyEngine.GetStrategies(context);
         }
@@ -879,16 +861,6 @@ public sealed partial class ChatWindowViewModel :
             _logger.LogWarning(ex, "Failed to get strategies for current attachments.");
         }
     }
-
-    // namespace DynamicData.Kernel;
-    //
-    // internal sealed class ReadOnlyCollectionLight<T> : IReadOnlyCollection<T>
-    // {
-    //     private readonly IList<T> _items; <--
-    [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_items")]
-    private static extern ref IList<ChatAttachment> GetItems(
-        [UnsafeAccessorType("DynamicData.Kernel.ReadOnlyCollectionLight`1[[Everywhere.Chat.ChatAttachment, Everywhere.Core]], DynamicData")]
-        object collection);
 
     [RelayCommand]
     private void SelectStrategy(Strategy strategy)

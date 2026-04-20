@@ -2317,9 +2317,6 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>Configure the behavior of the chat window.</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>The selected assistant does not support the current file type.</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>Always Topmost</value>
     </data>
@@ -2640,5 +2637,8 @@ Use scroll wheel or number keys to switch selection mode</value>
     </data>
     <data name="OfficialModelDefinitionForm_PricingTextBlock_Text" xml:space="preserve">
         <value>View Pricing Details</value>
+    </data>
+    <data name="ChatAttachmentItemsControl_FileAttachment_NotSupportToolTip_Tip" xml:space="preserve">
+        <value />
     </data>
 </root>

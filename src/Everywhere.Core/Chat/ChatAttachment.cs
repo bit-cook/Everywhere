@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Security.Cryptography;
+using System.Text.Json.Serialization;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Everywhere.AI;
 using Everywhere.Common;
 using Everywhere.Interop;
 using Everywhere.Utilities;
@@ -259,8 +261,12 @@ public sealed partial class FileAttachment(
     [Key(4)]
     public string? Description { get; set; } = description;
 
+    [JsonIgnore]
+    [IgnoreMember]
     public bool IsImage => FileUtilities.IsOfCategory(MimeType, FileTypeCategory.Image);
 
+    [JsonIgnore]
+    [IgnoreMember]
     public Bitmap? Image
     {
         get
@@ -303,6 +309,18 @@ public sealed partial class FileAttachment(
         }
     }
 
+    [JsonIgnore]
+    [IgnoreMember]
+    public Modalities? RequiredModalities => FileUtilities.GetCategory(MimeType) switch
+    {
+        FileTypeCategory.Image => Modalities.Image,
+        FileTypeCategory.Audio => Modalities.Audio,
+        FileTypeCategory.Video => Modalities.Video,
+        FileTypeCategory.Document when MimeType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase) => Modalities.Pdf,
+        _ => null
+    };
+
+    [JsonIgnore]
     [IgnoreMember]
     private bool _isImageLoaded;
 

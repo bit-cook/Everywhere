@@ -2318,9 +2318,6 @@
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>配置聊天窗口的行为。</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>所选助手不支持当前文件类型</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>总是置顶</value>
     </data>
@@ -2641,5 +2638,8 @@
     </data>
     <data name="OfficialModelDefinitionForm_PricingTextBlock_Text" xml:space="preserve">
         <value>查看定价详情</value>
+    </data>
+    <data name="ChatAttachmentItemsControl_FileAttachment_NotSupportToolTip_Tip" xml:space="preserve">
+        <value>此附件类型不被模型支持，但模型仍可看到元数据并被提示使用工具处理</value>
     </data>
 </root>

@@ -2317,9 +2317,6 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>Configurez le comportement de la fenêtre de chat.</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>L'assistant sélectionné ne prend pas en charge le type de fichier actuel</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>Toujours au-dessus</value>
     </data>

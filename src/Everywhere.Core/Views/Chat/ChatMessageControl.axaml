@@ -431,7 +431,9 @@
               </SelectableTextBlock>
             </Border>
 
-            <v:ChatAttachmentItemsControl ItemsSource="{Binding Attachments}"/>
+            <v:ChatAttachmentItemsControl
+              ItemsSource="{Binding Attachments}"
+              SupportedModalities="{Binding $parent[v:ChatMessageItemsControl].SupportedModalities}"/>
 
             <StackPanel
               x:Name="ChatMessageOperationPanel"
@@ -484,7 +486,9 @@
               <SelectableTextBlock Text="{Binding Content}"/>
             </Border>
 
-            <v:ChatAttachmentItemsControl ItemsSource="{Binding Attachments}"/>
+            <v:ChatAttachmentItemsControl
+              ItemsSource="{Binding Attachments}"
+              SupportedModalities="{Binding $parent[v:ChatMessageItemsControl].SupportedModalities}"/>
 
             <StackPanel
               x:Name="ChatMessageOperationPanel"

@@ -294,7 +294,7 @@ public static class ChatHistoryBuilder
                 }
                 if (!supportedModalities.SupportsMimeType(file.MimeType))
                 {
-                    contents.Add(GetOmittedContent("file type is not supported by the current model"));
+                    contents.Add(GetOmittedContent("file type is not supported, try process with tool if any"));
                     break;
                 }
 

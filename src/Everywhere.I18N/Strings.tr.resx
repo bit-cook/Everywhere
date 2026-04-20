@@ -2316,9 +2316,6 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>Sohbet penceresinin davranışını yapılandırın.</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>Seçilen asistan mevcut dosya türünü desteklemiyor</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>Her Zaman Üstte</value>
     </data>

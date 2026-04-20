@@ -2317,9 +2317,6 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>Configura il comportamento della finestra di chat.</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>Il tipo di file selezionato non è supportato dall'assistente attuale</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>Sempre in Primo Piano</value>
     </data>

@@ -2317,9 +2317,6 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>Configura el comportamiento de la ventana de chat.</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>El asistente seleccionado no soporta el tipo de archivo actual</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>Siempre en la Parte Superior</value>
     </data>

@@ -2317,9 +2317,6 @@
     <data name="SettingsCategory_Settings_ChatWindow_Description" xml:space="preserve">
         <value>Настройте поведение окна чата.</value>
     </data>
-    <data name="ChatWindowViewModel_UnsupportedAttachment" xml:space="preserve">
-        <value>Выбранный помощник не поддерживает текущий тип файла</value>
-    </data>
     <data name="ChatWindowPinMode_AlwaysTopmost" xml:space="preserve">
         <value>Всегда сверху</value>
     </data>
