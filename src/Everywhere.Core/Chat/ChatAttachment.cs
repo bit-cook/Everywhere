@@ -81,8 +81,15 @@ public partial class VisualElementAttachment : ChatAttachment
         var elementTypeKey = new DynamicResourceKey($"VisualElementType_{element.Type}");
         if (element.ProcessId > 0)
         {
-            using var process = Process.GetProcessById(element.ProcessId);
-            headerKey = new FormattedDynamicResourceKey("{0} - {1}", new DirectResourceKey(process.ProcessName), elementTypeKey);
+            try
+            {
+                using var process = Process.GetProcessById(element.ProcessId);
+                headerKey = new FormattedDynamicResourceKey("{0} - {1}", new DirectResourceKey(process.ProcessName), elementTypeKey);
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or NotSupportedException)
+            {
+                headerKey = elementTypeKey;
+            }
         }
         else
         {
