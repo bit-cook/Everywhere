@@ -26,7 +26,7 @@
             BorderThickness="{TemplateBinding BorderThickness}"
             CornerRadius="{DynamicResource FullCornerRadius}"
             ToolTip.Placement="Right"
-            ToolTip.Tip="{Binding CloudClient.UserProfile.Name, FallbackValue={x:Null}, TargetNullValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}">
+            ToolTip.Tip="{Binding CloudClient?.UserProfile?.Name, TargetNullValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}">
             <Button.Flyout>
               <Flyout VerticalOffset="-8">
                 <v:UserProfileCard
@@ -45,7 +45,7 @@
                   Size="{TemplateBinding FontSize}"/>
                 <Image
                   x:Name="AvatarImage" md:AsyncImageLoader.SizeToContent="Manual"
-                  md:AsyncImageLoader.Source="{Binding CloudClient.UserProfile.AvatarUrl, FallbackValue={x:Null}, TargetNullValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
+                  md:AsyncImageLoader.Source="{Binding CloudClient?.UserProfile?.AvatarUrl, TargetNullValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
                   RenderOptions.BitmapInterpolationMode="HighQuality" RenderOptions.EdgeMode="Antialias"
                   Stretch="UniformToFill"/>
               </Panel>
@@ -59,7 +59,7 @@
             Background="{DynamicResource ErrorColor}"
             Content="!" CornerRadius="8"
             FontSize="10"
-            IsVisible="{Binding CloudClient.Subscription.Status, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static cloud:SubscriptionStatus.Unpaid}, FallbackValue={x:False}, TargetNullValue={x:False}, RelativeSource={RelativeSource TemplatedParent}}"/>
+            IsVisible="{Binding CloudClient?.Subscription?.Status, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static cloud:SubscriptionStatus.Unpaid}, TargetNullValue={x:False}, RelativeSource={RelativeSource TemplatedParent}}"/>
         </Panel>
       </ControlTemplate>
     </Setter>

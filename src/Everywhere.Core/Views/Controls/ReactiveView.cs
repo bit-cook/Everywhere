@@ -25,7 +25,7 @@ public abstract class ReactiveWindow<TViewModel> : Window where TViewModel : Rea
     }
 }
 
-public abstract class ReactiveShadWindow<TViewModel> : ShadUI.Window where TViewModel : ReactiveViewModelBase
+public abstract class ReactiveShadWindow<TViewModel> : ShadUI.ShadWindow where TViewModel : ReactiveViewModelBase
 {
     public TViewModel ViewModel { get; }
 

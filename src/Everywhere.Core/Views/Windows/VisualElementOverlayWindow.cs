@@ -6,11 +6,11 @@ using ZLinq;
 
 namespace Everywhere.Views;
 
-public class OverlayWindow : Window
+public class VisualElementOverlayWindow : Window
 {
     private WeakReference<IVisualElement>? _visualElement;
 
-    public OverlayWindow()
+    public VisualElementOverlayWindow()
     {
         CanResize = false;
         ShowInTaskbar = false;
@@ -68,7 +68,7 @@ public class OverlayWindow : Window
             catch (Exception ex)
             {
                 _visualElement = null;
-                Log.Logger.ForContext<OverlayWindow>().Error(ex, "Failed to update OverlayWindow for visual element.");
+                Log.Logger.ForContext<VisualElementOverlayWindow>().Error(ex, "Failed to update OverlayWindow for visual element.");
                 Hide();
                 return;
             }

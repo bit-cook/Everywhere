@@ -3,7 +3,7 @@ using Avalonia.Platform;
 
 namespace Everywhere.Views;
 
-public sealed class VisualElementEffectWindow : OverlayWindow
+public sealed class VisualElementEffectWindow : VisualElementOverlayWindow
 {
     public double Scale { get; private set; }
 

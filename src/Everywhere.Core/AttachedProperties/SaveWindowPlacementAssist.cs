@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls;
 using Everywhere.Common;
 using Everywhere.Configuration;
-using Window = ShadUI.Window;
 
 namespace Everywhere.AttachedProperties;
 
@@ -27,6 +26,28 @@ public static class SaveWindowPlacementAssist
     /// <returns></returns>
     public static string? GetKey(Window obj) => obj.GetValue(KeyProperty);
 
+    /// <summary>
+    ///     Defines the SafetyPadding property
+    /// </summary>
+    public static readonly AttachedProperty<double> SafetyPaddingProperty =
+        AvaloniaProperty.RegisterAttached<Window, Window, double>("SafetyPadding", 20d);
+
+    /// <summary>
+    ///     Sets the safety padding used when restoring window placement.
+    ///     This is used to ensure that the window is not restored too close to the edge of the screen or taskbar.
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <param name="value"></param>
+    public static void SetSafetyPadding(Window obj, double value) => obj.SetValue(SafetyPaddingProperty, value);
+
+    /// <summary>
+    ///     Gets the safety padding used when restoring window placement.
+    ///     This is used to ensure that the window is not restored too close to the edge of the screen or taskbar.
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public static double GetSafetyPadding(Window obj) => obj.GetValue(SafetyPaddingProperty);
+
     private static readonly IKeyValueStorage KeyValueStorage = ServiceLocator.Resolve<IKeyValueStorage>();
 
     static SaveWindowPlacementAssist()
@@ -48,7 +69,7 @@ public static class SaveWindowPlacementAssist
 
     private static void RestoreWindowPlacement(string key, Window window)
     {
-        if (KeyValueStorage.Get<WindowPlacement?>($"TransientWindow.Placement.{key}") is not { } placement) return;
+        if (KeyValueStorage.Get<WindowPlacement?>($"WindowPlacement.{key}") is not { } placement) return;
 
         double x, y;
         if (window.Screens.All.Count == 0)
@@ -64,20 +85,20 @@ public static class SaveWindowPlacementAssist
                 ?? window.Screens.All.FirstOrDefault();
             var scaling = targetScreen?.Scaling ?? 1.0;
 
-            // Leave a safety margin to avoid window being too close to the edge or taskbar
-            const int SafetyPadding = 20;
-
             var screenBounds = targetScreen?.WorkingArea ?? default;
             var actualWidth = placement.Width <= 0 ? 200d : placement.Width * scaling;
             var actualHeight = placement.Height <= 0 ? 200d : placement.Height * scaling;
+            var safetyPadding = Math.Max(0, GetSafetyPadding(window));
 
-            x = Math.Clamp(placement.X,
-                screenBounds.X + SafetyPadding,
-                Math.Max(screenBounds.X + SafetyPadding, screenBounds.Right - actualWidth - SafetyPadding));
+            x = Math.Clamp(
+                placement.X,
+                screenBounds.X + safetyPadding,
+                Math.Max(screenBounds.X + safetyPadding, screenBounds.Right - actualWidth - safetyPadding));
 
-            y = Math.Clamp(placement.Y,
-                screenBounds.Y + SafetyPadding,
-                Math.Max(screenBounds.Y + SafetyPadding, screenBounds.Bottom - actualHeight - SafetyPadding));
+            y = Math.Clamp(
+                placement.Y,
+                screenBounds.Y + safetyPadding,
+                Math.Max(screenBounds.Y + safetyPadding, screenBounds.Bottom - actualHeight - safetyPadding));
         }
 
         // Restore bounds first so that maximizing works correctly from the restored position
@@ -103,7 +124,7 @@ public static class SaveWindowPlacementAssist
         // Do not save placement if the window is minimized
         if (window.WindowState == WindowState.Minimized) return;
 
-        key = $"TransientWindow.Placement.{key}";
+        key = $"WindowPlacement.{key}";
 
         // Only save size and position if the window is in Normal state
         if (window.WindowState == WindowState.Normal)

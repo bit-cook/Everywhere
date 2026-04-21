@@ -28,7 +28,7 @@ public partial class VisualTreeDebugger : UserControl
         .GetProperties(BindingFlags.Instance | BindingFlags.Public)
         .Select(p => new VisualElementProperty(p))
         .ToReadOnlyList();
-    private readonly OverlayWindow _treeViewPointerOverOverlayWindow;
+    private readonly VisualElementOverlayWindow _treeViewPointerOverOverlayWindow;
 
     public VisualTreeDebugger(
         IShortcutListener shortcutListener,
@@ -56,7 +56,7 @@ public partial class VisualTreeDebugger : UserControl
                 _rootElements.Add(element);
             });
 
-        _treeViewPointerOverOverlayWindow = new OverlayWindow
+        _treeViewPointerOverOverlayWindow = new VisualElementOverlayWindow
         {
             Content = new Border
             {

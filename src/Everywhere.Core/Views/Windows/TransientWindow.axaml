@@ -1,4 +1,4 @@
-﻿<shadui:Window
+﻿<shadui:ShadWindow
   x:Class="Everywhere.Views.TransientWindow" xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ew="clr-namespace:Everywhere"
   xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" Title="Everywhere"
@@ -8,10 +8,10 @@
   TitleFontWeight="SemiBold" TransparencyLevelHint="Mica,AcrylicBlur,Blur,None"
   Version="{x:Static ew:App.Version}">
 
-  <shadui:Window.Hosts>
+  <shadui:ShadWindow.Hosts>
     <shadui:DialogHost
       x:Name="PART_DialogHost"
-      Owner="{Binding RelativeSource={RelativeSource AncestorType=shadui:Window}}"/>
+      Owner="{Binding RelativeSource={RelativeSource AncestorType=shadui:ShadWindow}}"/>
     <shadui:ToastHost x:Name="PART_ToastHost"/>
-  </shadui:Window.Hosts>
-</shadui:Window>
+  </shadui:ShadWindow.Hosts>
+</shadui:ShadWindow>

@@ -77,18 +77,18 @@
                   Orientation="Horizontal" Spacing="4">
                   <TextBlock
                     VerticalAlignment="Center" FontWeight="SemiBold"
-                    Text="{Binding CloudClient.UserProfile.Name, FallbackValue={x:Null}, TargetNullValue={x:Null}}"
+                    Text="{Binding CloudClient?.UserProfile?.Name, TargetNullValue={x:Null}}"
                     TextTrimming="CharacterEllipsis"/>
                   <shadui:Badge
                     Classes="Secondary" Padding="4,2"
                     VerticalAlignment="Center"
-                    Background="{Binding CloudClient.Subscription.Plan, Converter={x:Static v:SubscriptionPlanToBrushValueConverter.Shared}, FallbackValue={x:Null}, TargetNullValue={x:Null}}"
-                    Content="{Binding CloudClient.Subscription.Plan, FallbackValue={x:Null}, TargetNullValue={x:Null}}"/>
+                    Background="{Binding CloudClient?.Subscription?.Plan, Converter={x:Static v:SubscriptionPlanToBrushValueConverter.Shared}, TargetNullValue={x:Null}}"
+                    Content="{Binding CloudClient?.Subscription?.Plan, TargetNullValue={x:Null}}"/>
                 </StackPanel>
 
                 <TextBlock
                   Classes="Caption Muted"
-                  Text="{Binding CloudClient.UserProfile.Email, FallbackValue={x:Null}, TargetNullValue={x:Null}}"
+                  Text="{Binding CloudClient?.UserProfile?.Email, TargetNullValue={x:Null}}"
                   TextTrimming="CharacterEllipsis"/>
               </StackPanel>
 
@@ -155,7 +155,7 @@
                 </Grid>
 
                 <v:LazyIndexedContentControl
-                  ContentDataBinding="{Binding CloudClient.Subscription, FallbackValue={x:Null}, TargetNullValue={x:Null}}"
+                  ContentDataBinding="{Binding CloudClient.Subscription, TargetNullValue={x:Null}}"
                   ItemIndex="{Binding CloudClient.Subscription.Status, Converter={x:Static vc:Int32Converters.FromEnum}, FallbackValue=-1}">
                   <v:LazyIndexedContentControl.IsVisible>
                     <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -406,7 +406,7 @@
                 <TextBlock
                   Classes="Caption Muted" HorizontalAlignment="Center"
                   IsVisible="{Binding $self.Text, Converter={x:Static ObjectConverters.IsNotNull}}"
-                  Text="{Binding CloudClient.LastLoginErrorKey^, FallbackValue={x:Null}, TargetNullValue={x:Null}}"
+                  Text="{Binding CloudClient?.LastLoginErrorKey^, FallbackValue={x:Null}, TargetNullValue={x:Null}}"
                   TextAlignment="Center" TextWrapping="Wrap"/>
               </StackPanel>
 

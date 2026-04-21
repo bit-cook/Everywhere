@@ -1,86 +1,8 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:aai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions" xmlns:ai="clr-namespace:Everywhere.AI"
-  xmlns:avaloniaEdit="https://github.com/avaloniaui/avaloniaedit" xmlns:in="clr-namespace:Everywhere.Interactions"
-  xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI" xmlns:system="clr-namespace:System;assembly=System.Runtime"
+  xmlns:in="clr-namespace:Everywhere.Interactions" xmlns:shadui="clr-namespace:ShadUI;assembly=ShadUI"
   xmlns:v="clr-namespace:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters">
-
-  <DataTemplate
-    x:Key="{x:Type ai:CustomAssistant}"
-    DataType="ai:CustomAssistant">
-    <Grid ColumnSpacing="4">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="Auto"/>
-        <ColumnDefinition/>
-        <ColumnDefinition
-          Width="Auto" SharedSizeGroup="Badges"/>
-      </Grid.ColumnDefinitions>
-
-      <v:IconPresenter
-        Grid.Column="0" Width="24"
-        Height="24" VerticalAlignment="Center"
-        FontSize="14"
-        Icon="{Binding Icon}"
-        IconSize="14"/>
-      <TextBlock
-        Grid.Column="1" Margin="4,0,0,0"
-        VerticalAlignment="Center"
-        Text="{Binding Name}"
-        TextTrimming="CharacterEllipsis"
-        ToolTip.Tip="{Binding Description}"/>
-
-      <StackPanel
-        Grid.Column="2" Margin="16,0,0,0"
-        HorizontalAlignment="Right" Orientation="Horizontal"
-        Spacing="2">
-        <StackPanel.Styles>
-          <Style Selector="shadui|Badge">
-            <Setter Property="Height" Value="18"/>
-            <Setter Property="CornerRadius" Value="4"/>
-            <Style Selector="^ LucideIcon">
-              <Setter Property="Size" Value="12"/>
-            </Style>
-          </Style>
-        </StackPanel.Styles>
-
-        <shadui:Badge
-          Background="Chocolate"
-          IsVisible="{Binding InputModalities, Converter={x:Static vc:ModalitiesConverters.SupportsImage}}"
-          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsReasoning_Header}}">
-          <LucideIcon Kind="Eye"/>
-        </shadui:Badge>
-        <shadui:Badge
-          Background="CadetBlue"
-          IsVisible="{Binding SupportsToolCall}"
-          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsToolCall_Header}}">
-          <LucideIcon Kind="Hammer"/>
-        </shadui:Badge>
-        <shadui:Badge
-          Background="ForestGreen"
-          IsVisible="{Binding SupportsReasoning}"
-          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsReasoning_Header}}">
-          <LucideIcon Kind="Brain"/>
-        </shadui:Badge>
-        <shadui:Badge
-          Padding="6,0" Background="MediumSlateBlue">
-          <ToolTip.Tip>
-            <TextBlock>
-              <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_ContextLimit_Header}}"/>
-              <Run Text="{Binding ContextLimit, StringFormat=' {0:N0}', FallbackValue={x:Null}}"/>
-              <LineBreak/>
-              <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputLimit_Header}}"/>
-              <Run Text="{Binding OutputLimit, StringFormat=' {0:N0}', FallbackValue={x:Null}}"/>
-            </TextBlock>
-          </ToolTip.Tip>
-
-          <TextBlock
-            FontSize="{DynamicResource FontSizeS}"
-            Text="{Binding ContextLimit, Converter={x:Static vc:TokenCountHumanizationConverter.Shared}}"/>
-        </shadui:Badge>
-      </StackPanel>
-    </Grid>
-  </DataTemplate>
-
   <ControlTheme
     x:Key="{x:Type v:ChatInputArea}"
     TargetType="v:ChatInputArea">
@@ -113,56 +35,14 @@
         <Grid
           ColumnDefinitions="*,Auto" RowDefinitions="*,Auto,Auto"
           RowSpacing="4">
-          <avaloniaEdit:TextEditor
-            x:Name="PART_TextEditor" Grid.Row="0"
+          <v:ChatTextEditor
+            x:Name="PART_ChatTextEditor" Grid.Row="0"
             Grid.Column="0" Grid.ColumnSpan="2"
-            Focusable="True" HorizontalScrollBarVisibility="Disabled"
-            ShowLineNumbers="False"
-            SyntaxHighlighting="{x:Null}"
-            WordWrap="True">
-            <avaloniaEdit:TextEditor.Options>
-              <avaloniaEdit:TextEditorOptions
-                AcceptsTab="False" AllowScrollBelowDocument="False"
-                EnableRectangularSelection="False" EnableTextDragDrop="False"/>
-            </avaloniaEdit:TextEditor.Options>
-
-            <avaloniaEdit:TextEditor.MaxHeight>
-              <MultiBinding Converter="{x:Static vc:DoubleConverters.Product}">
-                <DynamicResource ResourceKey="LineHeightM"/>
-                <ReflectionBinding>
-                  <ReflectionBinding.Source>
-                    <system:Double>5</system:Double>
-                  </ReflectionBinding.Source>
-                </ReflectionBinding>
-              </MultiBinding>
-            </avaloniaEdit:TextEditor.MaxHeight>
-
-            <avaloniaEdit:TextEditor.ContextFlyout>
-              <MenuFlyout Placement="Bottom">
-                <MenuItem
-                  x:Name="TextBoxContextFlyoutCutItem"
-                  Command="{Binding $parent[v:ChatInputArea].Cut}"
-                  Cursor="Hand"
-                  Header="{I18N {x:Static LocaleKey.ChatInputArea_ContextFlyout_CutMenuItem_Header}}"
-                  InputGesture="{x:Static TextBox.CutGesture}"
-                  IsEnabled="{Binding #PART_TextEditor.CanCut}"/>
-                <MenuItem
-                  x:Name="TextBoxContextFlyoutCopyItem"
-                  Command="{Binding $parent[v:ChatInputArea].Copy}"
-                  Cursor="Hand"
-                  Header="{I18N {x:Static LocaleKey.Common_Copy}}"
-                  InputGesture="{x:Static TextBox.CopyGesture}"
-                  IsEnabled="{Binding #PART_TextEditor.CanCopy}"/>
-                <MenuItem
-                  x:Name="TextBoxContextFlyoutPasteItem"
-                  Command="{Binding $parent[v:ChatInputArea].Paste}"
-                  Cursor="Hand"
-                  Header="{I18N {x:Static LocaleKey.ChatInputArea_ContextFlyout_PasteMenuItem_Header}}"
-                  InputGesture="{x:Static TextBox.PasteGesture}"
-                  IsEnabled="{Binding #PART_TextEditor.CanPaste}"/>
-              </MenuFlyout>
-            </avaloniaEdit:TextEditor.ContextFlyout>
-          </avaloniaEdit:TextEditor>
+            LeadingContent="{TemplateBinding LeadingContent}"
+            LeadingContentTemplate="{TemplateBinding LeadingContentTemplate}"
+            MaxLength="{TemplateBinding MaxLength}"
+            Text="{TemplateBinding Text, Mode=TwoWay}"
+            Watermark="{TemplateBinding Watermark}"/>
 
           <ScrollViewer
             Grid.Row="1" Grid.Column="0"
@@ -384,7 +264,7 @@
                     Converter="{x:Static vc:Int32Converters.GreaterThan}"
                     ConverterParameter="0"
                     FallbackValue="{x:False}"
-                    Path="#PART_TextEditor.Document.TextLength"/>
+                    Path="#PART_ChatTextEditor.Text.Length"/>
                 </MultiBinding>
               </Button.IsEnabled>
 
@@ -404,22 +284,6 @@
                 CornerRadius="1"/>
             </Button>
           </StackPanel>
-
-          <Popup
-            x:Name="PART_PreeditPopup" Grid.Row="0"
-            Grid.Column="0" Focusable="False"
-            IsHitTestVisible="False"
-            IsOpen="{TemplateBinding PreeditText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-            Placement="AnchorAndGravity" PlacementGravity="Right"
-            PlacementRect="{TemplateBinding PreeditRect}">
-            <shadui:Badge
-              Padding="2"
-              Background="{DynamicResource PopupBackgroundColor}"
-              BorderBrush="{DynamicResource BorderColor}"
-              BorderThickness="1"
-              Content="{TemplateBinding PreeditText}"
-              CornerRadius="{DynamicResource SmCornerRadius}"/>
-          </Popup>
         </Grid>
       </ControlTemplate>
     </Setter>
