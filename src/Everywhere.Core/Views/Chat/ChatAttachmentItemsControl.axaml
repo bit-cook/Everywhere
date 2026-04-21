@@ -109,7 +109,8 @@
 
             <DataTemplate DataType="chat:ChatAttachment">
               <Border
-                x:Name="PART_Border" Height="24"
+                x:Name="PART_Border" Classes="Supported"
+                Height="24"
                 Background="{DynamicResource CardBackgroundColor}"
                 BorderBrush="{DynamicResource BorderColor}"
                 BorderThickness="1"
