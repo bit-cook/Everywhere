@@ -429,7 +429,7 @@ public class ChatPluginManager : IChatPluginManager
             function = null;
             similarFunctionNames = Process.ExtractTop(
                     functionName,
-                    pluginSnapshots.SelectMany(p => p.Functions).Select(f => f.KernelFunction.Name),
+                    pluginSnapshots.SelectMany(p => p.GetChatFunctions()).Select(f => f.KernelFunction.Name),
                     limit: 5)
                 .Where(r => r.Score >= 60)
                 .Select(r => r.Value)
