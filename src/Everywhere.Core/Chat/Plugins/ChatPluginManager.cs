@@ -56,7 +56,7 @@ public class ChatPluginManager : IChatPluginManager
         {
             pluginKeys.Add(plugin.Key);
             plugin.IsEnabled = GetIsEnabled(plugin.Key, plugin is BuiltInChatPlugin { IsDefaultEnabled: true });
-            foreach (var function in plugin.Functions)
+            foreach (var function in plugin.GetChatFunctions().AsValueEnumerable())
             {
                 var key = $"{plugin.Key}.{function.KernelFunction.Name}";
                 function.IsEnabled = GetIsEnabled(key, true);
@@ -65,19 +65,15 @@ public class ChatPluginManager : IChatPluginManager
         }
 
         // Remove any records in settings that do not correspond to any existing plugin.
-        foreach (var key in isEnabledRecords.Keys.AsValueEnumerable().ToList())
+        foreach (var key in isEnabledRecords.Keys.AsValueEnumerable()
+                     .Where(key => pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal))).ToList())
         {
-            if (pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal)))
-            {
-                isEnabledRecords.Remove(key);
-            }
+            isEnabledRecords.Remove(key);
         }
-        foreach (var key in isPermissionGrantedRecords.Keys.AsValueEnumerable().ToList())
+        foreach (var key in isPermissionGrantedRecords.Keys.AsValueEnumerable()
+                     .Where(key => pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal))).ToList())
         {
-            if (pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal)))
-            {
-                isPermissionGrantedRecords.Remove(key);
-            }
+            isPermissionGrantedRecords.Remove(key);
         }
 
         BuiltInPlugins = _builtInPluginsSource
@@ -545,7 +541,7 @@ public class ChatPluginManager : IChatPluginManager
 
         public override IEnumerator<KernelFunction> GetEnumerator() => _actualFunctions.Select(f => f.KernelFunction).GetEnumerator();
 
-        public override IEnumerable<ChatFunction> GetChatFunctions() => _actualFunctions;
+        public override IReadOnlyList<ChatFunction> GetChatFunctions() => _actualFunctions;
 
         public override void Dispose() { }
     }
