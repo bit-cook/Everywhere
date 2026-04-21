@@ -676,7 +676,7 @@ public sealed partial class ChatService : IChatService
         //
         // And invoke them one by one.
         // TODO: parallel invoke?
-        var chatPluginScope = kernel.GetRequiredService<IChatPluginScope>();
+        var chatPluginScope = kernel.Services.GetService<IChatPluginScope>();
         var functionCallSpan = new AssistantChatMessageFunctionCallSpan();
         assistantChatMessage.AddSpan(functionCallSpan);
 
@@ -691,6 +691,38 @@ public sealed partial class ChatService : IChatService
             cancellationToken.ThrowIfCancellationRequested();
 
             // functionCallContentGroup.Key is the function name.
+            if (chatPluginScope is null)
+            {
+                // Function calling is not enabled
+                // Display error in the chat span (UI).
+                var errorFunctionMessage = new FunctionCallChatMessage(
+                    LucideIconKind.X,
+                    new DirectResourceKey(functionCallContentGroup.Key));
+                functionCallSpan.Add(errorFunctionMessage);
+
+                // Iterate through the function call contents in the group.
+                // Add the error message for each function call.
+                foreach (var functionCallContent in functionCallContentGroup)
+                {
+                    // Add the function call content to the missing function chat message for DB storage.
+                    errorFunctionMessage.Calls.Add(functionCallContent);
+
+                    // Create the corresponding function result content with the error message.
+                    var missingFunctionResultContent = new FunctionResultContent(
+                        functionCallContent,
+                        "Tool calling is disabled by the user");
+
+                    // Add the function result content to the missing function chat message for DB storage.
+                    errorFunctionMessage.Results.Add(missingFunctionResultContent);
+                }
+
+                errorFunctionMessage.ErrorMessageKey = new FormattedDynamicResourceKey(
+                    LocaleKey.HandledFunctionInvokingException_FunctionCallingDisabled,
+                    new DirectResourceKey(functionCallContentGroup.Key));
+
+                continue;
+            }
+
             if (!chatPluginScope.TryGetPluginAndFunction(
                     functionCallContentGroup.Key,
                     out var chatPlugin,
@@ -700,11 +732,11 @@ public sealed partial class ChatService : IChatService
                 // Not found the function, tell AI.
 
                 var errorMessageBuilder = new StringBuilder();
-                errorMessageBuilder.Append("Function '").Append(functionCallContentGroup.Key).Append("' is not available.");
+                errorMessageBuilder.Append("Tool '").Append(functionCallContentGroup.Key).Append("' is not available.");
 
                 if (similarFunctionNames.Count > 0)
                 {
-                    errorMessageBuilder.Append("Did you mean: ");
+                    errorMessageBuilder.Append(" Did you mean:");
                     foreach (var similarFunctionName in similarFunctionNames)
                     {
                         errorMessageBuilder.Append(' ').AppendLine(similarFunctionName);
@@ -712,26 +744,26 @@ public sealed partial class ChatService : IChatService
                 }
 
                 // Display error in the chat span (UI).
-                var missingFunctionMessage = new FunctionCallChatMessage(
+                var errorFunctionMessage = new FunctionCallChatMessage(
                     LucideIconKind.X,
                     new DirectResourceKey(functionCallContentGroup.Key));
-                functionCallSpan.Add(missingFunctionMessage);
+                functionCallSpan.Add(errorFunctionMessage);
 
                 // Iterate through the function call contents in the group.
                 // Add the error message for each function call.
                 foreach (var functionCallContent in functionCallContentGroup)
                 {
                     // Add the function call content to the missing function chat message for DB storage.
-                    missingFunctionMessage.Calls.Add(functionCallContent);
+                    errorFunctionMessage.Calls.Add(functionCallContent);
 
                     // Create the corresponding function result content with the error message.
                     var missingFunctionResultContent = new FunctionResultContent(functionCallContent, errorMessageBuilder.ToString());
 
                     // Add the function result content to the missing function chat message for DB storage.
-                    missingFunctionMessage.Results.Add(missingFunctionResultContent);
+                    errorFunctionMessage.Results.Add(missingFunctionResultContent);
                 }
 
-                missingFunctionMessage.ErrorMessageKey = new FormattedDynamicResourceKey(
+                errorFunctionMessage.ErrorMessageKey = new FormattedDynamicResourceKey(
                     LocaleKey.HandledFunctionInvokingException_FunctionNotFound,
                     new DirectResourceKey(functionCallContentGroup.Key));
 
@@ -767,7 +799,7 @@ public sealed partial class ChatService : IChatService
                     if (functionCallContent.Id.IsNullOrEmpty())
                     {
                         // This should never happen.
-                        throw new InvalidOperationException("Function call content must have an ID");
+                        throw new InvalidOperationException("Tool call must have an ID");
                     }
 
                     // Add the function call content to the function call chat message.
@@ -853,7 +885,7 @@ public sealed partial class ChatService : IChatService
                 }
                 case ConsentDecision.Deny:
                 {
-                    return new FunctionResultContent(content, consentDecision.FormatReason("Function execution denied by user."));
+                    return new FunctionResultContent(content, consentDecision.FormatReason("Tool execution denied by user."));
                 }
             }
 
@@ -863,7 +895,7 @@ public sealed partial class ChatService : IChatService
         {
             ex = HandledFunctionInvokingException.Handle(ex);
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-            _logger.LogError(ex, "Error invoking function '{FunctionName}'", content.FunctionName);
+            _logger.LogError(ex, "Error invoking tool '{FunctionName}'", content.FunctionName);
 
             resultContent = new FunctionResultContent(content, $"Error: {ex.Message}") { InnerContent = ex };
         }
