@@ -57,7 +57,6 @@ public sealed partial class WelcomeViewModel : BusyViewModelBase
         Assistant = new CustomAssistant
         {
             Name = LocaleResolver.CustomAssistant_Name_Default,
-            Schema = ModelProviderSchema.Official,
             ConfiguratorType = AssistantConfiguratorType.Official
         };
         Assistant.PropertyChanged += delegate

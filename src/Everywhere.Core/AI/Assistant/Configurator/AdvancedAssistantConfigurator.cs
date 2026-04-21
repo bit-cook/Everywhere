@@ -158,8 +158,8 @@ public sealed partial class AdvancedAssistantConfigurator(Assistant owner) : Ass
 
     public override void Backup()
     {
-        Backup(Endpoint);
         Backup(Schema);
+        Backup(Endpoint);
         Backup(ModelId);
         Backup(SupportsToolCall);
         Backup(SupportsReasoning);
@@ -174,8 +174,8 @@ public sealed partial class AdvancedAssistantConfigurator(Assistant owner) : Ass
         owner.ModelProviderTemplateId = null;
         owner.ModelDefinitionTemplateId = null;
 
-        Endpoint = Restore(Endpoint);
         Schema = Restore(Schema);
+        Endpoint = Restore(Endpoint);
         ModelId = Restore(ModelId);
         SupportsToolCall = Restore(SupportsToolCall);
         SupportsReasoning = Restore(SupportsReasoning);

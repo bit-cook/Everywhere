@@ -35,7 +35,6 @@ public sealed partial class OfficialAssistantConfigurator : AssistantConfigurato
     {
         _owner.ModelProviderTemplateId = null;
         _owner.Endpoint = null;
-        _owner.Schema = ModelProviderSchema.Official;
         _owner.RequestTimeoutSeconds = 20;
 
         _owner.ModelId = Restore(_owner.ModelId);
@@ -54,7 +53,7 @@ public sealed partial class OfficialAssistantConfigurator : AssistantConfigurato
         {
             var systemAssistant = new SystemAssistant
             {
-                Schema = ModelProviderSchema.Official
+                ConfiguratorType = AssistantConfiguratorType.Official
             };
             systemAssistant.ApplyTemplate(modelDefinitionTemplate);
             return systemAssistant;

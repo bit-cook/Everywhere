@@ -4,7 +4,7 @@ using Lucide.Avalonia;
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class SystemAssistantSettings : SettingsBase, ISettingsCategory
+public sealed partial class SystemAssistantSettings : SettingsBase, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 4;

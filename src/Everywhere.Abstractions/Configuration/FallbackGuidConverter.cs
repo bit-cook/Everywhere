@@ -6,7 +6,7 @@ namespace Everywhere.Configuration;
 /// <summary>
 /// A TypeConverter for Guid that falls back to Guid.Empty if conversion fails.
 /// </summary>
-public class FallbackGuidConverter : GuidConverter
+public sealed class FallbackGuidConverter : GuidConverter
 {
     public override object ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {

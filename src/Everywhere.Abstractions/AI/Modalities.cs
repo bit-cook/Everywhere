@@ -1,4 +1,6 @@
-﻿using Everywhere.Utilities;
+﻿using System.ComponentModel;
+using Everywhere.Configuration;
+using Everywhere.Utilities;
 
 namespace Everywhere.AI;
 
@@ -6,6 +8,8 @@ namespace Everywhere.AI;
 /// Represents the modalities supported by an AI model for input and output.
 /// </summary>
 [Flags]
+[TypeConverter(typeof(FallbackEnumConverter))]
+[DefaultValue(0x1)]
 public enum Modalities : uint
 {
     None = 0x0,

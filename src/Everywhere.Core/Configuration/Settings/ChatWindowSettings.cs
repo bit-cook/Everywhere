@@ -6,7 +6,7 @@ using Lucide.Avalonia;
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public partial class ChatWindowSettings : SettingsBase, ISettingsCategory
+public sealed partial class ChatWindowSettings : SettingsBase, ISettingsCategory
 {
     [HiddenSettingsItem]
     public int Index => 3;

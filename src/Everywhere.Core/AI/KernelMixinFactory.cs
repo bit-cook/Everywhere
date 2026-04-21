@@ -2,6 +2,7 @@
 using System.Net;
 using System.Text.Json;
 using Anthropic.Exceptions;
+using Everywhere.AI.Configurator;
 using Everywhere.Cloud;
 using Everywhere.Common;
 using Everywhere.Configuration;
@@ -52,7 +53,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
     /// For user-configured modes, endpoint/apiKey are read from the assistant configuration.
     /// </summary>
     private ModelConnection ResolveConnection(Assistant assistant) =>
-        assistant.Schema is ModelProviderSchema.Official ? ResolveOfficialConnection(assistant) : ResolveUserConnection(assistant);
+        assistant.ConfiguratorType == AssistantConfiguratorType.Official ? ResolveOfficialConnection(assistant) : ResolveUserConnection(assistant);
 
     /// <summary>
     /// Resolves connection for Official (cloud gateway) mode.

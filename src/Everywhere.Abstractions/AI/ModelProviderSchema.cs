@@ -1,19 +1,15 @@
-using MessagePack;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
+using Everywhere.Configuration;
 
 namespace Everywhere.AI;
 
 /// <summary>
 /// Provides schema definitions and constants for model providers.
 /// </summary>
+[TypeConverter(typeof(FallbackEnumConverter))]
 public enum ModelProviderSchema
 {
-    /// <summary>
-    /// Official provider schema.
-    /// </summary>
-    [IgnoreMember]
-    Official = -1,
-
     OpenAI,
     OpenAIResponses,
     Anthropic,
@@ -96,8 +92,7 @@ public static partial class ModelProviderSchemaExtensions
                 ModelProviderSchema.OpenAIResponses => $"{prefix}/v1",
                 ModelProviderSchema.Anthropic => prefix,
                 ModelProviderSchema.Google => $"{prefix}/v1beta",
-                ModelProviderSchema.Ollama => prefix,
-                _ => throw new ArgumentOutOfRangeException(nameof(schema), schema, null)
+                _ => prefix
             };
         }
 

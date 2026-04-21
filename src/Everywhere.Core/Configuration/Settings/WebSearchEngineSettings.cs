@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 using Avalonia.Data;
@@ -8,6 +9,7 @@ using Everywhere.Views;
 
 namespace Everywhere.Configuration;
 
+[TypeConverter(typeof(FallbackEnumConverter))]
 public enum WebSearchEngineProviderId
 {
     Google,
@@ -79,7 +81,7 @@ public sealed partial class WebSearchEngineProvider(ObservableCollection<ApiKey>
 }
 
 [GeneratedSettingsItems]
-public partial class WebSearchEngineSettings : ObservableObject
+public sealed partial class WebSearchEngineSettings : ObservableObject
 {
     [HiddenSettingsItem]
     public ObservableDictionary<WebSearchEngineProviderId, WebSearchEngineProvider> Providers { get; }
