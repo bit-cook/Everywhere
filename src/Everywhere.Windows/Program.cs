@@ -147,13 +147,27 @@ public static class Program
     {
         try
         {
-            using var registry = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{UrlProtocolCallbackMessage.Scheme}");
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath)) return;
+
+            const string CommandKeyPath = $@"Software\Classes\{UrlProtocolCallbackMessage.Scheme}";
+            const string CommandSubPath = @"shell\open\command";
+            var command = $"\"{exePath}\" \"%1\"";
+
+            using (var existingKey = Registry.CurrentUser.OpenSubKey($@"{CommandKeyPath}\{CommandSubPath}", writable: false))
+            {
+                if (existingKey?.GetValue(null) is string existingValue && existingValue == command)
+                {
+                    return;
+                }
+            }
+
+            using var registry = Registry.CurrentUser.CreateSubKey(CommandKeyPath);
             registry.SetValue(null, "URL: Sylinko Everywhere Protocol");
             registry.SetValue("URL Protocol", string.Empty);
 
-            using var commandKey = registry.CreateSubKey(@"shell\open\command");
-            var exePath = Environment.ProcessPath;
-            if (exePath is not null) commandKey.SetValue(null, $"\"{exePath}\" \"%1\"");
+            using var commandKey = registry.CreateSubKey(CommandSubPath);
+            commandKey.SetValue(null, command);
         }
         catch (Exception ex)
         {
