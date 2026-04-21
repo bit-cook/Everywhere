@@ -2641,4 +2641,16 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChatAttachmentItemsControl_FileAttachment_NotSupportToolTip_Tip" xml:space="preserve">
         <value />
     </data>
+    <data name="HandledFunctionInvokingException_FunctionCallingDisabled" xml:space="preserve">
+        <value />
+    </data>
+    <data name="OAuthCloudClient_OAuthError" xml:space="preserve">
+        <value />
+    </data>
+    <data name="OAuthCloudClient_InvalidState" xml:space="preserve">
+        <value />
+    </data>
+    <data name="OAuthCloudClient_MissingCode" xml:space="preserve">
+        <value />
+    </data>
 </root>

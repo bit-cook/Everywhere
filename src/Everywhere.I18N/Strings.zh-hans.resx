@@ -2642,4 +2642,16 @@
     <data name="ChatAttachmentItemsControl_FileAttachment_NotSupportToolTip_Tip" xml:space="preserve">
         <value>此附件类型不被模型支持，但模型仍可看到元数据并被提示使用工具处理</value>
     </data>
+    <data name="HandledFunctionInvokingException_FunctionCallingDisabled" xml:space="preserve">
+        <value>已阻止模型调用工具。</value>
+    </data>
+    <data name="OAuthCloudClient_OAuthError" xml:space="preserve">
+        <value>授权失败 ({0}): 您可能取消了操作，或服务器拒绝了请求。{1}</value>
+    </data>
+    <data name="OAuthCloudClient_InvalidState" xml:space="preserve">
+        <value>登录会话已过期或存在安全风险。为了您的账号安全，请关闭页面后重新发起登录。</value>
+    </data>
+    <data name="OAuthCloudClient_MissingCode" xml:space="preserve">
+        <value>未能获取到有效的授权凭证，请重试。</value>
+    </data>
 </root>

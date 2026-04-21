@@ -195,6 +195,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         }
         catch (Exception ex) when (!throwOnError)
         {
+            ex = HandledSystemException.Handle(ex);
             _logger.LogError(ex, "Failed to refresh user profile.");
         }
         finally
@@ -277,6 +278,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
         catch (Exception ex)
         {
             // Expected if the user has never logged in or if stored tokens are invalid/expired.
+            ex = HandledSystemException.Handle(ex);
             _logger.LogInformation(ex, "Silent login failed during initialization.");
 
             LoginStatus = CloudClientLoginStatus.LoginFailed;
@@ -375,28 +377,45 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
                 var code = query["code"];
                 var state = query["state"];
                 var error = query["error"];
-                var errorDesc = query["error_description"];
+                var errorDescription = query["error_description"];
 
                 if (!string.IsNullOrEmpty(error))
                 {
-                    _authCodeTcs.TrySetException(new Exception($"OAuth Error: {error} - {errorDesc}"));
+                    // _authCodeTcs.TrySetException(new InvalidDataException($"OAuth Error: {error} - {errorDescription}"));
+                    _authCodeTcs.TrySetException(
+                        new HandledSystemException(
+                            new InvalidDataException($"OAuth Error: {error} - {errorDescription}"),
+                            HandledSystemExceptionType.InvalidData,
+                            new FormattedDynamicResourceKey(
+                                LocaleKey.OAuthCloudClient_OAuthError,
+                                new DirectResourceKey(error),
+                                new DynamicResourceKey(errorDescription))));
                     return;
                 }
 
                 if (state != _expectedState)
                 {
-                    _authCodeTcs.TrySetException(new Exception($"Invalid state received. Expected: {_expectedState}, Received: {state}"));
+                    // _authCodeTcs.TrySetException(new InvalidDataException($"Invalid state received. Expected: {_expectedState}, Received: {state}"));
+                    _authCodeTcs.TrySetException(
+                        new HandledSystemException(
+                            new InvalidDataException($"Invalid state received. Expected: {_expectedState}, Received: {state}"),
+                            HandledSystemExceptionType.InvalidData,
+                            new DynamicResourceKey(LocaleKey.OAuthCloudClient_InvalidState)));
                     return;
                 }
 
-                if (!string.IsNullOrEmpty(code))
+                if (string.IsNullOrEmpty(code))
                 {
-                    _authCodeTcs.TrySetResult(code);
+                    // _authCodeTcs.TrySetException(new InvalidDataException("No code found in callback."));
+                    _authCodeTcs.TrySetException(
+                        new HandledSystemException(
+                            new InvalidDataException("No code found in callback."),
+                            HandledSystemExceptionType.InvalidData,
+                            new DynamicResourceKey(LocaleKey.OAuthCloudClient_MissingCode)));
+                    return;
                 }
-                else
-                {
-                    _authCodeTcs.TrySetException(new Exception("No code found in callback."));
-                }
+
+                _authCodeTcs.TrySetResult(code);
             }
             catch (Exception ex)
             {
@@ -461,6 +480,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             }
             catch (Exception ex)
             {
+                ex = HandledSystemException.Handle(ex);
                 logger.LogWarning(ex, "Failed to read token data from secure storage. Proceeding with empty session.");
             }
         }
@@ -474,6 +494,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             }
             catch (Exception ex)
             {
+                ex = HandledSystemException.Handle(ex);
                 logger.LogWarning(ex, "Failed to save token data to secure storage");
             }
         }
@@ -487,6 +508,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             }
             catch (Exception ex)
             {
+                ex = HandledSystemException.Handle(ex);
                 logger.LogWarning(ex, "Failed to delete token data from secure storage");
             }
         }
@@ -544,6 +566,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             catch (Exception ex) when (!throwOnError)
             {
                 // Network errors or other transient issues. Keep the current session, it might recover later.
+                ex = HandledSystemException.Handle(ex);
                 logger.LogWarning(ex, "Token refresh failed due to network or unknown error.");
                 return false;
             }
@@ -583,6 +606,7 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             }
             catch (Exception ex)
             {
+                ex = HandledSystemException.Handle(ex);
                 logger.LogWarning(ex, "Failed to revoke remote {TokenType}", tokenTypeHint);
             }
         }

@@ -281,12 +281,12 @@ public sealed partial class ChatService : IChatService
 
             // After this, only the chat context holds strong references to the visual elements.
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            e = HandledChatException.Handle(e, null);
-            activity?.SetStatus(ActivityStatusCode.Error, e.Message.Trim());
-            analyzingContextMessage.ErrorMessageKey = e.GetFriendlyMessage();
-            _logger.LogError(e, "Error analyzing visual tree");
+            ex = HandledChatException.Handle(ex, null);
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message.Trim());
+            analyzingContextMessage.ErrorMessageKey = ex.GetFriendlyMessage();
+            _logger.LogError(ex, "Error analyzing visual tree");
         }
         finally
         {
@@ -442,10 +442,10 @@ public sealed partial class ChatService : IChatService
         }
         catch (Exception ex)
         {
+            ex = HandledChatException.Handle(ex, kernelMixin);
             _logger.LogError(ex, "Error generating chat response");
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message.Trim());
 
-            ex = HandledChatException.Handle(ex, kernelMixin);
             var friendlyMessage = ex.GetFriendlyMessage();
             assistantChatMessage.ErrorMessageKey = friendlyMessage;
 
@@ -979,6 +979,7 @@ public sealed partial class ChatService : IChatService
         }
         catch (Exception ex)
         {
+            ex = HandledChatException.Handle(ex, null);
             _logger.LogError(ex, "Failed to resolve assistant");
             return;
         }
@@ -1044,8 +1045,9 @@ public sealed partial class ChatService : IChatService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to generate chat title");
+            ex = HandledChatException.Handle(ex, kernelMixin);
             activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            _logger.LogError(ex, "Failed to generate chat title");
         }
         finally
         {

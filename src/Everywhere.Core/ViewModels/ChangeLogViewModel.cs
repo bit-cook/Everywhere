@@ -128,8 +128,11 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
             }
             catch (Exception ex)
             {
+                ex = HandledSystemException.Handle(ex);
                 _logger.LogError(ex, "Failed to load local changelog.");
-                throw HandledSystemException.Handle(ex);
+
+                // ReSharper disable once PossibleIntendedRethrow
+                throw ex;
             }
 
             try
@@ -153,16 +156,21 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
             catch (OperationCanceledException) { }
             catch (TimeoutException ex)
             {
-                _logger.LogError(ex, "Failed to load GitHub releases.");
-                throw new HandledSystemException(
+                var handledException = new HandledSystemException(
                     ex,
                     HandledSystemExceptionType.Timeout,
                     new DynamicResourceKey(LocaleKey.FriendlyExceptionMessage_HttpRequest_RequestTimeout));
+                _logger.LogError(handledException, "Failed to load GitHub releases.");
+
+                throw handledException;
             }
             catch (Exception ex)
             {
+                ex = HandledSystemException.Handle(ex);
                 _logger.LogError(ex, "Failed to load GitHub releases.");
-                throw HandledSystemException.Handle(ex);
+
+                // ReSharper disable once PossibleIntendedRethrow
+                throw ex;
             }
         },
         ToastExceptionHandler,

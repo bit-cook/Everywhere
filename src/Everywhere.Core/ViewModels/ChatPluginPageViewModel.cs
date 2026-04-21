@@ -390,7 +390,6 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
         ToastManager
             .CreateToast("Logs copied to clipboard.")
             .OnBottomRight()
-            .WithDurationSeconds(3)
             .ShowSuccess();
     }
 

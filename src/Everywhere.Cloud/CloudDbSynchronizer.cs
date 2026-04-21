@@ -115,16 +115,18 @@ public partial class CloudChatDbSynchronizer(
                 catch (HttpRequestException ex) when (ex.InnerException is SocketException)
                 {
                     // Network-related errors
-                    persistentState.LastCloudSynchronizationErrorMessageKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
+                    var handledException = HandledSystemException.Handle(ex);
+                    persistentState.LastCloudSynchronizationErrorMessageKey = handledException.GetFriendlyMessage();
                     syncOutcome = SyncOutcome.NetworkError;
                     _consecutiveErrorCount++;
                     _consecutiveIdleCount = 0;
 
-                    logger.LogInformation(ex, "Network error occurred during cloud database synchronization.");
+                    logger.LogInformation(handledException, "Network error occurred during cloud database synchronization.");
                 }
                 catch (Exception ex)
                 {
-                    persistentState.LastCloudSynchronizationErrorMessageKey = HandledSystemException.Handle(ex).GetFriendlyMessage();
+                    ex = HandledSystemException.Handle(ex);
+                    persistentState.LastCloudSynchronizationErrorMessageKey = ex.GetFriendlyMessage();
                     syncOutcome = SyncOutcome.Error;
                     _consecutiveErrorCount++;
                     _consecutiveIdleCount = 0;

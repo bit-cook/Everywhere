@@ -1,5 +1,4 @@
 ﻿using System.Buffers;
-using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using Everywhere.Configuration;
 using OpenTelemetry.Trace;

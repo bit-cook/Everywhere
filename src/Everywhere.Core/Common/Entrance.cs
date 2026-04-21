@@ -6,10 +6,12 @@ using Everywhere.Interop;
 using Everywhere.Messages;
 using Everywhere.Patches;
 using MessagePack;
+using PuppeteerSharp;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting.Json;
+using ZLinq;
 #if DEBUG
 using Avalonia.Controls;
 #endif
@@ -229,6 +231,13 @@ public static class Entrance
                 .Filter.ByIncludingOnly(logEvent =>
                     logEvent.Properties.TryGetValue("SourceContext", out var sourceContextValue) &&
                     sourceContextValue.As<ScalarValue>()?.Value?.ToString()?.StartsWith("Everywhere.") is true)
+                .Filter.ByExcluding(logEvent => logEvent.Exception.Segregate()
+                    .AsValueEnumerable()
+                    .Any(e => e is
+                        OperationCanceledException or
+                        TimeoutException or
+                        HandledException { IsExpected: true } or
+                        PuppeteerException))
                 .WriteTo.Sentry(LogEventLevel.Error, LogEventLevel.Information))
             .CreateLogger();
     }

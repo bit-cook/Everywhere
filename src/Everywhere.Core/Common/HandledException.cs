@@ -6,6 +6,7 @@ using System.Security;
 using System.Security.Authentication;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Anthropic.Exceptions;
 using Everywhere.AI;
 using Everywhere.Cloud;
 using MessagePack;
@@ -801,8 +802,9 @@ public class HandledChatException(
         // First layer: provider-specific exceptions
         if (!new ParserChain<ClientResultExceptionParser,
                 ParserChain<HttpOperationExceptionParser,
-                    ParserChain<OllamaExceptionParser,
-                        HttpRequestExceptionParser>>>().TryParse(ref context))
+                    ParserChain<AnthropicExceptionParser,
+                        ParserChain<OllamaExceptionParser,
+                            HttpRequestExceptionParser>>>>().TryParse(ref context))
         {
             // Second layer: general network/socket exceptions
             new ParserChain<GeneralChatExceptionParser,
@@ -867,7 +869,7 @@ public class HandledChatException(
                 return HandledChatExceptionType.TemperatureNotSupport;
             }
 
-            if (message.Contains("top_p", StringComparison.OrdinalIgnoreCase) || message.Contains("topP", StringComparison.OrdinalIgnoreCase) )
+            if (message.Contains("top_p", StringComparison.OrdinalIgnoreCase) || message.Contains("topP", StringComparison.OrdinalIgnoreCase))
             {
                 return HandledChatExceptionType.TopPNotSupport;
             }
@@ -991,6 +993,37 @@ public class HandledChatException(
             }
 
             context.ExceptionType = HandledChatExceptionType.EndpointNotReachable;
+            return true;
+        }
+    }
+
+    private readonly struct AnthropicExceptionParser : IExceptionParser
+    {
+        public bool TryParse(ref ExceptionParsingContext context)
+        {
+            if (context.Exception is not AnthropicException anthropicException)
+            {
+                return false;
+            }
+
+            context.ExceptionType = anthropicException switch
+            {
+                AnthropicRateLimitException => HandledChatExceptionType.RateLimit,
+                AnthropicUnauthorizedException => HandledChatExceptionType.InvalidConfiguration,
+                Anthropic5xxException => HandledChatExceptionType.ServiceUnavailable,
+                AnthropicForbiddenException forbidden => IExceptionParser.ParseMessage(
+                    forbidden.ResponseBody,
+                    HandledChatExceptionType.RegionNotSupport),
+                AnthropicApiException api => IExceptionParser.ParseMessage(api.ResponseBody, HandledChatExceptionType.InvalidConfiguration),
+                _ => HandledChatExceptionType.Unknown
+            };
+
+            if (anthropicException is AnthropicApiException apiException)
+            {
+                context.DetailedMessage = apiException.ResponseBody;
+                context.StatusCode = apiException.StatusCode;
+            }
+
             return true;
         }
     }
@@ -1222,7 +1255,7 @@ public sealed partial class HandledFunctionInvokingException : HandledSystemExce
             }
         }
 
-        return HandledSystemException.Handle(exception, true);
+        return Handle(exception, true);
     }
 
     // Match `Missing argument for function parameter 'paramName'`
