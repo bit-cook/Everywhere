@@ -97,7 +97,7 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
         // Create an HttpClient instance using the factory.
         // It will have the configured settings (timeout and proxy).
         var httpClient = httpClientFactory.CreateClient();
-        httpClient.Timeout = TimeSpan.FromSeconds(assistant.RequestTimeoutSeconds);
+        httpClient.Timeout = TimeSpan.FromSeconds(Math.Clamp(assistant.RequestTimeoutSeconds, 1, 24 * 60 * 60)); // maximum 24 hours
 
         return new ModelConnection(assistant.Schema, endpoint, apiKey, httpClient, null);
     }

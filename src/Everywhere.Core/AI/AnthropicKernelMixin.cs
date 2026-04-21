@@ -27,7 +27,7 @@ public sealed class AnthropicKernelMixin : KernelMixin
                     ApiKey = ApiKey,
                     HttpClient = connection.HttpClient,
                     BaseUrl = Endpoint,
-                    Timeout = TimeSpan.FromSeconds(assistant.RequestTimeoutSeconds)
+                    Timeout = TimeSpan.FromSeconds(Math.Clamp(assistant.RequestTimeoutSeconds, 1, 24 * 60 * 60))
                 }).AsIChatClient(),
             this);
         ChatCompletionService = _client.AsChatCompletionService();
