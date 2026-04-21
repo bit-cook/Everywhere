@@ -43,21 +43,25 @@ public sealed partial class SoftwareUpdater(
     public void RunAutomaticCheckInBackground(TimeSpan interval, CancellationToken cancellationToken = default)
     {
 #if !DEBUG
-        _timer = new PeriodicTimer(interval);
+        PeriodicTimer timer;
+        _timer = timer = new PeriodicTimer(interval);
         cancellationToken.Register(Stop);
 
         Task.Run(
             async () =>
             {
                 // Clean up old update packages on startup.
-                await CleanupOldUpdatesAsync();
-
+                CleanupOldUpdates();
                 await CheckForUpdatesAsync(false, cancellationToken); // check immediately on start
 
-                while (await _timer.WaitForNextTickAsync(cancellationToken))
+                try
                 {
-                    await CheckForUpdatesAsync(false, cancellationToken);
+                    while (await timer.WaitForNextTickAsync(cancellationToken))
+                    {
+                        await CheckForUpdatesAsync(false, cancellationToken);
+                    }
                 }
+                catch (OperationCanceledException) { }
             },
             cancellationToken);
 
@@ -176,40 +180,37 @@ public sealed partial class SoftwareUpdater(
     /// <summary>
     /// Cleans up old update packages from the updates directory.
     /// </summary>
-    private async Task CleanupOldUpdatesAsync()
+    private void CleanupOldUpdates()
     {
-        await Task.Run(() =>
+        try
         {
-            try
+            var updatesPath = RuntimeConstants.EnsureWritableDataFolderPath("updates");
+            if (!Directory.Exists(updatesPath)) return;
+
+            foreach (var file in Directory.EnumerateFiles(updatesPath))
             {
-                var updatesPath = RuntimeConstants.EnsureWritableDataFolderPath("updates");
-                if (!Directory.Exists(updatesPath)) return;
+                var fileName = Path.GetFileName(file);
 
-                foreach (var file in Directory.EnumerateFiles(updatesPath))
+                if (!platformHandler.TryParseUpdatePackageVersion(fileName, out var fileVersion) || fileVersion is null) continue;
+
+                // Delete if the package version is older than or same as the current running version.
+                if (fileVersion > CurrentVersion) continue;
+
+                try
                 {
-                    var fileName = Path.GetFileName(file);
-                    
-                    if (!platformHandler.TryParseUpdatePackageVersion(fileName, out var fileVersion) || fileVersion is null) continue;
-
-                    // Delete if the package version is older than or same as the current running version.
-                    if (fileVersion > CurrentVersion) continue;
-
-                    try
-                    {
-                        File.Delete(file);
-                        logger.LogDebug("Deleted old update package: {FileName}", fileName);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogInformation(ex, "Failed to delete old update package: {FileName}", fileName);
-                    }
+                    File.Delete(file);
+                    logger.LogDebug("Deleted old update package: {FileName}", fileName);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInformation(ex, "Failed to delete old update package: {FileName}", fileName);
                 }
             }
-            catch (Exception ex)
-            {
-                logger.LogInformation(ex, "An error occurred during old updates cleanup.");
-            }
-        });
+        }
+        catch (Exception ex)
+        {
+            logger.LogInformation(ex, "An error occurred during old updates cleanup.");
+        }
     }
 #endif
 
