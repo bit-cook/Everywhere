@@ -413,8 +413,8 @@ partial class PresetBasedAssistantConfigurator
             [
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "kimi-k2.5",
-                    Name = "Kimi K2.5",
+                    ModelId = "kimi-k2.6",
+                    Name = "Kimi K2.6",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Video,
@@ -422,6 +422,17 @@ partial class PresetBasedAssistantConfigurator
                     ContextLimit = 262_144,
                     OutputLimit = 262_144,
                     IsDefault = true
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "kimi-k2.5",
+                    Name = "Kimi K2.5",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Video,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 262_144,
+                    OutputLimit = 262_144
                 },
                 new ModelDefinitionTemplate
                 {
