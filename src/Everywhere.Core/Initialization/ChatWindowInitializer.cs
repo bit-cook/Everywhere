@@ -78,7 +78,7 @@ public sealed class ChatWindowInitializer(
     {
         RegisterShortcutListener(
             shortcut,
-            () => ThreadPool.QueueUserWorkItem(_ =>
+            () =>
             {
                 IVisualElement? element;
                 nint? hWnd;
@@ -108,7 +108,7 @@ public sealed class ChatWindowInitializer(
                         WeakReferenceMessenger.Default.Send(new ActivateChatSessionMessage(element));
                     }
                 });
-            }),
+            },
             ref _chatWindowShortcutSubscription);
     }
 
