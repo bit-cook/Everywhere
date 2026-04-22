@@ -122,7 +122,8 @@ public sealed partial class SoftwareUpdater(
         }
         catch (Exception ex)
         {
-            logger.LogInformation(ex, "Failed to check for updates.");
+            ex = HandledSystemException.Handle(ex);
+            logger.LogWarning(ex, "Failed to check for updates.");
             LatestVersion = null;
 
             if (throwOnError) throw;
@@ -160,9 +161,9 @@ public sealed partial class SoftwareUpdater(
                 catch (OperationCanceledException) { }
                 catch (Exception ex)
                 {
+                    ex = new HandledException(ex, new DynamicResourceKey(LocaleKey.SoftwareUpdater_PerformUpdate_FailedToast_Message));
                     activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
 
-                    ex = new HandledException(ex, new DynamicResourceKey(LocaleKey.SoftwareUpdater_PerformUpdate_FailedToast_Message));
                     logger.LogError(ex, "Failed to perform update.");
                     throw;
                 }
@@ -203,12 +204,14 @@ public sealed partial class SoftwareUpdater(
                 }
                 catch (Exception ex)
                 {
+                    ex = HandledSystemException.Handle(ex);
                     logger.LogInformation(ex, "Failed to delete old update package: {FileName}", fileName);
                 }
             }
         }
         catch (Exception ex)
         {
+            ex = HandledSystemException.Handle(ex);
             logger.LogInformation(ex, "An error occurred during old updates cleanup.");
         }
     }
@@ -224,12 +227,13 @@ public sealed partial class SoftwareUpdater(
         {
             if (fileInfo.Length == asset.Size && string.Equals(await HashFileAsync(), asset.Digest, StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogDebug("Asset {AssetName} already exists and is valid, skipping download.", asset.Name);
+                logger.LogInformation("Asset {AssetName} already exists and is valid, skipping download.", asset.Name);
                 progress.Report(1.0);
                 return assetDownloadPath;
             }
 
-            logger.LogDebug("Asset {AssetName} exists but is invalid, redownloading.", asset.Name);
+            logger.LogInformation("Asset {AssetName} exists but is invalid, redownloading.", asset.Name);
+            fileInfo.Delete();
         }
 
         using var httpClient = httpClientFactory.CreateClient(Options.DefaultName);
@@ -266,7 +270,9 @@ public sealed partial class SoftwareUpdater(
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed during download selection. Falling back to ghproxy: {Url}", asset.ProxyDownloadUrl);
+            ex = HandledSystemException.Handle(ex);
+            logger.LogInformation(ex, "Failed during download selection. Falling back to ghproxy: {Url}", asset.ProxyDownloadUrl);
+
             response?.Dispose();
             response = await httpClient.GetAsync(asset.ProxyDownloadUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             response.EnsureSuccessStatusCode();
