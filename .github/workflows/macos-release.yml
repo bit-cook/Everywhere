@@ -4,12 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  release:
-    types: [created]
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build-mac:
@@ -121,7 +116,6 @@ jobs:
           --no-restore
 
     - name: Notarize App
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       env:
         APPLE_ID: ${{ secrets.APPLE_ID }}
         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -152,10 +146,9 @@ jobs:
         mv "$PKG_PATH" ./release_assets/Everywhere-${{ matrix.asset_name }}-v${{ env.VERSION }}.pkg
 
     - name: Upload Release Assets
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       uses: softprops/action-gh-release@v2
       with:
-        draft: false
-        make_latest: true
+        draft: true
+        make_latest: false
         tag_name: v${{ env.VERSION }}
         files: ./release_assets/*.pkg

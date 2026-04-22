@@ -4,12 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  release:
-    types: [created]
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build-linux:
@@ -86,36 +81,30 @@ jobs:
           --no-restore
 
     - name: Build Deb Package
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       run: |
         chmod +x ./src/Everywhere.Linux/packaging_deb.sh
         ./src/Everywhere.Linux/packaging_deb.sh ${{ matrix.runtime }} ${{ env.VERSION }} ./publish
 
     - name: Install AppImage Build Dependencies
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       run: |
         sudo apt-get update
         sudo apt-get install -y squashfs-tools libfuse2
 
     - name: Create Archive
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       run: |
         sudo apt-get update && sudo apt-get install -y zstd
         tar -I 'zstd -19 -T0' -cf Everywhere-${{ matrix.asset_name }}-v${{ env.VERSION }}.tar.zst -C ./publish .
 
     - name: Build AppImage
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       run: |
         chmod +x build-appimage.sh
         ./build-appimage.sh ${{ matrix.runtime }} ${{ matrix.asset_name }} ./publish false ${{ env.VERSION }}
 
     - name: Upload Release Assets
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       uses: softprops/action-gh-release@v2
       with:
-        draft: false
-        make_latest: true
-        tag_name: v${{ env.VERSION }}
+        draft: true
+        make_latest: false
         files: |
           Everywhere-${{ matrix.asset_name }}-v${{ env.VERSION }}.deb
           Releases/Everywhere-${{ matrix.asset_name }}-v${{ env.VERSION }}.AppImage

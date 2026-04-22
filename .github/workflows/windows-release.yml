@@ -4,12 +4,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
-  release:
-    types: [created]
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   build-and-release:
@@ -60,13 +55,11 @@ jobs:
       uses: microsoft/setup-msbuild@v2
 
     - name: Install Inno Setup
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       shell: pwsh
       run: |
         choco install innosetup
 
     - name: Install SimplySignDesktop
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       shell: pwsh
       run: |
         $msiPath = "tools/sign_windows/SimplySignDesktop-9.3.3.71-64-bit-en.msi"
@@ -130,7 +123,6 @@ jobs:
           --no-restore
 
     - name: Login, Compile, and Sign
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       shell: pwsh
       env:
         SIGN_USERNAME: ${{ secrets.CERTUM_USERNAME }}
@@ -141,17 +133,15 @@ jobs:
         python -u tools/sign_windows/sign.py ./publish tools/installer.iss
 
     - name: Create release zip
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       shell: pwsh
       run: |
         Compress-Archive -Path ./publish/* -DestinationPath ./Everywhere-Windows-x64-v$env:VERSION.zip
 
     - name: Upload Release Assets
-      if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
       uses: softprops/action-gh-release@v2
       with:
-        draft: false
-        make_latest: true
+        draft: true
+        make_latest: false
         tag_name: v${{ env.VERSION }}
         files: |
           ./Everywhere-Windows-x64-v${{env.VERSION}}.zip
