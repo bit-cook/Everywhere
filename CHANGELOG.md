@@ -1,3 +1,29 @@
+## [v0.7.2](https://github.com/DearVa/Everywhere/releases/tag/v0.7.2) - 2026-04-22
+
+### ✨ Features & 🚀 Improvements
+
+- 🔥 Refactored the global hotkey listener logic, which is expected to resolve the issue of occasional hotkey listener failures.
+- Optimized chat attachment handling logic: When the selected assistant does not support the current file format, the app now allows adding it with a warning prompt. Upon sending, the assistant will receive the attachment's metadata and be prompted to process it using appropriate tools.
+- Optimized the settings loading logic upon application startup: If the configuration file encounters an error, it will now be automatically backed up and preserved. Also added an automatic error fallback mechanism for invalid enum values.
+- Added Kimi K2.6 to the list of preset models.
+- Improved the error handling logic and error messages during software updates and Everywhere Cloud Services login processes.
+- Added handling mechanisms for network request timeouts to prevent potential errors.
+- **(Windows)** Added digital signatures to `.dll` files to reduce the risk of false positives from antivirus software.
+
+### 🐛 Bug Fixes
+
+- Fixed an issue where the Xiaomi Mimo model could not correctly enable deep thinking (#282).
+- Fixed an issue where the chat would interrupt if the model still attempted to call tools after tool execution permissions were disabled.
+- Fixed an issue where the chat would interrupt if the assistant attempted to call a non-existent tool.
+- Fixed an issue that caused errors when adding a visual element attachment if the target program unexpectedly exited.
+- **(Windows)** Fixed an issue where chat notifications failed to display normally under certain conditions, subsequently causing the chat to interrupt.
+- **(macOS)** Fixed an issue where the global hotkey listener failed to work.
+- **(macOS)** Fixed an issue where the file selection dialog could not be opened in some situations.
+
+**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.7.1...v0.7.2
+
+
+
 ## [v0.7.1](https://github.com/DearVa/Everywhere/releases/tag/v0.7.1) - 2026-04-19
 
 > ⚠️ This update fixes many issues from the 0.7.0 release, including critical crashes. We highly recommend all users to update immediately.
