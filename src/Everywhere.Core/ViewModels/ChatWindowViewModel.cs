@@ -234,19 +234,11 @@ public sealed partial class ChatWindowViewModel :
     {
         try
         {
-            if (!IsOpened)
-            {
-                if (Settings.ChatWindow.AlwaysStartNewChat && ChatContextManager.CreateNewCommand.CanExecute(null))
-                {
-                    ChatContextManager.CreateNewCommand.Execute(null);
-                }
-            }
-
             // Avoid adding duplicate attachments
             var targetElement = message.TargetElement;
             if (_chatAttachmentsSource.Items.Any(a => a is VisualElementAttachment vea && Equals(vea.Element?.Target, targetElement)))
             {
-                WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
+                ShowChatWindow();
                 return;
             }
 
@@ -260,7 +252,7 @@ public sealed partial class ChatWindowViewModel :
                     }
                 });
 
-                WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
+                ShowChatWindow();
                 return;
             }
 
@@ -278,7 +270,7 @@ public sealed partial class ChatWindowViewModel :
                     visualElementEffect.ArrangeEffectWindows();
                 }
 
-                WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
+                ShowChatWindow();
 
                 _chatAttachmentsSource.Edit(list =>
                 {
@@ -297,12 +289,29 @@ public sealed partial class ChatWindowViewModel :
                     await visualElementEffect.CreatePickEffect(targetElement, chatAttachment);
                 }
             }
+            else
+            {
+                ShowChatWindow();
+            }
         }
         catch (OperationCanceledException) { }
         catch (TimeoutException) { }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to process ActivateChatSessionMessage");
+        }
+
+        void ShowChatWindow()
+        {
+            if (!IsOpened)
+            {
+                if (Settings.ChatWindow.AlwaysStartNewChat && ChatContextManager.CreateNewCommand.CanExecute(null))
+                {
+                    ChatContextManager.CreateNewCommand.Execute(null);
+                }
+            }
+
+            WeakReferenceMessenger.Default.Send(new CloakChatWindowMessage(false));
         }
     }
 
