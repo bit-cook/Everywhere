@@ -127,12 +127,11 @@ public class OpenAIKernelMixin : KernelMixin
             if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true) return null;
             if (reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel) return null;
 
+            var thinkingPatch = new JsonPatch();
+            thinkingPatch.Set("$.thinking"u8, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { type = "enabled" })));
             return new ChatCompletionOptions
             {
-                Metadata =
-                {
-                    { "thinking", "enabled" }
-                },
+                Patch = thinkingPatch,
                 ReasoningEffortLevel = reasoningEffortLevel switch
                 {
                     ReasoningEffortLevel.Minimal => ChatReasoningEffortLevel.Minimal,
