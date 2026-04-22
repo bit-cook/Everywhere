@@ -1,5 +1,5 @@
 ﻿using DynamicData;
-using LiveMarkdown.Avalonia;
+using Everywhere.Common;
 using MessagePack;
 using MessagePack.Formatters;
 
@@ -46,7 +46,7 @@ public sealed class ChatPluginDisplaySink : IReadOnlyList<ChatPluginDisplayBlock
         _itemsSource.Add(new ChatPluginDynamicResourceKeyDisplayBlock(resourceKey, className));
     }
 
-    public ObservableStringBuilder AppendMarkdown()
+    public ThreadSafeObservableStringBuilder AppendMarkdown()
     {
         var markdownBlock = new ChatPluginMarkdownDisplayBlock();
         _itemsSource.Add(markdownBlock);

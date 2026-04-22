@@ -1,4 +1,4 @@
-﻿using LiveMarkdown.Avalonia;
+﻿using Everywhere.Common;
 
 namespace Everywhere.Chat.Plugins;
 
@@ -43,7 +43,7 @@ public interface IChatPluginDisplaySink
     /// Appends a Markdown builder to the display sink. The caller can use the returned builder to build markdown content.
     /// </summary>
     /// <returns></returns>
-    ObservableStringBuilder AppendMarkdown();
+    ThreadSafeObservableStringBuilder AppendMarkdown();
 
     /// <summary>
     /// Appends a progress indicator to the display sink. The caller can use the returned progress reporter to report progress between 0.0 and 1.0.

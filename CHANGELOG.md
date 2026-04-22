@@ -15,6 +15,7 @@
 - Fixed an issue where the Xiaomi Mimo model could not correctly enable deep thinking (#282).
 - Fixed an issue where the chat would interrupt if the model still attempted to call tools after tool execution permissions were disabled.
 - Fixed an issue where the chat would interrupt if the assistant attempted to call a non-existent tool.
+- Fixed an issue where the chat would interrupt due to thread contention issues.
 - Fixed an issue that caused errors when adding a visual element attachment if the target program unexpectedly exited.
 - **(Windows)** Fixed an issue where chat notifications failed to display normally under certain conditions, subsequently causing the chat to interrupt.
 - **(macOS)** Fixed an issue where the global hotkey listener failed to work.

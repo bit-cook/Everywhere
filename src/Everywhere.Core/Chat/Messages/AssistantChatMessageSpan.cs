@@ -43,7 +43,7 @@ public sealed partial class AssistantChatMessageTextSpan : AssistantChatMessageS
 {
     [IgnoreMember]
     [JsonIgnore]
-    public ObservableStringBuilder ContentMarkdownBuilder => EnsureContentMarkdownBuilder();
+    public ThreadSafeObservableStringBuilder ContentMarkdownBuilder => EnsureContentMarkdownBuilder();
 
     [Key(3)]
     public string? Content
@@ -57,13 +57,13 @@ public sealed partial class AssistantChatMessageTextSpan : AssistantChatMessageS
         }
     }
 
-    [IgnoreMember] private ObservableStringBuilder? _contentMarkdownBuilder;
+    [IgnoreMember] private ThreadSafeObservableStringBuilder? _contentMarkdownBuilder;
 
     [MemberNotNull(nameof(_contentMarkdownBuilder))]
-    private ObservableStringBuilder EnsureContentMarkdownBuilder()
+    private ThreadSafeObservableStringBuilder EnsureContentMarkdownBuilder()
     {
         if (_contentMarkdownBuilder != null) return _contentMarkdownBuilder;
-        _contentMarkdownBuilder = new ObservableStringBuilder();
+        _contentMarkdownBuilder = new ThreadSafeObservableStringBuilder();
         _contentMarkdownBuilder.Changed += HandleContentMarkdownBuilderChanged;
         return _contentMarkdownBuilder;
     }
@@ -176,7 +176,7 @@ public sealed partial class AssistantChatMessageFunctionCallSpan :
 public sealed partial class AssistantChatMessageReasoningSpan : AssistantChatMessageSpan, IDisposable
 {
     [IgnoreMember]
-    public ObservableStringBuilder ReasoningMarkdownBuilder => EnsureReasoningMarkdownBuilder();
+    public ThreadSafeObservableStringBuilder ReasoningMarkdownBuilder => EnsureReasoningMarkdownBuilder();
 
     /// <summary>
     /// The reasoning output in Markdown format for serialization.
@@ -193,7 +193,7 @@ public sealed partial class AssistantChatMessageReasoningSpan : AssistantChatMes
         }
     }
 
-    [IgnoreMember] private ObservableStringBuilder? _reasoningMarkdownBuilder;
+    [IgnoreMember] private ThreadSafeObservableStringBuilder? _reasoningMarkdownBuilder;
 
     [SerializationConstructor]
     public AssistantChatMessageReasoningSpan() { }
@@ -204,10 +204,10 @@ public sealed partial class AssistantChatMessageReasoningSpan : AssistantChatMes
     }
 
     [MemberNotNull(nameof(_reasoningMarkdownBuilder))]
-    private ObservableStringBuilder EnsureReasoningMarkdownBuilder()
+    private ThreadSafeObservableStringBuilder EnsureReasoningMarkdownBuilder()
     {
         if (_reasoningMarkdownBuilder != null) return _reasoningMarkdownBuilder;
-        _reasoningMarkdownBuilder = new ObservableStringBuilder();
+        _reasoningMarkdownBuilder = new ThreadSafeObservableStringBuilder();
         _reasoningMarkdownBuilder.Changed += HandleReasoningMarkdownBuilderChanged;
         return _reasoningMarkdownBuilder;
     }

@@ -110,7 +110,7 @@ public sealed partial class ChatPluginDynamicResourceKeyDisplayBlock(IDynamicRes
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
 public sealed partial class ChatPluginMarkdownDisplayBlock : ChatPluginDisplayBlock
 {
-    public ObservableStringBuilder MarkdownBuilder { get; } = new();
+    public ThreadSafeObservableStringBuilder MarkdownBuilder { get; } = new();
 
     [Key(0)]
     private string Markdown
