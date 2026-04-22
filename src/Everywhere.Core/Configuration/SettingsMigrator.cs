@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Everywhere.Common;
 using Microsoft.Extensions.Logging;
 using WritableJsonConfiguration;
 using ZLinq;
@@ -35,12 +36,31 @@ public class SettingsMigrator
                 root = JsonNode.Parse(json, null, new JsonDocumentOptions
                 {
                     AllowTrailingCommas = true,
+                    AllowDuplicateProperties = true,
                     CommentHandling = JsonCommentHandling.Skip
                 }) as JsonObject;
             }
             catch (Exception ex)
             {
+                ex = HandledSystemException.Handle(ex);
                 _logger.LogError(ex, "Failed to parse settings file for migration: {FilePath}", _filePath);
+
+                if (ex.InnerException is JsonException)
+                {
+                    // backup the old broken one
+                    try
+                    {
+                        var backupPath = Path.Combine(
+                            Path.GetDirectoryName(_filePath) ?? string.Empty,
+                            $"{Path.GetFileNameWithoutExtension(_filePath)}_backup_{DateTime.Now:yyyyMMddHHmmss}{Path.GetExtension(_filePath)}");
+                        File.Copy(_filePath, backupPath, true);
+                    }
+                    catch (Exception ex1)
+                    {
+                        ex1 = HandledSystemException.Handle(ex1);
+                        _logger.LogError(ex1, "Failed to backup broken settings file: {FilePath}", _filePath);
+                    }
+                }
             }
         }
 
