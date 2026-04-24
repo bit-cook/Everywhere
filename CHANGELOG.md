@@ -1,3 +1,15 @@
+## [v0.7.4](https://github.com/DearVa/Everywhere/releases/tag/v0.7.4) - 2026-04-24
+
+### 🐛 Bug Fixes
+
+- 🔥 Fixed an issue where multi-turn conversations would fail when both "Tool Calling" and "Deep Thinking" were enabled simultaneously. This previously caused models like DeepSeek and Kimi to fail functioning properly.
+- Fixed an issue where the automatic selection of the "System Assistant" might fail to work in certain situations.
+- Fixed an issue where the `items` parameter in the "Manage Todo List" tool was incorrectly set as required, which previously caused the model's initial tool call to fail and led to confusion.
+
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.3...v0.7.4
+
+
+
 ## [v0.7.3](https://github.com/DearVa/Everywhere/releases/tag/v0.7.3) - 2026-04-24
 
 ### ✨ Features
@@ -14,7 +26,7 @@
 - Fixed an error that occurred when Gemini models attempted to execute parallel tool calls.
 - Fixed an issue where auto-generated chat topics would occasionally appear as garbled text under specific circumstances.
 
-**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.7.2...v0.7.3
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.2...v0.7.3
 
 
 
@@ -41,7 +53,7 @@
 - **(macOS)** Fixed an issue where the global hotkey listener failed to work.
 - **(macOS)** Fixed an issue where the file selection dialog could not be opened in some situations.
 
-**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.7.1...v0.7.2
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.1...v0.7.2
 
 
 
@@ -67,7 +79,7 @@
 - **(Windows)** Fixed an issue where toggling the chat window's pinned/unpinned state would cause screen flickering, which previously interrupted IME input.
 - **(macOS)** Fixed an issue where file attachments could not be properly selected and added within the chat window.
 
-**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.7.0...v0.7.1
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.0...v0.7.1
 
 
 
@@ -197,7 +209,7 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - (Windows) Fixed an issue that could trigger an `ERROR_NO_ASSOCIATION` (No associated program found) error when opening or editing settings files (#333).
 - Other various minor fixes and stability improvements.
 
-**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.6.7...v0.7.0
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.7...v0.7.0
 
 
 
@@ -215,7 +227,7 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - Resolved a rendering crash that could occur after enabling the text selection feature (#313).
 - Fixed a random crash bug related to Grid layout calculations, bringing further stability to the application.
 
-**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.6.6...v0.6.7
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.6...v0.6.7
 
 
 
@@ -236,7 +248,7 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - Fixed Anthropic URL parsing; appending `#` to the URL now forces the use of the raw address.
 - (macOS) Fixed an issue where the built-in Puppeteer failed to install.
 
-**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.6.5...v0.6.6
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.5...v0.6.6
 
 
 
@@ -255,7 +267,7 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 ### 🐛 Bug Fixes
 - Fixed the OpenAI.ChangeTrackingList type mismatch error (#171).
 
-**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.6.4...v0.6.5
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.4...v0.6.5
 
 
 
@@ -269,7 +281,7 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - Improved the logic for scenarios where no custom assistant is selected by adding hints and preventing input loss
 - Enhanced telemetry with the inclusion of metrics data
 
-**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.6.3...v0.6.4
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.3...v0.6.4
 
 
 
@@ -286,7 +298,7 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 ### 🐛 Bug Fixes
 - Fixed an issue where DeepSeek reasoning models caused a 400 error when calling tools after outputting body content (#287)
 
-**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.6.2...v0.6.3
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.2...v0.6.3
 
 
 
