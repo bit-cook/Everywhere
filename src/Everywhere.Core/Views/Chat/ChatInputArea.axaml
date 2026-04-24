@@ -38,7 +38,7 @@
           <v:ChatTextEditor
             x:Name="PART_ChatTextEditor" Grid.Row="0"
             Grid.Column="0" Grid.ColumnSpan="2"
-            LeadingContent="{TemplateBinding LeadingContent}"
+            LeadingContent="{TemplateBinding LeadingContent, Mode=TwoWay}"
             LeadingContentTemplate="{TemplateBinding LeadingContentTemplate}"
             MaxLength="{TemplateBinding MaxLength}"
             Text="{TemplateBinding Text, Mode=TwoWay}"

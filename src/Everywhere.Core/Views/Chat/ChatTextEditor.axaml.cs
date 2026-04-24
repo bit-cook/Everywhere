@@ -136,6 +136,7 @@ public class ChatTextEditor : TemplatedControl
             if (document == null || document.TextLength == 0 || document.GetCharAt(0) != '\uFFFC')
             {
                 LeadingContent = null;
+                ClearValue(LeadingContentProperty);
             }
         }
 
