@@ -1,3 +1,23 @@
+## [v0.7.3](https://github.com/DearVa/Everywhere/releases/tag/v0.7.3) - 2026-04-24
+
+### ✨ Features
+
+- 🔥Added `DeepSeek V4 Pro` and `DeepSeek V4 Flash` to the preset mode, and removed the outdated `DeepSeek Chat` and `DeepSeek Reasoner` models.
+- Added an "Disabled" level to the "Reasoning Effort" option in the chat window. For supported models (such as DeepSeek V4, certain Claude models, Xiaomi Mimo, etc.), you can now use this level to completely disable the model's deep thinking process.
+
+### 🐛 Bug Fixes
+
+- 🔥 Fixed an issue where the chat window could not be brought up via shortcuts when the "Automatically Add Element" option was disabled. **Special thanks to all the users who helped us troubleshoot and isolate this issue! (#345, #350, #354)**
+- Fixed an issue where the send button remains disabled after selecting a strategy, forcing users to input text before being able to send.
+- Fixed an issue where generic strategies failed to display in the list.
+- Fixed an issue where the input box was not correctly populated with the original text when editing a user message.
+- Fixed an error that occurred when Gemini models attempted to execute parallel tool calls.
+- Fixed an issue where auto-generated chat topics would occasionally appear as garbled text under specific circumstances.
+
+**Full Changelog**:  https://github.com/DearVa/Everywhere/compare/v0.7.2...v0.7.3
+
+
+
 ## [v0.7.2](https://github.com/DearVa/Everywhere/releases/tag/v0.7.2) - 2026-04-22
 
 ### ✨ Features & 🚀 Improvements
