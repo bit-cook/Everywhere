@@ -114,9 +114,9 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         TodoAction action,
         [Description(
             "Complete array of all todo items (required for reset, optional for read). " +
-            "ALWAYS provide complete list when rewriting - partial updates not supported. " +
+            "ALWAYS provide complete list when resetting - partial updates not supported. " +
             "This MUST be a JSON array instead of a stringified JSON.") ]
-        List<ChatPluginTodoItem>? items)
+        List<ChatPluginTodoItem>? items = null)
     {
         var currentList = _todoLists.GetOrCreateValue(chatContext);
 
