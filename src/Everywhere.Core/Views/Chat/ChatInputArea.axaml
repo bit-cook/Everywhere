@@ -260,11 +260,17 @@
               <Button.IsEnabled>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <TemplateBinding Property="IsSendButtonEnabled"/>
-                  <Binding
-                    Converter="{x:Static vc:Int32Converters.GreaterThan}"
-                    ConverterParameter="0"
-                    FallbackValue="{x:False}"
-                    Path="#PART_ChatTextEditor.Text.Length"/>
+                  <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                    <Binding
+                      Converter="{x:Static vc:Int32Converters.GreaterThan}"
+                      ConverterParameter="0"
+                      FallbackValue="{x:False}"
+                      Path="#PART_ChatTextEditor.Text.Length"
+                      TargetNullValue="{x:False}"/>
+                    <Binding
+                      Converter="{x:Static ObjectConverters.IsNotNull}"
+                      Path="#PART_ChatTextEditor.LeadingContent"/>
+                  </MultiBinding>
                 </MultiBinding>
               </Button.IsEnabled>
 
