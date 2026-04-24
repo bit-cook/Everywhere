@@ -117,14 +117,7 @@ public class OpenAIKernelMixin : KernelMixin
             options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
             options.RawRepresentationFactory ??= _ => RawRepresentationFactory(opt);
 
-            var lastUserMessageIndex = messages.AsValueEnumerable()
-                .Select((m, i) => new { Message = m, Index = i })
-                .Where(x => x.Message.Role == ChatRole.User)
-                .Select(x => x.Index)
-                .LastOrDefault(-1);
-            if (lastUserMessageIndex == -1 || lastUserMessageIndex == messages.Count - 1) return;
-
-            foreach (var assistantMessage in messages.AsValueEnumerable().Skip(lastUserMessageIndex + 1).Where(m => m.Role == ChatRole.Assistant))
+            foreach (var assistantMessage in messages.AsValueEnumerable().Where(m => m.Role == ChatRole.Assistant))
             {
                 Debug.Assert(assistantMessage.RawRepresentation is OpenAI.Chat.ChatMessage);
                 if (assistantMessage.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage) continue;
