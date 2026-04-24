@@ -108,6 +108,7 @@ public static class ChatHistoryBuilder
                             items = [];
 
                             // 3. Yield the function call results as separate tool messages
+                            var resultItems = new ChatMessageContentItemCollection();
                             var extraToolCallResults = new List<ChatAttachment>();
                             foreach (var functionCall in functionCalls)
                             {
@@ -120,14 +121,11 @@ public static class ChatHistoryBuilder
                                     }
 
                                     var resultContent = functionCall.Results.AsValueEnumerable().FirstOrDefault(r => r.CallId == callId);
-                                    yield return resultContent?.ToChatMessage() ?? new ChatMessageContent(
-                                        AuthorRole.Tool,
-                                        [
-                                            new FunctionResultContent(
-                                                call,
-                                                $"Error: No result found for function call ID '{callId}'. " +
-                                                $"This may caused by an error during function execution or user cancellation.")
-                                        ]);
+                                    resultItems.Add(
+                                        resultContent ?? new FunctionResultContent(
+                                            call,
+                                            $"Error: No result found for function call ID '{callId}'. " +
+                                            $"This may caused by an error during function execution or user cancellation."));
 
                                     // If the function call result is a ChatAttachment, add it as extra attachment message(s).
                                     if (resultContent?.Result is ChatAttachment extraToolCallResult)
@@ -136,6 +134,8 @@ public static class ChatHistoryBuilder
                                     }
                                 }
                             }
+
+                            yield return new ChatMessageContent(AuthorRole.Tool, resultItems);
 
                             // 4. Workaround for any function call results that are ChatAttachments
                             // We put them as user message because tool message doesn't support attachments

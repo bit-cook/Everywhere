@@ -63,9 +63,30 @@ public class OpenAIKernelMixin : KernelMixin
             // early convert to OpenAI chat messages and store raw representation
             // so that we can modify them in BeforeStreamingRequestAsync if needed
             var openAIMessages = ToOpenAIChatMessages(null, messagesList, options);
-            foreach (var (original, openai) in messagesList.AsValueEnumerable().Zip(openAIMessages))
+            using (var openAIMessagesEnumerator = openAIMessages.GetEnumerator())
             {
-                original.RawRepresentation = openai;
+                openAIMessagesEnumerator.MoveNext();
+
+                foreach (var originalMessage in messagesList.AsValueEnumerable())
+                {
+                    // Each Tool Message may correspond to multiple OpenAI messages, so we need to handle them differently.
+                    if (originalMessage.Role == ChatRole.Tool)
+                    {
+                        var rawRepresentations = new List<ToolChatMessage>();
+                        while (openAIMessagesEnumerator.Current is ToolChatMessage toolChatMessage)
+                        {
+                            rawRepresentations.Add(toolChatMessage);
+                            if (!openAIMessagesEnumerator.MoveNext()) break;
+                        }
+
+                        originalMessage.RawRepresentation = rawRepresentations;
+                    }
+                    else
+                    {
+                        originalMessage.RawRepresentation = openAIMessagesEnumerator.Current;
+                        openAIMessagesEnumerator.MoveNext();
+                    }
+                }
             }
 
             BeforeStreamingRequestHook(messagesList, ref options);
