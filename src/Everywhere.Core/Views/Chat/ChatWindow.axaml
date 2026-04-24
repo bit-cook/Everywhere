@@ -580,41 +580,6 @@
           </StackPanel>
         </Border>
 
-        <Border
-          Padding="8,2"
-          Background="{DynamicResource WarningColor20}"
-          BorderBrush="{DynamicResource BorderColor}"
-          BorderThickness="0,1,0,0"
-          IsVisible="{Binding EditingUserMessageNode, Converter={x:Static ObjectConverters.IsNotNull}}">
-          <DockPanel LastChildFill="True">
-            <Button
-              Classes="Ghost Compact Uniform" DockPanel.Dock="Right"
-              Padding="2,1" VerticalAlignment="Center"
-              Command="{Binding $parent[v:ChatWindow].ViewModel.CancelEditingCommand}"
-              CommandParameter="{Binding}"
-              CornerRadius="4"
-              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_CancelEditingButton_ToolTip}}">
-              <StackPanel Orientation="Horizontal">
-                <LucideIcon
-                  Margin="0,1,0,-1" Kind="X"
-                  Size="14"/>
-                <TextBlock
-                  Classes="Caption"
-                  Text="{I18N {x:Static LocaleKey.Common_Cancel}}"/>
-              </StackPanel>
-            </Button>
-
-            <StackPanel
-              Orientation="Horizontal" Spacing="4">
-              <LucideIcon
-                Kind="SquarePen" Size="14"/>
-              <TextBlock
-                Classes="Caption" VerticalAlignment="Center"
-                Text="{I18N {x:Static LocaleKey.ChatWindow_EditingTextBlock_Text}}"/>
-            </StackPanel>
-          </DockPanel>
-        </Border>
-
         <DockPanel>
           <DockPanel.IsVisible>
             <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -679,6 +644,41 @@
             </ItemsControl>
           </ScrollViewer>
         </DockPanel>
+
+        <Border
+          Padding="8,2"
+          Background="{DynamicResource WarningColor20}"
+          BorderBrush="{DynamicResource BorderColor}"
+          BorderThickness="0,1,0,0"
+          IsVisible="{Binding EditingUserMessageNode, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <DockPanel LastChildFill="True">
+            <Button
+              Classes="Ghost Compact Uniform" DockPanel.Dock="Right"
+              Padding="2,1" VerticalAlignment="Center"
+              Command="{Binding $parent[v:ChatWindow].ViewModel.CancelEditingCommand}"
+              CommandParameter="{Binding}"
+              CornerRadius="4" Focusable="False"
+              ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_CancelEditingButton_ToolTip}}">
+              <StackPanel Orientation="Horizontal">
+                <LucideIcon
+                  Margin="0,1,0,-1" Kind="X"
+                  Size="14"/>
+                <TextBlock
+                  Classes="Caption"
+                  Text="{I18N {x:Static LocaleKey.Common_Cancel}}"/>
+              </StackPanel>
+            </Button>
+
+            <StackPanel
+              Orientation="Horizontal" Spacing="4">
+              <LucideIcon
+                Kind="SquarePen" Size="14"/>
+              <TextBlock
+                Classes="Caption" VerticalAlignment="Center"
+                Text="{I18N {x:Static LocaleKey.ChatWindow_EditingTextBlock_Text}}"/>
+            </StackPanel>
+          </DockPanel>
+        </Border>
 
         <Border
           Padding="8"

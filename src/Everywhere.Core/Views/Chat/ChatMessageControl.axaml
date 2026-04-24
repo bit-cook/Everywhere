@@ -91,6 +91,7 @@
                         BorderBrush="{x:Null}"
                         BorderThickness="0"
                         Content="{LucideIconContent ChevronLeft, Size=18}"
+                        Focusable="False"
                         Foreground="{TemplateBinding Foreground}"/>
                       <ContentPresenter
                         Name="PART_ContentPresenter" Grid.Column="1"
@@ -103,6 +104,7 @@
                         BorderBrush="{x:Null}"
                         BorderThickness="0"
                         Content="{LucideIconContent ChevronRight, Size=18}"
+                        Focusable="False"
                         Foreground="{TemplateBinding Foreground}"/>
                     </Grid>
                   </ControlTemplate>
@@ -285,7 +287,8 @@
                         x:Name="ExpandReasoningButton" Classes="Ghost Compact Uniform"
                         HorizontalAlignment="Right" VerticalAlignment="Top"
                         Content="{LucideIconContent Maximize2, Size=16}"
-                        IsHitTestVisible="False" Opacity="0">
+                        Focusable="False" IsHitTestVisible="False"
+                        Opacity="0">
                         <ToggleButton.Transitions>
                           <Transitions>
                             <DoubleTransition
@@ -384,12 +387,14 @@
                 Command="{Binding $parent[v:ChatWindow].ViewModel.RetryCommand}"
                 CommandParameter="{Binding $parent[ContentControl].DataContext}"
                 Content="{LucideIconContent RefreshCcw}"
+                Focusable="False"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_Assistant_Regenerate}}"/>
               <Button
                 Classes="Ghost Compact Uniform"
                 Command="{Binding $parent[v:ChatWindow].ViewModel.CopyCommand}"
                 CommandParameter="{Binding}"
                 Content="{LucideIconContent Copy}"
+                Focusable="False"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Copy}}"/>
             </StackPanel>
           </StackPanel>
@@ -451,12 +456,14 @@
                 Command="{Binding $parent[v:ChatWindow].ViewModel.EditCommand}"
                 CommandParameter="{Binding $parent[ContentControl].DataContext}"
                 Content="{LucideIconContent SquarePen}"
+                Focusable="False"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_User_Edit}}"/>
               <Button
                 Classes="Ghost Compact Uniform"
                 Command="{Binding $parent[v:ChatWindow].ViewModel.CopyCommand}"
                 CommandParameter="{Binding}"
                 Content="{LucideIconContent Copy}"
+                Focusable="False"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Copy}}"/>
             </StackPanel>
           </StackPanel>
@@ -506,12 +513,14 @@
                 Command="{Binding $parent[v:ChatWindow].ViewModel.EditCommand}"
                 CommandParameter="{Binding $parent[ContentControl].DataContext}"
                 Content="{LucideIconContent SquarePen}"
+                Focusable="False"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_User_Edit}}"/>
               <Button
                 Classes="Ghost Compact Uniform"
                 Command="{Binding $parent[v:ChatWindow].ViewModel.CopyCommand}"
                 CommandParameter="{Binding}"
                 Content="{LucideIconContent Copy}"
+                Focusable="False"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Copy}}"/>
             </StackPanel>
           </StackPanel>

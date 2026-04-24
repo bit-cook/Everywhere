@@ -36,6 +36,7 @@
               MinHeight="0"
               Padding="{TemplateBinding Padding}"
               CornerRadius="{TemplateBinding CornerRadius}"
+              Focusable="False"
               IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}">
               <StackPanel
                 Orientation="Horizontal" Spacing="6">

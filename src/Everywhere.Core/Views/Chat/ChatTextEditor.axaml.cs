@@ -33,14 +33,14 @@ public class ChatTextEditor : TemplatedControl
         set
         {
             if (_isTextChanging) return;
-            if (!SetAndRaise(TextProperty, ref _text, value)) return;
+            if (string.Equals(_text, value, StringComparison.Ordinal)) return;
 
             _isTextChanging = true;
             try
             {
                 var hasLeading = LeadingContent != null;
                 _textEditor?.Text = hasLeading ? "\uFFFC" + value : value;
-                RaisePropertyChanged(TextProperty, value, null);
+                SetAndRaise(TextProperty, ref _text, value);
             }
             finally
             {
