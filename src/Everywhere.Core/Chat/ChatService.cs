@@ -966,9 +966,6 @@ public sealed partial class ChatService : IChatService
             return;
         }
 
-        // First trim userMassage as temporary title or fallback
-        metadata.Topic = userMessage.Length > 16 ? $"{userMessage[..16]}..." : userMessage;
-
         KernelMixin kernelMixin;
         try
         {
