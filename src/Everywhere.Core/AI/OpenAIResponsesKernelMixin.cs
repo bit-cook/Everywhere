@@ -76,6 +76,7 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
             if (!owner.SupportsReasoning) return null;
             if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true) return null;
             if (reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel) return null;
+            if (reasoningEffortLevel == ReasoningEffortLevel.Disabled) return null;
 
             return new CreateResponseOptions
             {

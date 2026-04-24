@@ -128,14 +128,22 @@ public class OpenAIKernelMixin : KernelMixin
             if (reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel) return null;
 
             var thinkingPatch = new JsonPatch();
-            thinkingPatch.Set("$.thinking"u8, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { type = "enabled" })));
+            thinkingPatch.Set(
+                "$.thinking"u8,
+                Encoding.UTF8.GetBytes(
+                    JsonSerializer.Serialize(
+                        new
+                        {
+                            type = reasoningEffortLevel == ReasoningEffortLevel.Disabled ? "disabled" : "enabled"
+                        })));
+
             return new ChatCompletionOptions
             {
                 Patch = thinkingPatch,
                 ReasoningEffortLevel = reasoningEffortLevel switch
                 {
-                    ReasoningEffortLevel.Minimal => ChatReasoningEffortLevel.Minimal,
-                    ReasoningEffortLevel.Detailed => ChatReasoningEffortLevel.High,
+                    ReasoningEffortLevel.Minimal => ChatReasoningEffortLevel.Low,
+                    ReasoningEffortLevel.Detailed => new ChatReasoningEffortLevel("xhigh"),
                     _ => (ChatReasoningEffortLevel?)null
                 },
             };

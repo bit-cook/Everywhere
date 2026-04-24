@@ -65,33 +65,33 @@ public sealed class AnthropicKernelMixin : KernelMixin
                 ThinkingConfigParam thinking;
                 if (owner.SupportsReasoning)
                 {
-                    int budgetTokens;
                     if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true ||
-                        reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel)
+                        reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel ||
+                        reasoningEffortLevel == ReasoningEffortLevel.Disabled)
                     {
-                        budgetTokens = -1;
+                        thinking = new ThinkingConfigParam(new ThinkingConfigDisabled());
                     }
                     else
                     {
-                        budgetTokens = reasoningEffortLevel switch
+                        var budgetTokens = reasoningEffortLevel switch
                         {
                             ReasoningEffortLevel.Detailed => Math.Min(maxTokens / 2, 4096),
                             ReasoningEffortLevel.Minimal => 1024,
                             _ => -1
                         };
-                    }
 
-                    if (budgetTokens == -1 && (owner.ModelId.StartsWith("claude-opus-4-6") || owner.ModelId.StartsWith("claude-opus-4-7")))
-                    {
-                        thinking = new ThinkingConfigParam(new ThinkingConfigAdaptive());
-                    }
-                    else
-                    {
-                        thinking = new ThinkingConfigParam(
-                            new ThinkingConfigEnabled
-                            {
-                                BudgetTokens = Math.Max(budgetTokens, 2048)
-                            });
+                        if (budgetTokens == -1 && (owner.ModelId.StartsWith("claude-opus-4-6") || owner.ModelId.StartsWith("claude-opus-4-7")))
+                        {
+                            thinking = new ThinkingConfigParam(new ThinkingConfigAdaptive());
+                        }
+                        else
+                        {
+                            thinking = new ThinkingConfigParam(
+                                new ThinkingConfigEnabled
+                                {
+                                    BudgetTokens = Math.Max(budgetTokens, 2048)
+                                });
+                        }
                     }
                 }
                 else

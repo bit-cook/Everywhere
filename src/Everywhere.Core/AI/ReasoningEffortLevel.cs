@@ -6,6 +6,9 @@
 /// </summary>
 public enum ReasoningEffortLevel
 {
+    [DynamicResourceKey(LocaleKey.ReasoningEffortLevel_Disabled)]
+    Disabled = -1,
+
     [DynamicResourceKey(LocaleKey.ReasoningEffortLevel_Minimal)]
     Minimal = 0,
 

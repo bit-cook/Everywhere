@@ -2653,4 +2653,10 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="OAuthCloudClient_MissingCode" xml:space="preserve">
         <value>Failed to obtain a valid authorization credential, please try again.</value>
     </data>
+    <data name="ReasoningEffortLevel_Disabled" xml:space="preserve">
+        <value>Disabled</value>
+    </data>
+    <data name="PersistentState_ReasoningEffortLevel_Description" xml:space="preserve">
+        <value />
+    </data>
 </root>

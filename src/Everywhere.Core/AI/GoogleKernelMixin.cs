@@ -76,6 +76,7 @@ public sealed class GoogleKernelMixin : KernelMixin
 
             thinkingConfig.ThinkingLevel = reasoningEffortLevel switch
             {
+                ReasoningEffortLevel.Disabled => "none",
                 ReasoningEffortLevel.Minimal when ModelId.Contains("pro") => "low",
                 ReasoningEffortLevel.Minimal => "minimal",
                 ReasoningEffortLevel.Detailed => "high",
