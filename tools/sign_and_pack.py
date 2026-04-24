@@ -74,7 +74,6 @@ def sign_worker(fingerprint: str, target_path: str, signtool_exe: str, max_retri
 
 def compile_installer(iss_path: str) -> int:
     """Compile Inno Setup Script (.iss) into an executable installer."""
-    print(f"\nPhase 2: Compiling Inno Setup installer: {iss_path}")
     iscc_path = r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
     
     if not os.path.exists(iscc_path):
