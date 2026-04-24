@@ -376,25 +376,25 @@ partial class PresetBasedAssistantConfigurator
             [
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "deepseek-chat",
-                    Name = "DeepSeek V3.2 (Non-thinking Mode)",
-                    SupportsReasoning = false,
-                    SupportsToolCall = true,
-                    InputModalities = Modalities.Text,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 131_072,
-                    OutputLimit = 8_192
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "deepseek-reasoner",
-                    Name = "DeepSeek V3.2 (Thinking Mode)",
+                    ModelId = "deepseek-v4-pro",
+                    Name = "DeepSeek V4 Pro",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 128_000,
-                    OutputLimit = 64_000,
+                    ContextLimit = 1_048_576,
+                    OutputLimit = 393_216
+                },
+                new ModelDefinitionTemplate
+                {
+                    ModelId = "deepseek-v4-flash",
+                    Name = "DeepSeek V4 Flash",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 1_048_576,
+                    OutputLimit = 393_216,
                     IsDefault = true,
                     Specializations = ModelSpecializations.TitleGeneration | ModelSpecializations.ContextCompression
                 }
