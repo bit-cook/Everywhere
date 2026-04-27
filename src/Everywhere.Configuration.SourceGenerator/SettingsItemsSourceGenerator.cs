@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
@@ -834,8 +835,8 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
             null => "null",
             string s => $"\"{EscapeString(s)}\"",
             bool b => b ? "true" : "false",
-            double d => $"{d}d",
-            float f => $"{f}f",
+            double d => $"{d.ToString("R", CultureInfo.InvariantCulture)}d",
+            float f => $"{f.ToString("R", CultureInfo.InvariantCulture)}f",
             _ => value.ToString()
         };
 
