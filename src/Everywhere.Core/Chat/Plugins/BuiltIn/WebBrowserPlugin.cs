@@ -14,12 +14,8 @@ using Everywhere.Utilities;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.Plugins.Web;
-using Microsoft.SemanticKernel.Plugins.Web.Brave;
-using Microsoft.SemanticKernel.Plugins.Web.Google;
 using PuppeteerSharp;
 using ZLinq;
-using IHttpClientFactory = System.Net.Http.IHttpClientFactory;
 
 namespace Everywhere.Chat.Plugins.BuiltIn;
 
@@ -48,7 +44,6 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
     private readonly SemaphoreSlim _browserLock = new(1, 1);
 
     private IWebSearchEngineConnector? _connector;
-    private int _maxSearchCount;
     private string? _previousLaunchedBrowserPath;
     private IBrowser? _browser;
     private Process? _browserProcess;
@@ -149,9 +144,9 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
         // Extract only the base URI without query parameters
         uri = new UriBuilder(uri) { Query = string.Empty }.Uri;
 
-        (_connector, _maxSearchCount) = provider.Id switch
+        _connector = provider.Id switch
         {
-            WebSearchEngineProviderId.Google => (new GoogleConnector(
+            WebSearchEngineProviderId.Google => new GoogleConnector(
                 EnsureApiKey(provider.ApiKey),
                 provider.SearchEngineId ??
                 throw new HandledException(
@@ -159,19 +154,19 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
                     new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_GoogleSearchEngineIdNotSet_ErrorMessage),
                     showDetails: false),
                 _httpClientFactory.CreateClient(),
-                uri,
-                _loggerFactory) as IWebSearchEngineConnector, 10),
-            WebSearchEngineProviderId.Tavily => (
-                new TavilyConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), uri, _loggerFactory), 20),
-            WebSearchEngineProviderId.Brave => (
-                new BraveConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), new Uri(uri, "?q"), _loggerFactory), 20),
-            WebSearchEngineProviderId.Bocha => (
-                new BoChaConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), uri, _loggerFactory), 50),
-            WebSearchEngineProviderId.Jina => (
-                new JinaConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), new Uri(uri, "?q"), _loggerFactory), 50),
-            WebSearchEngineProviderId.UniFuncs => (
-                new UniFuncsConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), uri, _loggerFactory), 50),
-            WebSearchEngineProviderId.SearXNG => (new SearxngConnector(_httpClientFactory.CreateClient(), uri, _loggerFactory), 50),
+                uri),
+            WebSearchEngineProviderId.Tavily =>
+                new TavilyConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), uri),
+            WebSearchEngineProviderId.Brave =>
+                new BraveConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), uri),
+            WebSearchEngineProviderId.Bocha =>
+                new BoChaConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), uri),
+            WebSearchEngineProviderId.Jina =>
+                new JinaConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), uri),
+            WebSearchEngineProviderId.UniFuncs =>
+                new UniFuncsConnector(EnsureApiKey(provider.ApiKey), _httpClientFactory.CreateClient(), uri),
+            WebSearchEngineProviderId.SearXNG =>
+                new SearxngConnector(_httpClientFactory.CreateClient(), uri),
             _ => throw new HandledException(
                 new NotSupportedException($"Web search engine provider '{provider.Id}' is not supported."),
                 new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_UnsupportedWebSearchEngineProvider_ErrorMessage),
@@ -180,10 +175,10 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
 
         string EnsureApiKey(Guid id) =>
             ApiKey.GetKey(id) ??
-                throw new HandledException(
-                    new UnauthorizedAccessException("API key is not set."),
-                    new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_WebSearchEngineApiKeyNotSet_ErrorMessage),
-                    showDetails: false);
+            throw new HandledException(
+                new UnauthorizedAccessException("API key is not set. Please instruct user to configure this in Settings > Chat Tools > Web Browser."),
+                new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_WebSearchEngineApiKeyNotSet_ErrorMessage),
+                showDetails: false);
     }
 
     /// <summary>
@@ -208,7 +203,7 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
         [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("Search query")] string query,
         [Description("Number of results")] int count = 10,
-        CancellationToken cancellationToken = default) // TODO: Offset is not well supported.
+        CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Performing web search with query: {Query}, count: {Count}", query, count);
 
@@ -218,21 +213,20 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
                 new DirectResourceKey(query)));
 
         EnsureConnector();
-        count = Math.Clamp(count, 1, _maxSearchCount);
 
-        var results = await _connector.SearchAsync<WebPage>(query, count, 0, cancellationToken).ConfigureAwait(false);
+        var results = await _connector.SearchAsync(query, count, cancellationToken).ConfigureAwait(false);
         var indexedResults = results
             .AsValueEnumerable()
             .Select((r, i) => new IndexedWebPage(
                 Index: i + 1,
                 Name: r.Name,
-                Url: r.Url,
-                Snippet: r.Snippet))
+                Url: r.Link,
+                Snippet: r.Value))
             .ToList();
         displaySink.AppendUrls(
             indexedResults.Select(r => new ChatPluginUrl(
                 r.Url,
-                new DirectResourceKey(r.Name))
+                new DirectResourceKey((r.Name ?? r.Snippet).SafeSubstring(0, 64)))
             {
                 Index = r.Index
             }).ToList());
@@ -427,8 +421,8 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
 
     private sealed record IndexedWebPage(
         [property: JsonPropertyName("index")] int Index,
-        [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("url")] string Url,
+        [property: JsonPropertyName("name")] string? Name,
+        [property: JsonPropertyName("url")] string? Url,
         [property: JsonPropertyName("snippet")] string Snippet
     );
 

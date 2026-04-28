@@ -151,7 +151,7 @@ public sealed partial class WebSearchEngineSettings : ObservableObject
                 {
                     Id = WebSearchEngineProviderId.Bocha,
                     DisplayName = "Bocha",
-                    EndPoint = new Customizable<string>("https://api.bochaai.com/v1/web-search", isDefaultValueReadonly: true)
+                    EndPoint = new Customizable<string>("https://api.bocha.cn/v1/web-search", isDefaultValueReadonly: true)
                 }
             },
             {

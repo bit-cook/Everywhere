@@ -219,10 +219,10 @@ public sealed partial class ChatPluginFileDifferenceDisplayBlock(TextDifference 
 /// <param name="url"></param>
 /// <param name="displayNameKey"></param>
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public sealed partial class ChatPluginUrl(string url, IDynamicResourceKey displayNameKey)
+public sealed partial class ChatPluginUrl(string? url, IDynamicResourceKey displayNameKey)
 {
     [Key(0)]
-    public string Url { get; } = url;
+    public string? Url { get; } = url;
 
     [Key(1)]
     public IDynamicResourceKey DisplayNameKey { get; } = displayNameKey;
