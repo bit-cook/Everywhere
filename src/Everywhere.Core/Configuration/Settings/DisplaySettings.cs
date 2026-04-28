@@ -1,7 +1,11 @@
 ﻿using System.ComponentModel;
+using Avalonia.Data;
 using Avalonia.Threading;
+using Everywhere.Common;
+using Everywhere.Views;
 using Lucide.Avalonia;
 using ShadUI;
+using ShadUI.Themes;
 
 namespace Everywhere.Configuration;
 
@@ -56,6 +60,30 @@ public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
             App.ThemeManager.SwitchTheme(value);
         }
     }
+
+    [HiddenSettingsItem]
+    public SerializableColor? AccentColor
+    {
+        get => SystemAccentColors.ColorOverride;
+        set
+        {
+            SystemAccentColors.ColorOverride = value;
+            OnPropertyChanged();
+        }
+    }
+
+    [DynamicResourceKey(
+        LocaleKey.DisplaySettings_AccentColor_Header,
+        LocaleKey.DisplaySettings_AccentColor_Description)]
+    public SettingsControl<AccentColorSelector> AccentColorControl => new(new AccentColorSelector
+    {
+        [!AccentColorSelector.SelectedColorProperty] = new Binding(nameof(AccentColor))
+        {
+            Source = this,
+            Mode = BindingMode.TwoWay,
+            Converter = SerializableColorValueConverters.ToColor
+        },
+    });
 
     /// <summary>
     /// Application font size.

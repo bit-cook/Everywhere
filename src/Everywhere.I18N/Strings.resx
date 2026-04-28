@@ -2659,4 +2659,16 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="PersistentState_ReasoningEffortLevel_Description" xml:space="preserve">
         <value>Only applicable to certain models; if an error occurs, please revert to the default value.</value>
     </data>
+    <data name="DisplaySettings_AccentColor_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="AccentColorSelector_UseSystemAccentColorToolTip_Tip" xml:space="preserve">
+        <value />
+    </data>
+    <data name="AccentColorSelector_CustomColorToolTip_Tip" xml:space="preserve">
+        <value />
+    </data>
+    <data name="DisplaySettings_AccentColor_Description" xml:space="preserve">
+        <value />
+    </data>
 </root>

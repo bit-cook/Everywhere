@@ -23,6 +23,10 @@ public static class CommonConverters
         convertBack: (x, _) => x?.ToString()
     );
 
+    public static IValueConverter ColorToBrush { get; } = new FuncValueConverter<Color, SolidColorBrush>(
+        convert: color => new SolidColorBrush(color)
+    );
+
     public static IValueConverter DateTimeOffsetToString { get; } = new BidirectionalFuncValueConverter<DateTimeOffset, string>(
         convert: (x, p) => x.DateTime.ToLocalTime().ToString(p?.ToString()),
         convertBack: (x, p) => DateTimeOffset.ParseExact(x, p?.ToString() ?? "o", null)
