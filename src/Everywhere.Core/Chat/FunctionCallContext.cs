@@ -98,11 +98,6 @@ public sealed record FunctionCallContext(
         }
     }
 
-    public void ResetTodoItems(IReadOnlyList<ChatPluginTodoItem> todoItems)
-    {
-        ChatContext.ResetTodoItems(todoItems);
-    }
-
     public Task<IReadOnlyList<ChatPluginQuestionAnswer>> AskQuestionAsync(
         IReadOnlyList<ChatPluginQuestion> questions,
         CancellationToken cancellationToken = default)

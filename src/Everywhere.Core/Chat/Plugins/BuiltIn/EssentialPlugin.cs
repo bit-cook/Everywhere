@@ -30,11 +30,6 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         Read
     }
 
-    /// <summary>
-    /// Stores to-do lists for different chat contexts.
-    /// </summary>
-    private readonly ConditionalWeakTable<ChatContext, List<ChatPluginTodoItem>> _todoLists = new();
-
     public EssentialPlugin(ILogger<EssentialPlugin> logger) : base("essential")
     {
         _logger = logger;
@@ -110,7 +105,6 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Description)]
     private string ManageTodoList(
         [FromKernelServices] ChatContext chatContext,
-        [FromKernelServices] IChatPluginUserInterface userInterface,
         TodoAction action,
         [Description(
             "Complete array of all todo items (required for reset, optional for read). " +
@@ -118,8 +112,6 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
             "This MUST be a JSON array instead of a stringified JSON.") ]
         List<ChatPluginTodoItem>? items = null)
     {
-        var currentList = _todoLists.GetOrCreateValue(chatContext);
-
         switch (action)
         {
             case TodoAction.Reset when items == null:
@@ -131,13 +123,10 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
             }
             case TodoAction.Reset:
             {
-                currentList.Clear();
-                currentList.AddRange(items);
-                userInterface.ResetTodoItems(currentList);
-
+                chatContext.TodoItems = items;
                 return "Todo list reset successfully.";
             }
-            case TodoAction.Read when currentList.Count == 0:
+            case TodoAction.Read when chatContext.TodoItems?.Count is not > 0:
             {
                 return "Todo list is empty.";
             }
@@ -145,7 +134,7 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
             {
                 var sb = new StringBuilder();
                 sb.AppendLine("Current Todo List:");
-                foreach (var item in currentList)
+                foreach (var item in chatContext.TodoItems)
                 {
                     sb.AppendLine($"- ID: {item.Id}, Status: {item.Status}, Title: {item.Title}");
                     if (!string.IsNullOrWhiteSpace(item.Description))

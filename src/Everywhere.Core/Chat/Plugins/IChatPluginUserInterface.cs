@@ -110,13 +110,6 @@ public interface IChatPluginUserInterface
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Resets the to-do items displayed in the user interface. The plugin can call this method multiple times to update the to-do list as needed.
-    /// </summary>
-    /// <param name="todoItems"></param>
-    void ResetTodoItems(
-        IReadOnlyList<ChatPluginTodoItem> todoItems);
-
-    /// <summary>
     /// Ask question and wait for answer.
     /// </summary>
     /// <param name="questions"></param>

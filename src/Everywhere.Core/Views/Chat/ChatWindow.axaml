@@ -491,8 +491,74 @@
 
       <StackPanel
         Grid.Row="1" Orientation="Vertical">
+        <DockPanel>
+          <DockPanel.IsVisible>
+            <MultiBinding Converter="{x:Static BoolConverters.And}">
+              <Binding
+                Converter="{x:Static vc:Int32Converters.GreaterThan}"
+                ConverterParameter="0" Path="#CompactStrategyCommandsItemsControl.ItemCount"/>
+              <Binding
+                Converter="{x:Static vc:Int32Converters.GreaterThan}"
+                ConverterParameter="1" Path="ChatContextManager.Current.DisplayItems.Count"/>
+            </MultiBinding>
+          </DockPanel.IsVisible>
+
+          <ScrollViewer
+            HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+            <Interaction.Behaviors>
+              <HorizontalScrollViewerBehavior/>
+            </Interaction.Behaviors>
+
+            <ItemsControl
+              x:Name="CompactStrategyCommandsItemsControl" Padding="8,4"
+              HorizontalAlignment="Left"
+              ItemsSource="{Binding StrategiesSnapshot, FallbackValue={x:Null}}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel
+                    Orientation="Horizontal" Spacing="4"/>
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="se:Strategy">
+                  <Button
+                    Classes="Outline Compact Uniform" Padding="6,4"
+                    Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
+                    CommandParameter="{Binding Mode=OneTime}"
+                    Focusable="False">
+                    <ToolTip.Tip>
+                      <TextBlock
+                        MaxWidth="240"
+                        Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
+                        TextWrapping="Wrap"/>
+                    </ToolTip.Tip>
+
+                    <StackPanel
+                      Orientation="Horizontal" Spacing="4">
+                      <v:IconPresenter
+                        Width="{DynamicResource FontSizeM}"
+                        Height="{DynamicResource FontSizeM}"
+                        VerticalAlignment="Center"
+                        Background="{x:Null}"
+                        Icon="{Binding Icon, Mode=OneTime}"
+                        IconSize="{DynamicResource FontSizeM}"/>
+
+                      <TextBlock
+                        MaxWidth="120"
+                        Text="{Binding NameKey^, Mode=OneTime}"
+                        TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </DockPanel>
+
         <v:ChatPluginUserInterfaceHost
           Margin="8"
+          IsVisible="{Binding !!$self.ItemsSource?.Count, TargetNullValue={x:False}}"
           ItemsSource="{Binding ChatContextManager.Current.ChatPluginUserInterfaceItems}"/>
 
         <Expander
@@ -579,71 +645,6 @@
               Text="{Binding ChatContextManager.Current.BusyMessageKey}"/>
           </StackPanel>
         </Border>
-
-        <DockPanel>
-          <DockPanel.IsVisible>
-            <MultiBinding Converter="{x:Static BoolConverters.And}">
-              <Binding
-                Converter="{x:Static vc:Int32Converters.GreaterThan}"
-                ConverterParameter="0" Path="#CompactStrategyCommandsItemsControl.ItemCount"/>
-              <Binding
-                Converter="{x:Static vc:Int32Converters.GreaterThan}"
-                ConverterParameter="1" Path="ChatContextManager.Current.DisplayItems.Count"/>
-            </MultiBinding>
-          </DockPanel.IsVisible>
-
-          <ScrollViewer
-            HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
-            <Interaction.Behaviors>
-              <HorizontalScrollViewerBehavior/>
-            </Interaction.Behaviors>
-
-            <ItemsControl
-              x:Name="CompactStrategyCommandsItemsControl" Padding="8,4"
-              HorizontalAlignment="Left"
-              ItemsSource="{Binding StrategiesSnapshot, FallbackValue={x:Null}}">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel
-                    Orientation="Horizontal" Spacing="4"/>
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="se:Strategy">
-                  <Button
-                    Classes="Outline Compact Uniform" Padding="6,4"
-                    Command="{Binding $parent[v:ChatWindow].ViewModel.SelectStrategyCommand, Mode=OneTime}"
-                    CommandParameter="{Binding Mode=OneTime}"
-                    Focusable="False">
-                    <ToolTip.Tip>
-                      <TextBlock
-                        MaxWidth="240"
-                        Text="{Binding DescriptionKey^, Mode=OneTime, FallbackValue={x:Null}}"
-                        TextWrapping="Wrap"/>
-                    </ToolTip.Tip>
-
-                    <StackPanel
-                      Orientation="Horizontal" Spacing="4">
-                      <v:IconPresenter
-                        Width="{DynamicResource FontSizeM}"
-                        Height="{DynamicResource FontSizeM}"
-                        VerticalAlignment="Center"
-                        Background="{x:Null}"
-                        Icon="{Binding Icon, Mode=OneTime}"
-                        IconSize="{DynamicResource FontSizeM}"/>
-
-                      <TextBlock
-                        MaxWidth="120"
-                        Text="{Binding NameKey^, Mode=OneTime}"
-                        TextTrimming="CharacterEllipsis"/>
-                    </StackPanel>
-                  </Button>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </ScrollViewer>
-        </DockPanel>
 
         <Border
           Padding="8,2"

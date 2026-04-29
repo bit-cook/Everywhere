@@ -94,7 +94,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
 
     [IgnoreMember]
     [ObservableProperty]
-    public partial IReadOnlyList<ChatPluginTodoItem>? TodoItems { get; private set; }
+    public partial IReadOnlyList<ChatPluginTodoItem>? TodoItems { get; set; }
 
     #endregion
 
@@ -425,11 +425,6 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         {
             _chatPluginUserInterfaceItemsSourceList.Remove(item);
         }
-    }
-
-    public void ResetTodoItems(IReadOnlyList<ChatPluginTodoItem> todoItems)
-    {
-        TodoItems = todoItems;
     }
 
     public async Task<IReadOnlyList<ChatPluginQuestionAnswer>> AskQuestionAsync(
