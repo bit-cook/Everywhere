@@ -55,6 +55,7 @@
     <PackageReference Include="Serilog.Sinks.Console"/>
     <PackageReference Include="Serilog.Sinks.File"/>
     <PackageReference Include="Svg.Controls.Skia.Avalonia"/>
+    <PackageReference Include="Sylinko.CSharpMath.Avalonia" />
     <PackageReference Include="System.Drawing.Common"/>
     <PackageReference Include="TextMateSharp.Grammars" />
     <PackageReference Include="Tiktoken.Core" />
