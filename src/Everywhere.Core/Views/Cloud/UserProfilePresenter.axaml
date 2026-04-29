@@ -28,7 +28,8 @@
             ToolTip.Placement="Right"
             ToolTip.Tip="{Binding CloudClient?.UserProfile?.Name, TargetNullValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}">
             <Button.Flyout>
-              <Flyout VerticalOffset="-8">
+              <Flyout
+                Placement="Top" VerticalOffset="-8">
                 <v:UserProfileCard
                   Width="240" Margin="4"
                   ShowActionsButton="{TemplateBinding ShowActionsButton}"/>

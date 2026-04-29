@@ -15,11 +15,12 @@ using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using PuppeteerSharp;
+using ReverseMarkdown;
 using ZLinq;
 
 namespace Everywhere.Chat.Plugins.BuiltIn;
 
-public partial class WebBrowserPlugin : BuiltInChatPlugin
+public sealed partial class WebBrowserPlugin : BuiltInChatPlugin
 {
     public override IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_Header);
     public override IDynamicResourceKey DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_Description);
@@ -38,7 +39,7 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        TypeInfoResolver = WebBrowserPluginJsonSerializationContext.Default
+        TypeInfoResolver = WebBrowserPluginJsonSerializerContext.Default
     };
 
     private readonly SemaphoreSlim _browserLock = new(1, 1);
@@ -104,7 +105,7 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
                     ChatFunctionPermissions.NetworkAccess));
             list.Add(
                 new BuiltInChatFunction(
-                    WebSnapshotAsync,
+                    WebExtractAsync,
                     ChatFunctionPermissions.NetworkAccess));
         });
 
@@ -321,7 +322,16 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
                     {
                         ExecutablePath = path,
                         Browser = browserType,
-                        Headless = true
+                        Headless = true,
+                        Args =
+                        [
+                            "--disable-gpu",
+                            "--disable-dev-shm-usage",
+                            "--disable-setuid-sandbox",
+                            "--disable-extensions",
+                            "--disable-popup-blocking",
+                            "--blink-settings=imagesEnabled=false"
+                        ]
                     });
 
                 _previousLaunchedBrowserPath = path;
@@ -358,12 +368,15 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
         }
     }
 
-    [KernelFunction("web_snapshot")]
-    [Description("Snapshot accessibility of a web page via Puppeteer, returning a json of the page content and metadata.")]
+    [KernelFunction("web_extract")]
+    [Description(
+        "Extract the main content of a web page as markdown. " +
+        "STRICTLY confined to internet content; DO NOT use to extract local files or personal data. " +
+        "Results may be inaccurate.")]
     [DynamicResourceKey(LocaleKey.BuiltInChatPlugin_WebBrowser_WebSnapshot_Header, LocaleKey.BuiltInChatPlugin_WebBrowser_WebSnapshot_Description)]
-    private async Task<string> WebSnapshotAsync(
+    private async Task<string> WebExtractAsync(
         [FromKernelServices] IChatPluginDisplaySink displaySink,
-        [Description("Web page URL to snapshot")] string url,
+        string url,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Taking web snapshot...");
@@ -378,6 +391,11 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
 
             try
             {
+                displaySink.AppendDynamicResourceKey(
+                    new FormattedDynamicResourceKey(
+                        LocaleKey.BuiltInChatPlugin_WebBrowser_WebSnapshot_Visiting,
+                        new DirectResourceKey(url)));
+
                 await page.SetUserAgentAsync(
 #if IsWindows
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
@@ -388,24 +406,79 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
 #endif
                 );
 
-                displaySink.AppendDynamicResourceKey(
-                    new FormattedDynamicResourceKey(
-                        LocaleKey.BuiltInChatPlugin_WebBrowser_WebSnapshot_Visiting,
-                        new DirectResourceKey(url)));
+                // Block requests for images, media, fonts, and stylesheets to speed up loading and reduce bandwidth
+                await page.SetRequestInterceptionAsync(true);
+                page.Request += async (_, e) =>
+                {
+                    if (e.Request.ResourceType is ResourceType.Image or ResourceType.Media or ResourceType.Font)
+                    {
+                        await e.Request.AbortAsync();
+                    }
+                    else
+                    {
+                        await e.Request.ContinueAsync();
+                    }
+                };
 
-                await page.GoToAsync(url, waitUntil: [WaitUntilNavigation.Load, WaitUntilNavigation.Networkidle2]);
+                await page.EvaluateFunctionOnNewDocumentAsync(
+                    """
+                    () => {
+                        window.console.log = () => {};
+                        window.console.info = () => {};
+                        window.console.warn = () => {};
+                        window.console.error = () => {};
+                        window.console.debug = () => {};
+                        window.console.dir = () => {};
+                        window.console.dirxml = () => {};
+                        window.console.trace = () => {};
+                        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                        Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] });
+                    }
+                    """);
 
-                var node = await page.Accessibility.SnapshotAsync();
-                var json = JsonSerializer.Serialize(
-                    new WebSnapshotResult(
-                        node.Name,
-                        node.Children.Select(n => new WebSnapshotElement(
-                            n.Name,
-                            n.Description,
-                            n.Role))),
-                    _jsonSerializerOptions);
+                page.Dialog += async (_, e) =>
+                {
+                    _logger.LogDebug("Auto-dismissing dialog: {Message}", e.Dialog.Message);
+                    await e.Dialog.Dismiss();
+                };
 
-                return json;
+                page.DefaultNavigationTimeout = 10000;
+                try
+                {
+                    await page.GoToAsync(
+                        url,
+                        new NavigationOptions
+                        {
+                            WaitUntil = [WaitUntilNavigation.DOMContentLoaded, WaitUntilNavigation.Networkidle2]
+                        });
+                }
+                catch (Exception ex) when (ex is WaitTaskTimeoutException or NavigationException { InnerException: TimeoutException })
+                {
+                    _logger.LogWarning("Navigation timeout for {Url}, but proceeding with extraction anyway.", url);
+                }
+
+                await page.AddScriptTagAsync(new AddTagOptions { Content = ReadabilityJs });
+                var readabilityResult = await page.EvaluateFunctionAsync<ReadabilityResult>(
+                    """
+                    () => {
+                        var documentClone = document.cloneNode(true);
+                        var reader = new Readability(documentClone, {
+                            keepClasses: true, 
+                            charThreshold: 100,
+                            classesToPreserve: ['markdown-body', 'highlight', 'code', 'table', 'comment', 'reply']
+                        });
+                        return reader.parse();
+                    }
+                    """);
+                if (string.IsNullOrWhiteSpace(readabilityResult?.Content))
+                {
+                    return "Failed to extract. The page may be too complex or not fully loaded.";
+                }
+
+                var converter = new Converter();
+                var markdownContent = converter.Convert(readabilityResult.Content);
+
+                return markdownContent;
             }
             finally
             {
@@ -419,6 +492,10 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
         }
     }
 
+    [JsonSerializable(typeof(List<IndexedWebPage>))]
+    [JsonSerializable(typeof(ReadabilityResult))]
+    private partial class WebBrowserPluginJsonSerializerContext : JsonSerializerContext;
+
     private sealed record IndexedWebPage(
         [property: JsonPropertyName("index")] int Index,
         [property: JsonPropertyName("name")] string? Name,
@@ -426,20 +503,12 @@ public partial class WebBrowserPlugin : BuiltInChatPlugin
         [property: JsonPropertyName("snippet")] string Snippet
     );
 
-    private sealed record WebSnapshotResult(
-        [property: JsonPropertyName("name")] string? Name,
-        [property: JsonPropertyName("elements")] IEnumerable<WebSnapshotElement> Elements
+    private sealed record ReadabilityResult(
+        [property: JsonPropertyName("title")] string? Title,
+        [property: JsonPropertyName("content")] string? Content,
+        [property: JsonPropertyName("textContent")] string? TextContent,
+        [property: JsonPropertyName("siteName")] string? SiteName
     );
-
-    private sealed record WebSnapshotElement(
-        [property: JsonPropertyName("name")] string? Name,
-        [property: JsonPropertyName("description")] string? Description,
-        [property: JsonPropertyName("role")] string Role
-    );
-
-    [JsonSerializable(typeof(List<IndexedWebPage>))]
-    [JsonSerializable(typeof(WebSnapshotResult))]
-    private partial class WebBrowserPluginJsonSerializationContext : JsonSerializerContext;
 
     private static class BrowserHelper
     {

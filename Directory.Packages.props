@@ -40,6 +40,7 @@
     <PackageVersion Include="OpenTelemetry" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="$(OpenTelemetryVersion)" />
     <PackageVersion Include="PolySharp" Version="1.15.0" />
+    <PackageVersion Include="ReverseMarkdown" Version="5.3.0" />
     <PackageVersion Include="Sentry" Version="$(SentryVersion)" />
     <PackageVersion Include="Sentry.Extensions.AI" Version="$(SentryVersion)" />
     <PackageVersion Include="Sentry.OpenTelemetry" Version="$(SentryVersion)" />
@@ -63,7 +64,7 @@
     <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="$(SemanticKernelVersion)" />
     <PackageVersion Include="ModelContextProtocol" Version="1.1.0" />
     <PackageVersion Include="OllamaSharp" Version="5.4.25" />
-    <PackageVersion Include="PuppeteerSharp" Version="21.1.1" />
+    <PackageVersion Include="PuppeteerSharp" Version="24.40.0" />
     <PackageVersion Include="Tiktoken.Core" Version="$(TikTokenVersion)" />
     <PackageVersion Include="Tiktoken.Encodings.o200k" Version="$(TikTokenVersion)" />
   </ItemGroup>
