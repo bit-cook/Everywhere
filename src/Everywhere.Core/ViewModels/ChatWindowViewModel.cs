@@ -63,7 +63,7 @@ public sealed partial class ChatWindowViewModel :
     /// Indicates whether the chat window is currently viewing history page.
     /// </summary>
     [ObservableProperty]
-    public partial bool IsViewingHistory { get; set; }
+    public partial bool IsHistoryVisible { get; set; }
 
     public bool? IsAllHistorySelected
     {
@@ -688,12 +688,6 @@ public sealed partial class ChatWindowViewModel :
     private void OpenSettings()
     {
         WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(nameof(MainView)));
-    }
-
-    [RelayCommand]
-    private void SwitchViewingHistory(object? value)
-    {
-        IsViewingHistory = Convert.ToBoolean(value);
     }
 
     [RelayCommand]

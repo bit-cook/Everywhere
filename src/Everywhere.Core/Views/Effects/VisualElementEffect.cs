@@ -114,7 +114,7 @@ public sealed class VisualElementEffect(
 
     public void ArrangeEffectWindows()
     {
-        var screens = App.ScreenImpl.AllScreens;
+        var screens = App.Screens.All;
         if (screens is not { Count: > 0 })
         {
             foreach (var effectWindow in _effectWindows) effectWindow.Close();

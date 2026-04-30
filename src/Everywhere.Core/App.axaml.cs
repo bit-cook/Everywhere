@@ -6,7 +6,6 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Input.Platform;
 using Avalonia.Markup.Xaml;
-using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
@@ -35,8 +34,7 @@ public class App : Application, IRecipient<ApplicationMessage>
 
     public static ILauncher Launcher => BetterBclLauncher.Shared;
 
-    public static IScreenImpl ScreenImpl =>
-        _topLevel?.PlatformImpl?.TryGetFeature<IScreenImpl>() ?? throw new InvalidOperationException("ScreenImpl is not available.");
+    public static Screens Screens => _topLevel?.Screens ?? throw new InvalidOperationException("Screens is not available.");
 
     public static ThemeManager ThemeManager => _themeManager ?? throw new InvalidOperationException("Application is not initialized.");
 

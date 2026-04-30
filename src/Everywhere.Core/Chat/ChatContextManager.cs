@@ -83,7 +83,6 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                             if (_metadataMap.Remove(previous.Metadata.Id, out _))
                             {
                                 OnPropertyChanged(nameof(AllHistory));
-                                OnPropertyChanged(nameof(RecentHistory));
                             }
                         }
 
@@ -97,8 +96,6 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
             });
         }
     }
-
-    public IReadOnlyList<ChatContextHistory> RecentHistory => ApplyHistory(_recentHistory, 9);
 
     IRelayCommand IChatContextManager.UpdateRecentHistoryCommand => UpdateRecentHistoryCommand;
 
@@ -124,7 +121,6 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     private ChatContext? _current;
 
     private readonly ConcurrentDictionary<Guid, ChatContextMetadata> _metadataMap = [];
-    private readonly ObservableCollection<ChatContextHistory> _recentHistory = [];
     private readonly ObservableCollection<ChatContextHistory> _allHistory = [];
     private readonly HashSet<Guid> _busyContexts = [];
     private readonly HashSet<Guid> _notificationContexts = [];
@@ -339,7 +335,6 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         // It will be added when it's property has changed.
 
         OnPropertyChanged(nameof(AllHistory));
-        OnPropertyChanged(nameof(RecentHistory));
         NotifyCurrentChanged();
     }
 
@@ -428,13 +423,11 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                                 }
 
                                 OnPropertyChanged(nameof(AllHistory));
-                                OnPropertyChanged(nameof(RecentHistory));
                                 RemoveCommand.NotifyCanExecuteChanged();
                             }
                         }, TaskContinuationOptions.ExecuteSynchronously);
 
                     OnPropertyChanged(nameof(AllHistory));
-                    OnPropertyChanged(nameof(RecentHistory));
                     RemoveCommand.NotifyCanExecuteChanged();
                 });
             })
@@ -457,7 +450,6 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     OnPropertyChanged(nameof(AllHistory));
-                    OnPropertyChanged(nameof(RecentHistory));
                     RemoveCommand.NotifyCanExecuteChanged();
                 });
             }
@@ -594,7 +586,6 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         while (skippedCount > 0);
 
         OnPropertyChanged(nameof(AllHistory));
-        OnPropertyChanged(nameof(RecentHistory));
         RemoveCommand.NotifyCanExecuteChanged();
     });
 

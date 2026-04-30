@@ -20,11 +20,6 @@ public interface IChatContextManager : INotifyPropertyChanged
     ChatContextMetadata? CurrentMetadata { get; set; }
 
     /// <summary>
-    /// Gets recent chat context history, grouped by date. 10 ChatContext maximum.
-    /// </summary>
-    IReadOnlyList<ChatContextHistory> RecentHistory { get; }
-
-    /// <summary>
     /// Command to update recent chat context history.
     /// </summary>
     IRelayCommand UpdateRecentHistoryCommand { get; }

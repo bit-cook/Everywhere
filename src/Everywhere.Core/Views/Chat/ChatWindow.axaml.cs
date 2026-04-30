@@ -138,12 +138,8 @@ public partial class ChatWindow :
             }
             case { Key: Key.H, KeyModifiers: KeyModifiers.Control }:
             {
-                var newValue = !ViewModel.IsViewingHistory;
-                if (ViewModel.SwitchViewingHistoryCommand.CanExecute(newValue))
-                {
-                    ViewModel.SwitchViewingHistoryCommand.Execute(newValue);
-                    e.Handled = true;
-                }
+                ViewModel.IsHistoryVisible = !ViewModel.IsHistoryVisible;
+                e.Handled = true;
                 break;
             }
             case { Key: Key.T, KeyModifiers: KeyModifiers.Control }:

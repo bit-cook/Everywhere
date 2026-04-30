@@ -51,6 +51,18 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
         set => Set(value);
     }
 
+    public double ChatWindowHistoryDrawerWidth
+    {
+        get => Get(300d).FiniteOrDefault(300d);
+        set => Set(value.FiniteOrDefault(300d));
+    }
+
+    public double ChatWindowHistoryDrawerHeight
+    {
+        get => Get(300d).FiniteOrDefault(300d);
+        set => Set(value.FiniteOrDefault(300d));
+    }
+
     public string? ChatInputAreaText
     {
         get => Get<string?>();
