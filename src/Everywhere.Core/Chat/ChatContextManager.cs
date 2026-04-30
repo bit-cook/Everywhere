@@ -114,8 +114,6 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
 
     IRelayCommand<ChatContextMetadata> IChatContextManager.RemoveCommand => RemoveCommand;
 
-    IRelayCommand IChatContextManager.RemoveSelectedCommand => RemoveSelectedCommand;
-
     private ICollection<ChatContextMetadata> LoadedMetadata => _metadataMap.Values;
 
     private ChatContext? _current;
@@ -273,11 +271,12 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update recent chat context history");
-            ServiceLocator
-                .Resolve<ToastManager>()
-                .CreateToast(LocaleResolver.Common_Error)
-                .WithContent(ex.GetFriendlyMessage())
-                .ShowError();
+            Dispatcher.UIThread.Post(() =>
+                ServiceLocator
+                    .Resolve<ToastManager>()
+                    .CreateToast(LocaleResolver.Common_Error)
+                    .WithContent(ex.GetFriendlyMessage())
+                    .ShowError());
         }
     }
 
@@ -296,11 +295,12 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load more chat context history");
-            ServiceLocator
-                .Resolve<ToastManager>()
-                .CreateToast(LocaleResolver.Common_Error)
-                .WithContent(ex.GetFriendlyMessage())
-                .ShowError();
+            Dispatcher.UIThread.Post(() =>
+                ServiceLocator
+                    .Resolve<ToastManager>()
+                    .CreateToast(LocaleResolver.Common_Error)
+                    .WithContent(ex.GetFriendlyMessage())
+                    .ShowError());
         }
     }
 
@@ -343,42 +343,13 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     [RelayCommand(CanExecute = nameof(CanRemove))]
     private void Remove(ChatContextMetadata metadata)
     {
-        RemoveInternal([metadata]);
-    }
-
-    public bool CanRemoveSelected => LoadedMetadata.AsValueEnumerable().Any(m => m.IsSelected);
-
-    [RelayCommand(CanExecute = nameof(CanRemoveSelected))]
-    private async Task RemoveSelectedAsync(CancellationToken cancellationToken)
-    {
-        var items = LoadedMetadata.AsValueEnumerable().Where(m => m.IsSelected).ToList();
-        var result = await ServiceLocator
-            .Resolve<DialogManager>()
-            .CreateDialog(
-                new FormattedDynamicResourceKey(
-                    LocaleKey.ChatContextManager_RemoveSelectedDialog_Content,
-                    new DirectResourceKey(items.Count)).ToString(),
-                LocaleResolver.ChatContextManager_RemoveSelectedDialog_Title)
-            .WithPrimaryButton(LocaleResolver.Common_Yes, buttonStyle: ButtonStyle.Primary)
-            .WithCancelButton(LocaleResolver.Common_No)
-            .ShowAsync(cancellationToken);
-        if (result != DialogResult.Primary) return;
-
-        RemoveInternal(items);
-    }
-
-    private void RemoveInternal(List<ChatContextMetadata> metadataList)
-    {
         // delete in background
         Task.Run(async () =>
             {
-                foreach (var metadata in metadataList)
-                {
-                    metadata.IsTemporaryDeleted = true;
-                }
+                metadata.IsTemporaryDeleted = true;
 
                 // If the current chat context is being removed, we need to set a new current context
-                if (metadataList.Any(m => m.Id == _current?.Metadata.Id))
+                if (metadata.Id == _current?.Metadata.Id)
                 {
                     await LoadRecentAsCurrentAsync().ConfigureAwait(false);
                 }
@@ -397,35 +368,35 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                         });
                     ServiceLocator
                         .Resolve<ToastManager>()
-                        .CreateToast(new FormattedDynamicResourceKey(
-                            LocaleKey.ChatContextManager_DeletingToast_Content,
-                            new DirectResourceKey(metadataList.Count)).ToString())
+                        .CreateToast(
+                            new FormattedDynamicResourceKey(
+                                LocaleKey.ChatContextManager_DeletingToast_Content,
+                                new DirectResourceKey(metadata.ActualTopic ?? string.Empty)).ToString())
                         .WithProgress(progress)
                         .WithDurationSeconds(5d)
                         .WithAction(DynamicResourceKey.Resolve(LocaleKey.Common_Undo), ButtonStyle.Ghost)
+                        .OnBottomLeft()
                         .ShowInfoAsync()
-                        .ContinueWith(t =>
-                        {
-                            // This continuation runs when the toast is dismissed, either by the timer or by user action (Undo).
-                            // It should be UI thread here.
-                            Debug.Assert(Dispatcher.UIThread.CheckAccess());
+                        .ContinueWith(
+                            t =>
+                            {
+                                // This continuation runs when the toast is dismissed, either by the timer or by user action (Undo).
+                                // It should be UI thread here.
+                                Debug.Assert(Dispatcher.UIThread.CheckAccess());
 
-                            timer.Stop();
-                            if (t.Result != ToastResult.ActionButtonClicked)
-                            {
-                                Task.Run(ExecuteDeleteAsync);
-                            }
-                            else
-                            {
-                                foreach (var metadata in metadataList)
+                                timer.Stop();
+                                if (t.Result != ToastResult.ActionButtonClicked)
+                                {
+                                    Task.Run(ExecuteDeleteAsync);
+                                }
+                                else
                                 {
                                     metadata.IsTemporaryDeleted = false;
+                                    OnPropertyChanged(nameof(AllHistory));
+                                    RemoveCommand.NotifyCanExecuteChanged();
                                 }
-
-                                OnPropertyChanged(nameof(AllHistory));
-                                RemoveCommand.NotifyCanExecuteChanged();
-                            }
-                        }, TaskContinuationOptions.ExecuteSynchronously);
+                            },
+                            TaskContinuationOptions.ExecuteSynchronously);
 
                     OnPropertyChanged(nameof(AllHistory));
                     RemoveCommand.NotifyCanExecuteChanged();
@@ -437,13 +408,10 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         {
             try
             {
-                foreach (var metadata in metadataList)
-                {
-                    metadata.States = ChatContextMetadataStates.None;
-                    _metadataMap.TryRemove(metadata.Id, out _);
-                }
+                metadata.States = ChatContextMetadataStates.None;
+                _metadataMap.TryRemove(metadata.Id, out _);
 
-                await _chatContextStorage.DeleteChatContextsAsync(metadataList.Select(m => m.Id)).ConfigureAwait(false);
+                await _chatContextStorage.DeleteChatContextsAsync([metadata.Id]).ConfigureAwait(false);
             }
             finally
             {
@@ -585,8 +553,11 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         }
         while (skippedCount > 0);
 
-        OnPropertyChanged(nameof(AllHistory));
-        RemoveCommand.NotifyCanExecuteChanged();
+        Dispatcher.UIThread.Post(() =>
+        {
+            OnPropertyChanged(nameof(AllHistory));
+            RemoveCommand.NotifyCanExecuteChanged();
+        });
     });
 
     private ObservableCollection<ChatContextHistory> ApplyHistory(ObservableCollection<ChatContextHistory> targetList, int count)

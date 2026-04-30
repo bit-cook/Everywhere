@@ -2286,7 +2286,7 @@
         <value>撤销</value>
     </data>
     <data name="ChatContextManager_DeletingToast_Content" xml:space="preserve">
-        <value>移除了 {0} 个对话</value>
+        <value>已删除“{0}”</value>
     </data>
     <data name="SettingsCategory_Settings_Display_Header" xml:space="preserve">
         <value>显示</value>

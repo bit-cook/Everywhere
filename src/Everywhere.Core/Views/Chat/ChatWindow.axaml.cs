@@ -138,7 +138,7 @@ public partial class ChatWindow :
             }
             case { Key: Key.H, KeyModifiers: KeyModifiers.Control }:
             {
-                ViewModel.IsHistoryVisible = !ViewModel.IsHistoryVisible;
+                _persistentState.IsChatWindowHistoryOpened = !_persistentState.IsChatWindowHistoryOpened;
                 e.Handled = true;
                 break;
             }
@@ -155,11 +155,11 @@ public partial class ChatWindow :
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == IsVisibleProperty)
+        if (ReferenceEquals(change.Property, IsVisibleProperty))
         {
             ViewModel.IsOpened = change.NewValue is true;
         }
-        else if (change.Property == IsWindowPinnedProperty)
+        else if (ReferenceEquals(change.Property, IsWindowPinnedProperty))
         {
             var value = change.NewValue as bool?;
             _persistentState.IsChatWindowPinned = value;

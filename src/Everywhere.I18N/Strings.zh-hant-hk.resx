@@ -2284,9 +2284,6 @@
     <data name="Common_Undo" xml:space="preserve">
         <value>撤銷</value>
     </data>
-    <data name="ChatContextManager_DeletingToast_Content" xml:space="preserve">
-        <value>移除了 {0} 個對話</value>
-    </data>
     <data name="SettingsCategory_Settings_Display_Header" xml:space="preserve">
         <value>顯示</value>
     </data>

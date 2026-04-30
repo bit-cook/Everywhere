@@ -79,13 +79,6 @@ public partial class ChatContextMetadata(Guid id, DateTimeOffset dateCreated, Da
     [NotifyPropertyChangedFor(nameof(ActualTopic))]
     public partial bool IsTemporary { get; set; }
 
-    /// <summary>
-    /// Used for selection in UI lists.
-    /// </summary>
-    [IgnoreMember]
-    [ObservableProperty]
-    public partial bool IsSelected { get; set; }
-
     [IgnoreMember]
     [ObservableProperty]
     public partial bool IsRenaming { get; set; }

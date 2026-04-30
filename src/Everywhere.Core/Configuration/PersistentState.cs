@@ -51,6 +51,12 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
         set => Set(value);
     }
 
+    public bool IsChatWindowHistoryOpened
+    {
+        get => Get<bool>();
+        set => Set(value);
+    }
+
     public double ChatWindowHistoryDrawerWidth
     {
         get => Get(300d).FiniteOrDefault(300d);

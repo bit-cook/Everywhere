@@ -2285,7 +2285,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Undo</value>
     </data>
     <data name="ChatContextManager_DeletingToast_Content" xml:space="preserve">
-        <value>Removed {0} conversations</value>
+        <value>"{0}" is deleted</value>
     </data>
     <data name="SettingsCategory_Settings_Display_Header" xml:space="preserve">
         <value>Display</value>

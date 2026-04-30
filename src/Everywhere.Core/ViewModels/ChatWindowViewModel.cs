@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics.Metrics;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -31,7 +30,6 @@ namespace Everywhere.ViewModels;
 public sealed partial class ChatWindowViewModel :
     ReactiveViewModelBase,
     IRecipient<ActivateChatSessionMessage>,
-    IRecipient<ChatContextMetadataChangedMessage>,
     IObserver<TextSelectionData>,
     IDisposable
 {
@@ -58,39 +56,6 @@ public sealed partial class ChatWindowViewModel :
     public partial bool IsBusy { get; private set; }
 
     public bool IsNotBusy => !IsBusy;
-
-    /// <summary>
-    /// Indicates whether the chat window is currently viewing history page.
-    /// </summary>
-    [ObservableProperty]
-    public partial bool IsHistoryVisible { get; set; }
-
-    public bool? IsAllHistorySelected
-    {
-        get
-        {
-            bool? value = null;
-            foreach (var metadata in ChatContextManager.AllHistory.AsValueEnumerable().SelectMany(h => h.MetadataList))
-            {
-                if (metadata.IsSelected)
-                {
-                    if (value == false) return null;
-                    value = true;
-                }
-                else
-                {
-                    if (value == true) return null;
-                    value = false;
-                }
-            }
-            return value;
-        }
-        set
-        {
-            if (!value.HasValue) return; // do nothing for indeterminate state
-            ChatContextManager.AllHistory.SelectMany(h => h.MetadataList).ForEach(m => m.IsSelected = value.Value);
-        }
-    }
 
     [ObservableProperty]
     public partial IReadOnlyList<Strategy>? StrategiesSnapshot { get; private set; }
@@ -165,7 +130,6 @@ public sealed partial class ChatWindowViewModel :
         Settings = settings;
         PersistentState = persistentState;
         ChatContextManager = chatContextManager;
-        ChatContextManager.PropertyChanged += HandleChatContextManagerPropertyChanged;
 
         _chatService = chatService;
         _visualElementContext = visualElementContext;
@@ -221,7 +185,6 @@ public sealed partial class ChatWindowViewModel :
     public void Dispose()
     {
         _disposables.Dispose();
-        ChatContextManager.PropertyChanged -= HandleChatContextManagerPropertyChanged;
     }
 
     public void Receive(ActivateChatSessionMessage message)
@@ -769,16 +732,6 @@ public sealed partial class ChatWindowViewModel :
             .ShowSuccess();
 
         await Launcher.LaunchFileInfoAsync(new FileInfo(exportPath));
-    }
-
-    public void Receive(ChatContextMetadataChangedMessage message)
-    {
-        if (message.PropertyName == nameof(ChatContextMetadata.IsSelected)) OnPropertyChanged(nameof(IsAllHistorySelected));
-    }
-
-    private void HandleChatContextManagerPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(IChatContextManager.AllHistory)) OnPropertyChanged(nameof(IsAllHistorySelected));
     }
 
     [RelayCommand]
