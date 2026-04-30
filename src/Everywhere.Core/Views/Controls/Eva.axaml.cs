@@ -10,6 +10,15 @@ namespace Everywhere.Views;
 [TemplatePart(Name = EyesPartName, Type = typeof(Control), IsRequired = true)]
 public class Eva : TemplatedControl
 {
+    public static readonly StyledProperty<bool> IsIdleAnimationEnabledProperty =
+        AvaloniaProperty.Register<Eva, bool>(nameof(IsIdleAnimationEnabled));
+
+    public bool IsIdleAnimationEnabled
+    {
+        get => GetValue(IsIdleAnimationEnabledProperty);
+        set => SetValue(IsIdleAnimationEnabledProperty, value);
+    }
+
     public static readonly StyledProperty<bool> IsThinkingProperty =
         AvaloniaProperty.Register<Eva, bool>(nameof(IsThinking));
 
@@ -39,7 +48,8 @@ public class Eva : TemplatedControl
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == IsThinkingProperty)
+        if (ReferenceEquals(change.Property, IsIdleAnimationEnabledProperty) ||
+            ReferenceEquals(change.Property, IsThinkingProperty))
         {
             UpdatePseudoClass();
         }
@@ -125,9 +135,10 @@ public class Eva : TemplatedControl
     {
         PseudoClasses.Set(ThinkingPseudoClass, IsThinking);
 
+        var isIdleAnimationEnabled = IsIdleAnimationEnabled;
         var isLooking = IsPointerOver || _topLevel is { IsPointerOver: true };
-        PseudoClasses.Set(LookingPseudoClass, isLooking);
-        PseudoClasses.Set(IdlePseudoClass, !isLooking);
+        PseudoClasses.Set(LookingPseudoClass, isIdleAnimationEnabled && isLooking);
+        PseudoClasses.Set(IdlePseudoClass, isIdleAnimationEnabled && !isLooking);
 
         // PseudoClasses.Set(":searching", true);
     }
