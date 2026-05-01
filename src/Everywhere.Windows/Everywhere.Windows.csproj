@@ -84,7 +84,6 @@
     <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Abstractions"/>
     <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Connectors.Google"/>
     <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Core"/>
-    <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Plugins.Web"/>
     <TrimmerRootAssembly Include="ModelContextProtocol"/>
     <TrimmerRootAssembly Include="ModelContextProtocol.Core"/>
     <TrimmerRootAssembly Include="Newtonsoft.Json"/>
