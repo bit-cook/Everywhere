@@ -68,8 +68,7 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
         }
         else
         {
-            // multi-line script, ask every time
-            consentKey = null;
+            consentKey = "multi-line";
         }
 
         var detailBlock = new ChatPluginContainerDisplayBlock
@@ -82,7 +81,8 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
             consentKey,
             new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ScriptConsent_Header),
             detailBlock,
-            cancellationToken);
+            canRemember: false,
+            cancellationToken: cancellationToken);
         if (!consent)
         {
             throw new HandledException(

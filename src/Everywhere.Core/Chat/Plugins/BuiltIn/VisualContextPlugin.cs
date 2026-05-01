@@ -61,7 +61,8 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
                 new BuiltInChatFunction(
                     ExecuteVisualActionsAsync,
                     ChatFunctionPermissions.ScreenAccess,
-                    isExperimental: true));
+                    isExperimental: true,
+                    onPermissionConsent: _ => true)); // Always allow. Handled in tool
         });
     }
 
@@ -70,10 +71,18 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_VisualContext_ListWindows_Header,
         LocaleKey.BuiltInChatPlugin_VisualContext_ListWindows_Description)]
-    private string ListWindows([FromKernelServices] ChatContext chatContext)
+    private string ListWindows(
+        [FromKernelServices] ChatContext chatContext,
+        [FromKernelServices] IChatPluginDisplaySink displaySink)
     {
+        var screens = _visualElementContext.Screens.AsValueEnumerable().ToList();
+        displaySink.AppendDynamicResourceKey(
+            new FormattedDynamicResourceKey(
+                LocaleKey.BuiltInChatPlugin_ListWindows_ScreenCount,
+                new DirectResourceKey(screens.Count)));
+
         var xmlBuilder = new StringBuilder();
-        foreach (var screen in _visualElementContext.Screens.AsValueEnumerable())
+        foreach (var screen in screens.AsValueEnumerable())
         {
             var bounds = screen.BoundingRectangle;
             xmlBuilder.Append(" box=\"")
@@ -180,6 +189,7 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
         LocaleKey.BuiltInChatPlugin_VisualContext_GetVisualTree_Description)]
     private string GetVisualTree(
         [FromKernelServices] ChatContext chatContext,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("ElementId, or hwnd startswith 0x")] string target,
         [Description("Available values: all, parent, child, previous, next, none")] string directions = "all",
         CancellationToken cancellationToken = default)
@@ -211,17 +221,24 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
         // Merge newly built elements into the chat context so they can be referenced later
         chatContext.VisualElements.AddRange(builder.BuiltVisualElements);
 
+        displaySink.AppendDynamicResourceKey(
+            new FormattedDynamicResourceKey(
+                LocaleKey.BuiltInChatPlugin_VisualContext_GetVisualTree_Result,
+                new DirectResourceKey(builder.BuiltVisualElements.Count)));
+
         return result;
     }
 
     [KernelFunction("execute_visual_actions")]
     [Description(
-        "Executes UI automation actions as a queue. Supports clicking elements, entering text, sending shortcuts (e.g., Ctrl+V), and waiting.")]
+        "Executes UI automation actions as a queue. Supports clicking elements, setting text, sending shortcuts, and waiting.")]
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Header,
         LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Description)]
     private async Task<string> ExecuteVisualActionsAsync(
         [FromKernelServices] ChatContext chatContext,
+        [FromKernelServices] IChatPluginUserInterface userInterface,
+        [Description("Since user can only see abstract actions and target IDs, concisely summarize what are you doing")] string description,
         IReadOnlyList<VisualElementAction> actions,
         CancellationToken cancellationToken = default)
     {
@@ -231,6 +248,31 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
                 HandledFunctionInvokingExceptionType.ArgumentError,
                 nameof(actions),
                 new ArgumentException($"{nameof(actions)} cannot be empty.", nameof(actions)));
+        }
+
+        var actionsKey = new AggregateDynamicResourceKey(
+            actions.AsValueEnumerable().Select(a => a.GetDescriptionKey()).OfType<IDynamicResourceKey>().ToList(),
+            "\n");
+
+        var detailBlock = new ChatPluginContainerDisplayBlock
+        {
+            new ChatPluginTextDisplayBlock(description, "Muted"),
+            new ChatPluginDynamicResourceKeyDisplayBlock(actionsKey),
+        };
+
+        userInterface.DisplaySink.AppendBlock(detailBlock);
+
+        var consent = await userInterface.RequestConsentAsync(
+            null,
+            new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ExecuteConsent_Header),
+            detailBlock,
+            cancellationToken: cancellationToken);
+        if (!consent)
+        {
+            throw new HandledException(
+                new UnauthorizedAccessException(consent.FormatReason("User denied consent for visual actions execution.")),
+                new DynamicResourceKey(LocaleKey.ConsentDecision_Deny),
+                showDetails: false);
         }
 
         var index = 0;
@@ -257,6 +299,14 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
                 {
                     var element = ResolveTargetElement(chatContext, action.EnsureTarget());
                     var shortcut = action.ResolveShortcut();
+                    if (shortcut.Key == Avalonia.Input.Key.None)
+                    {
+                        throw new HandledFunctionInvokingException(
+                            HandledFunctionInvokingExceptionType.ArgumentError,
+                            nameof(Key),
+                            new ArgumentException($"Key is required for SendKey actions (step {index}).", nameof(action.Key)));
+                    }
+
                     element.SendShortcut(shortcut);
                     break;
                 }
@@ -373,7 +423,7 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
     /// Retries parsing the action type from string.
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter<VisualActionType>))]
-    public enum VisualActionType
+    private enum VisualActionType
     {
         Click,
         SetText,
@@ -396,13 +446,13 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
         /// <summary>
         /// The ID of the target visual element
         /// </summary>
-        [Description("ID (decimal) or HWND (hex startswith 0x) of the target visual element (optional for wait action)")]
+        [Description("ID (decimal) or HWND (hex startswith 0x) of the target. Required for Click, SetText and SendKey")]
         public string? Target { get; init; }
 
         /// <summary>
         /// The text to input (for SetText actions)
         /// </summary>
-        [Description("Text for SetText action")]
+        [Description("Text for SetText action. No need to click or focus before setting text, the action will handle it")]
         public string? Text { get; init; }
 
         /// <summary>
@@ -435,16 +485,9 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
 
         public KeyboardShortcut ResolveShortcut()
         {
-            if (string.IsNullOrWhiteSpace(Key))
-            {
-                throw new HandledFunctionInvokingException(
-                    HandledFunctionInvokingExceptionType.ArgumentError,
-                    nameof(Key),
-                    new ArgumentException($"{nameof(Key)} is required for SendKey actions.", nameof(Key)));
-            }
+            if (string.IsNullOrWhiteSpace(Key)) return default;
 
             var key = ParseVirtualKey(Key);
-
             var modifiers = KeyModifiers.None;
             if (!Modifiers.IsNullOrEmpty())
             {
@@ -457,19 +500,50 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
                 {
                     modifiers |= part switch
                     {
-                        "VK_SHIFT" => KeyModifiers.Shift,
-                        "VK_CONTROL" => KeyModifiers.Control,
-                        "VK_MENU" => KeyModifiers.Alt,
-                        "VK_LWIN" or "VK_RWIN" => KeyModifiers.Meta,
-                        _ => throw new HandledFunctionInvokingException(
-                            HandledFunctionInvokingExceptionType.ArgumentError,
-                            nameof(part),
-                            new ArgumentException($"Invalid modifier key: '{part}'.", nameof(part)))
+                        _ when part.EndsWith("SHIFT", StringComparison.OrdinalIgnoreCase) => KeyModifiers.Shift,
+                        _ when part.EndsWith("CONTROL", StringComparison.OrdinalIgnoreCase) => KeyModifiers.Control,
+                        _ when part.EndsWith("MENU", StringComparison.OrdinalIgnoreCase) => KeyModifiers.Alt,
+                        _ when part.EndsWith("WIN", StringComparison.OrdinalIgnoreCase) => KeyModifiers.Meta,
+                        _ => KeyModifiers.None
                     };
                 }
             }
 
             return new KeyboardShortcut(key, modifiers);
+        }
+
+        public IDynamicResourceKey? GetDescriptionKey()
+        {
+            return Type switch
+            {
+                VisualActionType.Click => new FormattedDynamicResourceKey(
+                    LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ActionDescription_Click,
+                    GetTargetDescriptionKey()),
+                VisualActionType.SetText => new FormattedDynamicResourceKey(
+                    LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ActionDescription_SetText,
+                    GetTargetDescriptionKey(),
+                    new DirectResourceKey(Text ?? string.Empty)),
+                VisualActionType.Wait => new FormattedDynamicResourceKey(
+                    LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ActionDescription_Wait,
+                    new DirectResourceKey(DelayMs ?? 0)),
+                VisualActionType.SendKey => new FormattedDynamicResourceKey(
+                    LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ActionDescription_SendKey,
+                    GetTargetDescriptionKey(),
+                    new DirectResourceKey(ResolveShortcut().ToString())),
+                _ => (IDynamicResourceKey?)null
+            };
+
+            IDynamicResourceKey GetTargetDescriptionKey()
+            {
+                if (Target.IsNullOrEmpty()) return DirectResourceKey.Empty;
+                if (Target.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                    return new FormattedDynamicResourceKey(
+                        LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ActionDescription_TargetHwnd,
+                        new DirectResourceKey(Target));
+                return new FormattedDynamicResourceKey(
+                    LocaleKey.BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ActionDescription_TargetId,
+                    new DirectResourceKey(Target));
+            }
         }
 
         private static Key ParseVirtualKey(string virtualKey)

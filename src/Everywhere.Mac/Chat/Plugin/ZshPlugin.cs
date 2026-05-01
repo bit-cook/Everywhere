@@ -62,8 +62,7 @@ public sealed class ZshPlugin : BuiltInChatPlugin
         }
         else
         {
-            // multi-line script, ask every time
-            consentKey = null;
+            consentKey = "multi-line";
         }
 
         var detailBlock = new ChatPluginContainerDisplayBlock
@@ -76,7 +75,8 @@ public sealed class ZshPlugin : BuiltInChatPlugin
             consentKey,
             new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_ExecuteScript_ScriptConsent_Header),
             detailBlock,
-            cancellationToken);
+            canRemember: false,
+            cancellationToken: cancellationToken);
         if (!consent)
         {
             throw new HandledException(

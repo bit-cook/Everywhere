@@ -104,8 +104,9 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Header,
         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Description)]
-    private string ManageTodoList(
+    private static string ManageTodoList(
         [FromKernelServices] ChatContext chatContext,
+        [FromKernelServices] IChatPluginDisplaySink displaySink,
         TodoAction action,
         [Description(
             "Complete array of all todo items (required for reset, optional for read). " +
@@ -125,16 +126,27 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
             case TodoAction.Reset:
             {
                 chatContext.TodoItems = items;
-                return "Todo list reset successfully.";
+                displaySink.AppendDynamicResourceKey(
+                    new FormattedDynamicResourceKey(
+                        LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Reset,
+                        new DirectResourceKey(items.Count)));
+                return "Todo list reset successfully";
             }
             case TodoAction.Read when chatContext.TodoItems?.Count is not > 0:
             {
-                return "Todo list is empty.";
+                displaySink.AppendDynamicResourceKey(new FormattedDynamicResourceKey(
+                    LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Read,
+                    new DirectResourceKey(0)));
+
+                return "Todo list is empty";
             }
             case TodoAction.Read:
             {
+                displaySink.AppendDynamicResourceKey(new FormattedDynamicResourceKey(
+                    LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Read,
+                    new DirectResourceKey(chatContext.TodoItems.Count)));
+
                 var sb = new StringBuilder();
-                sb.AppendLine("Current Todo List:");
                 foreach (var item in chatContext.TodoItems)
                 {
                     sb.AppendLine($"- ID: {item.Id}, Status: {item.Status}, Title: {item.Title}");
@@ -169,8 +181,19 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         IReadOnlyList<ChatPluginQuestion> questions,
         CancellationToken cancellationToken)
     {
-        var answers = await userInterface.AskQuestionAsync(questions, cancellationToken);
+        if (questions.Count == 0)
+        {
+            throw new HandledFunctionInvokingException(
+                HandledFunctionInvokingExceptionType.ArgumentError,
+                nameof(questions),
+                new ArgumentException("At least one question must be provided.", nameof(questions)));
+        }
 
+        userInterface.DisplaySink.AppendDynamicResourceKey(new FormattedDynamicResourceKey(
+            LocaleKey.BuiltInChatPlugin_Essential_AskUserQuestion_Prompt,
+            new DirectResourceKey(questions.Count)));
+
+        var answers = await userInterface.AskQuestionAsync(questions, cancellationToken);
         if (answers.Count != questions.Count)
         {
             throw new HandledFunctionInvokingException(

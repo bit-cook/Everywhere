@@ -143,7 +143,7 @@ public sealed class SystemPlugin : BuiltInChatPlugin
                 action.ToString(),
                 new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ManageReminders_Consent_Header),
                 detailBlock,
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             if (!consent)
             {
@@ -325,7 +325,7 @@ public sealed class SystemPlugin : BuiltInChatPlugin
                 action.ToString(),
                 new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ManageCalendar_Consent_Header),
                 detailBlock,
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             if (!consent)
             {
@@ -546,7 +546,7 @@ public sealed class SystemPlugin : BuiltInChatPlugin
             null,
             new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ManageNotes_Consent_Header),
             detailBlock,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         if (!consent)
         {
@@ -656,7 +656,7 @@ public sealed class SystemPlugin : BuiltInChatPlugin
             null,
             new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_System_ExecuteScript_ScriptConsent_Header),
             detailBlock,
-            cancellationToken);
+            cancellationToken: cancellationToken);
         if (!consent)
         {
             throw new HandledException(

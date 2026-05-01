@@ -44,35 +44,24 @@ public sealed record FunctionCallContext(
         string? id,
         IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content = null,
+        bool canRemember = true,
         CancellationToken cancellationToken = default)
     {
-        string? permissionKey = null;
-        if (!id.IsNullOrWhiteSpace())
+        if (id.IsNullOrEmpty() && ChatFunction.AutoApprove) return RequestConsentResult.Accepted;
+
+        var permissionKey = id.IsNullOrEmpty() ? PermissionKey : $"{PermissionKey}.{id}";
+        IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isGloballyGranted);
+        ChatContext.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isSessionGranted);
+        if (isGloballyGranted || isSessionGranted)
         {
-            permissionKey = $"{PermissionKey}.{id}";
-            IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isGloballyGranted);
-            ChatContext.IsPermissionGrantedRecords.TryGetValue(permissionKey, out var isSessionGranted);
-            if (isGloballyGranted || isSessionGranted)
-            {
-                return RequestConsentResult.Accepted;
-            }
+            return RequestConsentResult.Accepted;
         }
 
         var consentDecision = await ChatContext.HandleConsentRequestAsync(
             headerKey,
             content,
-            permissionKey is not null,
+            canRemember,
             cancellationToken);
-
-        if (permissionKey is null)
-        {
-            // no id provided, so we cannot remember the decision
-            return consentDecision.Decision switch
-            {
-                ConsentDecision.AllowOnce => RequestConsentResult.Accepted,
-                _ => RequestConsentResult.Denied(),
-            };
-        }
 
         switch (consentDecision.Decision)
         {

@@ -61,8 +61,7 @@ public sealed class BashPlugin : BuiltInChatPlugin
         }
         else
         {
-            // multi-line script, ask every time
-            consentKey = null;
+            consentKey = "multi-line";
         }
 
         var detailBlock = new ChatPluginContainerDisplayBlock
@@ -75,7 +74,8 @@ public sealed class BashPlugin : BuiltInChatPlugin
             consentKey,
             new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_Bash_ExecuteScript_ScriptConsent_Header),
             detailBlock,
-            cancellationToken);
+            canRemember: false,
+            cancellationToken: cancellationToken);
         if (!consent)
         {
             throw new HandledException(

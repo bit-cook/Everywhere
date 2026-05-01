@@ -83,9 +83,8 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
         [Description("Maximum number of results to return. Max is 1000.")] int maxCount = 100,
         CancellationToken cancellationToken = default)
     {
-        if (skip < 0) skip = 0;
-        if (maxCount < 0) maxCount = 0;
-        if (maxCount > 1000) maxCount = 1000;
+        skip = Math.Max(0, skip);
+        maxCount = Math.Clamp(maxCount, 0, 1000);
 
         _logger.LogDebug(
             "Searching files in path: {Path} with pattern: {SearchPattern}, skip: {Skip}, maxCount: {MaxCount}",
@@ -458,7 +457,7 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
                     "system",
                     new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_FileSystem_DeleteFiles_SystemFile_DeletionConsent_Header),
                     new ChatPluginFileReferencesDisplayBlock(new ChatPluginFileReference(info.FullName)),
-                    cancellationToken);
+                    cancellationToken: cancellationToken);
                 if (!consent)
                 {
                     continue;

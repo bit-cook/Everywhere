@@ -95,18 +95,17 @@ public interface IChatPluginUserInterface
     /// <remarks>
     /// Consent is grouped by plugin.function.id, so multiple calls with the same parameters will only prompt the user once (if they choose to remember their decision).
     /// </remarks>
-    /// <param name="id">
-    /// If provided, the unique identifier for the consent request. Used to group consent decisions.
-    /// If not provided, a new consent request will be created each time.
-    /// </param>
+    /// <param name="id"></param>
     /// <param name="headerKey"></param>
     /// <param name="content"></param>
+    /// <param name="canRemember"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<RequestConsentResult> RequestConsentAsync(
         string? id,
         IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content = null,
+        bool canRemember = true,
         CancellationToken cancellationToken = default);
 
     /// <summary>
