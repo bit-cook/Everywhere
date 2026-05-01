@@ -1,13 +1,19 @@
-﻿using System.Drawing;
+﻿using System.ComponentModel;
+using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Windows.Win32;
 using Windows.Win32.Graphics.Gdi;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Avalonia;
+using Avalonia.Input;
 using Avalonia.Platform;
 using Everywhere.Common;
 using Everywhere.I18N;
 using Everywhere.Interop;
+using Everywhere.Windows.Extensions;
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.UIA3;
@@ -114,6 +120,60 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
         }
 
         return new Win32CapturedBitmapData(gdiBitmap, new Vector(96, 96));
+    }
+
+    /// <summary>
+    /// Sends the specified keyboard shortcut via win32 SendInput api
+    /// </summary>
+    /// <param name="shortcut"></param>
+    /// <exception cref="Win32Exception"></exception>
+    private static void SendInput(KeyboardShortcut shortcut)
+    {
+        // Use PInvoke.SendInput to send the shortcut to the focused element.
+        var inputs = new List<INPUT>();
+        if (shortcut.Modifiers.HasFlag(KeyModifiers.Control)) MakeInputs(VIRTUAL_KEY.VK_CONTROL);
+        if (shortcut.Modifiers.HasFlag(KeyModifiers.Alt)) MakeInputs(VIRTUAL_KEY.VK_MENU);
+        if (shortcut.Modifiers.HasFlag(KeyModifiers.Shift)) MakeInputs(VIRTUAL_KEY.VK_SHIFT);
+        if (shortcut.Modifiers.HasFlag(KeyModifiers.Meta)) MakeInputs(VIRTUAL_KEY.VK_LWIN);
+        MakeInputs(shortcut.Key.ToVirtualKey());
+
+        var result = PInvoke.SendInput(CollectionsMarshal.AsSpan(inputs), Unsafe.SizeOf<INPUT>());
+        if (result == 0)
+        {
+            throw new Win32Exception(Marshal.GetLastWin32Error(), "Failed to send keyboard input to the target element.");
+        }
+
+        void MakeInputs(VIRTUAL_KEY vk)
+        {
+            inputs.InsertRange(
+                inputs.Count / 2,
+                [
+                    new INPUT
+                    {
+                        type = INPUT_TYPE.INPUT_KEYBOARD,
+                        Anonymous = new INPUT._Anonymous_e__Union
+                        {
+                            ki = new KEYBDINPUT
+                            {
+                                wVk = vk,
+                                dwFlags = 0,
+                            }
+                        }
+                    },
+                    new INPUT
+                    {
+                        type = INPUT_TYPE.INPUT_KEYBOARD,
+                        Anonymous = new INPUT._Anonymous_e__Union
+                        {
+                            ki = new KEYBDINPUT
+                            {
+                                wVk = vk,
+                                dwFlags = KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP,
+                            }
+                        }
+                    },
+                ]);
+        }
     }
 
     /// <summary>

@@ -93,11 +93,11 @@ public partial class VisualElementContext
 
         public string? GetText(int maxLength = -1) => null;
 
-        public void Invoke() => throw new InvalidOperationException();
+        public void Invoke() => throw new InvalidOperationException("Screen is not invokable.");
 
-        public void SetText(string text) => throw new InvalidOperationException();
+        public void SetText(string text) => throw new InvalidOperationException("Cannot set text on screen.");
 
-        public void SendShortcut(KeyboardShortcut shortcut) => throw new InvalidOperationException();
+        public void SendShortcut(KeyboardShortcut shortcut) => SendInput(shortcut);
 
         public string? GetSelectionText() => null;
 
