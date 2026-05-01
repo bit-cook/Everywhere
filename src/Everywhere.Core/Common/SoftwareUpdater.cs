@@ -2,8 +2,10 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Configuration;
 using Everywhere.Interop;
+using Everywhere.Messages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 #if !DEBUG
@@ -116,8 +118,21 @@ public sealed partial class SoftwareUpdater(
             {
                 _notifiedVersion = LatestVersion;
                 nativeHelper.ShowDesktopNotificationAsync(
-                    LocaleResolver.SoftwareUpdater_UpdateAvailable_Toast_Message,
-                    LocaleResolver.Common_Info).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
+                        new FormattedDynamicResourceKey(
+                            LocaleKey.SoftwareUpdater_UpdateAvailable_Toast_Message,
+                            new DirectResourceKey(CurrentVersion.ToString()),
+                            new DirectResourceKey(LatestVersion.ToString())).ToString(),
+                        LocaleResolver.Common_Info)
+                    .ContinueWith(
+                        t =>
+                        {
+                            if (t is { IsCompletedSuccessfully: true, Result: true })
+                            {
+                                WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(ShowWindowMessage.MainWindow));
+                            }
+                        },
+                        CancellationToken.None)
+                    .Detach(IExceptionHandler.DangerouslyIgnoreAllException);
             }
         }
         catch (Exception ex)
@@ -243,7 +258,7 @@ public sealed partial class SoftwareUpdater(
         {
             var directPingCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             logger.LogInformation("Attempting to download update direct via GitHub: {Url}", asset.DirectDownloadUrl);
-            
+
             var fetchTask = httpClient.GetAsync(asset.DirectDownloadUrl, HttpCompletionOption.ResponseHeadersRead, directPingCts.Token);
             var completedTask = await Task.WhenAny(fetchTask, Task.Delay(3000, cancellationToken));
 

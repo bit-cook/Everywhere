@@ -877,7 +877,8 @@ Mon intelligence est alimentée par un grand modèle de langage, et j'ai besoin 
         <value>Limite de longueur de l'arbre visuel</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
-        <value>Mise à jour disponible.</value>
+        <value>Mise à jour disponible.
+{0} -&gt; {1}</value>
     </data>
     <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
         <value>Réflexion approfondie</value>

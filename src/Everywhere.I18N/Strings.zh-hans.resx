@@ -877,7 +877,8 @@
         <value>视觉上下文长度预算</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
-        <value>有新版本可用。</value>
+        <value>有新版本可用。
+{0} -&gt; {1}</value>
     </data>
     <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
         <value>深度思考</value>

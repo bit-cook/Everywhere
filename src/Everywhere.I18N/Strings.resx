@@ -877,7 +877,8 @@ My intelligence is powered by large language models, and I need your help to con
         <value>Visual Context Length Budget</value>
     </data>
     <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
-        <value>Update available.</value>
+        <value>Update available.
+{0} -&gt; {1}</value>
     </data>
     <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
         <value>Deep thinking</value>
