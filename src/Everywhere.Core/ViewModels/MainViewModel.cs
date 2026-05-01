@@ -11,6 +11,7 @@ using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Views;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using ShadUI;
 using ZLinq;
 
@@ -51,6 +52,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
             .Connect()
             .ObserveOnAvaloniaDispatcher()
             .BindEx(_disposables);
+        InitializeNavigationBarItems();
     }
 
     protected internal override async Task ViewLoaded(CancellationToken cancellationToken)
@@ -61,7 +63,6 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
             return;
         }
 
-        InitializeNavigationBarItems();
         ShowOobeDialogOnDemand();
 
         await base.ViewLoaded(cancellationToken);
@@ -83,6 +84,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
                     Icon = page.Icon,
                     [!ContentControl.ContentProperty] = page.TitleKey.ToBinding(),
                     [!NavigationBarItem.ToolTipProperty] = page.TitleKey.ToBinding(),
+                    Tag = page.RouteKey,
                     Route = page,
                 }));
 
@@ -94,6 +96,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
                         Icon = i.Icon,
                         [!ContentControl.ContentProperty] = i.TitleKey.ToBinding(),
                         [!NavigationBarItem.ToolTipProperty] = i.TitleKey.ToBinding(),
+                        Tag = i.RouteKey,
                         Route = i
                     }));
             }
@@ -109,6 +112,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
                     Icon = topLevelItem.Icon,
                     [!ContentControl.ContentProperty] = topLevelItem.TitleKey.ToBinding(),
                     [!NavigationBarItem.ToolTipProperty] = topLevelItem.TitleKey.ToBinding(),
+                    Tag = topLevelItem.RouteKey,
                     Route = topLevelItem
                 };
                 rootItems.Add((topLevelItem.Index, groupItem));
@@ -120,6 +124,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
                 {
                     [!ContentControl.ContentProperty] = subPage.TitleKey.ToBinding(),
                     [!NavigationBarItem.ToolTipProperty] = subPage.TitleKey.ToBinding(),
+                    Tag = subPage.RouteKey,
                     Route = subPage,
                 };
                 groupItem.Children.Add(item);
@@ -182,8 +187,34 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
     [RelayCommand]
     public void NavigateTo(object route)
     {
-        var item = FindNavigationBarItem(_itemsSource.Items, i => i.Route == route);
-        SelectedItem = item ?? new NavigationBarItem(route); // This allows navigating to a route that is not in the navigation bar
+        if (route is string { Length: > 0 } routeString)
+        {
+            var parts = routeString.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            var items = _itemsSource.Items;
+            for (var index = 0; index < parts.Length; index++)
+            {
+                var part = parts[index];
+                var item = items.FirstOrDefault(i => string.Equals(part.Trim(), i.Tag as string, StringComparison.OrdinalIgnoreCase));
+                if (item == null)
+                {
+                    Log.ForContext<MainViewModel>().Warning("Failed to navigate to route {Route} because part {Part} was not found", route, part);
+                    break;
+                }
+
+                if (index == parts.Length - 1)
+                {
+                    SelectedItem = item;
+                    break;
+                }
+
+                items = item.Children;
+            }
+        }
+        else
+        {
+            var item = FindNavigationBarItem(_itemsSource.Items, i => i.Route == route);
+            SelectedItem = item ?? new NavigationBarItem(route); // This allows navigating to a route that is not in the navigation bar
+        }
     }
 
     protected internal override Task ViewUnloaded()

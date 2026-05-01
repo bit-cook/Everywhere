@@ -12,6 +12,8 @@ public sealed partial class SettingsCategoryPage : UserControl, IMainViewNavigat
 {
     public int Index => _settingsCategory.Index;
 
+    public string RouteKey => _settingsCategory.RouteKey;
+
     public LucideIconKind Icon => _settingsCategory.Icon;
 
     public IDynamicResourceKey TitleKey => _settingsCategory.TitleKey;

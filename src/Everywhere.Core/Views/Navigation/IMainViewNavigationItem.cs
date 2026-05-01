@@ -6,6 +6,8 @@ public interface IMainViewNavigationItem
 {
     int Index { get; }
 
+    string RouteKey => GetType().Name;
+
     LucideIconKind Icon { get; }
 
     IDynamicResourceKey TitleKey { get; }

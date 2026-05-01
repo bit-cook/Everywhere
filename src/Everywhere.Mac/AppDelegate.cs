@@ -124,7 +124,7 @@ public partial class AppDelegate : NSApplicationDelegate
     public override bool ApplicationShouldHandleReopen(NSApplication sender, bool hasVisibleWindows)
     {
         // We handled the reopen by showing the chat window.
-        WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(nameof(ChatWindowViewModel)));
+        WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(ShowWindowMessage.ChatWindow));
         return true;
     }
 

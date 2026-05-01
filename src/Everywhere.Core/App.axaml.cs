@@ -243,9 +243,9 @@ public class App : Application, IRecipient<ApplicationMessage>
 
     public void ShowDebugWindow() => ShowWindow<VisualTreeDebugger>(ref _debugWindow);
 
-    public void Receive(ApplicationMessage message)
+    void IRecipient<ApplicationMessage>.Receive(ApplicationMessage message)
     {
-        if (message is ShowWindowMessage { Name: nameof(MainView) })
+        if (message is ShowWindowMessage { Name: ShowWindowMessage.MainWindow })
         {
             Dispatcher.UIThread.Invoke(() => ShowWindow<MainView>(ref _mainWindow));
         }

@@ -82,7 +82,7 @@ public static class Entrance
 #endif
 
         // Bring the existing instance to the foreground.
-        await SendToHost(new ShowWindowMessage(nameof(ChatWindowViewModel))).ConfigureAwait(false);
+        await SendToHost(new ShowWindowMessage(ShowWindowMessage.ChatWindow)).ConfigureAwait(false);
         Environment.Exit(0);
     }
 

@@ -648,9 +648,9 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [RelayCommand]
-    private void OpenSettings()
+    private static void OpenSettings()
     {
-        WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(nameof(MainView)));
+        WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(ShowWindowMessage.MainWindow));
     }
 
     [RelayCommand]

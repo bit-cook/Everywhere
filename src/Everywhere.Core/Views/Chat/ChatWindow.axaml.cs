@@ -281,9 +281,9 @@ public partial class ChatWindow :
         });
     }
 
-    public void Receive(ApplicationMessage message)
+    void IRecipient<ApplicationMessage>.Receive(ApplicationMessage message)
     {
-        if (message is ShowWindowMessage { Name: nameof(ChatWindowViewModel) })
+        if (message is ShowWindowMessage { Name: ShowWindowMessage.ChatWindow })
         {
             Dispatcher.UIThread.InvokeOnDemand(() => SetCloaked(false));
         }
