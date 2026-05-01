@@ -58,7 +58,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// This is also not serialized.
     /// </summary>
     [IgnoreMember]
-    public ResilientCache<int, IVisualElement> VisualElements { get; } = new();
+    public ResilientCache<int, IVisualElement> VisualElements { get; private init; } = new();
 
     /// <summary>
     /// A map of granted permissions for plugin functions in this chat context (session).
@@ -66,7 +66,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// Value: is granted or not.
     /// </summary>
     [IgnoreMember]
-    public ConcurrentDictionary<string, bool> IsPermissionGrantedRecords { get; } = new();
+    public ConcurrentDictionary<string, bool> IsPermissionGrantedRecords { get; private init; } = new();
 
     [IgnoreMember]
     public AsyncLocal<FunctionCallContext?> FunctionCallContext { get; } = new();
@@ -243,6 +243,24 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     }
 
     #endregion
+
+    /// <summary>
+    /// Fork a new ChatContext that inherits the current branch and metadata, but has a new Guid v7 ID and is marked as temporary.
+    /// This is useful for running sub-agents in a separate context while maintaining the same VisualElements and permissions.
+    /// </summary>
+    /// <returns></returns>
+    public ChatContext Fork()
+    {
+        return new ChatContext
+        {
+            Metadata =
+            {
+                IsTemporary = true
+            },
+            VisualElements = VisualElements,
+            IsPermissionGrantedRecords = IsPermissionGrantedRecords
+        };
+    }
 
     /// <summary>
     /// Create a new branch on the specified sibling node by inserting a new message at that position.

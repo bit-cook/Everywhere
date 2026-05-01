@@ -58,13 +58,14 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         Launch a new agent to handle complex, multi-step tasks autonomously, which is good for complex tasks that require decision-making and planning.
         The agent can access tools as you can, except it CANNOT call run_subagent to avoid infinite recursion.
         After started, you will wait for the subagent to complete and return the final result as string.
-        Each agent invocation is stateless, so make sure to provide all necessary context and instructions for the subagent to perform its task effectively.
+        Each agent invocation is stateless and isolated, so make sure to provide all necessary context and instructions for the subagent to perform its task effectively.
         """)]
     [DynamicResourceKey(LocaleKey.BuiltInChatPlugin_Essential_RunSubagent_Header, LocaleKey.BuiltInChatPlugin_Essential_RunSubagent_Description)]
     private async Task<string> RunSubagentAsync(
         [FromKernelServices] IChatService chatService,
         [FromKernelServices] Assistant assistant,
         [FromKernelServices] IChatPluginDisplaySink displaySink,
+        [FromKernelServices] ChatContext chatContext,
         [Description("A detailed description of the task for the agent to perform")] string prompt,
         [Description("A concise title for the agent's task. Should in system language.")] string title,
         CancellationToken cancellationToken)
@@ -75,16 +76,16 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
                 new DirectResourceKey(title)),
             "Large");
 
-        // Create a temporary chat context for the subagent
-        var chatContext = new ChatContext { Metadata = { IsTemporary = true } };
-        chatContext.Add(new UserChatMessage(prompt, []));
+        // Fork a temporary chat context for the subagent
+        var forkedChatContext = chatContext.Fork();
+        forkedChatContext.Add(new UserChatMessage(prompt, []));
         var assistantChatMessage = new AssistantChatMessage();
-        chatContext.Add(assistantChatMessage);
+        forkedChatContext.Add(assistantChatMessage);
 
         // Display the chat context in the UI
-        displaySink.AppendChatContext(chatContext);
+        displaySink.AppendChatContext(forkedChatContext);
 
-        await chatService.RunSubagentAsync(chatContext, assistant, assistantChatMessage, cancellationToken);
+        await chatService.RunSubagentAsync(forkedChatContext, assistant, assistantChatMessage, cancellationToken);
 
         if (assistantChatMessage.Count < 1)
         {
