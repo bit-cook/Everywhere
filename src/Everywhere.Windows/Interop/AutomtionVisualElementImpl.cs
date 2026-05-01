@@ -396,6 +396,7 @@ public partial class VisualElementContext
 
                     _element.Focus();
                     new TextBox(_element.FrameworkAutomationElement).Text = text;
+                    return;
                 }
             }
             catch (COMException ex)
