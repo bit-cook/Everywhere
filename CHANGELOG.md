@@ -1,3 +1,28 @@
+## [v0.7.5](https://github.com/DearVa/Everywhere/releases/tag/v0.7.5) - 2026-05-01
+
+### ✨ Features & 🚀 Improvements
+
+![new-history-ui](https://github.com/user-attachments/assets/a4450432-c47d-4da6-8b1e-fe3122a75fb4)
+
+- 🔥 Completely refactored the Chat History page, making it much smoother and more convenient to view, manage, and delete chats.
+- 🔥 Completely refactored the "web-snapshot" tool, improving the success rate of webpage visits and the information density of the extracted content.
+- Added settings to customize the theme color.
+- Optimized the "run-subagent" tool: Sub-agents will now inherit the current visual context and session-level tool approval permissions from the main conversation.
+- Enhanced tool execution and bubble interactions: Added more detailed message for tool calls; extended the auto-collapse delay for the "Deep Thinking" bubble; and disabled the auto-collapse behavior for tool execution bubbles to let you easily track the process.
+- Improved the visual display of software update push notifications.
+- Disabled unnecessary UI animations to reduce performance overhead and improve responsiveness.
+
+### 🐛 Bug Fixes
+
+- Fixed an issue where configurations could not be properly saved or loaded in certain system languages due to decimal separator format differences (e.g., period vs. comma) (#358).
+- Fixed an issue where the "manage-todo-list" tool did not correctly update UI.
+- Fixed a crash when rendering specific LaTeX formulas.
+- **(Windows)** Fixed an issue where the SetText for automation operation will always fail.
+
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.4...v0.7.5
+
+
+
 ## [v0.7.4](https://github.com/DearVa/Everywhere/releases/tag/v0.7.4) - 2026-04-24
 
 ### 🐛 Bug Fixes
