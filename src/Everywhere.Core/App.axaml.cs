@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
-using System.Reflection;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
@@ -184,18 +183,20 @@ public class App : Application, IRecipient<ApplicationMessage>
     /// </summary>
     private void ShowMainWindowOnNeeded()
     {
-        // If the --ui command line argument is present, show the main window.
-        if (Environment.GetCommandLineArgs().Contains("--ui"))
+        var currentVersion = typeof(App).Assembly.GetName().Version ?? new Version(0, 0, 0);
+        var persistentState = ServiceLocator.Resolve<PersistentState>();
+        if (!System.Version.TryParse(persistentState.PreviousLaunchVersion, out var previousVersion))
         {
-            ShowWindow<MainView>(ref _mainWindow);
-            return;
+            previousVersion = new Version(0, 0, 0);
         }
 
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
-        var persistentState = ServiceLocator.Resolve<PersistentState>();
-        if (persistentState.PreviousLaunchVersion == version) return;
+        // If the --ui command line argument is present, show the main window.
+        if (Environment.GetCommandLineArgs().Contains("--ui") || previousVersion < currentVersion)
+        {
+            ShowWindow<MainView>(ref _mainWindow);
+        }
 
-        ShowWindow<MainView>(ref _mainWindow);
+        persistentState.PreviousLaunchVersion = currentVersion.ToString();
     }
 
 

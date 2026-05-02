@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
-using System.Reflection;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -36,6 +35,8 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
     private readonly IServiceProvider _serviceProvider;
     private readonly Settings _settings;
 
+    private bool _isFirstLoad = true;
+
     public MainViewModel(
         ICloudClient cloudClient,
         IServiceProvider serviceProvider,
@@ -57,13 +58,11 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
 
     protected internal override async Task ViewLoaded(CancellationToken cancellationToken)
     {
-        if (_itemsSource.Count > 0)
+        if (_isFirstLoad)
         {
-            await base.ViewLoaded(cancellationToken);
-            return;
+            _isFirstLoad = false;
+            ShowOobeDialogOnDemand();
         }
-
-        ShowOobeDialogOnDemand();
 
         await base.ViewLoaded(cancellationToken);
     }
@@ -155,24 +154,31 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
     /// </summary>
     private void ShowOobeDialogOnDemand()
     {
-        var version = Assembly.GetExecutingAssembly().GetName().Version;
-        if (!Version.TryParse(PersistentState.PreviousLaunchVersion, out var previousLaunchVersion)) previousLaunchVersion = null;
         if (_settings.Model.CustomAssistants.Count == 0)
         {
             DialogManager
                 .CreateCustomDialog(_serviceProvider.GetRequiredService<WelcomeView>())
-                .ShowAsync();
+                .ShowAsync()
+                .Detach(IExceptionHandler.DangerouslyIgnoreAllException);
         }
-        else if (previousLaunchVersion != version)
+        else
         {
-            NavigateTo(_serviceProvider.GetRequiredService<ChangeLogView>());
-            ToastManager
-                .CreateToast(LocaleResolver.MainViewModel_UpgradeSuccessfulToast_Title)
-                .WithDurationSeconds(5)
-                .ShowAsync();
-        }
+            var currentVersion = typeof(MainViewModel).Assembly.GetName().Version ?? new Version(0, 0, 0);
+            if (!Version.TryParse(PersistentState.PreviousLaunchVersion, out var previousVersion))
+            {
+                previousVersion = new Version(0, 0, 0);
+            }
 
-        PersistentState.PreviousLaunchVersion = version?.ToString();
+            if (previousVersion < currentVersion)
+            {
+                NavigateTo(_serviceProvider.GetRequiredService<ChangeLogView>());
+                ToastManager
+                    .CreateToast(LocaleResolver.MainViewModel_UpgradeSuccessfulToast_Title)
+                    .WithDurationSeconds(5)
+                    .ShowAsync()
+                    .Detach(IExceptionHandler.DangerouslyIgnoreAllException);
+            }
+        }
     }
 
     [RelayCommand]
