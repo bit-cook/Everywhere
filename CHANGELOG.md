@@ -1,3 +1,13 @@
+## [v0.7.6](https://github.com/DearVa/Everywhere/releases/tag/v0.7.6) - 2026-05-02
+
+### 🐛 Bug Fixes
+
+- Fixed an issue where the main window opened every time when started.
+
+**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.5...v0.7.6
+
+
+
 ## [v0.7.5](https://github.com/DearVa/Everywhere/releases/tag/v0.7.5) - 2026-05-01
 
 ### ✨ Features & 🚀 Improvements
