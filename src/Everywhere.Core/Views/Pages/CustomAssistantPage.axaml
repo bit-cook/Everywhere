@@ -33,10 +33,21 @@
         ItemsSource="{Binding CustomAssistants}"
         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
         SelectedItem="{Binding SelectedCustomAssistant, Mode=TwoWay}">
+        <ListBox.Styles>
+          <Style Selector="ListBoxItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Style Selector="^:not(:pointerover) LucideIcon#GripIcon">
+              <Setter Property="IsVisible" Value="False"/>
+            </Style>
+          </Style>
+        </ListBox.Styles>
+
         <ListBox.DataTemplates>
           <DataTemplate DataType="ai:CustomAssistant">
             <DockPanel
               HorizontalSpacing="10" LastChildFill="True">
+              <LucideIcon Name="GripIcon" Kind="GripVertical" DockPanel.Dock="Right" Foreground="{DynamicResource MutedColor}" Size="{DynamicResource FontSizeXl}"/>
+
               <v:IconPresenter
                 DockPanel.Dock="Left" Width="40"
                 Height="40"

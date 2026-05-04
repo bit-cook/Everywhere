@@ -1,5 +1,4 @@
-﻿using System.Net.Http.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.SemanticKernel.Data;
 
