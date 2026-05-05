@@ -123,11 +123,15 @@ public class ObjectObserver(ObjectObserverChangedEventHandler handler) : IDispos
                 }
                 case IDictionary dictionary:
                 {
-                    foreach (DictionaryEntry entry in dictionary)
+                    var enumerator = dictionary.GetEnumerator();
+                    using var _ = enumerator as IDisposable;
+                    while (enumerator.MoveNext())
                     {
-                        if (entry.Key.ToString() is not { Length: > 0} key) continue;
+                        var entry = enumerator.Entry;
+                        if (entry.Key.ToString() is not { Length: > 0 } key) continue;
                         ObserveObject(key, entry.Value);
                     }
+
                     break;
                 }
             }
