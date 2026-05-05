@@ -51,7 +51,7 @@ public partial class ChatWindow :
         set => SetValue(IsWindowPinnedProperty, value);
     }
 
-    private static Size DefaultSize => new(400d, 600d);
+    private static Size DefaultSize => new(400d, 300d);
 
     private readonly IWindowHelper _windowHelper;
     private readonly INativeHelper _nativeHelper;

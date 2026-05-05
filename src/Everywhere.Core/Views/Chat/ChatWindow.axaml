@@ -7,7 +7,7 @@
   xmlns:v="clr-namespace:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters"
   xmlns:vm="clr-namespace:Everywhere.ViewModels"
   Title="{I18N {x:Static LocaleKey.ChatWindow_Title}}"
-  MinWidth="400" MinHeight="600"
+  MinWidth="400" MinHeight="300"
   x:DataType="vm:ChatWindowViewModel" x:TypeArguments="vm:ChatWindowViewModel"
   Background="{DynamicResource AcrylicWindowBackgroundColor}"
   BorderBrush="{DynamicResource BorderColor}"
@@ -292,8 +292,8 @@
           x:Name="HistoryDockPanel"
           Background="{DynamicResource DialogBackgroundColor}">
           <ScrollViewer
-            HorizontalContentAlignment="Stretch" HorizontalScrollBarVisibility="Disabled"
-            VerticalScrollBarVisibility="Auto">
+            HorizontalContentAlignment="Stretch" BringIntoViewOnFocusChange="False"
+            HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <Interaction.Behaviors>
               <in:AutoLoadBehavior Command="{Binding $parent[v:ChatWindow].ViewModel.ChatContextManager.LoadMoreHistoryCommand}">
                 <in:AutoLoadBehavior.CommandParameter>
@@ -577,7 +577,7 @@
             </ItemsControl>
 
             <v:ChatMessageItemsControl
-              Margin="10,0,8,0" Padding="6,0"
+              Margin="10,8,8,0" Padding="6,0"
               IsVisible="{Binding $self.ItemCount, Converter={x:Static vc:Int32Converters.GreaterThan}, ConverterParameter=0}"
               ItemsSource="{Binding ChatContextManager.Current.DisplayItems}"
               SupportedModalities="{Binding Settings.Model.SelectedCustomAssistant?.InputModalities, TargetNullValue={x:Static ai:Modalities.None}}"/>
