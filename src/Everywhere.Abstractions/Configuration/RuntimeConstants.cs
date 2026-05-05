@@ -54,7 +54,7 @@ public static class RuntimeConstants
     /// <returns></returns>
     public static string EnsureCacheFolderPath(params ReadOnlySpan<string> relativePaths)
     {
-        return EnsureDirectory(Path.GetFullPath(Path.Combine([ConfigurationFolderPath, ..relativePaths])));
+        return EnsureDirectory(Path.GetFullPath(Path.Combine([CacheFolderPath, ..relativePaths])));
     }
 
     /// <summary>
