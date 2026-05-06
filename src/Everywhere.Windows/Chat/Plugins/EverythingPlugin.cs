@@ -69,6 +69,18 @@ public sealed class EverythingPlugin : BuiltInChatPlugin
             },
             TimeSpan.FromMinutes(5));
 
+        AppDomain.CurrentDomain.ProcessExit += delegate
+        {
+            try
+            {
+                EverythingState.Exit();
+            }
+            catch
+            {
+                // ignore
+            }
+        };
+
         _functionsSource.Add(
             new BuiltInChatFunction(
                 SearchFilesAsync,
