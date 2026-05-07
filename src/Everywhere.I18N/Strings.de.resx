@@ -2206,7 +2206,7 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Bonuspunkte</value>
     </data>
-    <data name="UserProfilePresenter_PlanCreditsUsagePercentageTextBlock_Text" xml:space="preserve">
+    <data name="UserProfilePresenter_RemainingTextBlock_Text" xml:space="preserve">
         <value>Verbleibend {0}</value>
     </data>
     <data name="UserProfilePresenter_UnpaidToast_Title" xml:space="preserve">
@@ -2799,5 +2799,8 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     </data>
     <data name="ChatInputArea_WebSearchButton_ToolTip" xml:space="preserve">
         <value>Nutze die Websuche, um die Aktualität der Antworten des Assistenten zu verbessern</value>
+    </data>
+    <data name="UserProfilePresenter_WebSearchTextBlock_Text" xml:space="preserve">
+        <value>Cloud-Suche</value>
     </data>
 </root>

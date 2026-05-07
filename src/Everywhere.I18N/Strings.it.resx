@@ -2207,7 +2207,7 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Punti Bonus</value>
     </data>
-    <data name="UserProfilePresenter_PlanCreditsUsagePercentageTextBlock_Text" xml:space="preserve">
+    <data name="UserProfilePresenter_RemainingTextBlock_Text" xml:space="preserve">
         <value>Rimanenti {0}</value>
     </data>
     <data name="UserProfilePresenter_UnpaidToast_Title" xml:space="preserve">
@@ -2800,5 +2800,8 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     </data>
     <data name="ChatInputArea_WebSearchButton_ToolTip" xml:space="preserve">
         <value>Utilizza la ricerca web per migliorare la tempestività delle risposte dell'assistente</value>
+    </data>
+    <data name="UserProfilePresenter_WebSearchTextBlock_Text" xml:space="preserve">
+        <value>Cloud Search</value>
     </data>
 </root>

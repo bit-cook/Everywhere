@@ -2207,7 +2207,7 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Puntos de paquete adicional</value>
     </data>
-    <data name="UserProfilePresenter_PlanCreditsUsagePercentageTextBlock_Text" xml:space="preserve">
+    <data name="UserProfilePresenter_RemainingTextBlock_Text" xml:space="preserve">
         <value>Queda {0}</value>
     </data>
     <data name="UserProfilePresenter_UnpaidToast_Title" xml:space="preserve">
@@ -2800,5 +2800,8 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     </data>
     <data name="ChatInputArea_WebSearchButton_ToolTip" xml:space="preserve">
         <value>Usa la búsqueda en la web para mejorar la actualidad de las respuestas del asistente</value>
+    </data>
+    <data name="UserProfilePresenter_WebSearchTextBlock_Text" xml:space="preserve">
+        <value>Búsqueda en la Nube</value>
     </data>
 </root>

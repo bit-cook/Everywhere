@@ -1,7 +1,8 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
   xmlns:cloud="clr-namespace:Everywhere.Cloud;assembly=Everywhere.Abstractions" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
-  xmlns:v="using:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters">
+  xmlns:system="clr-namespace:System;assembly=System.Runtime" xmlns:v="using:Everywhere.Views"
+  xmlns:vc="clr-namespace:Everywhere.ValueConverters">
   <ControlTheme
     x:Key="{x:Type v:UserProfileCard}"
     TargetType="v:UserProfileCard">
@@ -109,7 +110,7 @@
                     <TextBlock
                       Classes="Caption Muted" Grid.Column="1">
                       <TextBlock.Text>
-                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_PlanCreditsUsagePercentageTextBlock_Text}">
+                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_RemainingTextBlock_Text}">
                           <Binding
                             Path="CloudClient?.Subscription?.PlanCreditsUsagePercentage" StringFormat="{}{0:P0}"
                             TargetNullValue="0%"/>
@@ -132,6 +133,53 @@
                   <ProgressBar
                     Maximum="{Binding CloudClient.Subscription.TotalPlanCredits, FallbackValue=1, TargetNullValue=1}"
                     Value="{Binding CloudClient.Subscription.PlanCredits, FallbackValue=0, TargetNullValue=0}"/>
+                </StackPanel>
+
+                <StackPanel
+                  x:Name="PlanCreditsPanel" Spacing="4">
+                  <StackPanel.IsVisible>
+                    <Binding
+                      Converter="{x:Static ObjectConverters.NotEqual}"
+                      FallbackValue="{x:False}"
+                      Path="CloudClient.Subscription.TotalFreeWebSearchCount"
+                      TargetNullValue="{x:False}">
+                      <Binding.ConverterParameter>
+                        <system:Int32>0</system:Int32>
+                      </Binding.ConverterParameter>
+                    </Binding>
+                  </StackPanel.IsVisible>
+
+                  <Grid
+                    ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4">
+                    <TextBlock
+                      Classes="Caption" Grid.Column="0"
+                      Text="{I18N {x:Static LocaleKey.UserProfilePresenter_WebSearchTextBlock_Text}}"/>
+                    <TextBlock
+                      Classes="Caption Muted" Grid.Column="1">
+                      <TextBlock.Text>
+                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_RemainingTextBlock_Text}">
+                          <Binding
+                            Path="CloudClient?.Subscription?.FreeWebSearchUsagePercentage" StringFormat="{}{0:P0}"
+                            TargetNullValue="0%"/>
+                        </I18N>
+                      </TextBlock.Text>
+                    </TextBlock>
+                    <LucideIcon
+                      Grid.Column="2" Kind="CircleQuestionMark"
+                      Size="{DynamicResource FontSizeS}"
+                      ToolTip.Placement="Top">
+                      <ToolTip.Tip>
+                        <TextBlock Grid.Column="1">
+                          <Run Text="{Binding CloudClient.Subscription.RemainingFreeWebSearchCount, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
+                          <Run Text="/"/>
+                          <Run Text="{Binding CloudClient.Subscription.TotalFreeWebSearchCount, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
+                        </TextBlock>
+                      </ToolTip.Tip>
+                    </LucideIcon>
+                  </Grid>
+                  <ProgressBar
+                    Maximum="{Binding CloudClient.Subscription.TotalFreeWebSearchCount, FallbackValue=1, TargetNullValue=1}"
+                    Value="{Binding CloudClient.Subscription.RemainingFreeWebSearchCount, FallbackValue=0, TargetNullValue=0}"/>
                 </StackPanel>
 
                 <Grid

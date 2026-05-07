@@ -2206,7 +2206,7 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Bonus Puan Paketi</value>
     </data>
-    <data name="UserProfilePresenter_PlanCreditsUsagePercentageTextBlock_Text" xml:space="preserve">
+    <data name="UserProfilePresenter_RemainingTextBlock_Text" xml:space="preserve">
         <value>Kalan {0}</value>
     </data>
     <data name="UserProfilePresenter_UnpaidToast_Title" xml:space="preserve">
@@ -2799,5 +2799,8 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     </data>
     <data name="ChatInputArea_WebSearchButton_ToolTip" xml:space="preserve">
         <value>Asistanın yanıtlarının güncelliğini artırmak için web araması yapın</value>
+    </data>
+    <data name="UserProfilePresenter_WebSearchTextBlock_Text" xml:space="preserve">
+        <value>Bulut Arama</value>
     </data>
 </root>

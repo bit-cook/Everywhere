@@ -2207,7 +2207,7 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Points de bonus</value>
     </data>
-    <data name="UserProfilePresenter_PlanCreditsUsagePercentageTextBlock_Text" xml:space="preserve">
+    <data name="UserProfilePresenter_RemainingTextBlock_Text" xml:space="preserve">
         <value>Restant {0}</value>
     </data>
     <data name="UserProfilePresenter_UnpaidToast_Title" xml:space="preserve">
@@ -2800,5 +2800,8 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     </data>
     <data name="ChatInputArea_WebSearchButton_ToolTip" xml:space="preserve">
         <value>Utilisez la recherche web pour améliorer la réactivité des réponses de l'assistant</value>
+    </data>
+    <data name="UserProfilePresenter_WebSearchTextBlock_Text" xml:space="preserve">
+        <value>Cloud Search</value>
     </data>
 </root>

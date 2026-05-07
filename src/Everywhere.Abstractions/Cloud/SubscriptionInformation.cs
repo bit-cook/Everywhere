@@ -54,6 +54,24 @@ public sealed partial class SubscriptionInformation : ObservableObject
     [JsonPropertyName("status")]
     [JsonConverter(typeof(JsonStringEnumConverter<SubscriptionStatus>))]
     public partial SubscriptionStatus? Status { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RemainingFreeWebSearchCount))]
+    [NotifyPropertyChangedFor(nameof(FreeWebSearchUsagePercentage))]
+    [JsonPropertyName("freeWebSearchCount")]
+    public partial int FreeWebSearchCount { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RemainingFreeWebSearchCount))]
+    [NotifyPropertyChangedFor(nameof(FreeWebSearchUsagePercentage))]
+    [JsonPropertyName("totalFreeWebSearchCount")]
+    public partial int TotalFreeWebSearchCount { get; set; }
+
+    [JsonIgnore]
+    public double RemainingFreeWebSearchCount => TotalFreeWebSearchCount - FreeWebSearchCount;
+
+    [JsonIgnore]
+    public double FreeWebSearchUsagePercentage => TotalFreeWebSearchCount > 0 ? 1d - (double)FreeWebSearchCount / TotalFreeWebSearchCount : 0;
 }
 
 [JsonSerializable(typeof(ApiPayload<SubscriptionInformation>))]
