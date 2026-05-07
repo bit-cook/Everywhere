@@ -109,26 +109,15 @@ public sealed partial class OfficialConnector(
         [property: JsonPropertyName("exclude_domains")] IReadOnlyList<string>? ExcludeDomains = null
     );
 
-    public sealed class Response : IWebSearchResponse
+    public sealed class Response : ApiPayload<IReadOnlyList<WebSearchResult>>, IWebSearchResponse
     {
-        [JsonPropertyName("detail")]
-        public ErrorResult? Detail { get; init; }
-
-        [JsonPropertyName("results")]
-        public IReadOnlyList<WebSearchResult>? SearchResults { get; init; }
-
         public IEnumerable<TextSearchResult> ToResults()
         {
-            if (Detail is not null)
-            {
-                throw new InvalidDataException($"Official Web Search API returned an empty result. Error: {Detail?.Error}");
-            }
-
-            return SearchResults?.Select(x => new TextSearchResult(x.Content ?? "")
+            return EnsureData().Select(x => new TextSearchResult(x.Content ?? "")
             {
                 Name = x.Title,
                 Link = x.Url,
-            }) ?? [];
+            });
         }
     }
 

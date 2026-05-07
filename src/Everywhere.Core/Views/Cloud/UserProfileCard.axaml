@@ -136,7 +136,7 @@
                 </StackPanel>
 
                 <StackPanel
-                  x:Name="PlanCreditsPanel" Spacing="4">
+                  x:Name="WebSearchPanel" Spacing="4">
                   <StackPanel.IsVisible>
                     <Binding
                       Converter="{x:Static ObjectConverters.NotEqual}"

@@ -119,13 +119,11 @@ public sealed partial class OfficialModelProvider :
 
     public void Receive(UserProfileUpdatedMessage message)
     {
-        _nextFetchCooldownTime = DateTimeOffset.Now;
         RefreshAsync().Detach();
     }
 
     public void Receive(SubscriptionInformationUpdatedMessage message)
     {
-        _nextFetchCooldownTime = DateTimeOffset.Now;
         RefreshAsync().Detach();
     }
 
