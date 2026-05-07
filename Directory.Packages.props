@@ -1,18 +1,18 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MicrosoftPackageVersion>10.0.5</MicrosoftPackageVersion>
-    <MEAIVersion>10.4.1</MEAIVersion>
+    <MicrosoftPackageVersion>10.0.7</MicrosoftPackageVersion>
+    <MEAIVersion>10.5.2</MEAIVersion>
     <EntityFrameworkVersion>10.0.0</EntityFrameworkVersion>
-    <SemanticKernelVersion>1.74.0</SemanticKernelVersion>
-    <OpenTelemetryVersion>1.15.1</OpenTelemetryVersion>
-    <SentryVersion>6.3.0</SentryVersion>
+    <SemanticKernelVersion>1.75.0</SemanticKernelVersion>
+    <OpenTelemetryVersion>1.15.3</OpenTelemetryVersion>
+    <SentryVersion>6.5.0</SentryVersion>
     <AvaloniaVersion>11.3.12</AvaloniaVersion>
     <AvaloniaEditVersion>11.4.1</AvaloniaEditVersion>
     <LiveMarkdownVersion>1.9.2</LiveMarkdownVersion>
     <SkiaSharpVersion>3.119.2</SkiaSharpVersion>
     <XamlBehaviorsVersion>11.3.9.5</XamlBehaviorsVersion>
-    <TikTokenVersion>3.1.4</TikTokenVersion>
+    <TikTokenVersion>3.1.5</TikTokenVersion>
   </PropertyGroup>
   <ItemGroup Label="Common">
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
@@ -23,7 +23,7 @@
     <PackageVersion Include="Grpc.Core.Api" Version="2.71.0" />
     <PackageVersion Include="Grpc.Tools" Version="2.71.0" />
     <PackageVersion Include="IgnoresAccessChecksToGenerator" Version="0.8.0" />
-    <PackageVersion Include="JetBrains.Profiler.Api" Version="1.4.11" />
+    <PackageVersion Include="JetBrains.Profiler.Api" Version="1.4.13" />
     <PackageVersion Include="Microsoft.Build.Utilities.Core" Version="18.4.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="$(EntityFrameworkVersion)" />
@@ -52,7 +52,7 @@
     <PackageVersion Include="Svg.Controls.Skia.Avalonia" Version="11.3.9.4" />
     <PackageVersion Include="System.Drawing.Common" Version="$(MicrosoftPackageVersion)" />
     <PackageVersion Include="System.Text.Json" Version="$(MicrosoftPackageVersion)" />
-    <PackageVersion Include="ZLinq" Version="1.5.5" />
+    <PackageVersion Include="ZLinq" Version="1.5.6" />
   </ItemGroup>
   <ItemGroup Label="AI">
     <PackageVersion Include="Anthropic" Version="12.20.0" />
@@ -62,9 +62,9 @@
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.22.0" />
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="$(SemanticKernelVersion)" />
     <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="$(SemanticKernelVersion)" />
-    <PackageVersion Include="ModelContextProtocol" Version="1.1.0" />
+    <PackageVersion Include="ModelContextProtocol" Version="1.2.0" />
     <PackageVersion Include="OllamaSharp" Version="5.4.25" />
-    <PackageVersion Include="PuppeteerSharp" Version="24.40.0" />
+    <PackageVersion Include="PuppeteerSharp" Version="24.42.0" />
     <PackageVersion Include="Tiktoken.Core" Version="$(TikTokenVersion)" />
     <PackageVersion Include="Tiktoken.Encodings.o200k" Version="$(TikTokenVersion)" />
   </ItemGroup>
@@ -94,7 +94,7 @@
   </ItemGroup>
   <ItemGroup Label="Windows">
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.6.0" />
-    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.269">
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.275">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageVersion>
@@ -109,10 +109,10 @@
   </ItemGroup>
   <ItemGroup Label="Testing">
     <PackageVersion Include="BenchmarkDotNet" Version="0.15.1" />
-    <PackageVersion Include="coverlet.collector" Version="8.0.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.3.0" />
-    <PackageVersion Include="NUnit" Version="4.5.1" />
-    <PackageVersion Include="NUnit.Analyzers" Version="4.12.0" />
+    <PackageVersion Include="coverlet.collector" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+    <PackageVersion Include="NUnit" Version="4.6.0" />
+    <PackageVersion Include="NUnit.Analyzers" Version="4.13.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.2.0" />
   </ItemGroup>
   <ItemGroup Label="ShadUI">
