@@ -811,6 +811,7 @@
               IsSendButtonEnabled="{Binding !IsBusy}"
               IsToolCallEnabled="{Binding PersistentState.IsToolCallEnabled, Mode=TwoWay}"
               IsToolCallSupported="{Binding Settings.Model.SelectedCustomAssistant.SupportsToolCall, FallbackValue={x:False}}"
+              IsWebSearchEnabled="{Binding PersistentState.IsWebSearchEnabled, Mode=TwoWay}"
               LeadingContent="{Binding SelectedStrategy, Mode=TwoWay}"
               MaxChatAttachmentCount="{Binding PersistentState.MaxChatAttachmentCount}"
               MaxLength="{Binding ChatInputAreaTextMaxLength}"

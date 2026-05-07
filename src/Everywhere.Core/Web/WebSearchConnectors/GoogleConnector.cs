@@ -5,7 +5,7 @@ using System.Text.Json.Serialization.Metadata;
 using System.Web;
 using Microsoft.SemanticKernel.Data;
 
-namespace Everywhere.Chat.Plugins.BuiltIn;
+namespace Everywhere.Web;
 
 /// <summary>
 ///     Google Custom Search API

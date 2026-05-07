@@ -516,7 +516,7 @@
         <value>API 密钥</value>
     </data>
     <data name="CustomAssistant_ApiKey_Description" xml:space="preserve">
-        <value>如果是在线模型，需要从对应的官方获取，详情请参考指南。</value>
+        <value>如果是在线模型，需要从对应的官方获取，详情请参考文档。</value>
     </data>
     <data name="CustomAssistant_InputModalities_Header" xml:space="preserve">
         <value>输入模态</value>
@@ -569,7 +569,7 @@
     <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>以管理员身份重启</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
+    <data name="RestartAsAdministratorControl_RestartButton_Content" xml:space="preserve">
         <value>重启</value>
     </data>
     <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
@@ -633,19 +633,19 @@
         <value>API 密钥</value>
     </data>
     <data name="WebSearchEngineProvider_ApiKey_Description" xml:space="preserve">
-        <value>需要从对应的官方获取，详情请参考指南。</value>
+        <value>需要从对应的官方获取，详情请参考文档。</value>
     </data>
     <data name="WebSearchEngineProvider_SearchEngineId_Header" xml:space="preserve">
         <value>搜索引擎 ID</value>
     </data>
     <data name="WebSearchEngineProvider_SearchEngineId_Description" xml:space="preserve">
-        <value>(Google 专用) 提供可编程搜索引擎 ID，详情请参考指南。</value>
+        <value>提供可编程搜索引擎 ID，详情请参考文档。</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_Header" xml:space="preserve">
-        <value>网络浏览器</value>
+    <data name="BuiltInChatPlugin_Web_Header" xml:space="preserve">
+        <value>网页</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_Description" xml:space="preserve">
-        <value>提供浏览网络的能力，包括搜索引擎和网页访问功能，可减少模型幻觉，并提供最新信息。注意：使用“网络搜索”工具需要配置搜索引擎 API 密钥（和模型 API 密钥是不同的）。如果你不打算配置 API 密钥，可取消勾选“网络搜索”工具，仅使用“访问网页”工具。</value>
+    <data name="BuiltInChatPlugin_Web_Description" xml:space="preserve">
+        <value>提供浏览网页的能力。各家大模型在发布之后的知识往往已固定且在处理时效性问题时容易出现幻觉。此插件允许助手实时浏览网页内容从而提高助手能力。</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_Header" xml:space="preserve">
         <value>PowerShell</value>
@@ -1203,10 +1203,10 @@
     <data name="BuiltInChatPlugin_FileSystem_ReplaceFileContent_Header" xml:space="preserve">
         <value>修改文件内容</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Searching" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Searching" xml:space="preserve">
         <value>🔎 {0}</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Header" xml:space="preserve">
         <value>网络搜索</value>
     </data>
     <data name="ChatPluginDisplayBlockPresenter_FileReferences_TotalCountTextBlock_Text" xml:space="preserve">
@@ -1215,10 +1215,10 @@
     <data name="ChatPluginDisplayBlockPresenter_FileReferences_HasMoreReferencesTextBlock_Text" xml:space="preserve">
         <value>等等</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Header" xml:space="preserve">
-        <value>访问网页</value>
+    <data name="BuiltInChatPlugin_Web_WebExtract_Header" xml:space="preserve">
+        <value>提取网页内容</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Visiting" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebExtract_Visiting" xml:space="preserve">
         <value>🧐 {0}</value>
     </data>
     <data name="ChatPluginDisplayBlockPresenter_Urls_TotalCountTextBlock_Text" xml:space="preserve">
@@ -1356,31 +1356,31 @@
     <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Description" xml:space="preserve">
         <value>执行一组自动化操作，如点击、输入或发送快捷键。</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Description" xml:space="preserve">
         <value>进行网络搜索。</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Description" xml:space="preserve">
-        <value>获取网页内容快照。</value>
+    <data name="BuiltInChatPlugin_Web_WebExtract_Description" xml:space="preserve">
+        <value>提取网页的主要内容。这会在后台通过 Puppeteer 运行一个隐藏的网络浏览器，并通过此浏览器访问网页。出于兼容性考虑，首次打开可能会自动下载网络浏览器，视网络情况可能需要较长的时间。</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_NoWebSearchEngineProviderSelected_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_NoWebSearchEngineProviderSelected_ErrorMessage" xml:space="preserve">
         <value>未选择网页搜索引擎，请在插件设置中的网络浏览器配置搜索引擎。</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_InvalidWebSearchEngineEndpoint_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_InvalidWebSearchEngineEndpoint_ErrorMessage" xml:space="preserve">
         <value>提供的端点地址无效，请检查是否为完整的 URI</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_GoogleSearchEngineIdNotSet_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_GoogleSearchEngineIdNotSet_ErrorMessage" xml:space="preserve">
         <value>未设置谷歌搜索引擎 ID，请在插件设置中配置。</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_UnsupportedWebSearchEngineProvider_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_UnsupportedWebSearchEngineProvider_ErrorMessage" xml:space="preserve">
         <value>不支持的搜索引擎提供商，请在插件设置中更换。</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearchEngineApiKeyNotSet_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearchEngineApiKeyNotSet_ErrorMessage" xml:space="preserve">
         <value>未设置 API 密钥，请在插件设置中配置。</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_PuppeteerBrowserDownloadConnectionError_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_PuppeteerBrowserDownloadConnectionError_ErrorMessage" xml:space="preserve">
         <value>无法连接到 Puppeteer 浏览器下载地址。</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_PuppeteerBrowserLaunchError_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_PuppeteerBrowserLaunchError_ErrorMessage" xml:space="preserve">
         <value>无法启动 Puppeteer 浏览器。</value>
     </data>
     <data name="ScreenSelectionToolTip_TipText_Normal" xml:space="preserve">
@@ -2708,5 +2708,98 @@
     </data>
     <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ExecuteConsent_Header" xml:space="preserve">
         <value>是否允许执行下列自动化操作？</value>
+    </data>
+    <data name="WebSearchPage_Title" xml:space="preserve">
+        <value>网络搜索</value>
+    </data>
+    <data name="WebSearchEngineProvider_Bocha" xml:space="preserve">
+        <value>博查</value>
+    </data>
+    <data name="WebSearchEngineProvider_Official" xml:space="preserve">
+        <value>Everywhere 云搜索</value>
+    </data>
+    <data name="WebSearchPage_DocsHyperlinkButton_Content" xml:space="preserve">
+        <value>查看文档</value>
+    </data>
+    <data name="Common_Default" xml:space="preserve">
+        <value>默认</value>
+    </data>
+    <data name="WebSearchPage_SetDefaultButton_Content" xml:space="preserve">
+        <value>设为默认</value>
+    </data>
+    <data name="WebSearchPage_SetDefaultButton_AlreadyDefaultContent" xml:space="preserve">
+        <value>已设默认</value>
+    </data>
+    <data name="ValidationErrorMessage_RequiredApiKey" xml:space="preserve">
+        <value>API 密钥不能为空。</value>
+    </data>
+    <data name="WebBrowserSettings_ShowBrowser_Header" xml:space="preserve">
+        <value>在前台显示浏览器</value>
+    </data>
+    <data name="WebBrowserSettings_ShowBrowser_Description" xml:space="preserve">
+        <value>开启后，提取网页内容时将会显示浏览器，通常不建议开启。需重启软件生效。</value>
+    </data>
+    <data name="WebBrowserSettings_OpenBrowser_Header" xml:space="preserve">
+        <value>打开浏览器</value>
+    </data>
+    <data name="WebBrowserSettings_OpenBrowser_Description" xml:space="preserve">
+        <value>打开一个提取网页所用的网络浏览器实例，可以提前登录常用网站以减少提取网页时被当做机器人而拦截的机率。出于兼容性考虑，首次打开可能会自动下载网络浏览器，视网络情况可能需要较长的时间。</value>
+    </data>
+    <data name="OpenWebBrowserControl_OpenButton_Content" xml:space="preserve">
+        <value>打开</value>
+    </data>
+    <data name="BuiltInChatPlugin_Web_CannotOpenBrowserInHeadlessMode_ErrorMessage" xml:space="preserve">
+        <value>网络浏览器正在后台运行，无法打开。</value>
+    </data>
+    <data name="OfficialConnector_SearchTimeRange_Day" xml:space="preserve">
+        <value>一日内</value>
+    </data>
+    <data name="OfficialConnector_SearchDepth_Basic" xml:space="preserve">
+        <value>基础</value>
+    </data>
+    <data name="OfficialConnector_SearchDepth_Fast" xml:space="preserve">
+        <value>快速</value>
+    </data>
+    <data name="OfficialConnector_SearchDepth_UltraFast" xml:space="preserve">
+        <value>最快</value>
+    </data>
+    <data name="OfficialConnector_SearchTimeRange_Month" xml:space="preserve">
+        <value>一月内</value>
+    </data>
+    <data name="OfficialConnector_SearchTimeRange_Week" xml:space="preserve">
+        <value>一周内</value>
+    </data>
+    <data name="OfficialConnector_SearchTimeRange_Year" xml:space="preserve">
+        <value>一年内</value>
+    </data>
+    <data name="OfficialConnector_SearchTopic_Finance" xml:space="preserve">
+        <value>财经</value>
+    </data>
+    <data name="OfficialConnector_SearchTopic_General" xml:space="preserve">
+        <value>通用</value>
+    </data>
+    <data name="OfficialConnector_SearchTopic_News" xml:space="preserve">
+        <value>新闻</value>
+    </data>
+    <data name="OfficialWebSearchEngineProvider_Depth_Header" xml:space="preserve">
+        <value>搜索深度</value>
+    </data>
+    <data name="OfficialWebSearchEngineProvider_TimeRange_Header" xml:space="preserve">
+        <value>时间范围</value>
+    </data>
+    <data name="OfficialWebSearchEngineProvider_Topic_Header" xml:space="preserve">
+        <value>限定领域</value>
+    </data>
+    <data name="OfficialWebSearchEngineProvider_TimeRange_Description" xml:space="preserve">
+        <value>从当前日期向回的时间范围，用于根据发布日期或最后更新日期过滤结果。在寻找已发布或更新数据的来源时非常有用。此选项不影响调用成本。</value>
+    </data>
+    <data name="OfficialWebSearchEngineProvider_Topic_Description" xml:space="preserve">
+        <value>搜索的类别。例如“新闻”对于获取实时更新非常有用，特别是关于体育和主流媒体报道的重大时事。“通用”则用于更广泛的通用搜索，可能包括各种来源。此选项不影响调用成本。</value>
+    </data>
+    <data name="OfficialWebSearchEngineProvider_Depth_Description" xml:space="preserve">
+        <value>控制延迟与相关性之间的权衡，此选项不影响调用成本。</value>
+    </data>
+    <data name="ChatInputArea_WebSearchButton_ToolTip" xml:space="preserve">
+        <value>使用网络搜索提高助手回答的时效性</value>
     </data>
 </root>

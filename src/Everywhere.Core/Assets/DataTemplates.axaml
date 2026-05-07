@@ -96,12 +96,6 @@
   </DataTemplate>
 
   <DataTemplate
-    x:Key="{x:Type c:WebSearchEngineProvider}"
-    x:DataType="c:WebSearchEngineProvider">
-    <TextBlock Text="{Binding DisplayName}"/>
-  </DataTemplate>
-
-  <DataTemplate
     x:Key="{x:Type ai:CustomAssistant}"
     x:DataType="ai:CustomAssistant">
     <Grid ColumnSpacing="4">

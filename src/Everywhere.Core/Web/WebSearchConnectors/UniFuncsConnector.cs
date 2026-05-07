@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.SemanticKernel.Data;
 
-namespace Everywhere.Chat.Plugins.BuiltIn;
+namespace Everywhere.Web;
 
 public sealed partial class UniFuncsConnector(string apiKey, HttpClient httpClient, Uri uri)
     : WebSearchClient<UniFuncsConnector.Response>(httpClient, new Range(1, 50))

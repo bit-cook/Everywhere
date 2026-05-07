@@ -99,8 +99,9 @@ public static class CommonConverters
     {
         public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
         {
-            var first = values.AsValueEnumerable().FirstOrDefault(v => v != AvaloniaProperty.UnsetValue);
-            return first != null && values.AsValueEnumerable().Skip(1).All(v => v == first);
+            if (values.AsValueEnumerable().Any(v => v == AvaloniaProperty.UnsetValue)) return AvaloniaProperty.UnsetValue;
+            var firstValue = values[0];
+            return values.AsValueEnumerable().All(v => Equals(v, firstValue));
         }
     }
 

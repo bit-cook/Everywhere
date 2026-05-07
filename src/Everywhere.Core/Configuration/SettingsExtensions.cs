@@ -66,6 +66,7 @@ public static class SettingsExtensions
 #if WINDOWS
         .AddTransient<RestartAsAdministratorControl>()
 #endif
+        .AddTransient<OpenWebBrowserControl>()
         .AddTransient<DebugFeaturesControl>()
         .AddSingleton<KeyValueStorage>()
         .AddSingleton<IKeyValueStorage>(sp => sp.GetRequiredService<KeyValueStorage>())

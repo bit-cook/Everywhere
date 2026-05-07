@@ -515,9 +515,6 @@
     <data name="CustomAssistant_ApiKey_Header" xml:space="preserve">
         <value>Clave API</value>
     </data>
-    <data name="CustomAssistant_ApiKey_Description" xml:space="preserve">
-        <value>Para modelos en línea, necesitas obtenerla del sitio oficial correspondiente, por favor consulta la guía para más detalles.</value>
-    </data>
     <data name="CustomAssistant_InputModalities_Header" xml:space="preserve">
         <value>Modalidades de Entrada</value>
     </data>
@@ -569,7 +566,7 @@
     <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>Reiniciar como Administrador</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
+    <data name="RestartAsAdministratorControl_RestartButton_Content" xml:space="preserve">
         <value>Reiniciar</value>
     </data>
     <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
@@ -632,20 +629,8 @@
     <data name="WebSearchEngineProvider_ApiKey_Header" xml:space="preserve">
         <value>Clave API</value>
     </data>
-    <data name="WebSearchEngineProvider_ApiKey_Description" xml:space="preserve">
-        <value>Debe obtenerla del sitio oficial correspondiente, consulte la guía para más detalles.</value>
-    </data>
     <data name="WebSearchEngineProvider_SearchEngineId_Header" xml:space="preserve">
         <value>ID del Motor de Búsqueda</value>
-    </data>
-    <data name="WebSearchEngineProvider_SearchEngineId_Description" xml:space="preserve">
-        <value>(Solo Google) Proporciona un ID de motor de búsqueda programable. Para más detalles, consulte la guía.</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_Header" xml:space="preserve">
-        <value>Navegador Web</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_Description" xml:space="preserve">
-        <value>Proporciona capacidades de navegación web, incluyendo funciones de motor de búsqueda y acceso a páginas web, puede reducir alucinaciones del modelo y ofrecer información actualizada. Nota: Usar la herramienta &quot;Búsqueda Web&quot; requiere configurar una clave API de motor de búsqueda (diferente de la clave API del modelo). Si no tiene intención de configurar una clave API, puede desmarcar la herramienta &quot;Búsqueda Web&quot; y usar solo la herramienta &quot;Navegador Web&quot;.</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_Header" xml:space="preserve">
         <value>PowerShell</value>
@@ -1202,10 +1187,10 @@ Se pueden usar marcadores de posición en la palabra clave, que están contenido
     <data name="BuiltInChatPlugin_FileSystem_ReplaceFileContent_Header" xml:space="preserve">
         <value>Editar Contenido del Archivo</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Searching" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Searching" xml:space="preserve">
         <value>🔎 {0}</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Header" xml:space="preserve">
         <value>Búsqueda Web</value>
     </data>
     <data name="ChatPluginDisplayBlockPresenter_FileReferences_TotalCountTextBlock_Text" xml:space="preserve">
@@ -1214,10 +1199,7 @@ Se pueden usar marcadores de posición en la palabra clave, que están contenido
     <data name="ChatPluginDisplayBlockPresenter_FileReferences_HasMoreReferencesTextBlock_Text" xml:space="preserve">
         <value>etc.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Header" xml:space="preserve">
-        <value>Visitar Página Web</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Visiting" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebExtract_Visiting" xml:space="preserve">
         <value>🧐 {0}</value>
     </data>
     <data name="ChatPluginDisplayBlockPresenter_Urls_TotalCountTextBlock_Text" xml:space="preserve">
@@ -1355,31 +1337,28 @@ Se pueden usar marcadores de posición en la palabra clave, que están contenido
     <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Description" xml:space="preserve">
         <value>Ejecuta un conjunto de acciones automatizadas, como clics, entradas o envío de atajos.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Description" xml:space="preserve">
         <value>Realiza una búsqueda en la web.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Description" xml:space="preserve">
-        <value>Captura una instantánea del contenido y la información básica de una página web.</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_NoWebSearchEngineProviderSelected_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_NoWebSearchEngineProviderSelected_ErrorMessage" xml:space="preserve">
         <value>El proveedor del motor de búsqueda web no está seleccionado. Por favor, configúralo en la configuración del navegador web del plugin.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_InvalidWebSearchEngineEndpoint_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_InvalidWebSearchEngineEndpoint_ErrorMessage" xml:space="preserve">
         <value>El endpoint proporcionado es inválido; asegúrate de que sea una URI absoluta válida.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_GoogleSearchEngineIdNotSet_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_GoogleSearchEngineIdNotSet_ErrorMessage" xml:space="preserve">
         <value>El ID del motor de búsqueda de Google no está configurado. Por favor, configúralo en la configuración del plugin.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_UnsupportedWebSearchEngineProvider_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_UnsupportedWebSearchEngineProvider_ErrorMessage" xml:space="preserve">
         <value>El proveedor del motor de búsqueda web no es compatible. Por favor, cámbialo en la configuración del plugin.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearchEngineApiKeyNotSet_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearchEngineApiKeyNotSet_ErrorMessage" xml:space="preserve">
         <value>La clave API no está configurada. Por favor, configúralo en la configuración del plugin.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_PuppeteerBrowserDownloadConnectionError_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_PuppeteerBrowserDownloadConnectionError_ErrorMessage" xml:space="preserve">
         <value>Error al conectar con la URL de descarga del navegador Puppeteer.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_PuppeteerBrowserLaunchError_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_PuppeteerBrowserLaunchError_ErrorMessage" xml:space="preserve">
         <value>No se pudo iniciar el navegador Puppeteer.</value>
     </data>
     <data name="ScreenSelectionToolTip_TipText_Normal" xml:space="preserve">
@@ -2707,5 +2686,8 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     </data>
     <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ExecuteConsent_Header" xml:space="preserve">
         <value>¿Permitir ejecutar las siguientes acciones automatizadas?</value>
+    </data>
+    <data name="WebSearchEngineProvider_Bocha" xml:space="preserve">
+        <value>Bocha</value>
     </data>
 </root>

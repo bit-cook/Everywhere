@@ -514,9 +514,6 @@
     <data name="CustomAssistant_ApiKey_Header" xml:space="preserve">
         <value>API Anahtarı</value>
     </data>
-    <data name="CustomAssistant_ApiKey_Description" xml:space="preserve">
-        <value>Çevrimiçi modeller için ilgili resmi kaynaktan almanız gerekir, ayrıntılar için lütfen kılavuzu inceleyin.</value>
-    </data>
     <data name="CustomAssistant_InputModalities_Header" xml:space="preserve">
         <value>Giriş Modları</value>
     </data>
@@ -568,7 +565,7 @@
     <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>Yönetici Olarak Yeniden Başlat</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
+    <data name="RestartAsAdministratorControl_RestartButton_Content" xml:space="preserve">
         <value>Yeniden Başlat</value>
     </data>
     <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
@@ -631,20 +628,8 @@
     <data name="WebSearchEngineProvider_ApiKey_Header" xml:space="preserve">
         <value>API Anahtarı</value>
     </data>
-    <data name="WebSearchEngineProvider_ApiKey_Description" xml:space="preserve">
-        <value>İlgili resmi kaynaktan almanız gerekir, ayrıntılar için lütfen kılavuzu inceleyin.</value>
-    </data>
     <data name="WebSearchEngineProvider_SearchEngineId_Header" xml:space="preserve">
         <value>Arama Motoru Kimliği</value>
-    </data>
-    <data name="WebSearchEngineProvider_SearchEngineId_Description" xml:space="preserve">
-        <value>(Yalnızca Google için) Programlanabilir arama motoru kimliği sağlar. Ayrıntılar için kılavuzu inceleyin.</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_Header" xml:space="preserve">
-        <value>Web Tarayıcı</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_Description" xml:space="preserve">
-        <value>Arama motoru ve web sayfası erişim fonksiyonları da dahil olmak üzere web gezinme yetenekleri sunmak, model halüsinasyonlarını azaltabilir ve güncel bilgi sağlayabilir. Not: &quot;Web Arama&quot; aracını kullanmak için bir arama motoru API anahtarı (model API anahtarından farklı) yapılandırmanız gerekir. API anahtarı yapılandırmayı planlamıyorsanız, &quot;Web Arama&quot; aracını işaret kaldırıp yalnızca &quot;Web Tarayıcı&quot; aracını kullanabilirsiniz.</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_Header" xml:space="preserve">
         <value>PowerShell</value>
@@ -1201,10 +1186,10 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     <data name="BuiltInChatPlugin_FileSystem_ReplaceFileContent_Header" xml:space="preserve">
         <value>Dosya İçeriğini Düzenle</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Searching" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Searching" xml:space="preserve">
         <value>🔎 {0}</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Header" xml:space="preserve">
         <value>Web Arama</value>
     </data>
     <data name="ChatPluginDisplayBlockPresenter_FileReferences_TotalCountTextBlock_Text" xml:space="preserve">
@@ -1213,10 +1198,7 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     <data name="ChatPluginDisplayBlockPresenter_FileReferences_HasMoreReferencesTextBlock_Text" xml:space="preserve">
         <value>vs.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Header" xml:space="preserve">
-        <value>Web Sayfasını Ziyaret Et</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Visiting" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebExtract_Visiting" xml:space="preserve">
         <value>🧐 {0}</value>
     </data>
     <data name="ChatPluginDisplayBlockPresenter_Urls_TotalCountTextBlock_Text" xml:space="preserve">
@@ -1354,31 +1336,28 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Description" xml:space="preserve">
         <value>Tıklama, yazma veya kısayol gönderme gibi bir dizi otomatik işlem gerçekleştirin.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Description" xml:space="preserve">
         <value>Bir web araması yapın.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Description" xml:space="preserve">
-        <value>Bir web sayfasının içeriğinin ve temel bilgilerinin anlık görüntüsünü alın.</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_NoWebSearchEngineProviderSelected_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_NoWebSearchEngineProviderSelected_ErrorMessage" xml:space="preserve">
         <value>Web arama motoru sağlayıcısı seçilmemiştir. Lütfen bunu eklenti ayarlarında yapılandırın.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_InvalidWebSearchEngineEndpoint_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_InvalidWebSearchEngineEndpoint_ErrorMessage" xml:space="preserve">
         <value>Verilen uç nokta geçersiz; lütfen geçerli bir mutlak URI olduğundan emin olun.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_GoogleSearchEngineIdNotSet_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_GoogleSearchEngineIdNotSet_ErrorMessage" xml:space="preserve">
         <value>Google Arama Motoru ID'si ayarlanmamıştır. Lütfen bunu eklenti ayarlarında yapılandırın.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_UnsupportedWebSearchEngineProvider_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_UnsupportedWebSearchEngineProvider_ErrorMessage" xml:space="preserve">
         <value>Web arama motoru sağlayıcısı desteklenmiyor. Lütfen bunu eklenti ayarlarında değiştirin.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearchEngineApiKeyNotSet_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearchEngineApiKeyNotSet_ErrorMessage" xml:space="preserve">
         <value>API anahtarı ayarlanmamıştır. Lütfen bunu eklenti ayarlarında yapılandırın.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_PuppeteerBrowserDownloadConnectionError_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_PuppeteerBrowserDownloadConnectionError_ErrorMessage" xml:space="preserve">
         <value>Puppeteer tarayıcı indirme URL'sine bağlanılamadı.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_PuppeteerBrowserLaunchError_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_PuppeteerBrowserLaunchError_ErrorMessage" xml:space="preserve">
         <value>Puppeteer tarayıcısını başlatma başarısız oldu.</value>
     </data>
     <data name="ScreenSelectionToolTip_TipText_Normal" xml:space="preserve">
@@ -2706,5 +2685,8 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     </data>
     <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ExecuteConsent_Header" xml:space="preserve">
         <value>Aşağıdaki otomatik işlemleri gerçekleştirmeye izin veriyor musunuz?</value>
+    </data>
+    <data name="WebSearchEngineProvider_Bocha" xml:space="preserve">
+        <value>Bocha</value>
     </data>
 </root>

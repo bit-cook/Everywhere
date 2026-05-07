@@ -1,31 +1,29 @@
-﻿using System.Runtime.Versioning;
-using Avalonia.Controls.Primitives;
+﻿using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.Common;
-using Everywhere.Interop;
+using Everywhere.Web;
 using Microsoft.Extensions.Logging;
 using ShadUI;
 
 namespace Everywhere.Views;
 
-[SupportedOSPlatform("windows")]
-public partial class RestartAsAdministratorControl(
-    INativeHelper nativeHelper,
+public partial class OpenWebBrowserControl(
+    IWebBrowserHost webBrowserHost,
     ToastManager toastManager,
     ILogger<RestartAsAdministratorControl> logger
 ) : TemplatedControl
 {
     [RelayCommand]
-    private void RestartAsAdministrator()
+    private async Task OpenBrowserAsync()
     {
         try
         {
-            nativeHelper.RestartAsAdministrator();
+            await webBrowserHost.OpenBrowserAsync();
         }
         catch (Exception ex)
         {
-            ex = HandledSystemException.Handle(ex); // maybe blocked by UAC or antivirus, handle it gracefully
-            logger.LogInformation(ex, "Failed to restart as administrator.");
+            ex = HandledSystemException.Handle(ex);
+            logger.LogInformation(ex, "Failed to open web browser");
             toastManager
                 .CreateToast(LocaleResolver.Common_Error)
                 .WithContent(ex.GetFriendlyMessage())

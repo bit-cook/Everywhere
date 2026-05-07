@@ -6,7 +6,6 @@ using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using Everywhere.Common;
 using Everywhere.Interop;
-using LiveMarkdown.Avalonia;
 using Lucide.Avalonia;
 using MessagePack;
 using ZLinq;
@@ -138,13 +137,20 @@ public sealed partial class ChatPluginProgressDisplayBlock(IDynamicResourceKey h
 /// Represents a reference to a file or folder in a chat plugin display block.
 /// </summary>
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
-public partial class ChatPluginFileReference(string fullPath, IDynamicResourceKey? displayNameKey = null)
+public partial class ChatPluginFileReference(
+    string fullPath,
+    IDynamicResourceKey? displayNameKey = null,
+    IReadOnlySet<ChatPluginFileReference.Location>? locations = null
+)
 {
     [Key(0)]
     public string FullPath { get; } = fullPath;
 
     [Key(1)]
     public IDynamicResourceKey? DisplayNameKey { get; } = displayNameKey;
+
+    [Key(2)]
+    public IReadOnlySet<Location>? Locations { get; } = locations;
 
     [IgnoreMember]
     public Task<LucideIconKind> IconAsync => Task.Run(() =>
@@ -168,6 +174,8 @@ public partial class ChatPluginFileReference(string fullPath, IDynamicResourceKe
     {
         ServiceLocator.Resolve<INativeHelper>().OpenFileLocation(FullPath);
     }
+
+    public readonly record struct Location(int Line, int Column);
 }
 
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]

@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.SemanticKernel.Data;
 
-namespace Everywhere.Chat.Plugins.BuiltIn;
+namespace Everywhere.Web;
 
 /// <summary>
 ///     BoCha Web Search API

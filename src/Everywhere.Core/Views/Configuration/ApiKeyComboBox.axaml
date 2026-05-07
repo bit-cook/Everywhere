@@ -8,7 +8,8 @@
     <Setter Property="Template">
       <ControlTemplate>
         <ComboBox
-          MinWidth="320" MinHeight="32"
+          x:Name="PART_ComboBox" MinWidth="320"
+          MinHeight="32"
           ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource TemplatedParent}}"
           MaxDropDownHeight="320"
           SelectedValue="{Binding SelectedId, Mode=TwoWay, FallbackValue={x:Static system:Guid.Empty}, RelativeSource={RelativeSource TemplatedParent}}"

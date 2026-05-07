@@ -1,0 +1,161 @@
+﻿using System.ComponentModel;
+using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+using Everywhere.Cloud;
+using Everywhere.Common;
+using Everywhere.Configuration;
+using Microsoft.SemanticKernel.Data;
+
+namespace Everywhere.Web;
+
+public sealed partial class OfficialConnector(
+    HttpClient httpClient,
+    OfficialWebSearchEngineSettings settings
+) : WebSearchClient<OfficialConnector.Response>(httpClient, new Range(0, 20))
+{
+    private readonly JsonSerializerOptions _requestJsonSerializerOptions = new()
+    {
+        TypeInfoResolver = OfficialJsonSerializerContext.Default,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+        Converters =
+        {
+            new JsonStringEnumConverter<SearchDepth>(JsonNamingPolicy.KebabCaseLower),
+            new JsonStringEnumConverter<SearchTopic>(JsonNamingPolicy.KebabCaseLower),
+            new JsonStringEnumConverter<SearchTimeRange>(JsonNamingPolicy.KebabCaseLower),
+        }
+    };
+
+    protected override JsonTypeInfo<Response> JsonTypeInfo => OfficialJsonSerializerContext.Default.Response;
+
+    protected override HttpRequestMessage CreateSearchRequest(string query, int count)
+    {
+        return new HttpRequestMessage(HttpMethod.Post, CloudConstants.WebSearchBaseUrl)
+        {
+            Content = JsonContent.Create(
+                new Request(
+                    query,
+                    count,
+                    settings.Depth.EnsureDefined(),
+                    settings.Topic.EnsureDefined(),
+                    settings.TimeRange.EnsureDefined()),
+                options: _requestJsonSerializerOptions)
+        };
+    }
+
+    protected override Exception? TransformSearchException(Exception exception)
+    {
+        if (exception is UserNotLoginException)
+        {
+            throw new HandledException(
+                new UserNotLoginException(
+                    "Everywhere cloud search service requires user login. Please instruct the user to login or configure 3rd-party search services"),
+                new DynamicResourceKey(LocaleKey.HandledSystemException_UserNotLogin),
+                showDetails: false);
+        }
+
+        return null;
+    }
+
+    [TypeConverter(typeof(FallbackEnumConverter))]
+    public enum SearchDepth
+    {
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchDepth_Basic)]
+        Basic,
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchDepth_Fast)]
+        Fast,
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchDepth_UltraFast)]
+        UltraFast
+    }
+
+    [TypeConverter(typeof(FallbackEnumConverter))]
+    public enum SearchTopic
+    {
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchTopic_General)]
+        General,
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchTopic_News)]
+        News,
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchTopic_Finance)]
+        Finance
+    }
+
+    [TypeConverter(typeof(FallbackEnumConverter))]
+    public enum SearchTimeRange
+    {
+        [DynamicResourceKey(LocaleKey.Common_Default)]
+        Default,
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchTimeRange_Day)]
+        Day,
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchTimeRange_Month)]
+        Week,
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchTimeRange_Month)]
+        Month,
+        [DynamicResourceKey(LocaleKey.OfficialConnector_SearchTimeRange_Year)]
+        Year
+    }
+
+    [JsonSerializable(typeof(Request))]
+    [JsonSerializable(typeof(Response))]
+    private partial class OfficialJsonSerializerContext : JsonSerializerContext;
+
+    private sealed record Request(
+        [property: JsonPropertyName("query")] string Query,
+        [property: JsonPropertyName("max_results")] int MaxResults,
+        [property: JsonPropertyName("search_depth")] SearchDepth Depth = SearchDepth.Basic,
+        [property: JsonPropertyName("topic")] SearchTopic Topic = SearchTopic.General,
+        [property: JsonPropertyName("time_range")] SearchTimeRange TimeRange = SearchTimeRange.Default,
+        [property: JsonPropertyName("include_domains")] IReadOnlyList<string>? IncludeDomains = null,
+        [property: JsonPropertyName("exclude_domains")] IReadOnlyList<string>? ExcludeDomains = null
+    );
+
+    public sealed class Response : IWebSearchResponse
+    {
+        [JsonPropertyName("detail")]
+        public ErrorResult? Detail { get; init; }
+
+        [JsonPropertyName("results")]
+        public IReadOnlyList<WebSearchResult>? SearchResults { get; init; }
+
+        public IEnumerable<TextSearchResult> ToResults()
+        {
+            if (Detail is not null)
+            {
+                throw new InvalidDataException($"Official Web Search API returned an empty result. Error: {Detail?.Error}");
+            }
+
+            return SearchResults?.Select(x => new TextSearchResult(x.Content ?? "")
+            {
+                Name = x.Title,
+                Link = x.Url,
+            }) ?? [];
+        }
+    }
+
+    public sealed class ErrorResult
+    {
+        [JsonPropertyName("error")]
+        public required string Error { get; init; }
+    }
+
+    public sealed class WebSearchResult
+    {
+        /// <summary>
+        ///     The title of the search result.
+        /// </summary>
+        [JsonPropertyName("title")]
+        public string? Title { get; init; }
+
+        /// <summary>
+        ///     The URL of the search result.
+        /// </summary>
+        [JsonPropertyName("url")]
+        public string? Url { get; init; }
+
+        /// <summary>
+        ///     The description/snippet of the search result.
+        /// </summary>
+        [JsonPropertyName("content")]
+        public string? Content { get; init; }
+    }
+}

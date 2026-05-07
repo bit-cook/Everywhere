@@ -9,6 +9,7 @@ using Everywhere.Database;
 using Everywhere.Storage;
 using Everywhere.Views;
 using Everywhere.Views.Pages;
+using Everywhere.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -34,6 +35,8 @@ public static class ServiceExtension
                 .AddSingleton<IMainViewNavigationItem, CustomAssistantPage>()
                 .AddSingleton<ChatPluginPageViewModel>()
                 .AddSingleton<IMainViewNavigationItem, ChatPluginPage>()
+                .AddSingleton<WebSearchEnginePageViewModel>()
+                .AddSingleton<IMainViewNavigationItem, WebSearchEnginePage>()
                 .AddTransient<IMainViewNavigationItem, SettingsPage>()
                 .AddSingleton<AboutPageViewModel>()
                 .AddSingleton<IMainViewNavigationItem, AboutPage>()
@@ -62,13 +65,14 @@ public static class ServiceExtension
                 .AddSingleton<IKernelMixinFactory, KernelMixinFactory>()
                 .AddSingleton<IChatPluginManager, ChatPluginManager>()
                 .AddSingleton<IChatService, ChatService>()
+                .AddSingleton<IWebBrowserHost, WebBrowserHost>()
                 .AddChatContextManager()
                 .AddManagedMcp()
 
                 // Add built-in plugins
                 .AddTransient<BuiltInChatPlugin, EssentialPlugin>()
                 .AddTransient<BuiltInChatPlugin, VisualContextPlugin>()
-                .AddTransient<BuiltInChatPlugin, WebBrowserPlugin>()
+                .AddTransient<BuiltInChatPlugin, WebPlugin>()
                 .AddTransient<BuiltInChatPlugin, FileSystemPlugin>();
 
     }

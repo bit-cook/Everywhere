@@ -515,9 +515,6 @@
     <data name="CustomAssistant_ApiKey_Header" xml:space="preserve">
         <value>API Key</value>
     </data>
-    <data name="CustomAssistant_ApiKey_Description" xml:space="preserve">
-        <value>Для онлайн-моделей необходимо получить у соответствующего официального представителя, пожалуйста, обратитесь к руководству для получения подробной информации.</value>
-    </data>
     <data name="CustomAssistant_InputModalities_Header" xml:space="preserve">
         <value>Входные Модальности</value>
     </data>
@@ -569,7 +566,7 @@
     <data name="SoftwareSettings_RestartAsAdministrator_Header" xml:space="preserve">
         <value>Перезапуск от имени администратора</value>
     </data>
-    <data name="CommonSettings_RestartAsAdministrator_Button_Content" xml:space="preserve">
+    <data name="RestartAsAdministratorControl_RestartButton_Content" xml:space="preserve">
         <value>Перезапустить</value>
     </data>
     <data name="SoftwareSettings_DebugFeatures_Header" xml:space="preserve">
@@ -632,20 +629,8 @@
     <data name="WebSearchEngineProvider_ApiKey_Header" xml:space="preserve">
         <value>API ключ</value>
     </data>
-    <data name="WebSearchEngineProvider_ApiKey_Description" xml:space="preserve">
-        <value>Необходимо получить у соответствующего официального представителя, подробности смотрите в руководстве.</value>
-    </data>
     <data name="WebSearchEngineProvider_SearchEngineId_Header" xml:space="preserve">
         <value>ID поисковой системы</value>
-    </data>
-    <data name="WebSearchEngineProvider_SearchEngineId_Description" xml:space="preserve">
-        <value>(Только для Google) Предоставляет программируемый ID поисковой системы. Подробности смотрите в руководстве.</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_Header" xml:space="preserve">
-        <value>Веб-браузер</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_Description" xml:space="preserve">
-        <value>Предоставление возможностей веб-браузинга, включая функции поисковой системы и доступа к веб-страницам, может уменьшить галлюцинации модели и предоставить актуальную информацию. Примечание: использование инструмента &quot;Поиск в интернете&quot; требует настройки API ключа поисковой системы (отличного от API ключа модели). Если вы не собираетесь настраивать API ключ, вы можете снять отметку с инструмента &quot;Поиск в интернете&quot; и использовать только инструмент &quot;Веб-браузер&quot;.</value>
     </data>
     <data name="Windows_BuiltInChatPlugin_PowerShell_Header" xml:space="preserve">
         <value>PowerShell</value>
@@ -1202,10 +1187,10 @@
     <data name="BuiltInChatPlugin_FileSystem_ReplaceFileContent_Header" xml:space="preserve">
         <value>Редактировать содержимое файла</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Searching" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Searching" xml:space="preserve">
         <value>🔎 {0}</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Header" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Header" xml:space="preserve">
         <value>Поиск в Интернете</value>
     </data>
     <data name="ChatPluginDisplayBlockPresenter_FileReferences_TotalCountTextBlock_Text" xml:space="preserve">
@@ -1214,10 +1199,7 @@
     <data name="ChatPluginDisplayBlockPresenter_FileReferences_HasMoreReferencesTextBlock_Text" xml:space="preserve">
         <value>и т.д.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Header" xml:space="preserve">
-        <value>Посетить веб-страницу</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Visiting" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebExtract_Visiting" xml:space="preserve">
         <value>🧐 {0}</value>
     </data>
     <data name="ChatPluginDisplayBlockPresenter_Urls_TotalCountTextBlock_Text" xml:space="preserve">
@@ -1355,31 +1337,28 @@
     <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_Description" xml:space="preserve">
         <value>Выполняет набор автоматизированных действий, таких как клик, ввод или отправка горячих клавиш.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearch_Description" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearch_Description" xml:space="preserve">
         <value>Выполнить веб-поиск.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSnapshot_Description" xml:space="preserve">
-        <value>Сделать снимок содержимого веб-страницы и основной информации.</value>
-    </data>
-    <data name="BuiltInChatPlugin_WebBrowser_NoWebSearchEngineProviderSelected_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_NoWebSearchEngineProviderSelected_ErrorMessage" xml:space="preserve">
         <value>Поставщик веб-поиска не выбран. Пожалуйста, настройте его в настройках веб-браузера плагина.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_InvalidWebSearchEngineEndpoint_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_InvalidWebSearchEngineEndpoint_ErrorMessage" xml:space="preserve">
         <value>Предоставленный конечный пункт недействителен; пожалуйста, убедитесь, что это действительный абсолютный URI.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_GoogleSearchEngineIdNotSet_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_GoogleSearchEngineIdNotSet_ErrorMessage" xml:space="preserve">
         <value>Идентификатор поисковой системы Google не установлен. Пожалуйста, настройте его в настройках плагина.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_UnsupportedWebSearchEngineProvider_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_UnsupportedWebSearchEngineProvider_ErrorMessage" xml:space="preserve">
         <value>Поставщик веб-поиска не поддерживается. Пожалуйста, измените его в настройках плагина.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_WebSearchEngineApiKeyNotSet_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_WebSearchEngineApiKeyNotSet_ErrorMessage" xml:space="preserve">
         <value>Ключ API не установлен. Пожалуйста, настройте его в настройках плагина.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_PuppeteerBrowserDownloadConnectionError_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_PuppeteerBrowserDownloadConnectionError_ErrorMessage" xml:space="preserve">
         <value>Не удалось подключиться к URL-адресу загрузки браузера Puppeteer.</value>
     </data>
-    <data name="BuiltInChatPlugin_WebBrowser_PuppeteerBrowserLaunchError_ErrorMessage" xml:space="preserve">
+    <data name="BuiltInChatPlugin_Web_PuppeteerBrowserLaunchError_ErrorMessage" xml:space="preserve">
         <value>Не удалось запустить браузер Puppeteer.</value>
     </data>
     <data name="ScreenSelectionToolTip_TipText_Normal" xml:space="preserve">
@@ -2707,5 +2686,8 @@
     </data>
     <data name="BuiltInChatPlugin_VisualContext_ExecuteVisualActions_ExecuteConsent_Header" xml:space="preserve">
         <value>Разрешаете ли вы выполнение следующих автоматизированных действий?</value>
+    </data>
+    <data name="WebSearchEngineProvider_Bocha" xml:space="preserve">
+        <value>Bocha</value>
     </data>
 </root>

@@ -46,7 +46,11 @@
           <DataTemplate DataType="ai:CustomAssistant">
             <DockPanel
               HorizontalSpacing="10" LastChildFill="True">
-              <LucideIcon Name="GripIcon" Kind="GripVertical" DockPanel.Dock="Right" Foreground="{DynamicResource MutedColor}" Size="{DynamicResource FontSizeXl}"/>
+              <LucideIcon
+                Name="GripIcon" DockPanel.Dock="Right"
+                Foreground="{DynamicResource MutedColor}"
+                Kind="GripVertical"
+                Size="{DynamicResource FontSizeXl}"/>
 
               <v:IconPresenter
                 DockPanel.Dock="Left" Width="40"
@@ -60,7 +64,7 @@
               <StackPanel VerticalAlignment="Center">
                 <TextBlock
                   Classes="p"
-                  Text="{Binding Name, FallbackValue={x:Null}}"
+                  Text="{Binding Name}"
                   TextTrimming="CharacterEllipsis"
                   ToolTip.Tip="{Binding $self.Text}"/>
 

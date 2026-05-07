@@ -32,6 +32,8 @@ public sealed partial class PluginSettings : SettingsBase
     /// Gets or sets the web search engine settings.
     /// </summary>
     public WebSearchEngineSettings WebSearchEngine { get; set; } = new();
+
+    public WebBrowserSettings WebBrowser { get; set; } = new();
 }
 
 /// <summary>

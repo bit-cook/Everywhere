@@ -56,4 +56,16 @@ public static class EnumExtension
 
         return Enum.TryParse(enumType, name, out value);
     }
+
+    /// <summary>
+    /// Ensures that the enum value is defined in the enum type. If it is not, returns the specified fallback value (or default if not specified).
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="fallbackValue"></param>
+    /// <typeparam name="T"></typeparam>
+    /// <returns></returns>
+    public static T EnsureDefined<T>(this T value, T fallbackValue = default) where T : struct, Enum
+    {
+        return Enum.IsDefined(value) ? value : fallbackValue;
+    }
 }

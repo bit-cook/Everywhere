@@ -66,6 +66,9 @@ public sealed partial class ChatInputArea : TemplatedControl
     public static readonly StyledProperty<bool> IsToolCallEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsToolCallEnabled));
 
+    public static readonly StyledProperty<bool> IsWebSearchEnabledProperty =
+        AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsWebSearchEnabled));
+
     public static readonly StyledProperty<Flyout?> ToolCallButtonFlyoutProperty =
         AvaloniaProperty.Register<ChatInputArea, Flyout?>(nameof(ToolCallButtonFlyout));
 
@@ -179,6 +182,12 @@ public sealed partial class ChatInputArea : TemplatedControl
     {
         get => GetValue(IsToolCallEnabledProperty);
         set => SetValue(IsToolCallEnabledProperty, value);
+    }
+
+    public bool IsWebSearchEnabled
+    {
+        get => GetValue(IsWebSearchEnabledProperty);
+        set => SetValue(IsWebSearchEnabledProperty, value);
     }
 
     public Flyout? ToolCallButtonFlyout

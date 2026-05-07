@@ -1,17 +1,19 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Runtime.Serialization;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Avalonia.Data;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Collections;
 using Everywhere.Views;
+using Everywhere.Web;
 
 namespace Everywhere.Configuration;
 
 [TypeConverter(typeof(FallbackEnumConverter))]
 public enum WebSearchEngineProviderId
 {
+    Official,
     Google,
     Tavily,
     Brave,
@@ -21,39 +23,141 @@ public enum WebSearchEngineProviderId
     SearXNG
 }
 
+public interface IWebSearchEngineProvider
+{
+    WebSearchEngineProviderId Id { get; }
+
+    IDynamicResourceKey HeaderKey { get; }
+
+    string IconUrl { get; }
+
+    string? DocsUrl { get; }
+
+    SettingsItems SettingsItems { get; }
+
+    bool Validate();
+}
+
 [GeneratedSettingsItems]
-public sealed partial class WebSearchEngineProvider(ObservableCollection<ApiKey> apiKeys) : ObservableObject
+public sealed partial class OfficialWebSearchEngineSettings : ObservableObject
+{
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.OfficialWebSearchEngineProvider_Depth_Header,
+        LocaleKey.OfficialWebSearchEngineProvider_Depth_Description)]
+    public partial OfficialConnector.SearchDepth Depth { get; set; }
+
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.OfficialWebSearchEngineProvider_Topic_Header,
+        LocaleKey.OfficialWebSearchEngineProvider_Topic_Description)]
+    public partial OfficialConnector.SearchTopic Topic { get; set; }
+
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.OfficialWebSearchEngineProvider_TimeRange_Header,
+        LocaleKey.OfficialWebSearchEngineProvider_TimeRange_Description)]
+    public partial OfficialConnector.SearchTimeRange TimeRange { get; set; }
+}
+
+[GeneratedSettingsItems]
+public sealed partial class OfficialWebSearchEngineProvider : ObservableObject, IWebSearchEngineProvider
 {
     [JsonIgnore]
     [HiddenSettingsItem]
-    public required WebSearchEngineProviderId Id { get; init; }
+    public WebSearchEngineProviderId Id => WebSearchEngineProviderId.Official;
 
     [JsonIgnore]
     [HiddenSettingsItem]
-    public string DisplayName { get; init; } = string.Empty;
+    public IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.WebSearchEngineProvider_Official);
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public string IconUrl => "avares://Everywhere.Core/Assets/Icons/everywhere-rounded.png";
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public string? DocsUrl => null;
+
+    [HiddenSettingsItem]
+    public OfficialWebSearchEngineSettings Settings { get; } = new();
+
+    [DynamicResourceKey(LocaleKey.Empty)]
+    public SettingsControl<OfficialWebSearchProviderSettingsControl> SettingsControl =>
+        new(x => new OfficialWebSearchProviderSettingsControl(x, Settings));
+
+    public bool Validate() => true;
+
+    public override bool Equals(object? obj) => obj is IWebSearchEngineProvider provider && Id == provider.Id;
+
+    public override int GetHashCode() => Id.GetHashCode();
+}
+
+public abstract class ThirdPartyWebSearchEngineProvider : ObservableValidator, IWebSearchEngineProvider
+{
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public abstract WebSearchEngineProviderId Id { get; }
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public abstract IDynamicResourceKey HeaderKey { get; }
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public abstract string IconUrl { get; }
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public abstract string? DocsUrl { get; }
+
+    public abstract SettingsItems SettingsItems { get; }
+
+    public bool Validate()
+    {
+        ValidateAllProperties();
+        return !HasErrors;
+    }
+
+    public override bool Equals(object? obj) => obj is IWebSearchEngineProvider provider && Id == provider.Id;
+
+    public override int GetHashCode() => Id.GetHashCode();
+}
+
+[GeneratedSettingsItems]
+public sealed partial class GoogleWebSearchEngineProvider(ObservableCollection<ApiKey> apiKeys) : ThirdPartyWebSearchEngineProvider
+{
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override WebSearchEngineProviderId Id => WebSearchEngineProviderId.Google;
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override IDynamicResourceKey HeaderKey { get; } = new DirectResourceKey("Google");
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override string IconUrl => "avares://Everywhere.Core/Assets/Icons/google-color.svg";
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override string DocsUrl => "https://developers.google.com/custom-search/v1/overview";
 
     [DynamicResourceKey(
         LocaleKey.WebSearchEngineProvider_EndPoint_Header,
         LocaleKey.WebSearchEngineProvider_EndPoint_Description)]
-    public required Customizable<string> EndPoint { get; init; }
+    public Customizable<string> EndPoint { get; } = new("https://customsearch.googleapis.com", isDefaultValueReadonly: true);
 
     [ObservableProperty]
     [HiddenSettingsItem]
+    [NotifyDataErrorInfo]
+    [CustomValidation(typeof(ApiKey), nameof(Configuration.ApiKey.Validate))]
     public partial Guid ApiKey { get; set; }
 
     [JsonIgnore]
-    [HiddenSettingsItem]
-    public bool IsSearchEngineIdVisible => Id == WebSearchEngineProviderId.Google;
-
-    [JsonIgnore]
-    [HiddenSettingsItem]
-    public bool IsApiKeyVisible => Id != WebSearchEngineProviderId.SearXNG;
-
-    [JsonIgnore]
     [DynamicResourceKey(
-        LocaleKey.CustomAssistant_ApiKey_Header,
-        LocaleKey.CustomAssistant_ApiKey_Description)]
-    [SettingsItem(IsVisibleBindingPath = nameof(IsApiKeyVisible))]
+        LocaleKey.WebSearchEngineProvider_ApiKey_Header,
+        LocaleKey.WebSearchEngineProvider_ApiKey_Description)]
     public SettingsControl<ApiKeyComboBox> ApiKeyControl => new(
         new ApiKeyComboBox(apiKeys)
         {
@@ -64,27 +168,106 @@ public sealed partial class WebSearchEngineProvider(ObservableCollection<ApiKey>
             },
         });
 
-    /// <summary>
-    /// for Google search engine, this is the search engine ID.
-    /// </summary>
-    [IgnoreDataMember]
     [ObservableProperty]
     [DynamicResourceKey(
         LocaleKey.WebSearchEngineProvider_SearchEngineId_Header,
         LocaleKey.WebSearchEngineProvider_SearchEngineId_Description)]
-    [SettingsItem(IsVisibleBindingPath = nameof(IsSearchEngineIdVisible))]
+    [NotifyDataErrorInfo]
+    [CustomValidation(typeof(GoogleWebSearchEngineProvider), nameof(ValidateSearchEngineId))]
     public partial string? SearchEngineId { get; set; }
 
-    public override bool Equals(object? obj) => obj is WebSearchEngineProvider provider && Id == provider.Id;
+    public static ValidationResult? ValidateSearchEngineId(string? searchEngineId)
+    {
+        if (string.IsNullOrWhiteSpace(searchEngineId))
+        {
+            return new ValidationResult(LocaleResolver.ValidationErrorMessage_Required);
+        }
 
-    public override int GetHashCode() => Id.GetHashCode();
+        return ValidationResult.Success;
+    }
+}
+
+[GeneratedSettingsItems]
+public sealed partial class ApiKeyWebSearchEngineProvider(
+    WebSearchEngineProviderId id,
+    IDynamicResourceKey headerKey,
+    string iconUrl,
+    string? docsUrl,
+    ObservableCollection<ApiKey> apiKeys
+) : ThirdPartyWebSearchEngineProvider
+{
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override WebSearchEngineProviderId Id { get; } = id;
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override IDynamicResourceKey HeaderKey { get; } = headerKey;
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override string IconUrl { get; } = iconUrl;
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override string? DocsUrl { get; } = docsUrl;
+
+    [DynamicResourceKey(
+        LocaleKey.WebSearchEngineProvider_EndPoint_Header,
+        LocaleKey.WebSearchEngineProvider_EndPoint_Description)]
+    public required Customizable<string> EndPoint { get; init; }
+
+    [ObservableProperty]
+    [HiddenSettingsItem]
+    [NotifyDataErrorInfo]
+    [CustomValidation(typeof(ApiKey), nameof(Configuration.ApiKey.Validate))]
+    public partial Guid ApiKey { get; set; }
+
+    [JsonIgnore]
+    [DynamicResourceKey(
+        LocaleKey.WebSearchEngineProvider_ApiKey_Header,
+        LocaleKey.WebSearchEngineProvider_ApiKey_Description)]
+    public SettingsControl<ApiKeyComboBox> ApiKeyControl => new(
+        new ApiKeyComboBox(apiKeys)
+        {
+            [!ApiKeyComboBox.SelectedIdProperty] = new Binding(nameof(ApiKey))
+            {
+                Source = this,
+                Mode = BindingMode.TwoWay
+            },
+        });
+}
+
+[GeneratedSettingsItems]
+public sealed partial class SearXNGWebSearchEngineProvider : ThirdPartyWebSearchEngineProvider
+{
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override WebSearchEngineProviderId Id => WebSearchEngineProviderId.SearXNG;
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override IDynamicResourceKey HeaderKey { get; } = new DirectResourceKey("SearXNG");
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override string IconUrl => "avares://Everywhere.Core/Assets/Icons/searxng-color.svg";
+
+    [JsonIgnore]
+    [HiddenSettingsItem]
+    public override string DocsUrl => "https://docs.searxng.org";
+
+    [DynamicResourceKey(
+        LocaleKey.WebSearchEngineProvider_EndPoint_Header,
+        LocaleKey.WebSearchEngineProvider_EndPoint_Description)]
+    public Customizable<string> EndPoint { get; } = new("https://searxng.example.com/search", isDefaultValueReadonly: true);
 }
 
 [GeneratedSettingsItems]
 public sealed partial class WebSearchEngineSettings : ObservableObject
 {
     [HiddenSettingsItem]
-    public ObservableDictionary<WebSearchEngineProviderId, WebSearchEngineProvider> Providers { get; }
+    public ObservableImmutableDictionary<WebSearchEngineProviderId, IWebSearchEngineProvider> Providers { get; }
 
     [HiddenSettingsItem]
     [ObservableProperty]
@@ -92,14 +275,8 @@ public sealed partial class WebSearchEngineSettings : ObservableObject
     public partial WebSearchEngineProviderId SelectedProviderId { get; set; }
 
     [JsonIgnore]
-    [DynamicResourceKey(
-        LocaleKey.WebSearchEngineProvider_Header,
-        LocaleKey.WebSearchEngineProvider_Description)]
-    [SettingsItems(IsExpanded = true)]
-    [SettingsSelectionItem(
-        $"{nameof(Providers)}.{nameof(Providers.Values)}",
-        DataTemplateKey = typeof(WebSearchEngineProvider))]
-    public WebSearchEngineProvider? SelectedProvider
+    [HiddenSettingsItem]
+    public IWebSearchEngineProvider? SelectedProvider
     {
         get => Providers.GetValueOrDefault(SelectedProviderId);
         set
@@ -116,71 +293,72 @@ public sealed partial class WebSearchEngineSettings : ObservableObject
     public WebSearchEngineSettings()
     {
         ApiKeys = [];
-        Providers = new ObservableDictionary<WebSearchEngineProviderId, WebSearchEngineProvider>
-        {
-            {
+        Providers = new ObservableImmutableDictionary<WebSearchEngineProviderId, IWebSearchEngineProvider>(
+        [
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
+                WebSearchEngineProviderId.Official,
+                new OfficialWebSearchEngineProvider()),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.Google,
-                new WebSearchEngineProvider(ApiKeys)
-                {
-                    Id = WebSearchEngineProviderId.Google,
-                    DisplayName = "Google",
-                    EndPoint = new Customizable<string>("https://customsearch.googleapis.com", isDefaultValueReadonly: true)
-                }
-            },
-            {
+                new GoogleWebSearchEngineProvider(ApiKeys)),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.Tavily,
-                new WebSearchEngineProvider(ApiKeys)
+                new ApiKeyWebSearchEngineProvider(
+                    WebSearchEngineProviderId.Tavily,
+                    new DirectResourceKey("Tavily"),
+                    "avares://Everywhere.Core/Assets/Icons/tavily-color.svg",
+                    "https://tavily.com",
+                    ApiKeys)
                 {
-                    Id = WebSearchEngineProviderId.Tavily,
-                    DisplayName = "Tavily",
                     EndPoint = new Customizable<string>("https://api.tavily.com/search", isDefaultValueReadonly: true)
-                }
-            },
-            {
+                }),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.Brave,
-                new WebSearchEngineProvider(ApiKeys)
+                new ApiKeyWebSearchEngineProvider(
+                    WebSearchEngineProviderId.Brave,
+                    new DirectResourceKey("Brave"),
+                    "avares://Everywhere.Core/Assets/Icons/brave-color.png",
+                    "https://brave.com/search/api",
+                    ApiKeys)
                 {
-                    Id = WebSearchEngineProviderId.Brave,
-                    DisplayName = "Brave",
                     EndPoint = new Customizable<string>("https://api.search.brave.com/res/v1/web/search", isDefaultValueReadonly: true)
-                }
-            },
-            {
+                }),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.Bocha,
-                new WebSearchEngineProvider(ApiKeys)
+                new ApiKeyWebSearchEngineProvider(
+                    WebSearchEngineProviderId.Bocha,
+                    new DynamicResourceKey(LocaleKey.WebSearchEngineProvider_Bocha),
+                    "avares://Everywhere.Core/Assets/Icons/bocha-color.png",
+                    "https://open.bochaai.com",
+                    ApiKeys)
                 {
-                    Id = WebSearchEngineProviderId.Bocha,
-                    DisplayName = "Bocha",
                     EndPoint = new Customizable<string>("https://api.bocha.cn/v1/web-search", isDefaultValueReadonly: true)
-                }
-            },
-            {
+                }),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.Jina,
-                new WebSearchEngineProvider(ApiKeys)
+                new ApiKeyWebSearchEngineProvider(
+                    WebSearchEngineProviderId.Jina,
+                    new DirectResourceKey("Jina"),
+                    "avares://Everywhere.Core/Assets/Icons/jina-light.svg",
+                    "https://jina.ai",
+                    ApiKeys)
                 {
-                    Id = WebSearchEngineProviderId.Jina,
-                    DisplayName = "Jina",
                     EndPoint = new Customizable<string>("https://s.jina.ai", isDefaultValueReadonly: true)
-                }
-            },
-            {
+                }),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.UniFuncs,
-                new WebSearchEngineProvider(ApiKeys)
+                new ApiKeyWebSearchEngineProvider(
+                    WebSearchEngineProviderId.UniFuncs,
+                    new DirectResourceKey("UniFuncs"),
+                    "avares://Everywhere.Core/Assets/Icons/unifuncs-color.png",
+                    "https://www.unifuncs.com",
+                    ApiKeys)
                 {
-                    Id = WebSearchEngineProviderId.UniFuncs,
-                    DisplayName = "UniFuncs",
                     EndPoint = new Customizable<string>("https://api.unifuncs.com/api/web-search/search", isDefaultValueReadonly: true)
-                }
-            },
-            {
+                }),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.SearXNG,
-                new WebSearchEngineProvider(ApiKeys)
-                {
-                    Id = WebSearchEngineProviderId.SearXNG,
-                    DisplayName = "SearXNG",
-                    EndPoint = new Customizable<string>("https://searxng.example.com/search", isDefaultValueReadonly: true)
-                }
-            },
-        };
+                new SearXNGWebSearchEngineProvider()),
+        ]);
     }
 }

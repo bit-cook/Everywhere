@@ -244,5 +244,14 @@
         </Expander>
       </DataTemplate>
     </Setter>
+
+    <Style Selector="^.Ghost">
+      <Setter Property="Margin" Value="0"/>
+      <Style Selector="^ /template/ Expander">
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Background" Value="{x:Null}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+      </Style>
+    </Style>
   </ControlTheme>
 </ResourceDictionary>

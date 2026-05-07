@@ -2,12 +2,12 @@
 
 using Microsoft.SemanticKernel.Data;
 
-namespace Everywhere.Chat.Plugins.BuiltIn;
+namespace Everywhere.Web;
 
 /// <summary>
 ///     Web search engine connector interface.
 /// </summary>
-public interface IWebSearchEngineConnector
+public interface IWebSearchEngineConnector : IDisposable
 {
     /// <summary>
     ///     Execute a web search engine search.

@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.SemanticKernel.Data;
 
-namespace Everywhere.Chat.Plugins.BuiltIn;
+namespace Everywhere.Web;
 
 /// <summary>
 ///     SearXNG Search API

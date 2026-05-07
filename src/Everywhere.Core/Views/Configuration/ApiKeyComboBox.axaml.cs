@@ -1,6 +1,9 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
+using Avalonia.Controls;
+using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using DynamicData.Binding;
@@ -10,13 +13,14 @@ using ShadUI;
 
 namespace Everywhere.Views;
 
+[TemplatePart(Name = "PART_ComboBox", Type = typeof(ComboBox), IsRequired = true)]
 public sealed partial class ApiKeyComboBox : TemplatedControl, IDisposable
 {
     /// <summary>
     /// Defines the <see cref="SelectedId"/> property.
     /// </summary>
     public static readonly StyledProperty<Guid> SelectedIdProperty =
-        AvaloniaProperty.Register<ApiKeyComboBox, Guid>(nameof(SelectedId));
+        AvaloniaProperty.Register<ApiKeyComboBox, Guid>(nameof(SelectedId), enableDataValidation: true);
 
     /// <summary>
     /// Gets or sets the API key ID.
@@ -46,6 +50,8 @@ public sealed partial class ApiKeyComboBox : TemplatedControl, IDisposable
 
     private readonly ObservableCollection<ApiKey> _itemsSource;
     private readonly IDisposable _subscription;
+
+    private ComboBox? _comboBox;
 
     public ApiKeyComboBox(ObservableCollection<ApiKey> itemsSource)
     {
@@ -87,6 +93,24 @@ public sealed partial class ApiKeyComboBox : TemplatedControl, IDisposable
             .CreateDialog(form, LocaleResolver.ApiKeyComboBox_ManageApiKey)
             .WithPrimaryButton(LocaleResolver.Common_OK)
             .ShowAsync(cancellationToken);
+    }
+
+    protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
+    {
+        base.OnApplyTemplate(e);
+
+        _comboBox = e.NameScope.Find<ComboBox>("PART_ComboBox");
+    }
+
+    protected override void UpdateDataValidation(
+        AvaloniaProperty property,
+        BindingValueType state,
+        Exception? error)
+    {
+        if (property == SelectedIdProperty && _comboBox is not null)
+        {
+            DataValidationErrors.SetError(_comboBox, error);
+        }
     }
 
     public void Dispose()

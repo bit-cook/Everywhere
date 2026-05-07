@@ -83,10 +83,17 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
             sb.Append("public ");
 
             // Append override modifier if the property is present in the base type with virtual or abstract modifier
+            // Another case is base type also has the [GeneratedSettingsItems] property
             var baseProperty = type.BaseType?.GetAllMembers().OfType<IPropertySymbol>().FirstOrDefault(p => p.Name == "SettingsItems");
-            if (baseProperty != null && (baseProperty.IsVirtual || baseProperty.IsAbstract))
+            if ((baseProperty != null && (baseProperty.IsVirtual || baseProperty.IsAbstract)) ||
+                type.BaseType?.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == KnownAttributes.GeneratedSettingsItems) == true)
             {
                 sb.Append("override ");
+            }
+            // else, add virtual if this class is not sealed and not static
+            else if (type is { IsSealed: false, IsStatic: false })
+            {
+                sb.Append("virtual ");
             }
 
             sb.AppendLine("global::Everywhere.Configuration.SettingsItems SettingsItems").AppendLine("{");

@@ -61,6 +61,21 @@ public partial class ApiKey : ObservableValidator
     private string? _pendingKey;
 
     /// <summary>
+    /// Validates the API key by checking if it is not null and empty.
+    /// </summary>
+    /// <param name="apiKey"></param>
+    /// <returns></returns>
+    public static ValidationResult? Validate(Guid apiKey)
+    {
+        if (GetKey(apiKey).IsNullOrWhiteSpace())
+        {
+            return new ValidationResult(LocaleResolver.ValidationErrorMessage_RequiredApiKey);
+        }
+
+        return ValidationResult.Success;
+    }
+
+    /// <summary>
     /// Validates the Name property. Used for CustomValidation attribute.
     /// </summary>
     /// <param name="name"></param>

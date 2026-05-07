@@ -28,12 +28,12 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
             ContentTabItems.Clear();
             if (value is null) return;
 
+            ContentTabItems.Add(new FunctionsTabItem(value));
+
             if (value.SettingsItems is { Count: > 0 } settingsItems)
             {
                 ContentTabItems.Add(new SettingsTabItem(settingsItems));
             }
-
-            ContentTabItems.Add(new FunctionsTabItem(value));
 
             if (value is McpChatPlugin mcpPlugin)
             {

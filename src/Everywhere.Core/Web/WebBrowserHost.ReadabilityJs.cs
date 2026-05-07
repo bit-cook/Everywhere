@@ -1,6 +1,6 @@
-﻿namespace Everywhere.Chat.Plugins.BuiltIn;
+﻿namespace Everywhere.Web;
 
-partial class WebBrowserPlugin
+partial class WebBrowserHost
 {
     private const string ReadabilityJs =
         """
