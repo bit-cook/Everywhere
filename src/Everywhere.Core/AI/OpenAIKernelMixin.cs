@@ -122,16 +122,11 @@ public class OpenAIKernelMixin : KernelMixin
                 Debug.Assert(assistantMessage.RawRepresentation is OpenAI.Chat.ChatMessage);
                 if (assistantMessage.RawRepresentation is not OpenAI.Chat.ChatMessage chatMessage) continue;
 
-                if (assistantMessage.AdditionalProperties?.TryGetValue("reasoning_content", out var reasoningObj) is not true ||
-                    reasoningObj is not string reasoningContent)
-                {
-                    reasoningContent = string.Empty; // Set to empty string if not provided, as the field is required
-                }
-
                 var patch = new JsonPatch();
                 // patch.Set("$.reasoning_content"u8, string.Empty) will throw an exception: Empty encoded value
                 // It seems a bug in the JsonPatch implementation, so we need to encode the empty string to bytes manually.
-                patch.Set("$.reasoning_content"u8, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(reasoningContent)));
+                var reasoningContent = assistantMessage.Contents.AsValueEnumerable().OfType<TextReasoningContent>().FirstOrDefault()?.Text;
+                patch.Set("$.reasoning_content"u8, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(reasoningContent ?? string.Empty)));
                 chatMessage.Patch = patch;
             }
         }

@@ -33,6 +33,8 @@ public sealed class AnthropicKernelMixin : KernelMixin
         ChatCompletionService = _client.AsChatCompletionService();
     }
 
+    public override bool IsPersistentSpanMetadataKey(string key) => key == "ProtectedData";
+
     public override void Dispose()
     {
         _client.Dispose();

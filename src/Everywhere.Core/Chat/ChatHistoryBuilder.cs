@@ -87,7 +87,6 @@ public static class ChatHistoryBuilder
             case AssistantChatMessage assistantChatMessage:
             {
                 var items = new ChatMessageContentItemCollection();
-                var metadata = new MetadataDictionary(1);
                 foreach (var span in assistantChatMessage.Items)
                 {
                     switch (span)
@@ -103,8 +102,7 @@ public static class ChatHistoryBuilder
                             items.AddRange(functionCalls.SelectMany(f => f.Calls));
 
                             // 2. Yield the assistant message with function call items first
-                            yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: metadata);
-                            metadata = new MetadataDictionary(1);
+                            yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: assistantChatMessage.Metadata);
                             items = [];
 
                             // 3. Yield the function call results as separate tool messages
@@ -158,7 +156,7 @@ public static class ChatHistoryBuilder
                         }
                         case AssistantChatMessageReasoningSpan { ReasoningOutput: { Length: > 0 } reasoningOutput }:
                         {
-                            metadata["reasoning_content"] = reasoningOutput;
+                            items.Add(new ReasoningContent(reasoningOutput) { Metadata = span.Metadata });
                             break;
                         }
                         case AssistantChatMessageImageSpan { ImageOutput: { } imageOutput }:
@@ -183,7 +181,7 @@ public static class ChatHistoryBuilder
 
                 if (items.Count > 0)
                 {
-                    yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: metadata);
+                    yield return new ChatMessageContent(AuthorRole.Assistant, items, metadata: assistantChatMessage.Metadata);
                 }
                 break;
             }

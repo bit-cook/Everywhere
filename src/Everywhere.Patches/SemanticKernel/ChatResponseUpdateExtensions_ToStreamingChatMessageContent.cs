@@ -36,38 +36,67 @@ internal static class ChatResponseUpdateExtensions_ToStreamingChatMessageContent
 
         foreach (var item in update.Contents)
         {
-            StreamingKernelContent? resultContent =
-                item switch
-                {
-                    TextContent tc => new StreamingTextContent(tc.Text),
-                    FunctionCallContent fcc => new StreamingFunctionCallUpdateContent(
-                        fcc.CallId,
-                        fcc.Name,
-                        fcc.Arguments is not null ?
-                            JsonSerializer.Serialize(fcc.Arguments, AbstractionsJsonContext.Default.IDictionaryStringObject) :
-                            null),
-                    TextReasoningContent trc => new StreamingReasoningContent(trc.Text),
-                    _ => null
-                };
-
-            if (resultContent is not null)
+            StreamingKernelContent resultContent;
+            Dictionary<string, object?>? metadata = null;
+            switch (item)
             {
-                resultContent.Metadata = item.AdditionalProperties;
-                resultContent.InnerContent = item.RawRepresentation;
-                resultContent.ModelId = update.ModelId;
-                content.Items.Add(resultContent);
+                case TextContent textContent:
+                {
+                    resultContent = new StreamingTextContent(textContent.Text);
+                    break;
+                }
+                case FunctionCallContent functionCallContent:
+                {
+                    resultContent = new StreamingFunctionCallUpdateContent(
+                        functionCallContent.CallId,
+                        functionCallContent.Name,
+                        functionCallContent.Arguments is not null ?
+                            JsonSerializer.Serialize(functionCallContent.Arguments, AbstractionsJsonContext.Default.IDictionaryStringObject) :
+                            null);
+                    break;
+                }
+                case TextReasoningContent textReasoningContent:
+                {
+                    resultContent = new StreamingReasoningContent(textReasoningContent.Text);
+                    if (textReasoningContent.ProtectedData is { Length: > 0 })
+                    {
+                        metadata = new Dictionary<string, object?>(1)
+                        {
+                            { "ProtectedData", textReasoningContent.ProtectedData }
+                        };
+                    }
+                    break;
+                }
+                case UsageContent usageContent:
+                {
+                    content.Metadata = new Dictionary<string, object?>(update.AdditionalProperties ?? [])
+                    {
+                        ["Usage"] = usageContent
+                    };
+                    continue;
+                }
+                default:
+                {
+                    continue;
+                }
             }
 
-            if (item is UsageContent uc)
-            {
-                content.Metadata = new Dictionary<string, object?>(update.AdditionalProperties ?? [])
-                {
-                    ["Usage"] = uc
-                };
-            }
+            resultContent.Metadata = Union(metadata, item.AdditionalProperties);
+            resultContent.InnerContent = item.RawRepresentation;
+            resultContent.ModelId = update.ModelId;
+            content.Items.Add(resultContent);
         }
 
         __result = content;
         return false;
+    }
+
+    private static IReadOnlyDictionary<string,object?>? Union(Dictionary<string, object?>? metadata1, AdditionalPropertiesDictionary? metadata2)
+    {
+        if (metadata1 is null) return metadata2;
+        if (metadata2 is null) return metadata1;
+
+        foreach (var kvp in metadata2) metadata1[kvp.Key] = kvp.Value;
+        return metadata1;
     }
 }

@@ -11,6 +11,7 @@ public static class Patcher
         var harmony = new Harmony("com.sylinko.everywhere");
         TextAreaTextInputMethodClient_Preedit.Patch(harmony);
         TextLeadingPrefixCharacterEllipsis_Collapse.Patch(harmony);
+        ChatMessageContentExtensions_ToChatMessage.Patch(harmony);
         ChatResponseUpdateExtensions_ToStreamingChatMessageContent.Patch(harmony);
     }
 }
