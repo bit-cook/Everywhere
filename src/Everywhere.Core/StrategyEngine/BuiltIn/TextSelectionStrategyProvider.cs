@@ -1,3 +1,4 @@
+using Everywhere.Chat.Plugins;
 using Everywhere.StrategyEngine.Conditions;
 using Lucide.Avalonia;
 
@@ -112,9 +113,9 @@ public sealed class TextSelectionStrategyProvider : BuiltInStrategyProvider
             Icon = LucideIconKind.Search,
             Priority = 80,
             Condition = BaseCondition,
-            Tools = new Dictionary<string, bool>(1)
+            ToolRulesets = new ToolRulesets(1)
             {
-                { "builtin.web_browser.*", true }
+                { "builtin.web.*", true }
             },
             Body =
                 """

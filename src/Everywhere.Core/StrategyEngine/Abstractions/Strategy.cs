@@ -1,3 +1,4 @@
+using Everywhere.Chat.Plugins;
 using Everywhere.Common;
 using MessagePack;
 
@@ -65,7 +66,7 @@ public sealed partial record Strategy
     ///
     /// When applying, keys first ordered then apply one by one, latter overrides former.
     /// </remarks>
-    [Key(4)] public IReadOnlyDictionary<string, bool>? Tools { get; init; }
+    [Key(4)] public ToolRulesets? ToolRulesets { get; init; }
 
     /// <summary>
     /// List of preprocessor IDs to run before executing this strategy.

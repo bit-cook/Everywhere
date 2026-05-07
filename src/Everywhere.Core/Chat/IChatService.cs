@@ -24,16 +24,19 @@ public interface IChatService
     void Edit(ChatMessageNode originalNode, UserChatMessage newMessage);
 
     /// <summary>
-    /// Run a sub-agent within the context of the current chat. The sub-agent will have access to the chat history and can send messages back to the main agent.
+    /// Generates a response for the given chat context and assistant chat message.
     /// </summary>
     /// <param name="chatContext"></param>
     /// <param name="assistant"></param>
     /// <param name="assistantChatMessage"></param>
+    /// <param name="systemPromptOverride"></param>
+    /// <param name="enableNotifications">Send notifications for function calls and other events during the generation process.</param>
     /// <param name="cancellationToken"></param>
-    /// <returns></returns>
-    Task RunSubagentAsync(
+    Task GenerateAsync(
         ChatContext chatContext,
         Assistant assistant,
         AssistantChatMessage assistantChatMessage,
-        CancellationToken cancellationToken);
+        string? systemPromptOverride = null,
+        bool enableNotifications = true,
+        CancellationToken cancellationToken = default);
 }

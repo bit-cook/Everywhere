@@ -59,7 +59,10 @@ public interface IChatPluginManager
     /// Functions in the scope must not have the same name.
     /// </summary>
     /// <returns></returns>
-    Task<IChatPluginScope> CreateScopeAsync(bool isSubagent, IReadOnlyDictionary<string, bool>? tools, IChatBusyStateIndicator? busyIndicator, CancellationToken cancellationToken);
+    Task<IChatPluginScope> CreateScopeAsync(
+        ToolRulesets? toolRulesets,
+        IChatBusyStateIndicator? busyIndicator,
+        CancellationToken cancellationToken);
 }
 
 /// <summary>

@@ -104,7 +104,6 @@ public sealed partial class ChatService : IChatService
                     chatContext,
                     customAssistant,
                     assistantChatMessage,
-                    false,
                     systemPromptOverride: systemPromptOverride,
                     cancellationToken: cancellationToken);
             },
@@ -136,7 +135,7 @@ public sealed partial class ChatService : IChatService
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.CreateBranchOn(node, assistantChatMessage);
 
-                await GenerateAsync(chatContext, customAssistant, assistantChatMessage, false, cancellationToken: cancellationToken);
+                await GenerateAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken: cancellationToken);
             },
             _logger.ToExceptionHandler());
     }
@@ -175,25 +174,10 @@ public sealed partial class ChatService : IChatService
                     chatContext,
                     customAssistant,
                     assistantChatMessage,
-                    false,
                     systemPromptOverride: systemPromptOverride,
                     cancellationToken: cancellationToken);
             },
             _logger.ToExceptionHandler());
-    }
-
-    public Task RunSubagentAsync(
-        ChatContext chatContext,
-        Assistant assistant,
-        AssistantChatMessage assistantChatMessage,
-        CancellationToken cancellationToken)
-    {
-        return GenerateAsync(
-            chatContext,
-            assistant,
-            assistantChatMessage,
-            true,
-            cancellationToken: cancellationToken);
     }
 
     /// <summary>
@@ -306,7 +290,6 @@ public sealed partial class ChatService : IChatService
         KernelMixin kernelMixin,
         ChatContext chatContext,
         Assistant assistant,
-        bool isSubagent,
         CancellationToken cancellationToken)
     {
         using var activity = _activitySource.StartActivity();
@@ -327,10 +310,13 @@ public sealed partial class ChatService : IChatService
         if (kernelMixin.SupportsToolCall && _persistentState.IsToolCallEnabled)
         {
             var userMessage = chatContext.Items.AsValueEnumerable().Select(n => n.Message).OfType<UserChatMessage>().LastOrDefault();
+            var strategyToolRulesets = userMessage?.As<UserStrategyChatMessage>()?.Strategy.ToolRulesets;
+            var toolRulesets = _persistentState.IsWebSearchEnabled ?
+                new ToolRulesets(1) { { "builtin.web.web_search", true } }.Union(strategyToolRulesets).Union(chatContext.ToolRulesets) :
+                strategyToolRulesets.Copy(chatContext.ToolRulesets);
 
             var chatPluginScope = await _chatPluginManager.CreateScopeAsync(
-                isSubagent,
-                userMessage?.As<UserStrategyChatMessage>()?.Strategy.Tools,
+                toolRulesets,
                 chatContext,
                 cancellationToken);
             builder.Services.AddSingleton(chatPluginScope);
@@ -351,15 +337,15 @@ public sealed partial class ChatService : IChatService
     /// <param name="chatContext"></param>
     /// <param name="assistant"></param>
     /// <param name="assistantChatMessage"></param>
-    /// <param name="isSubagent"></param>
     /// <param name="systemPromptOverride"></param>
+    /// <param name="enableNotifications"></param>
     /// <param name="cancellationToken"></param>
-    private async Task GenerateAsync(
+    public async Task GenerateAsync(
         ChatContext chatContext,
         Assistant assistant,
         AssistantChatMessage assistantChatMessage,
-        bool isSubagent,
         string? systemPromptOverride = null,
+        bool enableNotifications = true,
         CancellationToken cancellationToken = default)
     {
         using var activity = StartChatActivity("chat", assistant);
@@ -369,7 +355,7 @@ public sealed partial class ChatService : IChatService
         try
         {
             kernelMixin = _kernelMixinFactory.Create(assistant);
-            var kernel = await BuildKernelAsync(kernelMixin, chatContext, assistant, isSubagent, cancellationToken);
+            var kernel = await BuildKernelAsync(kernelMixin, chatContext, assistant, cancellationToken);
 
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -436,7 +422,7 @@ public sealed partial class ChatService : IChatService
                     cancellationToken);
             }
 
-            if (!isSubagent)
+            if (enableNotifications)
                 WeakReferenceMessenger.Default.Send(
                     new FlashChatWindowMessage(assistantChatMessage.Items.LastOrDefault()?.As<AssistantChatMessageTextSpan>()?.Content));
         }
@@ -449,7 +435,7 @@ public sealed partial class ChatService : IChatService
             var friendlyMessage = ex.GetFriendlyMessage();
             assistantChatMessage.ErrorMessageKey = friendlyMessage;
 
-            if (!isSubagent) WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(friendlyMessage.ToString()));
+            if (enableNotifications) WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(friendlyMessage.ToString()));
         }
         finally
         {

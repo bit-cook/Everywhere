@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
-using System.Text.RegularExpressions;
 using DynamicData;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins.Mcp;
@@ -78,6 +77,7 @@ public class ChatPluginManager : IChatPluginManager
 
         BuiltInPlugins = _builtInPluginsSource
             .Connect()
+            .Filter(p => p is { IsVisible: true, HasVisibleFunctions: true })
             .ObserveOnAvaloniaDispatcher()
             .BindEx(_disposables);
         _disposables.Add(_builtInPluginsSource);
@@ -274,8 +274,7 @@ public class ChatPluginManager : IChatPluginManager
     }
 
     public async Task<IChatPluginScope> CreateScopeAsync(
-        bool isSubagent,
-        IReadOnlyDictionary<string, bool>? tools,
+        ToolRulesets? toolRulesets,
         IChatBusyStateIndicator? busyIndicator,
         CancellationToken cancellationToken)
     {
@@ -286,12 +285,13 @@ public class ChatPluginManager : IChatPluginManager
 
         try
         {
-            foreach (var plugin in _builtInPluginsSource.Items
-                         .Where(p => !isSubagent || p.IsAllowedInSubagent)
-                         .Cast<ChatPlugin>()
-                         .Concat(_mcpPluginsSource.Items))
+            foreach (var plugin in _builtInPluginsSource.Items.Cast<ChatPlugin>().Concat(_mcpPluginsSource.Items))
             {
-                if (!IsPluginAllowed(plugin)) continue;
+                // If toolRulesets?.IsPluginAllowed(plugin) returns null, follow plugin.IsEnabled
+                // otherwise, follow toolRulesets?.IsPluginAllowed(plugin)
+                // false || (null && false)
+                var isPluginAllowed = toolRulesets?.IsPluginAllowed(plugin);
+                if (isPluginAllowed is false || (isPluginAllowed is null && !plugin.IsEnabled)) continue;
 
                 if (plugin is McpChatPlugin mcpChatPlugin)
                 {
@@ -314,10 +314,12 @@ public class ChatPluginManager : IChatPluginManager
 
                 var actualFunctions = plugin.GetChatFunctions()
                     .AsValueEnumerable()
-                    .Where(f => !isSubagent || f is not BuiltInChatFunction { IsAllowedInSubagent: false })
-                    .Where(f => IsFunctionAllowed(plugin, f))
+                    .Where(function =>
+                    {
+                        var isFunctionAllowed = toolRulesets?.IsFunctionAllowed(plugin, function);
+                        return isFunctionAllowed is true || (isFunctionAllowed is null && plugin.IsEnabled && function.IsEnabled);
+                    })
                     .ToList();
-
                 if (actualFunctions.Count > 0 || plugin is McpChatPlugin)
                 {
                     resultPlugins.Add(new ChatPluginSnapshot(plugin, functionNameDeduplicator, actualFunctions));
@@ -329,75 +331,6 @@ public class ChatPluginManager : IChatPluginManager
         finally
         {
             startingMcpMessageDisplay?.Dispose();
-        }
-
-
-        bool IsPluginAllowed(ChatPlugin plugin)
-        {
-            var isAllowed = plugin.IsEnabled;
-            if (tools == null) return isAllowed;
-
-            foreach (var kvp in tools)
-            {
-                var dotIndex = kvp.Key.LastIndexOf('.');
-                var pluginPattern = dotIndex < 0 ? kvp.Key : kvp.Key[..dotIndex];
-
-                // Use simple Glob to Regex conversion
-                var regexPattern = "^" + Regex.Escape(pluginPattern).Replace("\\*", ".*").Replace("\\?", ".") + "$";
-                var pluginRegex = new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-
-                if (pluginRegex.IsMatch(plugin.Key))
-                {
-                    if (dotIndex < 0)
-                    {
-                        isAllowed = kvp.Value;
-                    }
-                    else if (kvp.Value)
-                    {
-                        // Any rule enabling functions in this plugin forces the plugin to be enabled
-                        isAllowed = true;
-                    }
-                }
-            }
-            return isAllowed;
-        }
-
-        bool IsFunctionAllowed(ChatPlugin plugin, ChatFunction function)
-        {
-            var isAllowed = function.IsEnabled;
-            if (tools == null) return isAllowed;
-
-            var fullFuncName = $"{plugin.Key}.{function.KernelFunction.Metadata.Name}";
-
-            foreach (var kvp in tools)
-            {
-                var dotIndex = kvp.Key.LastIndexOf('.');
-                if (dotIndex < 0)
-                {
-                    // Rule targets plugin layer
-                    var pluginRegexPattern = "^" + Regex.Escape(kvp.Key).Replace("\\*", ".*").Replace("\\?", ".") + "$";
-                    var pluginRegex = new Regex(pluginRegexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-
-                    // If plugin is explicitly disabled, the function is as well.
-                    // Otherwise, we keep its state as is.
-                    if (pluginRegex.IsMatch(plugin.Name) && !kvp.Value)
-                    {
-                        isAllowed = false;
-                    }
-                }
-                else
-                {
-                    // Rule targets function layer
-                    var functionRegexPattern = "^" + Regex.Escape(kvp.Key).Replace("\\*", ".*").Replace("\\?", ".") + "$";
-                    var funcRegex = new Regex(functionRegexPattern, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-
-                    if (funcRegex.IsMatch(fullFuncName))
-                    {
-                        isAllowed = kvp.Value;
-                    }
-                }
-            }
-            return isAllowed;
         }
     }
 

@@ -88,6 +88,7 @@ public abstract class ChatPlugin<TChatFunction> : ChatPlugin where TChatFunction
         Functions = _functionsSource
             .Connect()
             .Cast(ChatFunction (x) => x)
+            .Filter(x => x.IsVisible)
             .ObserveOnAvaloniaDispatcher()
             .BindEx(out _functionsConnection);
     }
@@ -125,7 +126,24 @@ public abstract class BuiltInChatPlugin(string name) : ChatPlugin<BuiltInChatFun
 
     public virtual bool IsDefaultEnabled => false;
 
-    public virtual bool IsAllowedInSubagent => true;
+    /// <summary>
+    /// Indicates whether this plugin should be visible to users in the UI.
+    /// Some plugins may be hidden but still enabled for internal use or by other plugins.
+    /// </summary>
+    public virtual bool IsVisible => true;
+
+    public bool HasVisibleFunctions
+    {
+        get
+        {
+            var result = false;
+            _functionsSource.Edit(list =>
+            {
+                result = list.AsValueEnumerable().Any(f => f.IsVisible);
+            });
+            return result;
+        }
+    }
 }
 
 /// <summary>

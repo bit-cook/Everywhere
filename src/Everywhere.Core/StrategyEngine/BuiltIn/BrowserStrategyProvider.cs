@@ -116,7 +116,7 @@ public sealed class BrowserStrategyProvider : BuiltInStrategyProvider
             Icon = LucideIconKind.ShieldCheck,
             Priority = 60,
             Condition = Condition,
-            Tools = new Dictionary<string, bool>(1)
+            ToolRulesets = new(1)
             {
                 { "builtin.web_browser.*", true }
             },

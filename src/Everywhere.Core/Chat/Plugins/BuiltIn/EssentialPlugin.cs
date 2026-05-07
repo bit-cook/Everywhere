@@ -24,7 +24,7 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
     private readonly ILogger<EssentialPlugin> _logger;
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum TodoAction
+    private enum TodoAction
     {
         Reset,
         Read
@@ -39,8 +39,7 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
             list.Add(
                 new BuiltInChatFunction(
                     RunSubagentAsync,
-                    ChatFunctionPermissions.None,
-                    isAllowedInSubagent: false));
+                    ChatFunctionPermissions.None));
             list.Add(
                 new BuiltInChatFunction(
                     ManageTodoList,
@@ -77,7 +76,7 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
             "Large");
 
         // Fork a temporary chat context for the subagent
-        var forkedChatContext = chatContext.Fork();
+        var forkedChatContext = chatContext.ForkSubagent();
         forkedChatContext.Add(new UserChatMessage(prompt, []));
         var assistantChatMessage = new AssistantChatMessage();
         forkedChatContext.Add(assistantChatMessage);
@@ -85,7 +84,12 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         // Display the chat context in the UI
         displaySink.AppendChatContext(forkedChatContext);
 
-        await chatService.RunSubagentAsync(forkedChatContext, assistant, assistantChatMessage, cancellationToken);
+        await chatService.GenerateAsync(
+            forkedChatContext,
+            assistant,
+            assistantChatMessage,
+            enableNotifications: false,
+            cancellationToken: cancellationToken);
 
         if (assistantChatMessage.Count < 1)
         {
@@ -111,7 +115,7 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         [Description(
             "Complete array of all todo items (required for reset, optional for read). " +
             "ALWAYS provide complete list when resetting - partial updates not supported. " +
-            "This MUST be a JSON array instead of a stringified JSON.") ]
+            "This MUST be a JSON array instead of a stringified JSON.")]
         List<ChatPluginTodoItem>? items = null)
     {
         switch (action)
@@ -134,17 +138,19 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
             }
             case TodoAction.Read when chatContext.TodoItems?.Count is not > 0:
             {
-                displaySink.AppendDynamicResourceKey(new FormattedDynamicResourceKey(
-                    LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Read,
-                    new DirectResourceKey(0)));
+                displaySink.AppendDynamicResourceKey(
+                    new FormattedDynamicResourceKey(
+                        LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Read,
+                        new DirectResourceKey(0)));
 
                 return "Todo list is empty";
             }
             case TodoAction.Read:
             {
-                displaySink.AppendDynamicResourceKey(new FormattedDynamicResourceKey(
-                    LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Read,
-                    new DirectResourceKey(chatContext.TodoItems.Count)));
+                displaySink.AppendDynamicResourceKey(
+                    new FormattedDynamicResourceKey(
+                        LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Read,
+                        new DirectResourceKey(chatContext.TodoItems.Count)));
 
                 var sb = new StringBuilder();
                 foreach (var item in chatContext.TodoItems)
@@ -189,9 +195,10 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
                 new ArgumentException("At least one question must be provided.", nameof(questions)));
         }
 
-        userInterface.DisplaySink.AppendDynamicResourceKey(new FormattedDynamicResourceKey(
-            LocaleKey.BuiltInChatPlugin_Essential_AskUserQuestion_Prompt,
-            new DirectResourceKey(questions.Count)));
+        userInterface.DisplaySink.AppendDynamicResourceKey(
+            new FormattedDynamicResourceKey(
+                LocaleKey.BuiltInChatPlugin_Essential_AskUserQuestion_Prompt,
+                new DirectResourceKey(questions.Count)));
 
         var answers = await userInterface.AskQuestionAsync(questions, cancellationToken);
         if (answers.Count != questions.Count)

@@ -68,6 +68,12 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     [IgnoreMember]
     public ConcurrentDictionary<string, bool> IsPermissionGrantedRecords { get; private init; } = new();
 
+    /// <summary>
+    /// Tool and plugin rulesets for this chat context. This is used to determine which plugins and functions are enabled or disabled in this context.
+    /// </summary>
+    [IgnoreMember]
+    public ToolRulesets? ToolRulesets { get; set; }
+
     [IgnoreMember]
     public AsyncLocal<FunctionCallContext?> FunctionCallContext { get; } = new();
 
@@ -249,7 +255,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// This is useful for running sub-agents in a separate context while maintaining the same VisualElements and permissions.
     /// </summary>
     /// <returns></returns>
-    public ChatContext Fork()
+    public ChatContext ForkSubagent()
     {
         return new ChatContext
         {
@@ -258,7 +264,11 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
                 IsTemporary = true
             },
             VisualElements = VisualElements,
-            IsPermissionGrantedRecords = IsPermissionGrantedRecords
+            IsPermissionGrantedRecords = IsPermissionGrantedRecords,
+            ToolRulesets = ToolRulesets.Copy(new ToolRulesets(1)
+            {
+                { "builtin.essential.run_subagent", false } // Disallow run_subagent in sub-agents to prevent infinite recursion
+            })
         };
     }
 
