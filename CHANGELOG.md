@@ -1,3 +1,27 @@
+## [v0.7.7](https://github.com/DearVa/Everywhere/releases/tag/v0.7.7) - 2026-05-10
+
+### ✨ Features & 🚀 Improvements
+
+![everywhere-cloud-search](https://github.com/user-attachments/assets/563d1349-c0a1-4e37-8e86-b70d16bf0429)
+
+- 🔥 Everywhere Cloud Services now includes an out-of-the-box Web Search API. Existing third-party web search configurations remain unaffected. We also refactored the related entry points and configuration pages to enhance the overall user experience.
+- 🔥 Completely refactored the "Web Content Extraction" tool, improving the extraction success rate while significantly reducing token consumption. A dedicated configuration entry has also been added.
+- 🔥 Massively optimized the "File System" tool by introducing safety features like timeout protection and context truncation. Prompts and parameters were also refined to ensure more stable tool invocation by LLMs.
+- Added an "Allow for this session" option for the Terminal tool, along with an "Auto-approve" toggle in the settings for on-demand use. (*⚠️ Note: Data is invaluable; please be cautious when granting automatic terminal execution permissions!*)
+- The chat window can now be resized to a smaller minimum dimension, offering more flexibility when desktop space is limited.
+- Removed the dependency on `0Harmony.dll` to prevent false positive detections by antivirus software.
+- Added more helpful tooltips and hint texts throughout the application.
+
+### 🐛 Bug Fixes
+
+- Added extra safeguards to ensure the background `Everything` search process is reliably and completely terminated when closing the application.
+- Fixed an issue where the cache directory was incorrectly located in some scenarios.
+- Fixed an issue where models like MiniMax and Xiaomi Mimo would throw a missing `signature` error when used under the Anthropic schema.
+
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.7.6...v0.7.7
+
+
+
 ## [v0.7.6](https://github.com/Sylinko/Everywhere/releases/tag/v0.7.6) - 2026-05-02
 
 ### 🐛 Bug Fixes
