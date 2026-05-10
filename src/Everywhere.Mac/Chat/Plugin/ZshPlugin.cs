@@ -4,6 +4,7 @@ using DynamicData;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
+using Everywhere.Configuration;
 using Everywhere.I18N;
 using Everywhere.Interop;
 using Lucide.Avalonia;
@@ -20,11 +21,15 @@ public sealed class ZshPlugin : BuiltInChatPlugin
 
     public override LucideIconKind? Icon => LucideIconKind.SquareTerminal;
 
+    public override IReadOnlyList<SettingsItem> SettingsItems => _pluginSettings.SettingsItems;
+
+    private readonly ShellPluginSettings _pluginSettings;
     private readonly IWatchdogManager _watchdogManager;
     private readonly ILogger<ZshPlugin> _logger;
 
-    public ZshPlugin(IWatchdogManager watchdogManager, ILogger<ZshPlugin> logger) : base("zsh")
+    public ZshPlugin(Settings settings, IWatchdogManager watchdogManager, ILogger<ZshPlugin> logger) : base("zsh")
     {
+        _pluginSettings = settings.Plugin.ShellPlugin;
         _watchdogManager = watchdogManager;
         _logger = logger;
 
@@ -58,18 +63,21 @@ public sealed class ZshPlugin : BuiltInChatPlugin
             new ChatPluginCodeBlockDisplayBlock(script, "bash"),
         };
 
-        var consent = await userInterface.RequestConsentAsync(
-            null,
-            new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_ExecuteScript_ScriptConsent_Header),
-            detailBlock,
-            RequestConsentRememberMasks.AllowOnce | RequestConsentRememberMasks.AllowSession,
-            cancellationToken: cancellationToken);
-        if (!consent)
+        if (!_pluginSettings.AutoApprove)
         {
-            throw new HandledException(
-                new UnauthorizedAccessException(consent.FormatReason("User denied consent for Zsh script execution.")),
-                new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_ExecuteScript_DenyMessage),
-                showDetails: false);
+            var consent = await userInterface.RequestConsentAsync(
+                null,
+                new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_ExecuteScript_ScriptConsent_Header),
+                detailBlock,
+                RequestConsentRememberMasks.AllowOnce | RequestConsentRememberMasks.AllowSession,
+                cancellationToken: cancellationToken);
+            if (!consent)
+            {
+                throw new HandledException(
+                    new UnauthorizedAccessException(consent.FormatReason("User denied consent for Zsh script execution.")),
+                    new DynamicResourceKey(LocaleKey.MacOS_BuiltInChatPlugin_Zsh_ExecuteScript_DenyMessage),
+                    showDetails: false);
+            }
         }
 
         userInterface.DisplaySink.AppendBlocks(detailBlock);

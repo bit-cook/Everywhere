@@ -7,6 +7,7 @@ using Everywhere.Chat;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
+using Everywhere.Configuration;
 using Everywhere.I18N;
 using Everywhere.Interop;
 using Lucide.Avalonia;
@@ -25,10 +26,14 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
 
     public override string BeautifulIcon => "avares://Everywhere/Assets/Icons/PowerShell.svg";
 
+    public override IReadOnlyList<SettingsItem> SettingsItems => _pluginSettings.SettingsItems;
+
+    private readonly ShellPluginSettings _pluginSettings;
     private readonly ILogger<PowerShellPlugin> _logger;
 
-    public PowerShellPlugin(ILogger<PowerShellPlugin> logger) : base("powershell")
+    public PowerShellPlugin(Settings settings, ILogger<PowerShellPlugin> logger) : base("powershell")
     {
+        _pluginSettings = settings.Plugin.ShellPlugin;
         _logger = logger;
 
         _functionsSource.Add(
@@ -36,7 +41,8 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
                 ExecuteScriptAsync,
                 ChatFunctionPermissions.ShellExecute,
                 isAutoApproveAllowed: false,
-                onPermissionConsent: _ => true));  // Always allow. The consent will be handled in the function implementation to support both single-line and multi-line scripts.
+                onPermissionConsent:
+                _ => true)); // Always allow. The consent will be handled in the function implementation to support both single-line and multi-line scripts.
     }
 
     [KernelFunction("execute_script")]
@@ -63,18 +69,21 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
             new ChatPluginCodeBlockDisplayBlock(script, "powershell"),
         };
 
-        var consent = await userInterface.RequestConsentAsync(
-            null,
-            new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ScriptConsent_Header),
-            detailBlock,
-            RequestConsentRememberMasks.AllowOnce | RequestConsentRememberMasks.AllowSession,
-            cancellationToken: cancellationToken);
-        if (!consent)
+        if (!_pluginSettings.AutoApprove)
         {
-            throw new HandledException(
-                new UnauthorizedAccessException(consent.FormatReason("User denied consent for PowerShell script execution.")),
-                new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_DenyMessage),
-                showDetails: false);
+            var consent = await userInterface.RequestConsentAsync(
+                null,
+                new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ScriptConsent_Header),
+                detailBlock,
+                RequestConsentRememberMasks.AllowOnce | RequestConsentRememberMasks.AllowSession,
+                cancellationToken: cancellationToken);
+            if (!consent)
+            {
+                throw new HandledException(
+                    new UnauthorizedAccessException(consent.FormatReason("User denied consent for PowerShell script execution.")),
+                    new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_DenyMessage),
+                    showDetails: false);
+            }
         }
 
         userInterface.DisplaySink.AppendBlocks(detailBlock);

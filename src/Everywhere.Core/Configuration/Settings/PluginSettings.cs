@@ -34,6 +34,8 @@ public sealed partial class PluginSettings : SettingsBase
     public WebSearchEngineSettings WebSearchEngine { get; set; } = new();
 
     public WebBrowserSettings WebBrowser { get; set; } = new();
+
+    public ShellPluginSettings ShellPlugin { get; set; } = new();
 }
 
 /// <summary>

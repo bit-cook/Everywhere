@@ -2819,4 +2819,13 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="Greetings_Tip6" xml:space="preserve">
         <value>💡 Feel free to join our official community on the About page to interact with us~</value>
     </data>
+    <data name="ShellPluginSettings_AutoApprove_WarningToast_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ShellPluginSettings_AutoApprove_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ShellPluginSettings_AutoApprove_Description" xml:space="preserve">
+        <value />
+    </data>
 </root>
