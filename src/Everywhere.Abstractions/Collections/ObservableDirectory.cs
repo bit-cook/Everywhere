@@ -474,8 +474,10 @@ public sealed class ObservableImmutableDictionary<TKey, TValue> :
         set { } // do nothing
     }
 
+    #pragma warning disable CS0067
     public event PropertyChangedEventHandler? PropertyChanged;
     public event NotifyCollectionChangedEventHandler? CollectionChanged;
+    #pragma warning restore CS0067
 
     private readonly ImmutableDictionary<TKey, TValue> _dictionary;
 
