@@ -229,11 +229,11 @@ The Code Signing Certificate for this project is generously sponsored by [Certum
 
 <br/>
 
-<a href="https://www.star-history.com/#Sylinko/Everywhere&Date">
+<a href="https://www.star-history.com/?type=date&repos=Sylinko%2FEverywhere">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Sylinko/Everywhere&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Sylinko/Everywhere&type=Date" />
-   <img alt="Everywhere Star History Chart" src="https://api.star-history.com/svg?repos=Sylinko/Everywhere&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=Sylinko/Everywhere&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=Sylinko/Everywhere&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=Sylinko/Everywhere&type=date&legend=top-left" />
  </picture>
 </a>
 
