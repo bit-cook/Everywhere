@@ -44,7 +44,7 @@ public sealed record FunctionCallContext(
         string? id,
         IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content = null,
-        bool canRemember = true,
+        RequestConsentRememberMasks rememberMasks = RequestConsentRememberMasks.All,
         CancellationToken cancellationToken = default)
     {
         if (id.IsNullOrEmpty() && ChatFunction.AutoApprove) return RequestConsentResult.Accepted;
@@ -60,7 +60,7 @@ public sealed record FunctionCallContext(
         var consentDecision = await ChatContext.HandleConsentRequestAsync(
             headerKey,
             content,
-            canRemember,
+            rememberMasks,
             cancellationToken);
 
         switch (consentDecision.Decision)

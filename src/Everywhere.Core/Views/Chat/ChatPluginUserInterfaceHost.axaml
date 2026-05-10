@@ -9,10 +9,10 @@
       <DataTemplates>
         <DataTemplate x:DataType="plugins:ChatPluginUserInterfaceConsentRequestItem">
           <v:ConsentDecisionCard
-            CanRemember="{Binding CanRemember, Mode=OneTime}"
             Command="{Binding Command, Mode=OneTime}"
             Content="{Binding DisplayBlock, Mode=OneTime}"
-            Header="{Binding HeaderKey^, Mode=OneTime}"/>
+            Header="{Binding HeaderKey^, Mode=OneTime}"
+            RememberMasks="{Binding RememberMasks, Mode=OneTime}"/>
         </DataTemplate>
         <DataTemplate x:DataType="plugins:ChatPluginUserInterfaceAskQuestionItem">
           <v:AskQuestionCard

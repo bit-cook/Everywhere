@@ -6,7 +6,7 @@ public partial class WebSearchEnginePage : ReactiveUserControl<WebSearchEnginePa
 {
     public int Index => 2;
 
-    public LucideIconKind Icon => LucideIconKind.Globe;
+    public LucideIconKind Icon => LucideIconKind.Search;
 
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.WebSearchPage_Title);
 

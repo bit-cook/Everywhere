@@ -198,12 +198,14 @@
             </Button>
 
             <ToggleButton
-              Classes="Outline Rounded" Focusable="False"
+              Classes="Outline Rounded"
+              shadui:ButtonAssist.CheckedBackground="{DynamicResource PrimaryColor}"
+              Focusable="False"
               IsChecked="{TemplateBinding IsWebSearchEnabled, Mode=TwoWay}"
               IsVisible="{TemplateBinding IsToolCallSupported}"
               ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputArea_WebSearchButton_ToolTip}}">
               <LucideIcon
-                Margin="1,0,0,0" Kind="Globe"
+                Margin="1,0,0,0" Kind="Search"
                 Size="{DynamicResource FontSizeL}"/>
             </ToggleButton>
 

@@ -936,7 +936,7 @@ public sealed partial class ChatService : IChatService
             }
 
             // The function requires permissions that are not granted.
-            return context.ChatContext.HandleConsentRequestAsync(headerKey, displayBlock, true, cancellationToken);
+            return context.ChatContext.HandleConsentRequestAsync(headerKey, displayBlock, RequestConsentRememberMasks.All, cancellationToken);
         }
     }
 

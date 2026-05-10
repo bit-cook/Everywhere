@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using Everywhere.Chat.Permissions;
+using Everywhere.Chat.Plugins;
 using ShadUI;
 
 namespace Everywhere.Views;
@@ -7,18 +8,18 @@ namespace Everywhere.Views;
 public sealed partial class ConsentDecisionCard : Card
 {
     /// <summary>
-    /// Defines the <see cref="CanRemember"/> property.
+    /// Defines the <see cref="RememberMasks"/> property.
     /// </summary>
-    public static readonly StyledProperty<bool> CanRememberProperty =
-        AvaloniaProperty.Register<ConsentDecisionCard, bool>(nameof(CanRemember), true);
+    public static readonly StyledProperty<RequestConsentRememberMasks> RememberMasksProperty =
+        AvaloniaProperty.Register<ConsentDecisionCard, RequestConsentRememberMasks>(nameof(RememberMasks), RequestConsentRememberMasks.All);
 
     /// <summary>
     /// Gets or sets a value indicating whether the user can choose to remember their decision.
     /// </summary>
-    public bool CanRemember
+    public RequestConsentRememberMasks RememberMasks
     {
-        get => GetValue(CanRememberProperty);
-        set => SetValue(CanRememberProperty, value);
+        get => GetValue(RememberMasksProperty);
+        set => SetValue(RememberMasksProperty, value);
     }
 
     /// <summary>
@@ -80,6 +81,12 @@ public sealed partial class ConsentDecisionCard : Card
         get => GetValue(CommandProperty);
         set => SetValue(CommandProperty, value);
     }
+
+    public bool CanAllowSession => RememberMasks.HasFlag(RequestConsentRememberMasks.AllowSession);
+
+    public bool CanAlwaysAllow => RememberMasks.HasFlag(RequestConsentRememberMasks.AlwaysAllow);
+
+    public bool CanRemember => CanAllowSession | CanAlwaysAllow;
 
     [RelayCommand]
     private void Submit(ConsentDecision decision)

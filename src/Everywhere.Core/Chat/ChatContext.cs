@@ -438,10 +438,10 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     public async Task<ConsentDecisionResult> HandleConsentRequestAsync(
         IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content,
-        bool canRemember,
+        RequestConsentRememberMasks rememberMasks,
         CancellationToken cancellationToken)
     {
-        var item = new ChatPluginUserInterfaceConsentRequestItem(headerKey, content, canRemember, cancellationToken);
+        var item = new ChatPluginUserInterfaceConsentRequestItem(headerKey, content, rememberMasks, cancellationToken);
         _chatPluginUserInterfaceItemsSourceList.Add(item);
         WeakReferenceMessenger.Default.Send(new FlashChatWindowMessage(item.HeaderKey.ToString()));
 

@@ -21,7 +21,7 @@ public sealed partial class SoftwareUpdater(
     ILogger<SoftwareUpdater> logger
 ) : ObservableObject, ISoftwareUpdater, IDisposable
 {
-    private const string CustomUpdateServiceBaseUrl = "https://ghproxy.sylinko.com";
+    private const string CustomUpdateServiceBaseUrl = "https://download.sylinko.com";
     private const string ApiUrl = $"{CustomUpdateServiceBaseUrl}/api?product=everywhere";
     private readonly string _downloadUrlBase = $"{CustomUpdateServiceBaseUrl}/download?product=everywhere&os={platformHandler.OsIdentifier}";
     private const string GitHubDirectUrlBase = "https://github.com/Sylinko/Everywhere/releases/download";

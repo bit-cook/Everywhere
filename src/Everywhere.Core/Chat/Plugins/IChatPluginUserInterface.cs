@@ -64,6 +64,17 @@ public sealed record ChatPluginQuestionAnswer(
     string? FreeText
 );
 
+[Flags]
+public enum RequestConsentRememberMasks
+{
+    AllowOnce = 0x1,
+    AllowSession = 0x2,
+    AlwaysAllow = 0x4,
+    Custom = 0x8,
+
+    All = AllowOnce | AllowSession | AllowSession | AlwaysAllow | Custom
+}
+
 public readonly record struct RequestConsentResult(bool IsAccepted, string? Reason)
 {
     public static RequestConsentResult Accepted => new(true, null);
@@ -98,14 +109,14 @@ public interface IChatPluginUserInterface
     /// <param name="id"></param>
     /// <param name="headerKey"></param>
     /// <param name="content"></param>
-    /// <param name="canRemember"></param>
+    /// <param name="rememberMasks"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     Task<RequestConsentResult> RequestConsentAsync(
         string? id,
         IDynamicResourceKey headerKey,
         ChatPluginDisplayBlock? content = null,
-        bool canRemember = true,
+        RequestConsentRememberMasks rememberMasks = RequestConsentRememberMasks.All,
         CancellationToken cancellationToken = default);
 
     /// <summary>

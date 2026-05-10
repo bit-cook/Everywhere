@@ -27,17 +27,16 @@ public abstract class ChatPluginUserInterfaceItem<TResult> : ChatPluginUserInter
 /// Raised by <see cref="IChatPluginUserInterface"/> when a plugin needs to request the user's consent for a certain action, such as granting permissions or confirming a function call.
 /// The message contains a <see cref="TaskCompletionSource{ConsentDecision}"/> that the UI can use to return the user's decision asynchronously.
 /// The UI should also display the provided header and display block to inform the user about what they are consenting to.
-/// If <see cref="CanRemember"/> is true, the UI can offer an option to remember the user's decision for future similar requests.
 /// The operation can be canceled using the provided <see cref="CancellationToken"/>.
 /// </summary>
 /// <param name="headerKey"></param>
 /// <param name="displayBlock"></param>
-/// <param name="canRemember"></param>
+/// <param name="rememberMasks"></param>
 /// <param name="cancellationToken"></param>
 public sealed class ChatPluginUserInterfaceConsentRequestItem(
     IDynamicResourceKey headerKey,
     ChatPluginDisplayBlock? displayBlock,
-    bool canRemember,
+    RequestConsentRememberMasks rememberMasks,
     CancellationToken cancellationToken
 ) : ChatPluginUserInterfaceItem<ConsentDecisionResult>(cancellationToken)
 {
@@ -45,7 +44,7 @@ public sealed class ChatPluginUserInterfaceConsentRequestItem(
 
     public ChatPluginDisplayBlock? DisplayBlock { get; } = displayBlock;
 
-    public bool CanRemember { get; } = canRemember;
+    public RequestConsentRememberMasks RememberMasks { get; } = rememberMasks;
 }
 
 /// <summary>

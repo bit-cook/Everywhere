@@ -51,19 +51,6 @@ public sealed class BashPlugin : BuiltInChatPlugin
             throw new ArgumentException("Script cannot be null or empty.", nameof(script));
         }
 
-        string? consentKey;
-        var trimmedScript = script.AsSpan().Trim();
-        if (!trimmedScript.Contains('\n'))
-        {
-            // single line script, confirm with user
-            var command = trimmedScript.ToString().Split(' ')[0];
-            consentKey = $"single.{command}";
-        }
-        else
-        {
-            consentKey = "multi-line";
-        }
-
         var detailBlock = new ChatPluginContainerDisplayBlock
         {
             new ChatPluginTextDisplayBlock(description),
@@ -71,10 +58,10 @@ public sealed class BashPlugin : BuiltInChatPlugin
         };
 
         var consent = await userInterface.RequestConsentAsync(
-            consentKey,
+            null,
             new DynamicResourceKey(LocaleKey.Linux_BuiltInChatPlugin_Bash_ExecuteScript_ScriptConsent_Header),
             detailBlock,
-            canRemember: false,
+            RequestConsentRememberMasks.AllowOnce | RequestConsentRememberMasks.AllowSession,
             cancellationToken: cancellationToken);
         if (!consent)
         {

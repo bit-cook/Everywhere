@@ -7,7 +7,6 @@ using Everywhere.Chat;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
-using Everywhere.Extensions;
 using Everywhere.I18N;
 using Everywhere.Interop;
 using Lucide.Avalonia;
@@ -58,19 +57,6 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
             throw new ArgumentException("Script cannot be null or empty.", nameof(script));
         }
 
-        string? consentKey;
-        var trimmedScript = script.AsSpan().Trim();
-        if (!trimmedScript.Contains('\n'))
-        {
-            // single line script, confirm with user
-            var command = trimmedScript[trimmedScript.Split(' ').FirstOrDefault(new Range(0, trimmedScript.Length))].ToString();
-            consentKey = $"single.{command}";
-        }
-        else
-        {
-            consentKey = "multi-line";
-        }
-
         var detailBlock = new ChatPluginContainerDisplayBlock
         {
             new ChatPluginTextDisplayBlock(description),
@@ -78,10 +64,10 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
         };
 
         var consent = await userInterface.RequestConsentAsync(
-            consentKey,
+            null,
             new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_PowerShell_ExecuteScript_ScriptConsent_Header),
             detailBlock,
-            canRemember: false,
+            RequestConsentRememberMasks.AllowOnce | RequestConsentRememberMasks.AllowSession,
             cancellationToken: cancellationToken);
         if (!consent)
         {

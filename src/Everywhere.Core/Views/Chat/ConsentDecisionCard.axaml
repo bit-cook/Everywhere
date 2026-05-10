@@ -70,18 +70,20 @@
                       Content="{I18N {x:Static LocaleKey.ConsentDecision_AllowOnce}}"/>
                     <Button
                       Classes="Primary Compact"
-                      IsVisible="{TemplateBinding CanRemember}">
+                      IsVisible="{Binding CanRemember, RelativeSource={RelativeSource TemplatedParent}}">
                       <Button.Flyout>
                         <MenuFlyout>
                           <MenuItem
                             Command="{Binding $parent[v:ConsentDecisionCard].SubmitCommand}"
                             CommandParameter="{x:Static permissions:ConsentDecision.AllowSession}"
-                            Header="{I18N {x:Static LocaleKey.ConsentDecision_AllowSession}}"/>
+                            Header="{I18N {x:Static LocaleKey.ConsentDecision_AllowSession}}"
+                            IsVisible="{Binding $parent[v:ConsentDecisionCard].CanAllowSession}"/>
                           <MenuItem
                             Classes="Destructive"
                             Command="{Binding $parent[v:ConsentDecisionCard].SubmitCommand}"
                             CommandParameter="{x:Static permissions:ConsentDecision.AlwaysAllow}"
-                            Header="{I18N {x:Static LocaleKey.ConsentDecision_AlwaysAllow}}"/>
+                            Header="{I18N {x:Static LocaleKey.ConsentDecision_AlwaysAllow}}"
+                            IsVisible="{Binding $parent[v:ConsentDecisionCard].CanAlwaysAllow}"/>
                         </MenuFlyout>
                       </Button.Flyout>
 
