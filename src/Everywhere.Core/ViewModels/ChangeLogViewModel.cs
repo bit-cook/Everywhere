@@ -138,7 +138,7 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
             try
             {
                 using var httpClient = _httpClientFactory.CreateClient();
-                var response = await httpClient.GetAsync("https://api.github.com/repos/DearVa/Everywhere/releases?per_page=20", token);
+                var response = await httpClient.GetAsync("https://api.github.com/repos/Sylinko/Everywhere/releases?per_page=20", token);
                 if (response.IsSuccessStatusCode)
                 {
                     await using var jsonStream = await response.Content.ReadAsStreamAsync(token);

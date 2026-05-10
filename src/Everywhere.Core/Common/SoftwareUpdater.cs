@@ -24,7 +24,7 @@ public sealed partial class SoftwareUpdater(
     private const string CustomUpdateServiceBaseUrl = "https://ghproxy.sylinko.com";
     private const string ApiUrl = $"{CustomUpdateServiceBaseUrl}/api?product=everywhere";
     private readonly string _downloadUrlBase = $"{CustomUpdateServiceBaseUrl}/download?product=everywhere&os={platformHandler.OsIdentifier}";
-    private const string GitHubDirectUrlBase = "https://github.com/DearVa/Everywhere/releases/download";
+    private const string GitHubDirectUrlBase = "https://github.com/Sylinko/Everywhere/releases/download";
 
     private readonly ActivitySource _activitySource = new(typeof(SoftwareUpdater).FullName.NotNull());
 

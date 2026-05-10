@@ -37,12 +37,12 @@
       <HyperlinkButton
         VerticalAlignment="Center"
         Content="{I18N {x:Static LocaleKey.AboutPage_GitHubRepo}}"
-        NavigateUri="https://github.com/DearVa/Everywhere"
+        NavigateUri="https://github.com/Sylinko/Everywhere"
         TextElement.Foreground="{DynamicResource InfoColor}"/>
       <HyperlinkButton
         VerticalAlignment="Center"
         Content="{I18N {x:Static LocaleKey.AboutPage_OpenSourceLicenses}}"
-        NavigateUri="https://github.com/DearVa/Everywhere/blob/main/ThirdPartyNotices.txt"
+        NavigateUri="https://github.com/Sylinko/Everywhere/blob/main/ThirdPartyNotices.txt"
         TextElement.Foreground="{DynamicResource InfoColor}"/>
     </StackPanel>
   </StackPanel>

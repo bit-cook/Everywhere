@@ -1,16 +1,16 @@
 <a id="readme-top"></a>
 
-<a href="https://github.com/DearVa/Everywhere/blob/main/README-zh-cn.md">前往中文版本 »</a>
+<a href="https://github.com/Sylinko/Everywhere/blob/main/README-zh-cn.md">前往中文版本 »</a>
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/DearVa/Everywhere/refs/heads/main/img/banner.webp" alt="Banner"/>
+  <img src="https://raw.githubusercontent.com/Sylinko/Everywhere/refs/heads/main/img/banner.webp" alt="Banner"/>
 
   <h1>Every moment, Every place. Your AI - <code>Everywhere</code></h1>
 
   <div>
-    <a href="https://trendshift.io/repositories/15106" target="_blank"><img src="https://trendshift.io/api/badge/repositories/15106" alt="DearVa%2FEverywhere | Trendshift" width="250"/></a>
+    <a href="https://trendshift.io/repositories/15106" target="_blank"><img src="https://trendshift.io/api/badge/repositories/15106" alt="Sylinko%2FEverywhere | Trendshift" width="250"/></a>
     <a href="https://www.producthunt.com/products/everywhere?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-everywhere" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1034853&theme=light&t=1762403775174" alt="Product Hunt" width="250" /></a>
-    <a href="https://hellogithub.com/repository/DearVa/Everywhere" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=0bd4328c24794902bd6097055cda6f36&claim_uid=LNYEf6O9Qv5JeR2" alt="Featured｜HelloGitHub" width="250" /></a>
+    <a href="https://hellogithub.com/repository/Sylinko/Everywhere" target="_blank"><img src="https://abroad.hellogithub.com/v1/widgets/recommend.svg?rid=0bd4328c24794902bd6097055cda6f36&claim_uid=LNYEf6O9Qv5JeR2" alt="Featured｜HelloGitHub" width="250" /></a>
   </div>
 
   <br/>
@@ -24,9 +24,9 @@
     &nbsp;&middot;&nbsp;
     <strong><a href="https://youtu.be/BGujYa5hbXo">🎬 Watch the Trailer</a></strong>
     &nbsp;&middot;&nbsp;
-    <strong><a href="https://github.com/DearVa/Everywhere/issues/new?labels=bug&template=bug-report.md">🪲 Report a Bug</a></strong>
+    <strong><a href="https://github.com/Sylinko/Everywhere/issues/new?labels=bug&template=bug-report.md">🪲 Report a Bug</a></strong>
     &nbsp;&middot;&nbsp;
-    <strong><a href="https://github.com/DearVa/Everywhere/issues/new?labels=enhancement&template=feature-request.md">💡 Request a Feature</a></strong>
+    <strong><a href="https://github.com/Sylinko/Everywhere/issues/new?labels=enhancement&template=feature-request.md">💡 Request a Feature</a></strong>
   </p>
 </div>
 
@@ -204,8 +204,8 @@ We love open source and welcome your brilliant ideas and code contributions (Pul
 
 **A massive thanks to all of the outstanding contributors during our inception and growth phases:**
 
-<a href="https://github.com/DearVa/Everywhere/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=DearVa/Everywhere" alt="Everywhere Contributors Image" />
+<a href="https://github.com/Sylinko/Everywhere/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Sylinko/Everywhere" alt="Everywhere Contributors Image" />
 </a>
 
 ## 📄 License
@@ -217,7 +217,7 @@ This project is released under the Business Source License 1.1. See the [LICENSE
 
 ## 💖 Sponsor
 
-<a href="https://share.302.ai/5rzmPr"><img src="https://raw.githubusercontent.com/DearVa/Everywhere/refs/heads/main/img/Sponsors/302-ai-en.jpg" width="600" alt="302.ai Sponsor"/></a><br/>
+<a href="https://share.302.ai/5rzmPr"><img src="https://raw.githubusercontent.com/Sylinko/Everywhere/refs/heads/main/img/Sponsors/302-ai-en.jpg" width="600" alt="302.ai Sponsor"/></a><br/>
 
 [302.AI](https://share.302.ai/5rzmPr) is a pay-as-you-go enterprise AI resource hub that offers the latest and most comprehensive AI models and APIs on the market, along with a variety of ready-to-use online AI applications.
 
@@ -229,11 +229,11 @@ The Code Signing Certificate for this project is generously sponsored by [Certum
 
 <br/>
 
-<a href="https://www.star-history.com/#DearVa/Everywhere&Date">
+<a href="https://www.star-history.com/#Sylinko/Everywhere&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=DearVa/Everywhere&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=DearVa/Everywhere&type=Date" />
-   <img alt="Everywhere Star History Chart" src="https://api.star-history.com/svg?repos=DearVa/Everywhere&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Sylinko/Everywhere&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Sylinko/Everywhere&type=Date" />
+   <img alt="Everywhere Star History Chart" src="https://api.star-history.com/svg?repos=Sylinko/Everywhere&type=Date" />
  </picture>
 </a>
 

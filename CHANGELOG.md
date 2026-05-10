@@ -1,14 +1,14 @@
-## [v0.7.6](https://github.com/DearVa/Everywhere/releases/tag/v0.7.6) - 2026-05-02
+## [v0.7.6](https://github.com/Sylinko/Everywhere/releases/tag/v0.7.6) - 2026-05-02
 
 ### 🐛 Bug Fixes
 
 - Fixed an issue where the main window opened every time when started.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.5...v0.7.6
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.7.5...v0.7.6
 
 
 
-## [v0.7.5](https://github.com/DearVa/Everywhere/releases/tag/v0.7.5) - 2026-05-01
+## [v0.7.5](https://github.com/Sylinko/Everywhere/releases/tag/v0.7.5) - 2026-05-01
 
 ### ✨ Features & 🚀 Improvements
 
@@ -29,11 +29,11 @@
 - Fixed a crash when rendering specific LaTeX formulas.
 - **(Windows)** Fixed an issue where the SetText for automation operation will always fail.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.4...v0.7.5
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.7.4...v0.7.5
 
 
 
-## [v0.7.4](https://github.com/DearVa/Everywhere/releases/tag/v0.7.4) - 2026-04-24
+## [v0.7.4](https://github.com/Sylinko/Everywhere/releases/tag/v0.7.4) - 2026-04-24
 
 ### 🐛 Bug Fixes
 
@@ -41,11 +41,11 @@
 - Fixed an issue where the automatic selection of the "System Assistant" might fail to work in certain situations.
 - Fixed an issue where the `items` parameter in the "Manage Todo List" tool was incorrectly set as required, which previously caused the model's initial tool call to fail and led to confusion.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.3...v0.7.4
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.7.3...v0.7.4
 
 
 
-## [v0.7.3](https://github.com/DearVa/Everywhere/releases/tag/v0.7.3) - 2026-04-24
+## [v0.7.3](https://github.com/Sylinko/Everywhere/releases/tag/v0.7.3) - 2026-04-24
 
 ### ✨ Features
 
@@ -61,11 +61,11 @@
 - Fixed an error that occurred when Gemini models attempted to execute parallel tool calls.
 - Fixed an issue where auto-generated chat topics would occasionally appear as garbled text under specific circumstances.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.2...v0.7.3
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.7.2...v0.7.3
 
 
 
-## [v0.7.2](https://github.com/DearVa/Everywhere/releases/tag/v0.7.2) - 2026-04-22
+## [v0.7.2](https://github.com/Sylinko/Everywhere/releases/tag/v0.7.2) - 2026-04-22
 
 ### ✨ Features & 🚀 Improvements
 
@@ -88,11 +88,11 @@
 - **(macOS)** Fixed an issue where the global hotkey listener failed to work.
 - **(macOS)** Fixed an issue where the file selection dialog could not be opened in some situations.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.1...v0.7.2
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.7.1...v0.7.2
 
 
 
-## [v0.7.1](https://github.com/DearVa/Everywhere/releases/tag/v0.7.1) - 2026-04-19
+## [v0.7.1](https://github.com/Sylinko/Everywhere/releases/tag/v0.7.1) - 2026-04-19
 
 > ⚠️ This update fixes many issues from the 0.7.0 release, including critical crashes. We highly recommend all users to update immediately.
 
@@ -114,11 +114,11 @@
 - **(Windows)** Fixed an issue where toggling the chat window's pinned/unpinned state would cause screen flickering, which previously interrupted IME input.
 - **(macOS)** Fixed an issue where file attachments could not be properly selected and added within the chat window.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.7.0...v0.7.1
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.7.0...v0.7.1
 
 
 
-## [v0.7.0](https://github.com/DearVa/Everywhere/releases/tag/v0.7.0) - 2026-04-15
+## [v0.7.0](https://github.com/Sylinko/Everywhere/releases/tag/v0.7.0) - 2026-04-15
 
 ## 📢 Overview
 
@@ -244,11 +244,11 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - (Windows) Fixed an issue that could trigger an `ERROR_NO_ASSOCIATION` (No associated program found) error when opening or editing settings files (#333).
 - Other various minor fixes and stability improvements.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.7...v0.7.0
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.6.7...v0.7.0
 
 
 
-## [v0.6.7](https://github.com/DearVa/Everywhere/releases/tag/v0.6.7) - 2026-03-01
+## [v0.6.7](https://github.com/Sylinko/Everywhere/releases/tag/v0.6.7) - 2026-03-01
 
 ### ✨ Features
 - **Visual Context Supercharged**: Introducing `get_visual_tree` tool. Your assistant can now call this tool to fetch on-screen elements freely, massively boosting its contextual comprehension and self-awareness capabilities. Note: This is an experimental feature and may not work perfectly with all secenarios. Feedback is highly appreciated!
@@ -262,11 +262,11 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - Resolved a rendering crash that could occur after enabling the text selection feature (#313).
 - Fixed a random crash bug related to Grid layout calculations, bringing further stability to the application.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.6...v0.6.7
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.6.6...v0.6.7
 
 
 
-## [v0.6.6](https://github.com/DearVa/Everywhere/releases/tag/v0.6.6) - 2026-02-22
+## [v0.6.6](https://github.com/Sylinko/Everywhere/releases/tag/v0.6.6) - 2026-02-22
 
 ### ✨ Features
 - Enhanced the OpenAI schema and deprecated the standalone DeepSeek schema to improve compatibility with dynamic reasoning models.
@@ -283,11 +283,11 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - Fixed Anthropic URL parsing; appending `#` to the URL now forces the use of the raw address.
 - (macOS) Fixed an issue where the built-in Puppeteer failed to install.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.5...v0.6.6
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.6.5...v0.6.6
 
 
 
-## [v0.6.5](https://github.com/DearVa/Everywhere/releases/tag/v0.6.5) - 2026-02-16
+## [v0.6.5](https://github.com/Sylinko/Everywhere/releases/tag/v0.6.5) - 2026-02-16
 
 ### ✨ Features
 - Added Claude Opus 4.6 and Haiku 3, setting Sonnet 4.5 as default; Google now defaults to Gemini 3 Flash Preview; DeepSeek now defaults to Deepseek Reasoner; OpenRouter added Kimi 2.5 and Gemini 3 Flash Preview, while upgrading Grok to v4.1.
@@ -302,11 +302,11 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 ### 🐛 Bug Fixes
 - Fixed the OpenAI.ChangeTrackingList type mismatch error (#171).
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.4...v0.6.5
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.6.4...v0.6.5
 
 
 
-## [v0.6.4](https://github.com/DearVa/Everywhere/releases/tag/v0.6.4) - 2026-02-13
+## [v0.6.4](https://github.com/Sylinko/Everywhere/releases/tag/v0.6.4) - 2026-02-13
 
 ### ✨ Features
 - Added reasoning effort settings to the chat window
@@ -316,11 +316,11 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - Improved the logic for scenarios where no custom assistant is selected by adding hints and preventing input loss
 - Enhanced telemetry with the inclusion of metrics data
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.3...v0.6.4
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.6.3...v0.6.4
 
 
 
-## [v0.6.3](https://github.com/DearVa/Everywhere/releases/tag/v0.6.3) - 2026-02-11
+## [v0.6.3](https://github.com/Sylinko/Everywhere/releases/tag/v0.6.3) - 2026-02-11
 
 ### ✨ Features
 - Added confirmation and undo functionality when deleting chat history
@@ -333,11 +333,11 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 ### 🐛 Bug Fixes
 - Fixed an issue where DeepSeek reasoning models caused a 400 error when calling tools after outputting body content (#287)
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.2...v0.6.3
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.6.2...v0.6.3
 
 
 
-## [v0.6.2](https://github.com/DearVa/Everywhere/releases/tag/v0.6.2) - 2026-02-10
+## [v0.6.2](https://github.com/Sylinko/Everywhere/releases/tag/v0.6.2) - 2026-02-10
 
 ### ✨ Features
 - **Improved Tool Interaction**: Optimized the tool buttons in the chat window to support quick toggling.
@@ -355,11 +355,11 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - Fixed incorrect URLs on the Welcome page.
 - General stability updates and performance improvements.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.1...v0.6.2
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.6.1...v0.6.2
 
 
 
-## [v0.6.1](https://github.com/DearVa/Everywhere/releases/tag/v0.6.1) - 2026-02-03
+## [v0.6.1](https://github.com/Sylinko/Everywhere/releases/tag/v0.6.1) - 2026-02-03
 
 ### ✨ Features
 - **Enhanced Window Pinning**: Introduced three pinning states: Pinned & Topmost, Pinned (Not Topmost), and Unpinned (Auto-hide on lost focus).
@@ -376,11 +376,11 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - Fixed an issue where DeepSeek models failed to call tools during the reasoning process.
 - Fixed an issue with incorrect token usage counting.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.6.0...v0.6.1
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.6.0...v0.6.1
 
 
 
-## [v0.6.0](https://github.com/DearVa/Everywhere/releases/tag/v0.6.0) - 2026-01-21
+## [v0.6.0](https://github.com/Sylinko/Everywhere/releases/tag/v0.6.0) - 2026-01-21
 
 ### ✨ Features
 - 🎉 **macOS Support**: Native macOS support is here! We have brought a complete experience almost identical to the Windows version.
@@ -397,40 +397,40 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - Fixed an issue where files could not be pasted correctly if the file path contained spaces.
 - Fixed an issue where the color picker in the assistant icon editor was unresponsive.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.11...v0.6.0
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.11...v0.6.0
 
 
 
-## [v0.5.11](https://github.com/DearVa/Everywhere/releases/tag/v0.5.11) - 2026-01-12
+## [v0.5.11](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.11) - 2026-01-12
 
 ### 🐛 Bug Fixes
 - Model provider combobox is empty in preset mode (#254)
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.10...v0.5.11
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.10...v0.5.11
 
 
 
-## [v0.5.10](https://github.com/DearVa/Everywhere/releases/tag/v0.5.10) - 2026-01-12
+## [v0.5.10](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.10) - 2026-01-12
 
 ### 🐛 Bug Fixes
 - (Critical) Fixed an issue where Everywhere cannot get details/contents of UI elements.
 - (Windows) Fixed an issue where API keys cannot be configured when startup as administrator.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.9...v0.5.10
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.9...v0.5.10
 
 
 
-## [v0.5.9](https://github.com/DearVa/Everywhere/releases/tag/v0.5.9) - 2026-01-10
+## [v0.5.9](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.9) - 2026-01-10
 
 ### 🐛 Bug Fixes
 - Fixed an issue where the display order of content in the ApiKey selection box was incorrect.
 - (Windows) Fixed an issue where custom assistants were not migrating correctly.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.8...v0.5.9
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.8...v0.5.9
 
 
 
-## [v0.5.8](https://github.com/DearVa/Everywhere/releases/tag/v0.5.8) - 2026-01-08
+## [v0.5.8](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.8) - 2026-01-08
 
 ### ✨ Features
 - Added a screenshot tool for quickly attaching screen captures in the chat window.
@@ -447,11 +447,11 @@ When handling complex tasks, if the assistant encounters uncertainties, it can n
 - (Windows) Fixed an issue where the PowerShell plugin failed to refresh environment variables.
 - (Windows) Fixed an issue where the main window could incorrectly remain always-on-top.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.7...v0.5.8
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.7...v0.5.8
 
 
 
-## [v0.5.7](https://github.com/DearVa/Everywhere/releases/tag/v0.5.7) - 2026-01-06
+## [v0.5.7](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.7) - 2026-01-06
 
 ⚠️ IMPORTANT WARNING
 If upgrading from v0.5.5 or earlier, this version will automatically migrate your settings file. It is recommended to backup `C:\Users\[Username]\AppData\Roaming\Everywhere\settings.json` beforehand. Migration completes upon startup. All existing API keys will be cleared and moved to the `LegacyApiKeys` property in `settings.json`. You will need to reconfigure them. For security reasons, please delete `LegacyApiKeys` immediately after reconfiguring your keys.
@@ -463,11 +463,11 @@ If upgrading from v0.5.5 or earlier, this version will automatically migrate you
 - (Important) Fixed an issue where "Advanced Configuration" settings were not applied correctly.
 - Fixed an issue where the Main Window could not be restored from the tray menu if it was minimized.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.6...v0.5.7
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.6...v0.5.7
 
 
 
-## [v0.5.6](https://github.com/DearVa/Everywhere/releases/tag/v0.5.6) - 2026-01-05
+## [v0.5.6](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.6) - 2026-01-05
 
 ### ⚠️ Important Changes
 **Security Update**: API keys are now stored using a more secure encryption method.
@@ -494,11 +494,11 @@ If upgrading from v0.5.5 or earlier, this version will automatically migrate you
 - Fixed encoding issues in the PowerShell plugin.
 - Fixed an issue where LaTeX formulas were not clearly visible in Light Mode.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.5...v0.5.6
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.5...v0.5.6
 
 
 
-## [v0.5.5](https://github.com/DearVa/Everywhere/releases/tag/v0.5.5) - 2025-12-21
+## [v0.5.5](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.5) - 2025-12-21
 
 ### 🚀 Improvements
 - Optimized various UI visual details.
@@ -508,11 +508,11 @@ If upgrading from v0.5.5 or earlier, this version will automatically migrate you
 - Fixed an issue where the enabled state of MCP tools failed to load correctly.
 - Fixed an issue where the tool permission consent dialog failed to display.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.4...v0.5.5
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.4...v0.5.5
 
 
 
-## [v0.5.4](https://github.com/DearVa/Everywhere/releases/tag/v0.5.4) - 2025-12-20
+## [v0.5.4](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.4) - 2025-12-20
 
 ### ⚠️ Important Changes
 - Changed the software license from Apache 2.0 to **BSL 1.1**.
@@ -538,11 +538,11 @@ If upgrading from v0.5.5 or earlier, this version will automatically migrate you
 - Fixed an issue where DeepSeek models encountered errors when using tools during the reasoning process (#208).
 - Fixed a potential memory leak (#207).
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.3...v0.5.4
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.3...v0.5.4
 
 
 
-## [v0.5.3](https://github.com/DearVa/Everywhere/releases/tag/v0.5.3) - 2025-12-7
+## [v0.5.3](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.3) - 2025-12-7
 
 ### ✨ Features
 - Added a debug option in settings to create a process dump.
@@ -550,11 +550,11 @@ If upgrading from v0.5.5 or earlier, this version will automatically migrate you
 ### 🚀 Improvements
 - Improved the UI display for reasoning output.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.2...v0.5.3
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.2...v0.5.3
 
 
 
-## [v0.5.2](https://github.com/DearVa/Everywhere/releases/tag/v0.5.2) - 2025-12-3
+## [v0.5.2](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.2) - 2025-12-3
 
 Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple Developer Program fee. The Mac version is in its final stages of development and will be released soon.
 
@@ -573,11 +573,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - Fixed an issue where parameter types were incorrectly converted to strings during MCP calls (#167).
 - Fixed a missing reset button in the model settings template (#149, thanks to @ChuheLin).
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.1...v0.5.2
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.1...v0.5.2
 
 
 
-## [v0.5.1](https://github.com/DearVa/Everywhere/releases/tag/v0.5.1) - 2025-11-24
+## [v0.5.1](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.1) - 2025-11-24
 
 ### ✨ Features
 - Added a digital signature to the software (Thanks to Certum).
@@ -594,11 +594,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - Fixed an issue where some plugin icons were not displayed.
 - Fixed an issue where the chat window could not be closed using the shortcut key.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.5.0...v0.5.1
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.5.0...v0.5.1
 
 
 
-## [v0.5.0](https://github.com/DearVa/Everywhere/releases/tag/v0.5.0) - 2025-11-22
+## [v0.5.0](https://github.com/Sylinko/Everywhere/releases/tag/v0.5.0) - 2025-11-22
 
 ### ✨ Features
 - 🎉 **Major Update: Added support for MCP (Model Context Protocol)!** You can now add your own MCP tools, which will be automatically enabled when called by an assistant. Supports Stdio, Streamable HTTP, and SSE protocols.
@@ -615,11 +615,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - Fixed an issue where bold or italic text in Markdown would revert to normal font when selected (#114).
 - Fixed a bug where capturing a UI element could not be canceled.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.4.7...v0.5.0
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.4.7...v0.5.0
 
 
 
-## [v0.4.7](https://github.com/DearVa/Everywhere/releases/tag/v0.4.7) - 2025-11-19
+## [v0.4.7](https://github.com/Sylinko/Everywhere/releases/tag/v0.4.7) - 2025-11-19
 
 ### ✨ Features
 - Added the ability to copy and edit sent messages. You can also hold `Shift` while clicking the copy button to get the raw message content (#70).
@@ -633,11 +633,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 ### 🐛 Bug Fixes
 - Fixed an issue where adding an attachment could result in an incorrect file extension.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.4.6...v0.4.7
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.4.6...v0.4.7
 
 
 
-## [v0.4.6](https://github.com/DearVa/Everywhere/releases/tag/v0.4.6) - 2025-11-15
+## [v0.4.6](https://github.com/Sylinko/Everywhere/releases/tag/v0.4.6) - 2025-11-15
 
 ### ✨ Features
 - Added native support for the Gemini schema, which fixes the issue where Gemini could not upload images (#125).
@@ -653,11 +653,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - Fixed garbled UI text for English users in some cases.
 - (Windows) Fixed an issue where terminal execution could sometimes not be terminated, causing the application to freeze.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.4.5...v0.4.6
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.4.5...v0.4.6
 
 
 
-## [v0.4.5](https://github.com/DearVa/Everywhere/releases/tag/v0.4.5) - 2025-11-13
+## [v0.4.5](https://github.com/Sylinko/Everywhere/releases/tag/v0.4.5) - 2025-11-13
 
 ### ✨ Features
 - Added a setting for model request timeout.
@@ -677,11 +677,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - Optimized the display logic for dialog boxes to prevent them from going beyond the window boundaries and becoming inoperable.
 - Fixed an issue where model requests could not handle redirects automatically.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.4.4...v0.4.5
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.4.4...v0.4.5
 
 
 
-## [v0.4.4](https://github.com/DearVa/Everywhere/releases/tag/v0.4.4) - 2025-11-5
+## [v0.4.4](https://github.com/Sylinko/Everywhere/releases/tag/v0.4.4) - 2025-11-5
 
 - 📢 The macOS version is on the way and is expected to be released in v0.5.0. Good things take time, so please be patient!
 
@@ -698,11 +698,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 ### 🐛 Bug Fixes
 - Fixed an issue where PowerShell execution could not be interrupted (#104).
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.4.3...v0.4.4
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.4.3...v0.4.4
 
 
 
-## [v0.4.3](https://github.com/DearVa/Everywhere/releases/tag/v0.4.3) - 2025-11-2
+## [v0.4.3](https://github.com/Sylinko/Everywhere/releases/tag/v0.4.3) - 2025-11-2
 
 ### ✨ Features
 - Added Türkçe language support (Thanks @complex-cgn)
@@ -718,11 +718,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - Fixed an issue where canceling a tool call could prevent the conversation from continuing
 - Fixed an issue where some reasoning-focused LLMs could not use tools correctly
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.4.2...v0.4.3
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.4.2...v0.4.3
 
 
 
-## [v0.4.2](https://github.com/DearVa/Everywhere/releases/tag/v0.4.2) - 2025-10-28
+## [v0.4.2](https://github.com/Sylinko/Everywhere/releases/tag/v0.4.2) - 2025-10-28
 
 ### ✨ Features
 - Now you can upload documents (PDF, Word, Text, etc.) directly in the chat window as attachments for context (⚠️ only supported by models that allow file inputs)
@@ -740,11 +740,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - (Windows) Fixed chat window disappears when picking a file
 - (Windows) Fixed icon & title of update notify is missing
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.4.1...v0.4.2
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.4.1...v0.4.2
 
 
 
-## [v0.4.1](https://github.com/DearVa/Everywhere/releases/tag/v0.4.1) - 2025-10-27
+## [v0.4.1](https://github.com/Sylinko/Everywhere/releases/tag/v0.4.1) - 2025-10-27
 
 ### ⚠️ BREAKING CHANGE: Chat window shortcut will reset to `Ctrl+Shift+E` due to renaming "Hotkey" to "Shortcut".
 ️
@@ -759,11 +759,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - Fixed "everything" chat tool cannot work when "file system" chat tool is enabled
 - Fixed token counting may be bigger than actual usage in some cases
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.4.0...v0.4.1
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.4.0...v0.4.1
 
 
 
-## [v0.4.0](https://github.com/DearVa/Everywhere/releases/tag/v0.4.0) - 2025-10-26
+## [v0.4.0](https://github.com/Sylinko/Everywhere/releases/tag/v0.4.0) - 2025-10-26
 
 ### ✨ Features
 - Plugin Execution Feedback
@@ -802,11 +802,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - Fixed a recursive self-reference issue
 - Fixed wrong acrylic effect on Windows 10
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.12...v0.4.0
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.12...v0.4.0
 
 
 
-## [v0.3.12](https://github.com/DearVa/Everywhere/releases/tag/v0.3.12) - 2025-10-16
+## [v0.3.12](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.12) - 2025-10-16
 
 ### 🚀 Improvements
 - Removed the obsolete Bing web search engine
@@ -819,11 +819,11 @@ Thanks to [@AidenNovak](https://github.com/AidenNovak) for sponsoring the Apple 
 - Fixed an issue where variables in the system prompt were not rendered
 - Fixed an issue where the chat topic summary was sometimes empty (Note: This is not fully resolved, as some models may still produce empty results)
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.11...v0.3.12
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.11...v0.3.12
 
 
 
-## [v0.3.11](https://github.com/DearVa/Everywhere/releases/tag/v0.3.11) - 2025-10-16
+## [v0.3.11](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.11) - 2025-10-16
 
 ### ⚠️ Breaking Changes ⚠️
 Due to the model configuration page being rebuilt, previously configured model settings (including API keys, etc.) will be lost! However, they still exist in the software settings file. Advanced users can find them at `C:\Users\<username>\AppData\Roaming\Everywhere\settings.json`.
@@ -835,11 +835,11 @@ Due to the model configuration page being rebuilt, previously configured model s
 ### 🚀 Improvements
 - Optimized exception handling
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.10...v0.3.11
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.10...v0.3.11
 
 
 
-## [v0.3.10](https://github.com/DearVa/Everywhere/releases/tag/v0.3.10) - 2025-10-14
+## [v0.3.10](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.10) - 2025-10-14
 
 ### 🚀 Improvements
 - Introduced a new, modern installer that remembers the previous installation location during updates
@@ -851,11 +851,11 @@ Due to the model configuration page being rebuilt, previously configured model s
 - Fixed an issue causing an HTTP 400 error during function calls
 - Fixed an issue where requests could be blocked by Cloudflare from some third-party model providers
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.9...v0.3.10
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.9...v0.3.10
 
 
 
-## [v0.3.9](https://github.com/DearVa/Everywhere/releases/tag/v0.3.9) - 2025-10-13
+## [v0.3.9](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.9) - 2025-10-13
 
 ### ✨ Features
 - Provider icons in settings are now loaded as local resources for faster display
@@ -869,11 +869,11 @@ Due to the model configuration page being rebuilt, previously configured model s
 - Fixed dialog covering the title bar, making the window undraggable or unresponsive
 - Fixed some prompt tasks (e.g. translation) may use the wrong target language
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.8...v0.3.9
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.8...v0.3.9
 
 
 
-## [v0.3.8](https://github.com/DearVa/Everywhere/releases/tag/v0.3.8) - 2025-10-11
+## [v0.3.8](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.8) - 2025-10-11
 
 ### ✨ Features
 - Software updates can now be cancelled by dismissing the toast notification
@@ -892,20 +892,20 @@ Due to the model configuration page being rebuilt, previously configured model s
 - Fixed unnecessary telemetry logging
 - Corrected a typo for an Ollama model: deepseek R1 8B -> deepseek R1 7B
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.7...v0.3.8
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.7...v0.3.8
 
 
 
-## [v0.3.7](https://github.com/DearVa/Everywhere/releases/tag/v0.3.7) - 2025-10-11
+## [v0.3.7](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.7) - 2025-10-11
 
 ### 🐞 Fixed
 - Fixed error messages were incorrectly parsed as "unknown".
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.6...v0.3.7
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.6...v0.3.7
 
 
 
-## [v0.3.6](https://github.com/DearVa/Everywhere/releases/tag/v0.3.6) - 2025-10-10
+## [v0.3.6](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.6) - 2025-10-10
 
 ### ✨ New Features
 - Added chat statistics in the chat window, which can be toggled in settings.
@@ -924,22 +924,22 @@ Due to the model configuration page being rebuilt, previously configured model s
 - Fixed an issue where the chat window could not be reopened after being closed while a message was being streamed.
 - Fixed an issue where the `Shift` and `Win` keys could become unresponsive if a hotkey included the `Win` key. You can now set the Copilot key as a hotkey normally.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.5...v0.3.6
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.5...v0.3.6
 
 
 
-## [v0.3.5](https://github.com/DearVa/Everywhere/releases/tag/v0.3.5) - 2025-10-09
+## [v0.3.5](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.5) - 2025-10-09
 
 ### 🐞 Fixed
-- Fixed hotkey input box crashes when clicking twice [#20](https://github.com/DearVa/Everywhere/issues/20)
+- Fixed hotkey input box crashes when clicking twice [#20](https://github.com/Sylinko/Everywhere/issues/20)
 - Fixed potential null pointer error when sending message
 - Fixed wrong telemetry log level
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.4...v0.3.5
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.4...v0.3.5
 
 
 
-## [v0.3.4](https://github.com/DearVa/Everywhere/releases/tag/v0.3.4) - 2025-10-09
+## [v0.3.4](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.4) - 2025-10-09
 
 ### 🔄️ Changed
 - Improved user prompt for tool usage
@@ -953,14 +953,14 @@ Due to the model configuration page being rebuilt, previously configured model s
 - Fixed custom model not saved or applied
 - Fixed visual tree plugin is not disabled correctly
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.3...v0.3.4
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.3...v0.3.4
 
 
 
-## [v0.3.3](https://github.com/DearVa/Everywhere/releases/tag/v0.3.3) - 2025-10-08
+## [v0.3.3](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.3) - 2025-10-08
 
 ### ✨ New Features
-- Added telemetry to help us improve. See [Data and Privacy](https://github.com/DearVa/Everywhere/blob/main/DATA_AND_PRIVACY.md)
+- Added telemetry to help us improve. See [Data and Privacy](https://github.com/Sylinko/Everywhere/blob/main/DATA_AND_PRIVACY.md)
 - Unsent messages will be saved automatically
 
 ### 🔄️ Changed
@@ -969,32 +969,32 @@ Due to the model configuration page being rebuilt, previously configured model s
 ### 🐞 Fixed
 - Fixed update message in settings page may disappear when fetching new version
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.2...v0.3.3
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.2...v0.3.3
 
 
 
-## [v0.3.2](https://github.com/DearVa/Everywhere/releases/tag/v0.3.2) - 2025-10-05
+## [v0.3.2](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.2) - 2025-10-05
 
 ### 🐞 Fixed
 - Fixed chat input box watermark behavior error
 - (Windows) Fixed powershell plugin missing modules
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.1...v0.3.2
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.1...v0.3.2
 
 
 
-## [v0.3.1](https://github.com/DearVa/Everywhere/releases/tag/v0.3.1) - 2025-10-04
+## [v0.3.1](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.1) - 2025-10-04
 
 ### 🔄️ Changed
 - Improved markdown rendering styles
 - Improved OOBE experience
 - Changed official website link to https://everywhere.sylinko.com/
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.3.0...v0.3.1
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.3.0...v0.3.1
 
 
 
-## [v0.3.0](https://github.com/DearVa/Everywhere/releases/tag/v0.3.0) - 2025-09-24
+## [v0.3.0](https://github.com/Sylinko/Everywhere/releases/tag/v0.3.0) - 2025-09-24
 
 ### ✨ New Features
 - 🎉 New Icon
@@ -1034,11 +1034,11 @@ Due to the model configuration page being rebuilt, previously configured model s
 - Chat messages may disappear when selecting text
 - Chat window may flicker when pinned
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.2.4...v0.3.0
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.2.4...v0.3.0
 
 
 
-## [v0.2.4](https://github.com/DearVa/Everywhere/releases/tag/v0.2.4) - 2025-08-15
+## [v0.2.4](https://github.com/Sylinko/Everywhere/releases/tag/v0.2.4) - 2025-08-15
 
 ### ✨ New Features
 - Added Change Log in Welcome Dialog
@@ -1053,11 +1053,11 @@ Due to the model configuration page being rebuilt, previously configured model s
 - Fixed `ChatElementAttachment`'s overlay window may cover the `ChatWindow`
 - Fixed `ChatElementAttachment`'s overlay window may not disappear
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.2.3...v0.2.4
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.2.3...v0.2.4
 
 
 
-## [v0.2.3](https://github.com/DearVa/Everywhere/releases/tag/v0.2.3) - 2025-08-14
+## [v0.2.3](https://github.com/Sylinko/Everywhere/releases/tag/v0.2.3) - 2025-08-14
 
 ### ✨ New Features
 - Added settings for automatically startup
@@ -1066,11 +1066,11 @@ Due to the model configuration page being rebuilt, previously configured model s
 ### 🐞 Fixed
 - Fixed markdown rendering issues in the Chat Window
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.2.2...v0.2.3
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.2.2...v0.2.3
 
 
 
-## [v0.2.2](https://github.com/DearVa/Everywhere/releases/tag/v0.2.2) - 2025-08-11
+## [v0.2.2](https://github.com/Sylinko/Everywhere/releases/tag/v0.2.2) - 2025-08-11
 
 ### ✨ New Features
 - **Model Support**: Added support for `Claude Opus 4.1`
@@ -1078,11 +1078,11 @@ Due to the model configuration page being rebuilt, previously configured model s
 ### 🔄️ Changed
 - Split settings into separate sidebar items
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.2.1...v0.2.2
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.2.1...v0.2.2
 
 
 
-## [v0.2.1](https://github.com/DearVa/Everywhere/releases/tag/v0.2.1) - 2025-08-11
+## [v0.2.1](https://github.com/Sylinko/Everywhere/releases/tag/v0.2.1) - 2025-08-11
 
 ### ✨ New Features
 - **Model Support**: Added support for `GPT-5` series models:
@@ -1093,11 +1093,11 @@ Due to the model configuration page being rebuilt, previously configured model s
 ### 🐞 Fixed
 - Fixed markdown rendering issues in the Chat Window
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.2.0...v0.2.1
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.2.0...v0.2.1
 
 
 
-## [v0.2.0](https://github.com/DearVa/Everywhere/releases/tag/v0.2.0) - 2025-08-10
+## [v0.2.0](https://github.com/Sylinko/Everywhere/releases/tag/v0.2.0) - 2025-08-10
 
 This update introduces support for over 20 new models and a completely refactored settings page for a better user experience.
 
@@ -1120,11 +1120,11 @@ To improve performance and stability, the chat database has been refactored.
 - **As this is a beta release, chat history from previous versions is no longer available.**
 - The new database structure now supports data migrations, which will prevent data loss in future updates. We appreciate your understanding.
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.1.3...v0.2.0
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.1.3...v0.2.0
 
 
 
-## [v0.1.3](https://github.com/DearVa/Everywhere/releases/tag/v0.1.3) - 2025-08-08
+## [v0.1.3](https://github.com/Sylinko/Everywhere/releases/tag/v0.1.3) - 2025-08-08
 
 ### ✨ New Features
 - Added a pin button to the Chat Window, to keep it always on top and not close on lost focus
@@ -1134,11 +1134,11 @@ To improve performance and stability, the chat database has been refactored.
 ### 🐞 Fixed
 - Fixed ChatInputBox max height
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.1.2...v0.1.3
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.1.2...v0.1.3
 
 
 
-## [v0.1.2](https://github.com/DearVa/Everywhere/releases/tag/v0.1.2) - 2025-08-02
+## [v0.1.2](https://github.com/Sylinko/Everywhere/releases/tag/v0.1.2) - 2025-08-02
 
 ### ✨ New Features
 - Added a notification when the app is first hide to the system tray
@@ -1152,11 +1152,11 @@ To improve performance and stability, the chat database has been refactored.
 ### ⚠️ Known Issues
 - The opacity of tray icon menu is broken
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.1.1...v0.1.2
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.1.1...v0.1.2
 
 
 
-## [v0.1.1](https://github.com/DearVa/Everywhere/releases/tag/v0.1.1) - 2025-07-31
+## [v0.1.1](https://github.com/Sylinko/Everywhere/releases/tag/v0.1.1) - 2025-07-31
 
 ### ✨ New Features
 - Added Logging
@@ -1167,10 +1167,10 @@ To improve performance and stability, the chat database has been refactored.
 ### 🐞 Fixed
 - Fixed I18N not working when Language is not set
 
-**Full Changelog**: https://github.com/DearVa/Everywhere/compare/v0.1.0...v0.1.1
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.1.0...v0.1.1
 
 
 
-## [v0.1.0](https://github.com/DearVa/Everywhere/releases/tag/v0.1.0) - 2025-07-31
+## [v0.1.0](https://github.com/Sylinko/Everywhere/releases/tag/v0.1.0) - 2025-07-31
 
 ### First Release · 万物生于有，有生于无。

@@ -5,7 +5,7 @@ pkgver=0.0.0
 pkgrel=1
 pkgdesc="Context-aware AI assistant for your desktop. Ready to respond intelligently, seamlessly integrating multiple LLMs and MCP tools."
 arch=('x86_64')
-url="https://github.com/DearVa/Everywhere"
+url="https://github.com/Sylinko/Everywhere"
 license=('BSL-1.1')
 depends=('dotnet-runtime' 'fontconfig' 'libx11' 'libice' 'libsm' 'hicolor-icon-theme')
 provides=('everywhere')
@@ -15,8 +15,8 @@ _filename="Everywhere-Linux-x64-v${pkgver}.tar.zst"
 _iconfile="Everywhere-icon.png"
 
 source=("${url}/releases/download/v${pkgver}/${_filename}"
-        "https://raw.githubusercontent.com/DearVa/Everywhere/main/LICENSE"
-        "https://media.githubusercontent.com/media/DearVa/Everywhere/refs/heads/main/img/Everywhere-icon.png")
+        "https://raw.githubusercontent.com/Sylinko/Everywhere/main/LICENSE"
+        "https://media.githubusercontent.com/media/Sylinko/Everywhere/refs/heads/main/img/Everywhere-icon.png")
 
 sha256sums=('SKIP'
            'SKIP'

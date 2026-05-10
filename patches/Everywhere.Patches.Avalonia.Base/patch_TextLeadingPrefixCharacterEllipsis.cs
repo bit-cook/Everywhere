@@ -10,7 +10,7 @@ using MonoMod;
 namespace Everywhere.Patches.Avalonia.Base;
 
 /// <summary>
-/// This fixes https://github.com/DearVa/Everywhere/issues/313
+/// This fixes https://github.com/Sylinko/Everywhere/issues/313
 /// Since TextLeadingPrefixCharacterEllipsis.Collapse is not virtual, we have to patch the method body to change the behavior of the collapsing logic.
 /// It also calls internal class and methods that we cannot access directly.
 /// </summary>
