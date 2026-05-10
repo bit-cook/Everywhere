@@ -63,6 +63,7 @@
     <TrimmerRootAssembly Include="Everywhere"/>
     <TrimmerRootAssembly Include="Everywhere.Abstractions"/>
     <TrimmerRootAssembly Include="Everywhere.Core"/>
+    <TrimmerRootAssembly Include="Everywhere.Cloud"/>
     <TrimmerRootAssembly Include="Everywhere.I18N"/>
     <TrimmerRootAssembly Include="Everywhere.Windows.PowerShell"/>
     <TrimmerRootAssembly Include="Anthropic"/>
@@ -83,7 +84,6 @@
     <TrimmerRootAssembly Include="Microsoft.PowerShell.Commands.Utility"/>
     <TrimmerRootAssembly Include="Microsoft.PowerShell.ConsoleHost"/>
     <TrimmerRootAssembly Include="Microsoft.PowerShell.SDK"/>
-    <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Abstractions"/>
     <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Connectors.Google"/>
     <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Core"/>
     <TrimmerRootAssembly Include="ModelContextProtocol"/>
