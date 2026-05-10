@@ -105,6 +105,7 @@ public sealed partial class ChatWindowViewModel :
     private readonly IVisualElementContext _visualElementContext;
     private readonly IBlobStorage _blobStorage;
     private readonly IStrategyEngine _strategyEngine;
+    private readonly IGreetings _greetings;
     private readonly ILogger<ChatWindowViewModel> _logger;
 
     private readonly DynamicResourceKey _defaultWatermarkKey = new(LocaleKey.ChatInputArea_Watermark);
@@ -125,6 +126,7 @@ public sealed partial class ChatWindowViewModel :
         IVisualElementContext visualElementContext,
         IBlobStorage blobStorage,
         IStrategyEngine strategyEngine,
+        IGreetings greetings,
         ILogger<ChatWindowViewModel> logger)
     {
         Settings = settings;
@@ -135,6 +137,7 @@ public sealed partial class ChatWindowViewModel :
         _visualElementContext = visualElementContext;
         _blobStorage = blobStorage;
         _strategyEngine = strategyEngine;
+        _greetings = greetings;
         _logger = logger;
 
         _activeChatWindowsGauge = _meter.CreateGauge<int>("app.active_chat_windows");
@@ -764,7 +767,7 @@ public sealed partial class ChatWindowViewModel :
     {
         if (isBusy)
         {
-            ChatInputAreaWatermarkKey = Greetings.GetRandomTip();
+            ChatInputAreaWatermarkKey = _greetings.GetRandomTip();
         }
         else if (selectedStrategy is not null)
         {

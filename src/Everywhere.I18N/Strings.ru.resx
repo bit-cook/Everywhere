@@ -2060,13 +2060,13 @@
         <value>Включить Вызов Инструментов</value>
     </data>
     <data name="Greetings_Tip1" xml:space="preserve">
-        <value>Знаете ли вы: вы можете быстро переключать помощника, используя Ctrl + цифру</value>
+        <value>💡вы можете быстро переключать помощника, используя Ctrl + цифру</value>
     </data>
     <data name="Greetings_Tip2" xml:space="preserve">
-        <value>Знаете ли вы: вы можете быстро переключать, используя колесо прокрутки на значке помощника в левом нижнем углу</value>
+        <value>💡вы можете быстро переключать, используя колесо прокрутки на значке помощника в левом нижнем углу</value>
     </data>
     <data name="Greetings_Tip3" xml:space="preserve">
-        <value>Знаете ли вы: вы можете назначить клавишу Copilot как горячую клавишу для Everywhere</value>
+        <value>💡вы можете назначить клавишу Copilot как горячую клавишу для Everywhere</value>
     </data>
     <data name="ChatContextManager_RemoveSelectedDialog_Title" xml:space="preserve">
         <value>Подтвердить удаление</value>

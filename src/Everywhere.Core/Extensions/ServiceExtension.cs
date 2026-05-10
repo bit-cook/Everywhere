@@ -65,6 +65,7 @@ public static class ServiceExtension
                 .AddSingleton<IKernelMixinFactory, KernelMixinFactory>()
                 .AddSingleton<IChatPluginManager, ChatPluginManager>()
                 .AddSingleton<IChatService, ChatService>()
+                .AddSingleton<IGreetings, Greetings>()
                 .AddSingleton<IWebBrowserHost, WebBrowserHost>()
                 .AddChatContextManager()
                 .AddManagedMcp()

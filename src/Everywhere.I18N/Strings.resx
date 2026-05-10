@@ -2060,13 +2060,13 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Enable Tool Call</value>
     </data>
     <data name="Greetings_Tip1" xml:space="preserve">
-        <value>Did you know: You can quickly switch assistants using Ctrl + Number Keys</value>
+        <value>💡You can quickly switch assistants using Ctrl + Number Keys</value>
     </data>
     <data name="Greetings_Tip2" xml:space="preserve">
-        <value>Did you know: You can quickly switch by using the scroll wheel on the assistant icon in the bottom left corner</value>
+        <value>💡You can quickly switch by using the scroll wheel on the assistant icon in the bottom left corner</value>
     </data>
     <data name="Greetings_Tip3" xml:space="preserve">
-        <value>Did you know: You can set the Copilot key as the Everywhere shortcut</value>
+        <value>💡You can set the Copilot key as the Everywhere shortcut</value>
     </data>
     <data name="ChatContextManager_RemoveSelectedDialog_Title" xml:space="preserve">
         <value>Confirm Deletion</value>
@@ -2803,5 +2803,20 @@ Use scroll wheel or number keys to switch selection mode</value>
     </data>
     <data name="UserProfilePresenter_WebSearchTextBlock_Text" xml:space="preserve">
         <value>Cloud Search</value>
+    </data>
+    <data name="Greetings_NotLoginTip1" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Greetings_NotLoginTip2" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Greetings_Tip4" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Greetings_Tip5" xml:space="preserve">
+        <value />
+    </data>
+    <data name="Greetings_Tip6" xml:space="preserve">
+        <value />
     </data>
 </root>

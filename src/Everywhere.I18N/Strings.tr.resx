@@ -2059,13 +2059,13 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
         <value>Araç Çağrısını Aç</value>
     </data>
     <data name="Greetings_Tip1" xml:space="preserve">
-        <value>Biliyor musun: Asistanı hızlıca değiştirmek için Ctrl + Sayı Tuşu kullanabilirsin</value>
+        <value>💡Asistanı hızlıca değiştirmek için Ctrl + Sayı Tuşu kullanabilirsin</value>
     </data>
     <data name="Greetings_Tip2" xml:space="preserve">
-        <value>Biliyor musun: Sol alt köşedeki asistan simgesinde kaydırma tekerleğini kullanarak hızlıca geçiş yapabilirsin</value>
+        <value>💡Sol alt köşedeki asistan simgesinde kaydırma tekerleğini kullanarak hızlıca geçiş yapabilirsin</value>
     </data>
     <data name="Greetings_Tip3" xml:space="preserve">
-        <value>Biliyor musun: Copilot tuşunu Everywhere kısayolu olarak ayarlayabilirsin</value>
+        <value>💡Copilot tuşunu Everywhere kısayolu olarak ayarlayabilirsin</value>
     </data>
     <data name="ChatContextManager_RemoveSelectedDialog_Title" xml:space="preserve">
         <value>Silme Onayı</value>

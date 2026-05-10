@@ -2059,13 +2059,13 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
         <value>Werkzeugaufruf aktivieren</value>
     </data>
     <data name="Greetings_Tip1" xml:space="preserve">
-        <value>Wusstest du schon: Du kannst mit Strg + Zahlentaste schnell zwischen den Assistenten wechseln.</value>
+        <value>💡Du kannst mit Strg + Zahlentaste schnell zwischen den Assistenten wechseln.</value>
     </data>
     <data name="Greetings_Tip2" xml:space="preserve">
-        <value>Wusstest du schon: Du kannst im linken unteren Bereich auf das Assistenten-Symbol mit dem Mausrad schnell wechseln.</value>
+        <value>💡Du kannst im linken unteren Bereich auf das Assistenten-Symbol mit dem Mausrad schnell wechseln.</value>
     </data>
     <data name="Greetings_Tip3" xml:space="preserve">
-        <value>Wusstest du schon: Du kannst die Copilot-Taste als Everywhere-Verknüpfung festlegen.</value>
+        <value>💡Du kannst die Copilot-Taste als Everywhere-Verknüpfung festlegen.</value>
     </data>
     <data name="ChatContextManager_RemoveSelectedDialog_Title" xml:space="preserve">
         <value>Bestätigung Löschen</value>
