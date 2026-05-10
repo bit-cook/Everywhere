@@ -5,8 +5,8 @@
     <PatcherExe>$(PatchesBasePath)Everywhere.BuildTask.Patcher\bin\$(Configuration)\net10.0\Everywhere.BuildTask.Patcher.dll</PatcherExe>
   </PropertyGroup>
 
-  <UsingTask TaskName="Everywhere.BuildTask.Patcher.WeaveAssembliesTask" AssemblyFile="$(PatcherExe)" />
-  <UsingTask TaskName="Everywhere.BuildTask.Patcher.ReplaceItemsByFileNameTask" AssemblyFile="$(PatcherExe)" />
+  <UsingTask TaskName="Everywhere.BuildTask.Patcher.WeaveAssembliesTask" AssemblyFile="$(PatcherExe)" TaskFactory="TaskHostFactory" />
+  <UsingTask TaskName="Everywhere.BuildTask.Patcher.ReplaceItemsByFileNameTask" AssemblyFile="$(PatcherExe)" TaskFactory="TaskHostFactory" />
 
   <!-- Patcher tool: build-order dependency only, no runtime reference -->
   <ItemGroup>
@@ -62,8 +62,10 @@
     </Everywhere.BuildTask.Patcher.WeaveAssembliesTask>
 
     <ItemGroup>
-      <ReferencePath Remove="@(_RemovedReferences)" />
-      <ReferencePath Include="@(_AddedReferences)" />
+      <!-- Do NOT modify ReferencePath here. The C# compiler only needs API signatures,
+           which the original NuGet ref/ shims provide. Removing them from ReferencePath
+           causes ILLink to treat patched DLLs as reference-only (Skip action), triggering
+           IL1035 and stripping their internal dependency graphs. -->
       <ReferenceCopyLocalPaths Remove="@(_RemovedReferences)" />
       <ReferenceCopyLocalPaths Include="@(_AddedReferences)" />
     </ItemGroup>
@@ -90,6 +92,36 @@
     <ItemGroup>
       <ResolvedFileToPublish Remove="@(_PublishItemsToRemove)" />
       <ResolvedFileToPublish Include="@(_PublishItemsToAdd)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Replace patched DLLs in the publish file list for app bundle creation (macOS/iOS) and ILLink.
+    We must patch BOTH ResolvedFileToPublish and RuntimeCopyLocalItems BEFORE _ComputeAssembliesToPostprocessOnPublish.
+    This ensures the SDK's internal JoinItems matches the paths correctly and assigns PostprocessAssembly="true",
+    which is required for ILLink to treat them as input assemblies.
+  -->
+  <Target Name="_PatchResolvedFilesToPublish"
+          AfterTargets="ComputeResolvedFilesToPublishList"
+          BeforeTargets="ILLink;_ComputeResolvedFilesToPublishTypes;_ComputeAssembliesToPostprocessOnPublish"
+          Condition="'@(_AddedReferences)' != ''">
+
+    <Everywhere.BuildTask.Patcher.ReplaceItemsByFileNameTask OriginalItems="@(ResolvedFileToPublish)" ReplacementItems="@(_AddedReferences)">
+      <Output TaskParameter="ItemsToRemove" ItemName="_PublishItemsToRemove" />
+      <Output TaskParameter="ItemsToAdd" ItemName="_PublishItemsToAdd" />
+    </Everywhere.BuildTask.Patcher.ReplaceItemsByFileNameTask>
+
+    <Everywhere.BuildTask.Patcher.ReplaceItemsByFileNameTask OriginalItems="@(RuntimeCopyLocalItems)" ReplacementItems="@(_AddedReferences)">
+      <Output TaskParameter="ItemsToRemove" ItemName="_RuntimeCopyLocalItemsToRemove" />
+      <Output TaskParameter="ItemsToAdd" ItemName="_RuntimeCopyLocalItemsToAdd" />
+    </Everywhere.BuildTask.Patcher.ReplaceItemsByFileNameTask>
+
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(_PublishItemsToRemove)" />
+      <ResolvedFileToPublish Include="@(_PublishItemsToAdd)" />
+      
+      <RuntimeCopyLocalItems Remove="@(_RuntimeCopyLocalItemsToRemove)" />
+      <RuntimeCopyLocalItems Include="@(_RuntimeCopyLocalItemsToAdd)" />
     </ItemGroup>
   </Target>
 

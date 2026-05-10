@@ -5,6 +5,8 @@ PresentationUI.dll
 System.Windows.Forms.Primitives.dll
 System.Windows.Forms.dll
 wpfgfx_cor3.dll
+*.pdb
+*.xml
 */Microsoft.VisualBasic.Forms.resources.dll
 */PresentationCore.resources.dll
 */PresentationFramework.resources.dll

@@ -58,6 +58,7 @@
   </ItemGroup>
 
   <Import Project="..\Build.Patches.targets" />
+  <Import Project="..\Build.Watchdog.targets"/>
 
   <ItemGroup>
     <TrimmerRootAssembly Include="Everywhere"/>
@@ -84,6 +85,7 @@
     <TrimmerRootAssembly Include="Microsoft.PowerShell.Commands.Utility"/>
     <TrimmerRootAssembly Include="Microsoft.PowerShell.ConsoleHost"/>
     <TrimmerRootAssembly Include="Microsoft.PowerShell.SDK"/>
+    <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Abstractions"/>
     <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Connectors.Google"/>
     <TrimmerRootAssembly Include="Microsoft.SemanticKernel.Core"/>
     <TrimmerRootAssembly Include="ModelContextProtocol"/>
@@ -106,8 +108,6 @@
     <TrimmerRootAssembly Include="WinRT.Runtime"/>
     <TrimmerRootAssembly Include="WritableJsonConfiguration"/>
   </ItemGroup>
-
-  <Import Project="..\Build.Watchdog.targets"/>
 
   <PropertyGroup>
     <DeleteAfterPublishScript>$(MSBuildThisFileDirectory)..\..\tools\DeleteAfterPublish.ps1</DeleteAfterPublishScript>
