@@ -1215,7 +1215,7 @@ Placeholders can be used in the prompt, enclosed in {}, which will be replaced w
         <value>etc.</value>
     </data>
     <data name="BuiltInChatPlugin_Web_WebExtract_Header" xml:space="preserve">
-        <value>e</value>
+        <value>Extract Web Content</value>
     </data>
     <data name="BuiltInChatPlugin_Web_WebExtract_Visiting" xml:space="preserve">
         <value>🧐 {0}</value>
