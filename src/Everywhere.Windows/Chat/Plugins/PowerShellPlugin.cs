@@ -29,11 +29,13 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
     public override IReadOnlyList<SettingsItem> SettingsItems => _pluginSettings.SettingsItems;
 
     private readonly TerminalPluginSettings _pluginSettings;
+    private readonly IWatchdogManager _watchdogManager;
     private readonly ILogger<PowerShellPlugin> _logger;
 
-    public PowerShellPlugin(Settings settings, ILogger<PowerShellPlugin> logger) : base("powershell")
+    public PowerShellPlugin(Settings settings, IWatchdogManager watchdogManager, ILogger<PowerShellPlugin> logger) : base("powershell")
     {
         _pluginSettings = settings.Plugin.TerminalPlugin;
+        _watchdogManager = watchdogManager;
         _logger = logger;
 
         _functionsSource.Add(
@@ -115,28 +117,9 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
             }
 
             var pid = process.Id;
+            await _watchdogManager.RegisterProcessAsync(pid);
             await using var registration = cancellationToken.Register(() =>
-            {
-                // ReSharper disable once MethodSupportsCancellation
-                Task.Run(() =>
-                {
-                    try
-                    {
-                        Process.Start(
-                            new ProcessStartInfo
-                            {
-                                FileName = "taskkill",
-                                Arguments = $"/PID {pid} /T /F",
-                                UseShellExecute = false,
-                                CreateNoWindow = true,
-                            });
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-                });
-            });
+                Task.Run(() => _watchdogManager.UnregisterProcessAsync(pid), CancellationToken.None));
 
             await process.StandardInput.WriteAsync(script);
             process.StandardInput.Close();
@@ -145,6 +128,8 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
             var errorOutput = await process.StandardError.ReadToEndAsync(cancellationToken);
 
             await process.WaitForExitAsync(cancellationToken);
+            await _watchdogManager.UnregisterProcessAsync(pid);
+
             if (process.ExitCode != 0)
             {
                 throw new HandledException(
