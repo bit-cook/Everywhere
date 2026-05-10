@@ -311,9 +311,9 @@ public sealed partial class ChatService : IChatService
         {
             var userMessage = chatContext.Items.AsValueEnumerable().Select(n => n.Message).OfType<UserChatMessage>().LastOrDefault();
             var strategyToolRulesets = userMessage?.As<UserStrategyChatMessage>()?.Strategy.ToolRulesets;
-            var toolRulesets = _persistentState.IsWebSearchEnabled ?
-                new ToolRulesets(1) { { "builtin.web.web_search", true } }.Union(strategyToolRulesets).Union(chatContext.ToolRulesets) :
-                strategyToolRulesets.Copy(chatContext.ToolRulesets);
+            var toolRulesets = new ToolRulesets(1) { { "builtin.web.web_search", _persistentState.IsWebSearchEnabled } }
+                .Union(strategyToolRulesets)
+                .Union(chatContext.ToolRulesets);
 
             var chatPluginScope = await _chatPluginManager.CreateScopeAsync(
                 toolRulesets,
