@@ -3,6 +3,7 @@ description: Submit bug reports to help improve
 title: "[Bug] "
 labels:
   - bug
+type: bug
 body:
   - type: checkboxes
     attributes:

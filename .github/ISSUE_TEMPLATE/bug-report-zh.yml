@@ -3,6 +3,7 @@ description: 提交错误报告以帮助改进
 title: "[Bug] "
 labels:
   - bug
+type: bug
 body:
   - type: checkboxes
     attributes:
