@@ -208,7 +208,7 @@ internal sealed class GeminiRequest
                     }));
                 break;
             default:
-                parts.AddRange(content.Items.Select(GetGeminiPartFromKernelContent));
+                parts.AddRange(content.Items.Select(GetGeminiPartFromKernelContent).OfType<GeminiPart>());
                 break;
         }
 
@@ -220,7 +220,7 @@ internal sealed class GeminiRequest
         return parts;
     }
 
-    private static GeminiPart GetGeminiPartFromKernelContent(KernelContent item)
+    private static GeminiPart? GetGeminiPartFromKernelContent(KernelContent item)
     {
         var geminiPart = item switch
         {
@@ -230,9 +230,9 @@ internal sealed class GeminiRequest
             BinaryContent binaryContent => CreateGeminiPartFromBinary(binaryContent),
             FunctionCallContent functionCallContent => CreateGeminiPartFromFunctionCall(functionCallContent),
             FunctionResultContent functionResultContent => CreateGeminiPartFromFunctionResult(functionResultContent),
-            _ => throw new NotSupportedException($"Unsupported content type. {item.GetType().Name} is not supported by Gemini.")
+            _ => null // Don't handle ReasoningContent, etc.
         };
-        geminiPart.ThoughtSignature = item.Metadata?.TryGetValue("thoughtSignature", out var signature) is true && signature is string signatureStr
+        geminiPart?.ThoughtSignature = item.Metadata?.TryGetValue("thoughtSignature", out var signature) is true && signature is string signatureStr
             ? signatureStr
             : null;
         return geminiPart;

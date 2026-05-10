@@ -56,12 +56,7 @@ public sealed class AnthropicKernelMixin : KernelMixin
                 var maxTokens = owner.OutputLimit switch
                 {
                     > 0 => owner.OutputLimit,
-                    _ when owner.ModelId.StartsWith("claude-3-haiku") => 4096,
-                    _ when owner.ModelId.StartsWith("claude-3-5-haiku") => 8192,
-                    _ when owner.ModelId.StartsWith("claude-opus-4") => 32000,
-                    _ when owner.ModelId.StartsWith("claude-opus-4-1") => 32000,
-                    _ when owner.ModelId.StartsWith("claude-opus-4-6") => 128000,
-                    _ => 64000,
+                    _ => 4096,
                 };
 
                 ThinkingConfigParam thinking;
