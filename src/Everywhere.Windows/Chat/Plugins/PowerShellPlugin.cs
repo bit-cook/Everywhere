@@ -28,12 +28,12 @@ public sealed class PowerShellPlugin : BuiltInChatPlugin
 
     public override IReadOnlyList<SettingsItem> SettingsItems => _pluginSettings.SettingsItems;
 
-    private readonly ShellPluginSettings _pluginSettings;
+    private readonly TerminalPluginSettings _pluginSettings;
     private readonly ILogger<PowerShellPlugin> _logger;
 
     public PowerShellPlugin(Settings settings, ILogger<PowerShellPlugin> logger) : base("powershell")
     {
-        _pluginSettings = settings.Plugin.ShellPlugin;
+        _pluginSettings = settings.Plugin.TerminalPlugin;
         _logger = logger;
 
         _functionsSource.Add(

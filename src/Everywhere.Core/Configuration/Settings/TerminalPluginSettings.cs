@@ -6,11 +6,11 @@ using ShadUI;
 namespace Everywhere.Configuration;
 
 [GeneratedSettingsItems]
-public sealed partial class ShellPluginSettings : ObservableObject
+public sealed partial class TerminalPluginSettings : ObservableObject
 {
     [DynamicResourceKey(
-        LocaleKey.ShellPluginSettings_AutoApprove_Header,
-        LocaleKey.ShellPluginSettings_AutoApprove_Description)]
+        LocaleKey.TerminalPluginSettings_AutoApprove_Header,
+        LocaleKey.TerminalPluginSettings_AutoApprove_Description)]
     public bool AutoApprove
     {
         get;
@@ -21,7 +21,7 @@ public sealed partial class ShellPluginSettings : ObservableObject
             if (value)
             {
                 Dispatcher.UIThread.PostOnDemand(() => ServiceLocator.Resolve<ToastManager>().CreateToast(LocaleResolver.Common_Warning)
-                    .WithContent(LocaleResolver.ShellPluginSettings_AutoApprove_WarningToast_Content)
+                    .WithContent(LocaleResolver.TerminalPluginSettings_AutoApprove_WarningToast_Content)
                     .WithDurationSeconds(5d)
                     .ShowWarning());
             }

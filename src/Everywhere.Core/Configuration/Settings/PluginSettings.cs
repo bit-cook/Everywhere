@@ -35,7 +35,7 @@ public sealed partial class PluginSettings : SettingsBase
 
     public WebBrowserSettings WebBrowser { get; set; } = new();
 
-    public ShellPluginSettings ShellPlugin { get; set; } = new();
+    public TerminalPluginSettings TerminalPlugin { get; set; } = new();
 }
 
 /// <summary>

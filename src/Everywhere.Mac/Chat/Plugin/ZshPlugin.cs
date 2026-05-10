@@ -23,13 +23,13 @@ public sealed class ZshPlugin : BuiltInChatPlugin
 
     public override IReadOnlyList<SettingsItem> SettingsItems => _pluginSettings.SettingsItems;
 
-    private readonly ShellPluginSettings _pluginSettings;
+    private readonly TerminalPluginSettings _pluginSettings;
     private readonly IWatchdogManager _watchdogManager;
     private readonly ILogger<ZshPlugin> _logger;
 
     public ZshPlugin(Settings settings, IWatchdogManager watchdogManager, ILogger<ZshPlugin> logger) : base("zsh")
     {
-        _pluginSettings = settings.Plugin.ShellPlugin;
+        _pluginSettings = settings.Plugin.TerminalPlugin;
         _watchdogManager = watchdogManager;
         _logger = logger;
 

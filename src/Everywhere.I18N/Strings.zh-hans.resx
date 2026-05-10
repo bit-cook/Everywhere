@@ -2820,13 +2820,13 @@
     <data name="Greetings_Tip6" xml:space="preserve">
         <value>💡欢迎在关于页面加入官方社群与我们交流互动~</value>
     </data>
-    <data name="ShellPluginSettings_AutoApprove_WarningToast_Content" xml:space="preserve">
+    <data name="TerminalPluginSettings_AutoApprove_WarningToast_Content" xml:space="preserve">
         <value>终端工具的自动批准已开启，助手的不当调用可能会造成严重的系统崩溃或者不可恢复的文件丢失，请自行承担风险。</value>
     </data>
-    <data name="ShellPluginSettings_AutoApprove_Header" xml:space="preserve">
+    <data name="TerminalPluginSettings_AutoApprove_Header" xml:space="preserve">
         <value>自动批准</value>
     </data>
-    <data name="ShellPluginSettings_AutoApprove_Description" xml:space="preserve">
+    <data name="TerminalPluginSettings_AutoApprove_Description" xml:space="preserve">
         <value>开启后，所有终端操作将自动放行，无需手动批准。助手的不当调用可能会造成严重的系统崩溃或者不可恢复的文件丢失。开启此选项意味着你已评估并愿意自行承担风险。</value>
     </data>
 </root>
