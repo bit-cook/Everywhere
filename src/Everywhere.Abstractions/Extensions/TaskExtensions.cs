@@ -2,7 +2,7 @@
 
 namespace Everywhere.Extensions;
 
-public static class TaskExtension
+public static class TaskExtensions
 {
     /// <summary>
     /// 将一个Task与异常处理器绑定，当Task抛出异常时，异常会被处理器处理。如果没有指定异常处理器，则会抛出异常。

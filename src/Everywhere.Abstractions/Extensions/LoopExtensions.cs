@@ -1,6 +1,6 @@
 ﻿namespace Everywhere.Extensions;
 
-public static class LoopExtension
+public static class LoopExtensions
 {
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
@@ -10,24 +10,27 @@ public static class LoopExtension
         }
     }
 
-    public static void Reset<T>(this ICollection<T> source, IEnumerable<T> data)
+    extension<T>(ICollection<T> source)
     {
-        source.Clear();
-
-        foreach (var item in data)
+        public void Reset(IEnumerable<T> data)
         {
-            source.Add(item);
-        }
-    }
+            source.Clear();
 
-    public static ICollection<T> AddRange<T>(this ICollection<T> source, IEnumerable<T> data)
-    {
-        foreach (var item in data)
-        {
-            source.Add(item);
+            foreach (var item in data)
+            {
+                source.Add(item);
+            }
         }
 
-        return source;
+        public ICollection<T> AddRange(IEnumerable<T> data)
+        {
+            foreach (var item in data)
+            {
+                source.Add(item);
+            }
+
+            return source;
+        }
     }
 
     public static void RemoveWhere<T>(this IList<T> source, Predicate<T> predicate)

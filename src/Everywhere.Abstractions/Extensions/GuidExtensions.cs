@@ -2,7 +2,7 @@
 
 namespace Everywhere.Extensions;
 
-public static class GuidExtension
+public static class GuidExtensions
 {
     extension(Guid guid)
     {

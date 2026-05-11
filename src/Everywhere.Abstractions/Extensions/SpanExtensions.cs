@@ -1,6 +1,6 @@
 ﻿namespace Everywhere.Extensions;
 
-public static class SpanExtension
+public static class SpanExtensions
 {
     extension<T>(ReadOnlySpan<T> span)
     {

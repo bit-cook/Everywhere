@@ -1,6 +1,6 @@
 ﻿namespace Everywhere.Extensions;
 
-public static class EnumerableExtension
+public static class EnumerableExtensions
 {
     /// <summary>
     /// Python: enumerator
@@ -173,23 +173,6 @@ public static class EnumerableExtension
             last = value;
         }
     }
-    
-    /// <summary>
-    /// 返回所有非null值
-    /// </summary>
-    /// <param name="source"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public static IEnumerable<T> OfNotNull<T>(this IEnumerable<T?> source) where T : class
-    {
-        foreach (var item in source)
-        {
-            if (item != null)
-            {
-                yield return item;
-            }
-        }
-    }
 
     public static int FindIndexOf<T>(this IEnumerable<T> source, Predicate<T> predicate)
     {
@@ -221,15 +204,6 @@ public static class EnumerableExtension
         {
             yield return generator(i);
         }
-    }
-    
-    public static IReadOnlyList<T> ToReadOnlyList<T>(this IEnumerable<T> source)
-    {
-        return source switch
-        {
-            IReadOnlyList<T> list => list,
-            _ => source.ToList()
-        };
     }
     
     public static void RemoveRange<T>(this IList<T> list, int index, int count)

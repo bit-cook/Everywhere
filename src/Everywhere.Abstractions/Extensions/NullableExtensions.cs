@@ -2,7 +2,7 @@
 
 namespace Everywhere.Extensions;
 
-public static class NullableExtension
+public static class NullableExtensions
 {
     /// <summary>
     /// 将一个可能为空的转成不可空，如果为null将抛出<see cref="NullReferenceException"/>

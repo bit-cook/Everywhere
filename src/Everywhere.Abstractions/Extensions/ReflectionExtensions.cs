@@ -1,6 +1,6 @@
 ﻿namespace Everywhere.Extensions;
 
-public static class ReflectionExtension
+public static class ReflectionExtensions
 {
     public static IEnumerable<Type> EnumerateBaseTypes(this Type type)
     {

@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Everywhere.Extensions;
 
-public static class StringExtension
+public static class StringExtensions
 {
     extension([NotNullWhen(false)] string? str)
     {

@@ -1,6 +1,6 @@
 ﻿namespace Everywhere.Extensions;
 
-public static class ListExtension
+public static class ListExtensions
 {
     extension<TList>(TList list) where TList : IList
     {

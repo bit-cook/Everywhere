@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Everywhere.Extensions;
 
-public static class LoggingExtension
+public static class LoggingExtensions
 {
     public static AnonymousExceptionHandler ToExceptionHandler(this ILogger logger)
     {

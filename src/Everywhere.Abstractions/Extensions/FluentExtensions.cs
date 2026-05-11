@@ -2,7 +2,7 @@
 
 namespace Everywhere.Extensions;
 
-public static class FluentExtension
+public static class FluentExtensions
 {
     public static T With<T>(this T t, Action<T> action)
     {

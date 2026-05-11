@@ -2,7 +2,7 @@
 
 namespace Everywhere.Extensions;
 
-public static class CastExtension
+public static class CastExtensions
 {
     /// <summary>
     /// 等价于(T?)obj，谁不喜欢Fluent API呢，还不用加括号

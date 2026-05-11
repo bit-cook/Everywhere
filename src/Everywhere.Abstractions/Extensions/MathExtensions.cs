@@ -1,6 +1,6 @@
 ﻿namespace Everywhere.Extensions;
 
-public static class MathExtension
+public static class MathExtensions
 {
     public static bool IsCloseTo(this double value, double target, double tolerance = 0.0001)
     {
