@@ -10,9 +10,6 @@ using MessagePack;
 using MessagePack.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Nito.AsyncEx;
-#if DEBUG
-#endif
 
 namespace Everywhere.Cloud;
 
@@ -29,7 +26,7 @@ public partial class CloudChatDbSynchronizer(
     [ObservableProperty]
     public partial bool IsCloudSyncing { get; private set; }
 
-    private readonly AsyncLock _syncLock = new();
+    private readonly SemaphoreSlim _syncLock = new(1, 1);
     private const int PushBytesLimit = 5 * 1024 * 1024; // 5 MB
 
     // Adaptive delay state

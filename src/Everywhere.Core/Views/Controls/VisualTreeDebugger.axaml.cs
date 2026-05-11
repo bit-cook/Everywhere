@@ -13,9 +13,6 @@ using Everywhere.Chat;
 using Everywhere.Common;
 using Everywhere.Interop;
 using ZLinq;
-#if DEBUG
-using JetBrains.Profiler.Api;
-#endif
 
 namespace Everywhere.Views;
 
@@ -158,27 +155,7 @@ public partial class VisualTreeDebugger : UserControl
                 0,
                 level,
                 effectScope: effectScope);
-#if DEBUG
-            // use profiler to measure building time in debug mode
-            var visualTree = await Task.Run(() =>
-            {
-                var originalThreadName = Thread.CurrentThread.Name;
-                Thread.CurrentThread.Name = "Visual Tree Builder Thread";
-                MeasureProfiler.StartCollectingData("BuildVisualTree");
-
-                try
-                {
-                    return builder.Build(CancellationToken.None);
-                }
-                finally
-                {
-                    MeasureProfiler.SaveData("BuildVisualTree");
-                    Thread.CurrentThread.Name = originalThreadName;
-                }
-            });
-#else
             var visualTree = await Task.Run(() => builder.Build(CancellationToken.None));
-#endif
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             var extension = level switch
             {

@@ -12,7 +12,6 @@ using Everywhere.Utilities;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Nito.AsyncEx;
 
 namespace Everywhere.Windows.Chat.Plugins;
 
@@ -29,7 +28,7 @@ public sealed class EverythingPlugin : BuiltInChatPlugin
     public override LucideIconKind? Icon => LucideIconKind.Search;
     public override string BeautifulIcon => "avares://Everywhere/Assets/Icons/Everything.svg";
 
-    private readonly AsyncLock _asyncLock = new();
+    private readonly SemaphoreSlim _asyncLock = new(1, 1);
 
     private readonly INativeHelper _nativeHelper;
     private readonly IWatchdogManager _watchdogManager;

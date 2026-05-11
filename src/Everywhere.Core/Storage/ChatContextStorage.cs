@@ -7,7 +7,6 @@ using Everywhere.Database;
 using MessagePack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Nito.AsyncEx;
 using ZLinq;
 
 namespace Everywhere.Storage;
@@ -27,7 +26,7 @@ public sealed class ChatContextStorage(
     // This is necessary because only one ChatContext/Metadata with the same ID can be alive at a time to ensure that property change notifications work correctly.
     private readonly ConcurrentDictionary<Guid, WeakReference<ChatContextMetadata>> _metadataCache = [];
     private readonly ConcurrentDictionary<Guid, WeakReference<ChatContext>> _contextCache = [];
-    private readonly AsyncLock _lock = new();
+    private readonly SemaphoreSlim _lock = new(1, 1);
 
     public async Task AddChatContextAsync(ChatContext context, CancellationToken cancellationToken = default)
     {
