@@ -624,6 +624,11 @@ public enum HandledChatExceptionType
     FeatureNotSupport,
 
     /// <summary>
+    /// Thought signature is missing or invalid.
+    /// </summary>
+    InvalidThoughtSignature,
+
+    /// <summary>
     /// Selected model does not support image input.
     /// </summary>
     ImageNotSupport,
@@ -726,6 +731,7 @@ public class HandledChatException(
                         HandledChatExceptionType.InvalidEndpoint => LocaleKey.HandledChatException_InvalidEndpoint,
                         HandledChatExceptionType.EmptyResponse => LocaleKey.HandledChatException_EmptyResponse,
                         HandledChatExceptionType.FeatureNotSupport => LocaleKey.HandledChatException_FeatureNotSupport,
+                        HandledChatExceptionType.InvalidThoughtSignature => LocaleKey.HandledChatException_InvalidThoughtSignature,
                         HandledChatExceptionType.ImageNotSupport => LocaleKey.HandledChatException_ImageNotSupport,
                         HandledChatExceptionType.TemperatureNotSupport => LocaleKey.HandledChatException_TemperatureNotSupport,
                         HandledChatExceptionType.TopPNotSupport => LocaleKey.HandledChatException_TopPNotSupport,
@@ -857,6 +863,11 @@ public class HandledChatException(
             if (string.IsNullOrWhiteSpace(message))
             {
                 return fallback;
+            }
+
+            if (message.Contains("signature", StringComparison.OrdinalIgnoreCase))
+            {
+                return HandledChatExceptionType.InvalidThoughtSignature;
             }
 
             if (message.Contains("image_url", StringComparison.OrdinalIgnoreCase))

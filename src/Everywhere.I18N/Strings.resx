@@ -2837,4 +2837,7 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="Assistant_ThinkingBudget_Description" xml:space="preserve">
         <value>Set the budget for reasoning output, measured in tokens.</value>
     </data>
+    <data name="HandledChatException_InvalidThoughtSignature" xml:space="preserve">
+        <value />
+    </data>
 </root>
