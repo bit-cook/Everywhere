@@ -10,71 +10,71 @@ namespace Everywhere.AI;
 public abstract partial class Assistant : ObservableValidator, IModelDefinition
 {
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial string? Endpoint { get; set; }
 
     /// <summary>
     /// The GUID of the API key to use for this custom assistant.
     /// </summary>
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial Guid ApiKey { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial ModelProviderSchema Schema { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial string? ModelId { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial bool SupportsReasoning { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial bool SupportsToolCall { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial Modalities InputModalities { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial Modalities OutputModalities { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial int ContextLimit { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial int OutputLimit { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial ModelSpecializations Specializations { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     [NotifyPropertyChangedFor(nameof(Configurator))]
     public partial AssistantConfiguratorType ConfiguratorType { get; set; } = AssistantConfiguratorType.Official;
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial string? ModelProviderTemplateId { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial string? ModelDefinitionTemplateId { get; set; }
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public AssistantConfigurator Configurator => GetConfigurator(ConfiguratorType);
 
     [JsonIgnore]
-    [DynamicResourceKey(LocaleKey.CustomAssistant_ConfiguratorSelector_Header)]
+    [DynamicResourceKey(LocaleKey.Assistant_ConfiguratorSelector_Header)]
     protected SettingsControl<AssistantConfiguratorSelector> ConfiguratorSelector => new(
         new AssistantConfiguratorSelector
         {
@@ -83,25 +83,60 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
 
     [ObservableProperty]
     [DynamicResourceKey(
-        LocaleKey.CustomAssistant_RequestTimeoutSeconds_Header,
-        LocaleKey.CustomAssistant_RequestTimeoutSeconds_Description)]
+        LocaleKey.Assistant_RequestTimeoutSeconds_Header,
+        LocaleKey.Assistant_RequestTimeoutSeconds_Description)]
     [SettingsIntegerItem(IsSliderVisible = false)]
     [DefaultValue(20)]
     public partial int RequestTimeoutSeconds { get; set; } = 20;
 
     [ObservableProperty]
     [DynamicResourceKey(
-        LocaleKey.CustomAssistant_Temperature_Header,
-        LocaleKey.CustomAssistant_Temperature_Description)]
+        LocaleKey.Assistant_Temperature_Header,
+        LocaleKey.Assistant_Temperature_Description)]
     [SettingsDoubleItem(Min = 0.0, Max = 2.0, Step = 0.01)]
     public partial Customizable<double> Temperature { get; set; } = 1.0;
 
     [ObservableProperty]
     [DynamicResourceKey(
-        LocaleKey.CustomAssistant_TopP_Header,
-        LocaleKey.CustomAssistant_TopP_Description)]
+        LocaleKey.Assistant_TopP_Header,
+        LocaleKey.Assistant_TopP_Description)]
     [SettingsDoubleItem(Min = 0.0, Max = 1.0, Step = 0.01)]
     public partial Customizable<double> TopP { get; set; } = 0.9;
+
+    [JsonIgnore]
+    [SettingsItemIgnore]
+#pragma warning disable CA1822 // Required non-static for binding, TODO: make source generator more robust, use ActualType.StaticProperty instead of Path
+    public static string?[] ReasoningEnabledOptions { get; } = [null, "enabled", "disabled"];
+#pragma warning restore CA1822
+
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.Assistant_ThinkingType_Header,
+        LocaleKey.Assistant_ThinkingType_Description)]
+    [SettingsItem(IsVisibleBindingPath = nameof(SupportsReasoning))]
+    [SettingsSelectionItem(nameof(ReasoningEnabledOptions))]
+    public partial string? ThinkingType { get; set; }
+
+    [JsonIgnore]
+    [SettingsItemIgnore]
+#pragma warning disable CA1822 // Required non-static for binding
+    public static string?[] DefaultReasoningEffortOptions { get; } = [null, "auto", "minimal", "low", "medium", "high", "xhigh", "max"];
+#pragma warning restore CA1822
+
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.Assistant_ReasoningEffort_Header,
+        LocaleKey.Assistant_ReasoningEffort_Description)]
+    [SettingsItem(IsVisibleBindingPath = nameof(SupportsReasoning))]
+    [SettingsSelectionItem(nameof(DefaultReasoningEffortOptions), IsEditable = true)]
+    public partial string? ReasoningEffort { get; set; }
+
+    [ObservableProperty]
+    [DynamicResourceKey(
+        LocaleKey.Assistant_ThinkingBudget_Header,
+        LocaleKey.Assistant_ThinkingBudget_Description)]
+    [SettingsItem(IsVisibleBindingPath = nameof(SupportsReasoning))]
+    public partial string? ThinkingBudget { get; set; }
 
     private readonly OfficialAssistantConfigurator _officialConfigurator;
     private readonly PresetBasedAssistantConfigurator _presetBasedConfigurator;

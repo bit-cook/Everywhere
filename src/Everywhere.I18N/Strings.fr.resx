@@ -94,16 +94,16 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Définissez un raccourci pour invoquer la fenêtre de chat à tout moment.</value>
     </data>
-    <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
+    <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>Température</value>
     </data>
-    <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
+    <data name="Assistant_Temperature_Description" xml:space="preserve">
         <value>En général, une valeur plus élevée rend les réponses plus créatives et imaginatives, tandis qu'une valeur plus basse tend à être plus rigoureuse. Pour certains modèles, des valeurs supérieures à 1.0 peuvent entraîner des sorties illisibles. Il est généralement conseillé de ne pas modifier top_p en même temps. Si vous rencontrez des erreurs, essayez de restaurer les valeurs par défaut.</value>
     </data>
-    <data name="CustomAssistant_TopP_Header" xml:space="preserve">
+    <data name="Assistant_TopP_Header" xml:space="preserve">
         <value>Top_p</value>
     </data>
-    <data name="CustomAssistant_TopP_Description" xml:space="preserve">
+    <data name="Assistant_TopP_Description" xml:space="preserve">
         <value>Utilisé pour contrôler la diversité des textes générés par le modèle. En général, une valeur plus élevée permet au modèle d'accepter plus de réponses potentielles, tandis qu'une valeur plus basse privilégie la réponse la plus probable. Il est généralement conseillé de ne pas modifier la température en même temps. Si vous rencontrez des erreurs, essayez de restaurer les valeurs par défaut.</value>
     </data>
     <data name="WebSearchEnginePluginSettings_SelectedProvider_Description" xml:space="preserve">
@@ -529,9 +529,6 @@
     </data>
     <data name="CustomAssistant_SupportsToolCall_Description" xml:space="preserve">
         <value>Le modèle prend en charge l'utilisation des outils configurés. Si le modèle ne prend pas en charge cette option, l'activer peut entraîner des erreurs lors des conversations.</value>
-    </data>
-    <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
-        <value>Le modèle prend en charge la réflexion avant de répondre. Si le modèle ne prend pas en charge cette option, l'activer peut entraîner des erreurs lors des conversations.</value>
     </data>
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>Réflexion approfondie</value>
@@ -1404,10 +1401,10 @@ Molette de défilement ou touches numériques pour changer de mode de sélection
     <data name="ModelProviderSchema_Ollama" xml:space="preserve">
         <value>Ollama</value>
     </data>
-    <data name="CustomAssistant_RequestTimeoutSeconds_Description" xml:space="preserve">
+    <data name="Assistant_RequestTimeoutSeconds_Description" xml:space="preserve">
         <value>Définissez le temps d'attente pour que le modèle renvoie des résultats, mesuré en secondes. Pour les modèles plus lents (comme les modèles de réflexion et les modèles locaux), envisagez d'étendre ce temps en conséquence.</value>
     </data>
-    <data name="CustomAssistant_RequestTimeoutSeconds_Header" xml:space="preserve">
+    <data name="Assistant_RequestTimeoutSeconds_Header" xml:space="preserve">
         <value>Délai d'attente de la demande</value>
     </data>
     <data name="DynamicWebProxy_ApplyProxySettings_EndpointRequired_ErrorMessage" xml:space="preserve">
@@ -1824,7 +1821,7 @@ Molette de défilement ou touches numériques pour changer de mode de sélection
     <data name="BuiltInChatPlugin_FileSystem_SearchFiles_OperationStarted_Message" xml:space="preserve">
         <value>📂 {0}</value>
     </data>
-    <data name="CustomAssistant_ConfiguratorSelector_Header" xml:space="preserve">
+    <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>Fournisseur de services</value>
     </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
@@ -2047,7 +2044,7 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="ReasoningEffortLevel_Minimal" xml:space="preserve">
         <value>Minimal</value>
     </data>
-    <data name="PersistentState_ReasoningEffortLevel_Header" xml:space="preserve">
+    <data name="Assistant_ReasoningEffort_Header" xml:space="preserve">
         <value>Intensité de Raisonnement</value>
     </data>
     <data name="PersistentState_MaxContextRounds_Header" xml:space="preserve">

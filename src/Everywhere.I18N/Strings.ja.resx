@@ -94,16 +94,16 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>いつでもチャットウィンドウを呼び出すためのショートカットを設定します。</value>
     </data>
-    <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
+    <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>温度（“創造性の活発さ”）</value>
     </data>
-    <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
+    <data name="Assistant_Temperature_Description" xml:space="preserve">
         <value>通常、数値が高いほど回答が創造的で想像力に富み、数値が低いほど厳密になります。一部のモデルでは1.0を超える数値が出力の乱れを引き起こす可能性があります。通常、top_pを同時に変更しないことをお勧めします。エラーが発生した場合は、デフォルト値に戻してみてください。</value>
     </data>
-    <data name="CustomAssistant_TopP_Header" xml:space="preserve">
+    <data name="Assistant_TopP_Header" xml:space="preserve">
         <value>top_p（“思考の開放度”）</value>
     </data>
-    <data name="CustomAssistant_TopP_Description" xml:space="preserve">
+    <data name="Assistant_TopP_Description" xml:space="preserve">
         <value>モデルの出力テキストの多様性を制御します。通常、数値が高いほどモデルはより多くの潜在的な回答を受け入れ、数値が低いほど最も可能性の高い回答を選択します。通常、温度を同時に変更しないことをお勧めします。エラーが発生した場合は、デフォルト値に戻してみてください。</value>
     </data>
     <data name="WebSearchEnginePluginSettings_SelectedProvider_Description" xml:space="preserve">
@@ -529,9 +529,6 @@
     </data>
     <data name="CustomAssistant_SupportsToolCall_Description" xml:space="preserve">
         <value>モデルは設定されたツールの使用をサポートしています。このオプションを有効にすると、モデルがサポートしていない場合に会話中にエラーが発生する可能性があります。</value>
-    </data>
-    <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
-        <value>モデルは考えてから回答することをサポートしています。このオプションを有効にすると、モデルがサポートしていない場合に会話中にエラーが発生する可能性があります。</value>
     </data>
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>深い思考</value>
@@ -1404,10 +1401,10 @@
     <data name="ModelProviderSchema_Ollama" xml:space="preserve">
         <value>Ollama</value>
     </data>
-    <data name="CustomAssistant_RequestTimeoutSeconds_Description" xml:space="preserve">
+    <data name="Assistant_RequestTimeoutSeconds_Description" xml:space="preserve">
         <value>モデルが結果を返すまでの待機時間を秒単位で設定します。遅いモデル（思考モデルやローカルモデルなど）の場合は、この時間を適切に延長することを検討してください。</value>
     </data>
-    <data name="CustomAssistant_RequestTimeoutSeconds_Header" xml:space="preserve">
+    <data name="Assistant_RequestTimeoutSeconds_Header" xml:space="preserve">
         <value>リクエストタイムアウト</value>
     </data>
     <data name="DynamicWebProxy_ApplyProxySettings_EndpointRequired_ErrorMessage" xml:space="preserve">
@@ -1824,7 +1821,7 @@
     <data name="BuiltInChatPlugin_FileSystem_SearchFiles_OperationStarted_Message" xml:space="preserve">
         <value>📂 {0}</value>
     </data>
-    <data name="CustomAssistant_ConfiguratorSelector_Header" xml:space="preserve">
+    <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>サービスプロバイダー</value>
     </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
@@ -2047,8 +2044,8 @@
     <data name="ReasoningEffortLevel_Minimal" xml:space="preserve">
         <value>最小</value>
     </data>
-    <data name="PersistentState_ReasoningEffortLevel_Header" xml:space="preserve">
-        <value>推論強度</value>
+    <data name="Assistant_ReasoningEffort_Header" xml:space="preserve">
+        <value>推論強度 (reasoning_effort)</value>
     </data>
     <data name="PersistentState_MaxContextRounds_Header" xml:space="preserve">
         <value>最大コンテキストラウンド</value>

@@ -12,16 +12,16 @@ namespace Everywhere.Configuration;
 [GeneratedSettingsItems]
 public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
 {
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public int Index => 1;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public LucideIconKind Icon => LucideIconKind.MonitorCog;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Display_Header);
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Display_Description);
 
     /// <summary>
@@ -61,7 +61,7 @@ public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
         }
     }
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public SerializableColor? AccentColor
     {
         get => SystemAccentColors.ColorOverride;

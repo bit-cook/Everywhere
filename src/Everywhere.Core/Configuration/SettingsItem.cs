@@ -322,7 +322,7 @@ public class SettingsDoubleItem : SettingsItem
 
 public class SettingsSelectionItem : SettingsItem
 {
-    public record Item(DynamicResourceKey Key, object Value, IDataTemplate? ContentTemplate);
+    public record Item(DynamicResourceKey Key, object? Value, IDataTemplate? ContentTemplate);
 
     public static readonly StyledProperty<IEnumerable<Item>> ItemsSourceProperty =
         AvaloniaProperty.Register<SettingsSelectionItem, IEnumerable<Item>>(nameof(ItemsSource));
@@ -349,6 +349,15 @@ public class SettingsSelectionItem : SettingsItem
             field = value;
             RaisePropertyChanged(SelectedItemProperty, oldValue, value);
         }
+    }
+
+    public static readonly StyledProperty<bool> UserEditableProperty =
+        AvaloniaProperty.Register<SettingsSelectionItem, bool>(nameof(IsEditable));
+
+    public bool IsEditable
+    {
+        get => GetValue(UserEditableProperty);
+        set => SetValue(UserEditableProperty, value);
     }
 
     private bool _isHandlingPropertyChange;

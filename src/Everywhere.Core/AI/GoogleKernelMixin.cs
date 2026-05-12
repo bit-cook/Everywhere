@@ -31,9 +31,7 @@ public sealed class GoogleKernelMixin : KernelMixin
 
     public override bool IsPersistentMessageMetadataKey(string key) => key is "thoughtSignature";
 
-    public override PromptExecutionSettings GetPromptExecutionSettings(
-        FunctionChoiceBehavior? functionChoiceBehavior = null,
-        ReasoningEffortLevel? reasoningEffortLevel = null)
+    public override PromptExecutionSettings GetPromptExecutionSettings(FunctionChoiceBehavior? functionChoiceBehavior = null)
     {
         // Convert FunctionChoiceBehavior to GeminiToolCallBehavior
         GeminiToolCallBehavior? toolCallBehavior = null;
@@ -53,35 +51,15 @@ public sealed class GoogleKernelMixin : KernelMixin
         // https://ai.google.dev/gemini-api/docs/thinking
         GeminiThinkingConfig? GetThinkingConfig()
         {
-            if (reasoningEffortLevel is null) return null;
+            if (ThinkingType?.Equals("disabled", StringComparison.OrdinalIgnoreCase) is true) return null;
 
             var thinkingConfig = new GeminiThinkingConfig
             {
                 IncludeThoughts = true
             };
 
-            var isGemini3Model = ModelId.Contains("gemini-3", StringComparison.OrdinalIgnoreCase);
-            if (!isGemini3Model)
-            {
-                thinkingConfig.ThinkingBudget = reasoningEffortLevel switch
-                {
-                    ReasoningEffortLevel.Minimal when ModelId.Contains("pro") => 128,
-                    ReasoningEffortLevel.Minimal => 0,
-                    ReasoningEffortLevel.Detailed when ModelId.Contains("pro") => 32768,
-                    ReasoningEffortLevel.Detailed => 24576,
-                    _ => null
-                };
-                return thinkingConfig;
-            }
-
-            thinkingConfig.ThinkingLevel = reasoningEffortLevel switch
-            {
-                ReasoningEffortLevel.Disabled => "none",
-                ReasoningEffortLevel.Minimal when ModelId.Contains("pro") => "low",
-                ReasoningEffortLevel.Minimal => "minimal",
-                ReasoningEffortLevel.Detailed => "high",
-                _ => null
-            };
+            if (int.TryParse(ThinkingBudget, out var thinkingBudget)) thinkingConfig.ThinkingBudget = thinkingBudget;
+            thinkingConfig.ThinkingLevel = ReasoningEffort;
             return thinkingConfig;
         }
     }

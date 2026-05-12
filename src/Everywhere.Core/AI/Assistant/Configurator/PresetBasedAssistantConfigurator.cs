@@ -18,7 +18,7 @@ public sealed partial class PresetBasedAssistantConfigurator(Assistant owner) : 
     /// The ID of the model provider to use for this custom assistant.
     /// This ID should correspond to one of the available model providers in the application.
     /// </summary>
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public string? ModelProviderTemplateId
     {
         get => owner.ModelProviderTemplateId;
@@ -48,7 +48,7 @@ public sealed partial class PresetBasedAssistantConfigurator(Assistant owner) : 
         set => ModelProviderTemplateId = value?.Id;
     }
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public Guid ApiKey
     {
         get => owner.ApiKey;
@@ -80,10 +80,10 @@ public sealed partial class PresetBasedAssistantConfigurator(Assistant owner) : 
         });
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     private IEnumerable<ModelDefinitionTemplate> ModelDefinitionTemplates => ModelProviderTemplate?.ModelDefinitions ?? [];
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public string? ModelDefinitionTemplateId
     {
         get => owner.ModelDefinitionTemplateId;

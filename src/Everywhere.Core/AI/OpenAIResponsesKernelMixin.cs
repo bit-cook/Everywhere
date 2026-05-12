@@ -48,7 +48,7 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
             // MEAI not supporting Deep Thinking will skip adding the reasoning options
             // This is a workaround
             options ??= new ChatOptions();
-            options.RawRepresentationFactory = _ => RawRepresentationFactory(options);
+            options.RawRepresentationFactory = RawRepresentationFactory;
 
             // cache the value to avoid property changes during enumeration
             await foreach (var update in base.GetStreamingResponseAsync(messages, options, cancellationToken))
@@ -71,29 +71,21 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
             }
         }
 
-        private CreateResponseOptions? RawRepresentationFactory(ChatOptions chatOptions)
+        private CreateResponseOptions? RawRepresentationFactory(IChatClient _)
         {
             if (!owner.SupportsReasoning) return null;
-            if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true) return null;
-            if (reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel) return null;
-            if (reasoningEffortLevel == ReasoningEffortLevel.Disabled) return null;
+            if (owner.ThinkingType?.Equals("disabled", StringComparison.OrdinalIgnoreCase) is true) return null;
 
             return new CreateResponseOptions
             {
                 ReasoningOptions = new ResponseReasoningOptions
                 {
-                    ReasoningEffortLevel = reasoningEffortLevel switch
+                    ReasoningEffortLevel = owner.ReasoningEffort switch
                     {
-                        ReasoningEffortLevel.Minimal => ResponseReasoningEffortLevel.Minimal,
-                        ReasoningEffortLevel.Detailed => ResponseReasoningEffortLevel.High,
+                        { Length: > 0 } reasoningEffort => new ResponseReasoningEffortLevel(reasoningEffort),
                         _ => (ResponseReasoningEffortLevel?)null
                     },
-                    ReasoningSummaryVerbosity = reasoningEffortLevel switch
-                    {
-                        ReasoningEffortLevel.Minimal => ResponseReasoningSummaryVerbosity.Concise,
-                        ReasoningEffortLevel.Detailed =>  ResponseReasoningSummaryVerbosity.Detailed,
-                        _ => (ResponseReasoningSummaryVerbosity?)null
-                    }
+                    ReasoningSummaryVerbosity = ResponseReasoningSummaryVerbosity.Auto
                 }
             };
         }

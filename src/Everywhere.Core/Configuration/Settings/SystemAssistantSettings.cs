@@ -6,16 +6,16 @@ namespace Everywhere.Configuration;
 [GeneratedSettingsItems]
 public sealed partial class SystemAssistantSettings : SettingsBase, ISettingsCategory
 {
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public int Index => 4;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public LucideIconKind Icon => LucideIconKind.Sparkles;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_SystemAssistant_Header);
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_SystemAssistant_Description);
 
     [DynamicResourceKey(

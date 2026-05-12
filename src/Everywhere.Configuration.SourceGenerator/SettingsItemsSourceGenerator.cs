@@ -255,7 +255,7 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
 
                     var transformExpr = GetNamedArgValue(attribute, "I18N", "false") == "true" ?
                         $"DynamicResourceKey($\"SettingsSelectionItem_{metadata.Symbol.ContainingType.Name}_{metadata.Name}_{{k}}\")" :
-                        "DirectResourceKey(k)";
+                        "DirectResourceKey(k?.ToString() ?? string.Empty)";
 
                     // If the type is INotifyPropertyChanged and IEnumerable<T>, use ToObservableChangeSet
                     if (itemSourceType.AllInterfaces.Any(i =>
@@ -280,10 +280,7 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
                     }
                     else
                     {
-                        converterBuilder.Append("return x.OfType<");
-                        converterBuilder.Append(metadata.Type.ToDisplayString(NullableFlowState.NotNull));
-                        converterBuilder.Append(
-                            ">().Select(k => new global::Everywhere.Configuration.SettingsSelectionItem.Item(new global::Everywhere.I18N.");
+                        converterBuilder.Append("return x.Select(k => new global::Everywhere.Configuration.SettingsSelectionItem.Item(new global::Everywhere.I18N.");
                         converterBuilder.Append(transformExpr);
                         converterBuilder.AppendLine(", k, contentTemplate)).ToList();");
                     }
@@ -295,6 +292,8 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
                     BindingMode.OneWay,
                     converterBuilder.AppendLine("})").ToString());
                 sb.AppendLine(";");
+
+                sb.AppendLine($"{itemName}.IsEditable = {GetNamedArgValue(attribute, "IsEditable", "false")};");
                 break;
             }
             case ItemKind.Customizable:

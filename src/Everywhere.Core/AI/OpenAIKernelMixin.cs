@@ -113,9 +113,9 @@ public class OpenAIKernelMixin : KernelMixin
             // If deep thinking is not supported, skip processing.
             if (!owner.SupportsReasoning) return;
 
-            var opt = options ??= new ChatOptions();
+            options ??= new ChatOptions();
             options.AdditionalProperties ??= new AdditionalPropertiesDictionary();
-            options.RawRepresentationFactory ??= _ => RawRepresentationFactory(opt);
+            options.RawRepresentationFactory ??= RawRepresentationFactory;
 
             foreach (var assistantMessage in messages.AsValueEnumerable().Where(m => m.Role == ChatRole.Assistant))
             {
@@ -131,30 +131,20 @@ public class OpenAIKernelMixin : KernelMixin
             }
         }
 
-        private static ChatCompletionOptions? RawRepresentationFactory(ChatOptions chatOptions)
+        private ChatCompletionOptions RawRepresentationFactory(IChatClient _)
         {
-            if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true) return null;
-            if (reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel) return null;
-
             var thinkingPatch = new JsonPatch();
-            thinkingPatch.Set(
-                "$.thinking"u8,
-                Encoding.UTF8.GetBytes(
-                    JsonSerializer.Serialize(
-                        new
-                        {
-                            type = reasoningEffortLevel == ReasoningEffortLevel.Disabled ? "disabled" : "enabled"
-                        })));
+            if (owner.ThinkingType is { Length: > 0 })
+            {
+                thinkingPatch.Set(
+                    "$.thinking"u8,
+                    Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { type = owner.ThinkingType })));
+            }
 
             return new ChatCompletionOptions
             {
+                ReasoningEffortLevel = owner.ReasoningEffort,
                 Patch = thinkingPatch,
-                ReasoningEffortLevel = reasoningEffortLevel switch
-                {
-                    ReasoningEffortLevel.Minimal => ChatReasoningEffortLevel.Low,
-                    ReasoningEffortLevel.Detailed => new ChatReasoningEffortLevel("xhigh"),
-                    _ => (ChatReasoningEffortLevel?)null
-                },
             };
         }
     }

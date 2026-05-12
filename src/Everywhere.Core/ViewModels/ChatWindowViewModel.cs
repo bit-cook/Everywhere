@@ -606,7 +606,7 @@ public sealed partial class ChatWindowViewModel :
         {
             _snapshotBeforeEdit = new ChatInputAreaSnapshot(
                 textBeforeEdit,
-                list.Count == 0 ? null : list.ToReadOnlyList(),
+                list.Count == 0 ? null : list.ToList(),
                 strategyCommandBeforeEdit);
 
             list.Reset(userChatMessage.Attachments.Where(a => a is not VisualElementAttachment { IsElementValid: false }));

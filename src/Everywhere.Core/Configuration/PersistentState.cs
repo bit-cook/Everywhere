@@ -93,12 +93,6 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
         set => Set(value);
     }
 
-    public ReasoningEffortLevel ReasoningEffortLevel
-    {
-        get => Get(ReasoningEffortLevel.Default);
-        set => Set(value);
-    }
-
     public int MaxContextRounds
     {
         get => Get(-1);

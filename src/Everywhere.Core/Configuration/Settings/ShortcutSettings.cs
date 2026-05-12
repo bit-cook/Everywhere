@@ -8,16 +8,16 @@ namespace Everywhere.Configuration;
 [GeneratedSettingsItems]
 public sealed partial class ShortcutSettings : SettingsBase, ISettingsCategory
 {
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public int Index => 2;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public LucideIconKind Icon => LucideIconKind.Keyboard;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Shortcut_Header);
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Shortcut_Description);
 
     [ObservableProperty]

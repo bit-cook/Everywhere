@@ -94,16 +94,16 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Imposta una scorciatoia per richiamare la finestra di chat in qualsiasi momento.</value>
     </data>
-    <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
+    <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>Temperatura</value>
     </data>
-    <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
+    <data name="Assistant_Temperature_Description" xml:space="preserve">
         <value>In generale, valori più alti portano a risposte più creative e imaginative, mentre valori più bassi tendono a essere più rigorosi. Alcuni modelli con valori superiori a 1.0 potrebbero generare output illeggibili. Si consiglia di non modificare contemporaneamente top_p. Se si verificano errori, provare a ripristinare i valori predefiniti.</value>
     </data>
-    <data name="CustomAssistant_TopP_Header" xml:space="preserve">
+    <data name="Assistant_TopP_Header" xml:space="preserve">
         <value>Top_p</value>
     </data>
-    <data name="CustomAssistant_TopP_Description" xml:space="preserve">
+    <data name="Assistant_TopP_Description" xml:space="preserve">
         <value>Controlla la diversità del testo di output del modello. In generale, valori più alti consentono al modello di accettare più risposte potenziali, mentre valori più bassi tendono a favorire la risposta più probabile. Si consiglia di non modificare contemporaneamente la temperatura. Se si verificano errori, provare a ripristinare i valori predefiniti.</value>
     </data>
     <data name="WebSearchEnginePluginSettings_SelectedProvider_Description" xml:space="preserve">
@@ -529,9 +529,6 @@
     </data>
     <data name="CustomAssistant_SupportsToolCall_Description" xml:space="preserve">
         <value>Il modello supporta l'uso degli strumenti configurati. Se il modello non lo supporta, attivare questa opzione potrebbe causare errori durante la conversazione.</value>
-    </data>
-    <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
-        <value>Il modello supporta il pensiero profondo prima di rispondere. Se il modello non lo supporta, attivare questa opzione potrebbe causare errori durante la conversazione.</value>
     </data>
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>Pensiero Profondo</value>
@@ -1404,10 +1401,10 @@ Rotellina o tasti numerici per cambiare modalità di selezione</value>
     <data name="ModelProviderSchema_Ollama" xml:space="preserve">
         <value>Ollama</value>
     </data>
-    <data name="CustomAssistant_RequestTimeoutSeconds_Description" xml:space="preserve">
+    <data name="Assistant_RequestTimeoutSeconds_Description" xml:space="preserve">
         <value>Imposta il tempo di attesa per il modello per restituire risultati, misurato in secondi. Per modelli più lenti (come i modelli di pensiero e i modelli locali), considera di estendere questo tempo in modo appropriato.</value>
     </data>
-    <data name="CustomAssistant_RequestTimeoutSeconds_Header" xml:space="preserve">
+    <data name="Assistant_RequestTimeoutSeconds_Header" xml:space="preserve">
         <value>Timeout Richiesta</value>
     </data>
     <data name="DynamicWebProxy_ApplyProxySettings_EndpointRequired_ErrorMessage" xml:space="preserve">
@@ -1824,7 +1821,7 @@ Rotellina o tasti numerici per cambiare modalità di selezione</value>
     <data name="BuiltInChatPlugin_FileSystem_SearchFiles_OperationStarted_Message" xml:space="preserve">
         <value>📂 {0}</value>
     </data>
-    <data name="CustomAssistant_ConfiguratorSelector_Header" xml:space="preserve">
+    <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>Fornitore di Servizi</value>
     </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
@@ -2047,8 +2044,8 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="ReasoningEffortLevel_Minimal" xml:space="preserve">
         <value>Minimo</value>
     </data>
-    <data name="PersistentState_ReasoningEffortLevel_Header" xml:space="preserve">
-        <value>Intensità di Ragionamento</value>
+    <data name="Assistant_ReasoningEffort_Header" xml:space="preserve">
+        <value>Intensità di Ragionamento (reasoning_effort)</value>
     </data>
     <data name="PersistentState_MaxContextRounds_Header" xml:space="preserve">
         <value>Max Rounds di Contesto</value>

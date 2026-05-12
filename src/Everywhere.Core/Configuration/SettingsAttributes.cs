@@ -10,7 +10,7 @@ public sealed class GeneratedSettingsItemsAttribute : Attribute;
 /// This attribute is used to mark properties that should not be serialized or displayed in the UI.
 /// </summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-public class HiddenSettingsItemAttribute : Attribute;
+public class SettingsItemIgnoreAttribute : Attribute;
 
 /// <summary>
 /// Additional metadata for a settings item.
@@ -86,6 +86,12 @@ public class SettingsSelectionItemAttribute(string itemsSourceBindingPath) : Att
     /// An optional key to use for the DataTemplate to display each item.
     /// </summary>
     public object? DataTemplateKey { get; set; }
+
+    /// <summary>
+    /// Can user edit combobox
+    /// </summary>
+    /// TODO: This is complicated to impl
+    public bool IsEditable { get; set; }
 }
 
 /// <summary>

@@ -15,20 +15,20 @@ public sealed partial class CommonSettings : SettingsBase, ISettingsCategory
 {
     private static INativeHelper NativeHelper => ServiceLocator.Resolve<INativeHelper>();
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public int Index => 0;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public LucideIconKind Icon => LucideIconKind.Blocks;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Common_Header);
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Common_Description);
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial DateTimeOffset? LastUpdateCheckTime { get; set; }
 
     [JsonIgnore]
@@ -45,7 +45,7 @@ public sealed partial class CommonSettings : SettingsBase, ISettingsCategory
 
 #if WINDOWS
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     [SupportedOSPlatform("windows")]
     public static bool IsAdministrator => NativeHelper.IsAdministrator;
 

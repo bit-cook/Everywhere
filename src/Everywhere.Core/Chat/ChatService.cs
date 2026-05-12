@@ -481,12 +481,7 @@ public sealed partial class ChatService : IChatService
         DateTimeOffset? firstTokenAt = null;
         var isFirstToken = true;
         var promptExecutionSettings = kernelMixin.GetPromptExecutionSettings(
-            kernelMixin.SupportsToolCall && _persistentState.IsToolCallEnabled ?
-                FunctionChoiceBehavior.Auto(autoInvoke: false) :
-                null,
-            kernelMixin.SupportsReasoning ?
-                _persistentState.ReasoningEffortLevel :
-                null);
+            kernelMixin.SupportsToolCall && _persistentState.IsToolCallEnabled ? FunctionChoiceBehavior.Auto(autoInvoke: false) : null);
 
         try
         {

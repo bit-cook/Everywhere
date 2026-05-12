@@ -24,7 +24,7 @@ internal static class SymbolExtension
         public AttributeData? GetAttribute(string fullMetadataName)
             => symbol.GetAttributes().FirstOrDefault(a => a.AttributeClass?.ToDisplayString() == fullMetadataName);
 
-        public bool IsHiddenItem() => symbol.HasAttribute(KnownAttributes.HiddenSettingsItem);
+        public bool IsHiddenItem() => symbol.HasAttribute(KnownAttributes.SettingsItemIgnore);
 
         /// <summary>
         /// Gets the type symbol of the property or field symbol.

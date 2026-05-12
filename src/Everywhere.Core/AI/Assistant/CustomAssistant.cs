@@ -15,21 +15,21 @@ namespace Everywhere.AI;
 [GeneratedSettingsItems]
 public sealed partial class CustomAssistant : Assistant, ISystemPromptProvider
 {
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public Guid Id { get; set; } = Guid.CreateVersion7();
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial ColoredIcon? Icon { get; set; } = new(ColoredIconType.Lucide) { Kind = LucideIconKind.Bot };
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     [MinLength(1)]
     [MaxLength(128)]
     public partial string? Name { get; set; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial string? Description { get; set; }
 
     [JsonIgnore]

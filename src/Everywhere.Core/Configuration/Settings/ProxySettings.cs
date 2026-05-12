@@ -6,16 +6,16 @@ namespace Everywhere.Configuration;
 [GeneratedSettingsItems]
 public sealed partial class ProxySettings : SettingsBase, ISettingsCategory
 {
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public int Index => 3;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public LucideIconKind Icon => LucideIconKind.WifiCog;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Proxy_Header);
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_Proxy_Description);
 
     [ObservableProperty]

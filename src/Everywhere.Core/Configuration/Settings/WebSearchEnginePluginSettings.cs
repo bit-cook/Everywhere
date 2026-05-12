@@ -64,22 +64,22 @@ public sealed partial class OfficialWebSearchEngineSettings : ObservableObject
 public sealed partial class OfficialWebSearchEngineProvider : ObservableObject, IWebSearchEngineProvider
 {
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public WebSearchEngineProviderId Id => WebSearchEngineProviderId.Official;
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey HeaderKey { get; } = new DynamicResourceKey(LocaleKey.WebSearchEngineProvider_Official);
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public string IconUrl => "avares://Everywhere.Core/Assets/Icons/everywhere-rounded.png";
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public string? DocsUrl => null;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public OfficialWebSearchEngineSettings Settings { get; } = new();
 
     [DynamicResourceKey(LocaleKey.Empty)]
@@ -96,19 +96,19 @@ public sealed partial class OfficialWebSearchEngineProvider : ObservableObject, 
 public abstract class ThirdPartyWebSearchEngineProvider : ObservableValidator, IWebSearchEngineProvider
 {
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public abstract WebSearchEngineProviderId Id { get; }
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public abstract IDynamicResourceKey HeaderKey { get; }
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public abstract string IconUrl { get; }
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public abstract string? DocsUrl { get; }
 
     public abstract SettingsItems SettingsItems { get; }
@@ -128,19 +128,19 @@ public abstract class ThirdPartyWebSearchEngineProvider : ObservableValidator, I
 public sealed partial class GoogleWebSearchEngineProvider(ObservableCollection<ApiKey> apiKeys) : ThirdPartyWebSearchEngineProvider
 {
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override WebSearchEngineProviderId Id => WebSearchEngineProviderId.Google;
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override IDynamicResourceKey HeaderKey { get; } = new DirectResourceKey("Google");
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override string IconUrl => "avares://Everywhere.Core/Assets/Icons/google-color.svg";
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override string DocsUrl => "https://developers.google.com/custom-search/v1/overview";
 
     [DynamicResourceKey(
@@ -149,7 +149,7 @@ public sealed partial class GoogleWebSearchEngineProvider(ObservableCollection<A
     public Customizable<string> EndPoint { get; } = new("https://customsearch.googleapis.com", isDefaultValueReadonly: true);
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(ApiKey), nameof(Configuration.ApiKey.Validate))]
     public partial Guid ApiKey { get; set; }
@@ -197,19 +197,19 @@ public sealed partial class ApiKeyWebSearchEngineProvider(
 ) : ThirdPartyWebSearchEngineProvider
 {
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override WebSearchEngineProviderId Id { get; } = id;
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override IDynamicResourceKey HeaderKey { get; } = headerKey;
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override string IconUrl { get; } = iconUrl;
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override string? DocsUrl { get; } = docsUrl;
 
     [DynamicResourceKey(
@@ -218,7 +218,7 @@ public sealed partial class ApiKeyWebSearchEngineProvider(
     public required Customizable<string> EndPoint { get; init; }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     [NotifyDataErrorInfo]
     [CustomValidation(typeof(ApiKey), nameof(Configuration.ApiKey.Validate))]
     public partial Guid ApiKey { get; set; }
@@ -242,19 +242,19 @@ public sealed partial class ApiKeyWebSearchEngineProvider(
 public sealed partial class SearXNGWebSearchEngineProvider : ThirdPartyWebSearchEngineProvider
 {
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override WebSearchEngineProviderId Id => WebSearchEngineProviderId.SearXNG;
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override IDynamicResourceKey HeaderKey { get; } = new DirectResourceKey("SearXNG");
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override string IconUrl => "avares://Everywhere.Core/Assets/Icons/searxng-color.svg";
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public override string DocsUrl => "https://docs.searxng.org";
 
     [DynamicResourceKey(
@@ -266,16 +266,16 @@ public sealed partial class SearXNGWebSearchEngineProvider : ThirdPartyWebSearch
 [GeneratedSettingsItems]
 public sealed partial class WebSearchEngineSettings : ObservableObject
 {
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public ObservableImmutableDictionary<WebSearchEngineProviderId, IWebSearchEngineProvider> Providers { get; }
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedProvider))]
     public partial WebSearchEngineProviderId SelectedProviderId { get; set; }
 
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IWebSearchEngineProvider? SelectedProvider
     {
         get => Providers.GetValueOrDefault(SelectedProviderId);
@@ -287,7 +287,7 @@ public sealed partial class WebSearchEngineSettings : ObservableObject
     }
 
     [ObservableProperty]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public partial ObservableCollection<ApiKey> ApiKeys { get; set; }
 
     public WebSearchEngineSettings()

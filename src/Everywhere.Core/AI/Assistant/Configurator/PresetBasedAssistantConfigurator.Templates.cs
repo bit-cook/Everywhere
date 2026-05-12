@@ -9,7 +9,7 @@ partial class PresetBasedAssistantConfigurator
     /// Helper property to get all supported model provider templates.
     /// </summary>
     [JsonIgnore]
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public static ModelProviderTemplate[] ModelProviderTemplates { get; } =
     [
         new()

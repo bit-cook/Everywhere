@@ -5,7 +5,7 @@ namespace Everywhere.AI.Configurator;
 
 public abstract class AssistantConfigurator : ObservableValidator
 {
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public abstract SettingsItems SettingsItems { get; }
 
     /// <summary>

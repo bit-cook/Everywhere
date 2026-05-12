@@ -39,6 +39,12 @@ public abstract class KernelMixin(Assistant assistant, ModelConnection connectio
 
     public double? TopP { get; } = assistant.TopP.IsCustomValueSet ? assistant.TopP.ActualValue : null;
 
+    public string? ThinkingType { get; } = assistant.ThinkingType;
+
+    public string? ReasoningEffort { get; } = assistant.ReasoningEffort;
+
+    public string? ThinkingBudget { get; } = assistant.ThinkingBudget;
+
     public abstract IChatCompletionService ChatCompletionService { get; }
 
     private readonly HttpClient _httpClient = connection.HttpClient;
@@ -51,24 +57,13 @@ public abstract class KernelMixin(Assistant assistant, ModelConnection connectio
     /// Default implementation includes temperature and top_p from the custom assistant.
     /// </summary>
     /// <param name="functionChoiceBehavior"></param>
-    /// <param name="reasoningEffortLevel"></param>
     /// <returns></returns>
-    public virtual PromptExecutionSettings GetPromptExecutionSettings(
-        FunctionChoiceBehavior? functionChoiceBehavior = null,
-        ReasoningEffortLevel? reasoningEffortLevel = null)
+    public virtual PromptExecutionSettings GetPromptExecutionSettings(FunctionChoiceBehavior? functionChoiceBehavior = null)
     {
         var result = new PromptExecutionSettings
         {
             FunctionChoiceBehavior = functionChoiceBehavior
         };
-
-        if (reasoningEffortLevel.HasValue)
-        {
-            result.ExtensionData = new Dictionary<string, object>(1)
-            {
-                { "reasoning_effort_level", reasoningEffortLevel }
-            };
-        }
 
         SetPromptExecutionSettingsExtensionData(result, Temperature, "temperature");
         SetPromptExecutionSettingsExtensionData(result, TopP, "top_p");

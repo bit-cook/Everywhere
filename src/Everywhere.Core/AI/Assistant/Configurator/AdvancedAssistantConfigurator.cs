@@ -13,7 +13,7 @@ namespace Everywhere.AI.Configurator;
 [GeneratedSettingsItems]
 public sealed partial class AdvancedAssistantConfigurator(Assistant owner) : AssistantConfigurator
 {
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     [CustomValidation(typeof(AdvancedAssistantConfigurator), nameof(ValidateEndpoint))]
     public string? Endpoint
     {
@@ -47,7 +47,7 @@ public sealed partial class AdvancedAssistantConfigurator(Assistant owner) : Ass
             }
         });
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public Guid ApiKey
     {
         get => owner.ApiKey;

@@ -24,7 +24,7 @@ public partial class VisualTreeDebugger : UserControl
     private readonly IReadOnlyList<VisualElementProperty> _properties = typeof(DebuggerVisualElement)
         .GetProperties(BindingFlags.Instance | BindingFlags.Public)
         .Select(p => new VisualElementProperty(p))
-        .ToReadOnlyList();
+        .ToList();
     private readonly VisualElementOverlayWindow _treeViewPointerOverOverlayWindow;
 
     public VisualTreeDebugger(

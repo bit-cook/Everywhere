@@ -8,16 +8,16 @@ namespace Everywhere.Configuration;
 [GeneratedSettingsItems]
 public sealed partial class ChatWindowSettings : SettingsBase, ISettingsCategory
 {
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public int Index => 3;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public LucideIconKind Icon => LucideIconKind.MessageCircle;
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey TitleKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_ChatWindow_Header);
 
-    [HiddenSettingsItem]
+    [SettingsItemIgnore]
     public IDynamicResourceKey? DescriptionKey { get; } = new DynamicResourceKey(LocaleKey.SettingsCategory_Settings_ChatWindow_Description);
 
     [ObservableProperty]

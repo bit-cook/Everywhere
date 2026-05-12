@@ -94,16 +94,16 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>设置一个快捷键，在任何时候按下即可唤出聊天窗口。</value>
     </data>
-    <data name="CustomAssistant_Temperature_Header" xml:space="preserve">
+    <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>temperature (“创意活跃度”)</value>
     </data>
-    <data name="CustomAssistant_Temperature_Description" xml:space="preserve">
+    <data name="Assistant_Temperature_Description" xml:space="preserve">
         <value>通常情况下，数值越高，回答越具创造力和想象力，数值越低，则越趋严谨。部分模型数值超过 1.0 可能导致输出乱码。通常建议不要同时更改 top_p。如果遇到错误，请尝试还原默认值。</value>
     </data>
-    <data name="CustomAssistant_TopP_Header" xml:space="preserve">
+    <data name="Assistant_TopP_Header" xml:space="preserve">
         <value>top_p (“思维开放度”)</value>
     </data>
-    <data name="CustomAssistant_TopP_Description" xml:space="preserve">
+    <data name="Assistant_TopP_Description" xml:space="preserve">
         <value>用于控制模型输出文本的多样性。通常情况下，数值越高，模型会接受更多潜在回答，数值越低，则更倾向于最可能的回答。通常建议不要同时更改 temperature。如果遇到错误，请尝试还原默认值。</value>
     </data>
     <data name="WebSearchEnginePluginSettings_SelectedProvider_Description" xml:space="preserve">
@@ -531,7 +531,7 @@
         <value>模型支持使用已配置的工具。如果模型不支持，开启此选项可能会导致对话时出现错误。</value>
     </data>
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
-        <value>模型支持先思考再回答。如果模型不支持，开启此选项可能会导致对话时出现错误。</value>
+        <value>模型支持先思考再回答。如果模型不支持，开启此选项可能会导致对话时出现错误。注意此选项只会影响 Everywhere 如何处理模型响应，不能控制模型是否真的启用思考。对于可以动态开关思考的模型，请开启此选项之后，在下方的“启用思考”选项作进一步调整。</value>
     </data>
     <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
         <value>深度思考</value>
@@ -1405,10 +1405,10 @@
     <data name="ModelProviderSchema_Ollama" xml:space="preserve">
         <value>Ollama</value>
     </data>
-    <data name="CustomAssistant_RequestTimeoutSeconds_Description" xml:space="preserve">
+    <data name="Assistant_RequestTimeoutSeconds_Description" xml:space="preserve">
         <value>设置请求模型返回内容的等待时间，单位为秒。对于速度较慢的模型（如思考模型和本地模型），可考虑适当延长时间。</value>
     </data>
-    <data name="CustomAssistant_RequestTimeoutSeconds_Header" xml:space="preserve">
+    <data name="Assistant_RequestTimeoutSeconds_Header" xml:space="preserve">
         <value>请求超时时长</value>
     </data>
     <data name="DynamicWebProxy_ApplyProxySettings_EndpointRequired_ErrorMessage" xml:space="preserve">
@@ -1825,7 +1825,7 @@
     <data name="BuiltInChatPlugin_FileSystem_SearchFiles_OperationStarted_Message" xml:space="preserve">
         <value>📂 {0}</value>
     </data>
-    <data name="CustomAssistant_ConfiguratorSelector_Header" xml:space="preserve">
+    <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>服务提供商</value>
     </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
@@ -2048,8 +2048,8 @@
     <data name="ReasoningEffortLevel_Minimal" xml:space="preserve">
         <value>最小</value>
     </data>
-    <data name="PersistentState_ReasoningEffortLevel_Header" xml:space="preserve">
-        <value>推理强度</value>
+    <data name="Assistant_ReasoningEffort_Header" xml:space="preserve">
+        <value>推理强度 (reasoning_effort)</value>
     </data>
     <data name="PersistentState_MaxContextRounds_Header" xml:space="preserve">
         <value>最大上下文轮次</value>
@@ -2822,5 +2822,20 @@
     </data>
     <data name="BuiltInChatPlugin_Terminal_UnsupportedShell" xml:space="preserve">
         <value>当前 Shell 类型不受支持或未找到，请确保计算机上至少安装了 PowerShell、zsh 或者 bash。</value>
+    </data>
+    <data name="Assistant_ReasoningEffort_Description" xml:space="preserve">
+        <value>选择或者输入自定义推理强度。不同的模型支持的选项不同，详情请参考对应文档。留空表示不在请求中包含此参数。</value>
+    </data>
+    <data name="Assistant_ThinkingType_Header" xml:space="preserve">
+        <value>思考类型 (thinking.type)</value>
+    </data>
+    <data name="Assistant_ThinkingType_Description" xml:space="preserve">
+        <value>对于支持动态开关思考的模型，可以使用此选项关闭模型思考。留空表示不在请求中包含此参数。</value>
+    </data>
+    <data name="Assistant_ThinkingBudget_Header" xml:space="preserve">
+        <value>思考预算 (thinking_budget)</value>
+    </data>
+    <data name="Assistant_ThinkingBudget_Description" xml:space="preserve">
+        <value>设置思考输出的预算，单位为 token。</value>
     </data>
 </root>

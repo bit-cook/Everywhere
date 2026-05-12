@@ -44,67 +44,49 @@ public sealed class AnthropicKernelMixin : KernelMixin
     {
         private void BuildOptions(ref ChatOptions? options)
         {
-            var chatOptions = options ??= new ChatOptions();
+            options ??= new ChatOptions();
+            options.RawRepresentationFactory = RawRepresentationFactory;
 
             if (owner.Temperature is { } temperature) options.Temperature = (float)temperature;
             if (owner.TopP is { } topP) options.TopP = (float)topP;
+        }
 
-            options.RawRepresentationFactory = OptionsRawRepresentationFactory;
-
-            object? OptionsRawRepresentationFactory(IChatClient _)
+        private MessageCreateParams RawRepresentationFactory(IChatClient _)
+        {
+            var maxTokens = owner.OutputLimit switch
             {
-                var maxTokens = owner.OutputLimit switch
-                {
-                    > 0 => owner.OutputLimit,
-                    _ => 4096,
-                };
+                > 0 => owner.OutputLimit,
+                _ => 4096,
+            };
 
-                ThinkingConfigParam thinking;
-                if (owner.SupportsReasoning)
-                {
-                    if (chatOptions.AdditionalProperties?.TryGetValue("reasoning_effort_level", out var reasoningEffortLevelObj) is not true ||
-                        reasoningEffortLevelObj is not ReasoningEffortLevel reasoningEffortLevel ||
-                        reasoningEffortLevel == ReasoningEffortLevel.Disabled)
-                    {
-                        thinking = new ThinkingConfigParam(new ThinkingConfigDisabled());
-                    }
-                    else
-                    {
-                        var budgetTokens = reasoningEffortLevel switch
-                        {
-                            ReasoningEffortLevel.Detailed => Math.Min(maxTokens / 2, 4096),
-                            ReasoningEffortLevel.Minimal => 1024,
-                            _ => -1
-                        };
+            ThinkingConfigParam? thinkingConfigParam = null;
+            if (owner.ThinkingType?.Equals("disabled", StringComparison.OrdinalIgnoreCase) is true)
+            {
+                thinkingConfigParam = new ThinkingConfigParam(new ThinkingConfigDisabled());
+            }
+            else if (long.TryParse(owner.ThinkingBudget, out var thinkingBudget))
+            {
+                thinkingConfigParam = new ThinkingConfigParam(new ThinkingConfigEnabled { BudgetTokens = thinkingBudget });
+            }
 
-                        if (budgetTokens == -1 && (owner.ModelId.StartsWith("claude-opus-4-6") || owner.ModelId.StartsWith("claude-opus-4-7")))
-                        {
-                            thinking = new ThinkingConfigParam(new ThinkingConfigAdaptive());
-                        }
-                        else
-                        {
-                            thinking = new ThinkingConfigParam(
-                                new ThinkingConfigEnabled
-                                {
-                                    BudgetTokens = Math.Max(budgetTokens, 2048)
-                                });
-                        }
-                    }
-                }
-                else
+            OutputConfig? outputConfig = null;
+            if (owner.ReasoningEffort is { Length: > 0 } reasoningEffort)
+            {
+                outputConfig = new OutputConfig
                 {
-                    thinking = new ThinkingConfigParam(new ThinkingConfigDisabled());
-                }
-
-                return new MessageCreateParams
-                {
-                    MaxTokens = maxTokens,
-                    Messages = [], // Leave empty and underlying implementation will handle it
-                    Model = owner.ModelId,
-                    Thinking = thinking,
-                    CacheControl = new CacheControlEphemeral()
+                    Effort = reasoningEffort
                 };
             }
+
+            return new MessageCreateParams
+            {
+                MaxTokens = maxTokens,
+                Messages = [], // Leave empty and underlying implementation will handle it
+                Model = owner.ModelId,
+                Thinking = thinkingConfigParam,
+                OutputConfig = outputConfig,
+                CacheControl = new CacheControlEphemeral()
+            };
         }
 
         public override Task<ChatResponse> GetResponseAsync(
