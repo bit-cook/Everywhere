@@ -106,7 +106,7 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
     [JsonIgnore]
     [SettingsItemIgnore]
 #pragma warning disable CA1822 // Required non-static for binding, TODO: make source generator more robust, use ActualType.StaticProperty instead of Path
-    public static string?[] ReasoningEnabledOptions { get; } = [null, "enabled", "disabled"];
+    public string?[] ReasoningEnabledOptions { get; } = [null, "enabled", "disabled"];
 #pragma warning restore CA1822
 
     [ObservableProperty]
@@ -120,7 +120,7 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
     [JsonIgnore]
     [SettingsItemIgnore]
 #pragma warning disable CA1822 // Required non-static for binding
-    public static string?[] DefaultReasoningEffortOptions { get; } = [null, "auto", "minimal", "low", "medium", "high", "xhigh", "max"];
+    public string?[] DefaultReasoningEffortOptions { get; } = [null, "auto", "minimal", "low", "medium", "high", "xhigh", "max"];
 #pragma warning restore CA1822
 
     [ObservableProperty]

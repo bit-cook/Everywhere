@@ -255,7 +255,7 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
 
                     var transformExpr = GetNamedArgValue(attribute, "I18N", "false") == "true" ?
                         $"DynamicResourceKey($\"SettingsSelectionItem_{metadata.Symbol.ContainingType.Name}_{metadata.Name}_{{k}}\")" :
-                        "DirectResourceKey(k?.ToString() ?? string.Empty)";
+                        "DirectResourceKey(k)";
 
                     // If the type is INotifyPropertyChanged and IEnumerable<T>, use ToObservableChangeSet
                     if (itemSourceType.AllInterfaces.Any(i =>

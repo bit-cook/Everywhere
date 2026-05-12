@@ -1,4 +1,5 @@
-﻿using Anthropic;
+﻿using System.Text.RegularExpressions;
+using Anthropic;
 using Anthropic.Core;
 using Anthropic.Models.Messages;
 using Microsoft.Extensions.AI;
@@ -9,7 +10,7 @@ namespace Everywhere.AI;
 /// <summary>
 /// An implementation of <see cref="KernelMixin"/> for Anthropic models.
 /// </summary>
-public sealed class AnthropicKernelMixin : KernelMixin
+public sealed partial class AnthropicKernelMixin : KernelMixin
 {
     public override IChatCompletionService ChatCompletionService { get; }
 
@@ -40,7 +41,7 @@ public sealed class AnthropicKernelMixin : KernelMixin
         _client.Dispose();
     }
 
-    private sealed class OptimizedChatClient(IChatClient originalClient, AnthropicKernelMixin owner) : DelegatingChatClient(originalClient)
+    private sealed partial class OptimizedChatClient(IChatClient originalClient, AnthropicKernelMixin owner) : DelegatingChatClient(originalClient)
     {
         private void BuildOptions(ref ChatOptions? options)
         {
@@ -59,14 +60,35 @@ public sealed class AnthropicKernelMixin : KernelMixin
                 _ => 4096,
             };
 
-            ThinkingConfigParam? thinkingConfigParam = null;
+            var isClaude = owner.ModelId.Contains("claude", StringComparison.OrdinalIgnoreCase);
+            var isClaude46 = isClaude && Claude46Regex().IsMatch(owner.ModelId);
+            var isClaude47 = isClaude && Claude47Regex().IsMatch(owner.ModelId);
+
+            ThinkingConfigParam thinkingConfigParam;
             if (owner.ThinkingType?.Equals("disabled", StringComparison.OrdinalIgnoreCase) is true)
             {
                 thinkingConfigParam = new ThinkingConfigParam(new ThinkingConfigDisabled());
             }
-            else if (long.TryParse(owner.ThinkingBudget, out var thinkingBudget))
+            else
             {
-                thinkingConfigParam = new ThinkingConfigParam(new ThinkingConfigEnabled { BudgetTokens = thinkingBudget });
+                // Only Claude 4.6 and 4.7 supports adaptive and don't support budgetTokens so we ignore ThinkingBudget for them.
+                if (isClaude46 || isClaude47)
+                {
+                    thinkingConfigParam = new ThinkingConfigParam(new ThinkingConfigAdaptive());
+                }
+                else
+                {
+                    if (!long.TryParse(owner.ThinkingBudget, out var budgetTokens))
+                    {
+                        budgetTokens = -1L;
+                    }
+
+                    thinkingConfigParam = new ThinkingConfigParam(
+                        new ThinkingConfigEnabled
+                        {
+                            BudgetTokens = Math.Max(budgetTokens, 2048)
+                        });
+                }
             }
 
             OutputConfig? outputConfig = null;
@@ -106,5 +128,23 @@ public sealed class AnthropicKernelMixin : KernelMixin
             BuildOptions(ref options);
             return base.GetStreamingResponseAsync(messages, options, cancellationToken);
         }
+
+        /// <summary>
+        /// Check if the model is Claude Opus 4.6
+        /// Supports various formats including:
+        /// - Direct API: claude-opus-4-6
+        /// - AWS Bedrock: anthropic.claude-opus-4-6-v1
+        /// - GCP Vertex AI: claude-opus-4-6
+        /// </summary>
+        [GeneratedRegex(@"(?:anthropic\.)?claude-(?:opus|sonnet)-4[.-]6(?:[@\-:][\w\-:]+)?$")]
+        private static partial Regex Claude46Regex();
+        
+        /// <summary>
+        /// Check if the model is Claude Opus 4.7.
+        /// 4.7 rejects temperature/top_p/top_k and natively supports xhigh reasoning effort.
+        /// </summary>
+        /// <returns></returns>
+        [GeneratedRegex(@"(?:anthropic\.)?claude-opus-4[.-]7(?:[@\-:][\w\-:]+)?$")]
+        private static partial Regex Claude47Regex();
     }
 }

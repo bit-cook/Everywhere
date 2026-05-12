@@ -130,9 +130,9 @@ public partial class DynamicResourceKey(object? key) : IDynamicResourceKey, IRec
 /// </summary>
 /// <param name="key"></param>
 [MessagePackObject(OnlyIncludeKeyedMembers = true, AllowPrivate = true)]
-public sealed partial class DirectResourceKey(object key) : DynamicResourceKey(key)
+public sealed partial class DirectResourceKey(object? key) : DynamicResourceKey(key)
 {
-    public static DirectResourceKey Empty { get; } = new(string.Empty);
+    public static DirectResourceKey Empty { get; } = new(null);
 
     private static readonly IDisposable NullDisposable = Disposable.Empty;
 

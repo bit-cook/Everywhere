@@ -143,7 +143,11 @@ public class OpenAIKernelMixin : KernelMixin
 
             return new ChatCompletionOptions
             {
-                ReasoningEffortLevel = owner.ReasoningEffort,
+                ReasoningEffortLevel = owner.ReasoningEffort switch
+                {
+                    { Length: > 0 } reasoningEffort => new ChatReasoningEffortLevel?(reasoningEffort),
+                    _ => null
+                },
                 Patch = thinkingPatch,
             };
         }
