@@ -202,8 +202,14 @@
               shadui:ButtonAssist.CheckedBackground="{DynamicResource PrimaryColor}"
               Focusable="False"
               IsChecked="{TemplateBinding IsWebSearchEnabled, Mode=TwoWay}"
-              IsVisible="{TemplateBinding IsToolCallSupported}"
               ToolTip.Tip="{I18N {x:Static LocaleKey.ChatInputArea_WebSearchButton_ToolTip}}">
+              <ToggleButton.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                  <TemplateBinding Property="IsToolCallSupported"/>
+                  <TemplateBinding Property="IsToolCallEnabled"/>
+                </MultiBinding>
+              </ToggleButton.IsVisible>
+
               <LucideIcon
                 Margin="1,0,0,0" Kind="Search"
                 Size="{DynamicResource FontSizeL}"/>
