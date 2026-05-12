@@ -225,12 +225,13 @@ internal sealed class GeminiRequest
         var geminiPart = item switch
         {
             TextContent textContent => new GeminiPart { Text = textContent.Text },
+            ReasoningContent reasoningContent => new GeminiPart { Text = reasoningContent.Text, Thought = true },
             ImageContent imageContent => CreateGeminiPartFromImage(imageContent),
             AudioContent audioContent => CreateGeminiPartFromAudio(audioContent),
             BinaryContent binaryContent => CreateGeminiPartFromBinary(binaryContent),
             FunctionCallContent functionCallContent => CreateGeminiPartFromFunctionCall(functionCallContent),
             FunctionResultContent functionResultContent => CreateGeminiPartFromFunctionResult(functionResultContent),
-            _ => null // Don't handle ReasoningContent, etc.
+            _ => null
         };
         geminiPart?.ThoughtSignature = item.Metadata?.TryGetValue("thoughtSignature", out var signature) is true && signature is string signatureStr
             ? signatureStr

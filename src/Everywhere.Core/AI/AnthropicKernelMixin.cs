@@ -111,13 +111,28 @@ public sealed partial class AnthropicKernelMixin : KernelMixin
             };
         }
 
+        private static IEnumerable<ChatMessage> PreprocessMessages(IEnumerable<ChatMessage> originalMessages)
+        {
+            return originalMessages.Invoke(static chatMessage =>
+            {
+                for (var i = chatMessage.Contents.Count - 1; i >= 0; i--)
+                {
+                    // Remove those TextReasoningContent with empty ProtectedData as they are likely to cause issues for some models (e.g. Claude 4.6) that don't support reasoning effort and expect the content to be text-only.
+                    if (chatMessage.Contents[i] is TextReasoningContent { ProtectedData: not { Length: > 0 } })
+                    {
+                        chatMessage.Contents.RemoveAt(i);
+                    }
+                }
+            });
+        }
+
         public override Task<ChatResponse> GetResponseAsync(
             IEnumerable<ChatMessage> messages,
             ChatOptions? options = null,
             CancellationToken cancellationToken = default)
         {
             BuildOptions(ref options);
-            return base.GetResponseAsync(messages, options, cancellationToken);
+            return base.GetResponseAsync(PreprocessMessages(messages), options, cancellationToken);
         }
 
         public override IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(
@@ -126,7 +141,7 @@ public sealed partial class AnthropicKernelMixin : KernelMixin
             CancellationToken cancellationToken = default)
         {
             BuildOptions(ref options);
-            return base.GetStreamingResponseAsync(messages, options, cancellationToken);
+            return base.GetStreamingResponseAsync(PreprocessMessages(messages), options, cancellationToken);
         }
 
         /// <summary>
