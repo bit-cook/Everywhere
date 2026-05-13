@@ -168,11 +168,11 @@
 
 ## 📋 System Requirements
 
-| Platform | Minimum System Requirements |
-|----------|-----------------------------|
-| 🪟 Windows| Windows 10 (10.0.19041.0)   |
-| 🍎 macOS  | Monterey 12.0               |
-| 🐧 Linux  | 🚧 **In Development**       |
+| Platform  | Minimum System Requirements |
+| --------- | --------------------------- |
+| 🪟 Windows | Windows 10 (10.0.19041.0)   |
+| 🍎 macOS   | Monterey 12.0               |
+| 🐧 Linux   | 🚧 **In Development**        |
 
 ## 🚀 Getting Started
 
@@ -201,6 +201,8 @@
 ## 🤝 Contributing
 
 We love open source and welcome your brilliant ideas and code contributions (Pull Requests)! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for code styling guidelines and local compilation instructions.
+
+Check our [Build Guide](docs/build.md) for detailed instructions on how to set up the development environment and build the project locally.
 
 **A massive thanks to all of the outstanding contributors during our inception and growth phases:**
 

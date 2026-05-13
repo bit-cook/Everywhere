@@ -202,6 +202,8 @@
 
 热爱开源，欢迎提供您的奇思妙想和代码修改 (Pull Requests)！请参考 [CONTRIBUTING.md](CONTRIBUTING.md) 查看具体的代码贡献规范与本地编译向导。
 
+可以查看我们的 [Build Guide](docs/build.md) 获取关于如何设置开发环境和本地构建项目的详细说明。
+
 **致谢所有初创期与成长期的卓越代码贡献者：**
 
 <a href="https://github.com/Sylinko/Everywhere/graphs/contributors">
