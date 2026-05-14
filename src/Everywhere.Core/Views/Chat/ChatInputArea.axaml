@@ -14,6 +14,10 @@
       <Setter Property="Width" Value="{DynamicResource FontSize3Xl}"/>
       <Setter Property="Padding" Value="0"/>
       <Setter Property="CornerRadius" Value="{DynamicResource FullCornerRadius}"/>
+
+      <Style Selector="^.Update">
+        <Setter Property="Background" Value="{DynamicResource SuccessColor60}"/>
+      </Style>
     </Style>
 
     <Style Selector="^ /template/ MenuItem.Rounded">
@@ -263,8 +267,34 @@
 
             <v:UserProfilePresenter
               BorderBrush="{DynamicResource BorderColor}"
-              BorderThickness="1" ShowActionsButton="False"
-              Size="30"/>
+              BorderThickness="1" Focusable="False"
+              ShowActionsButton="False" Size="30"
+              ToolTip.Placement="Top"/>
+
+            <Button
+              Classes="Outline Rounded Update"
+              Command="{Binding PerformUpdateCommand, RelativeSource={RelativeSource TemplatedParent}}"
+              Focusable="False"
+              IsVisible="{Binding SoftwareUpdater?.LatestUpdate?.IsReady, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <ToolTip.Tip>
+                <I18N Key="{x:Static LocaleKey.ChatInputArea_UpdateButton_ToolTip}">
+                  <Binding
+                    Path="SoftwareUpdater?.CurrentVersion"
+                    RelativeSource="{RelativeSource TemplatedParent}"/>
+                  <Binding
+                    Path="SoftwareUpdater?.LatestUpdate?.Version"
+                    RelativeSource="{RelativeSource TemplatedParent}"/>
+                  <Binding
+                    Converter="{x:Static vc:CommonConverters.DateTimeOffsetToString}"
+                    Path="SoftwareUpdater?.LatestUpdate?.PublishedAt"
+                    RelativeSource="{RelativeSource TemplatedParent}"/>
+                </I18N>
+              </ToolTip.Tip>
+
+              <LucideIcon
+                Kind="ArrowBigUpDash"
+                Size="{DynamicResource FontSizeL}"/>
+            </Button>
           </StackPanel>
 
           <StackPanel

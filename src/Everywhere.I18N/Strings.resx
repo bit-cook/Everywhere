@@ -876,10 +876,6 @@ My intelligence is powered by large language models, and I need your help to con
     <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>Visual Context Length Budget</value>
     </data>
-    <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
-        <value>Update available.
-{0} -&gt; {1}</value>
-    </data>
     <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
         <value>Deep thinking</value>
     </data>
@@ -2850,6 +2846,9 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value />
     </data>
     <data name="OAuthCloudClient_FreeWebSearchDepletedNotification_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="ChatInputArea_UpdateButton_ToolTip" xml:space="preserve">
         <value />
     </data>
 </root>

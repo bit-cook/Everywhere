@@ -817,6 +817,7 @@
               MaxLength="{Binding ChatInputAreaTextMaxLength}"
               RemoveAttachmentCommand="{Binding RemoveAttachmentCommand}"
               SelectedCustomAssistant="{Binding Settings.Model.SelectedCustomAssistant, Mode=TwoWay}"
+              SoftwareUpdater="{Binding SoftwareUpdater, Mode=OneTime}"
               Text="{Binding ChatInputAreaText, Mode=TwoWay}"
               Watermark="{Binding ChatInputAreaWatermarkKey^, FallbackValue={x:Null}}">
               <v:ChatInputArea.Transitions>

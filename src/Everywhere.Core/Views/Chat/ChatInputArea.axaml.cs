@@ -11,7 +11,7 @@ using Avalonia.Media;
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.AI;
 using Everywhere.Chat;
-using Everywhere.Cloud;
+using Everywhere.Common;
 using Everywhere.Utilities;
 
 namespace Everywhere.Views;
@@ -77,8 +77,8 @@ public sealed partial class ChatInputArea : TemplatedControl
             nameof(SettingsMenuItemsSource),
             o => o.SettingsMenuItemsSource);
 
-    public static readonly StyledProperty<ICloudClient?> CloudClientProperty =
-        AvaloniaProperty.Register<ChatInputArea, ICloudClient?>(nameof(CloudClient));
+    public static readonly StyledProperty<ISoftwareUpdater?> SoftwareUpdaterProperty =
+        AvaloniaProperty.Register<ChatInputArea, ISoftwareUpdater?>(nameof(SoftwareUpdater));
 
     public static readonly StyledProperty<bool> IsSendButtonEnabledProperty =
         AvaloniaProperty.Register<ChatInputArea, bool>(nameof(IsSendButtonEnabled), true);
@@ -202,10 +202,10 @@ public sealed partial class ChatInputArea : TemplatedControl
         set => SetAndRaise(SettingsMenuItemsSourceProperty, ref field, value);
     } = new AvaloniaList<object>();
 
-    public ICloudClient? CloudClient
+    public ISoftwareUpdater? SoftwareUpdater
     {
-        get => GetValue(CloudClientProperty);
-        set => SetValue(CloudClientProperty, value);
+        get => GetValue(SoftwareUpdaterProperty);
+        set => SetValue(SoftwareUpdaterProperty, value);
     }
 
     public bool IsSendButtonEnabled
@@ -394,6 +394,9 @@ public sealed partial class ChatInputArea : TemplatedControl
         SelectedCustomAssistant = assistants[currentIndex];
         e.Handled = true;
     }
+
+    [RelayCommand]
+    private Task PerformUpdateAsync() => SoftwareUpdater?.PerformUpdateAsync() ?? Task.CompletedTask;
 
     private void HandleKeyDown(object? sender, KeyEventArgs e)
     {

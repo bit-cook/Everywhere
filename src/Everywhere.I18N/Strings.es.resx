@@ -876,10 +876,6 @@ Mi inteligencia está impulsada por un modelo de lenguaje grande, y necesito que
     <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>Límite de longitud del árbol visual</value>
     </data>
-    <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
-        <value>Actualización disponible.
-{0} -&gt; {1}</value>
-    </data>
     <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
         <value>Pensamiento profundo</value>
     </data>

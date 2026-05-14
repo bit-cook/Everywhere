@@ -181,16 +181,23 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
     {
         try
         {
-            var progress = new Progress<double>();
-            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            ToastManager
-                .CreateToast(LocaleResolver.Common_Info)
-                .WithContent(LocaleResolver.CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate)
-                .WithProgress(progress)
-                .WithCancellationTokenSource(cancellationTokenSource)
-                .OnBottomRight()
-                .ShowInfo();
-            await SoftwareUpdater.PerformUpdateAsync(progress, cancellationTokenSource.Token);
+            if (SoftwareUpdater.LatestUpdate is not { IsReady: true })
+            {
+                var progress = new Progress<double>();
+                var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                ToastManager
+                    .CreateToast(LocaleResolver.Common_Info)
+                    .WithContent(LocaleResolver.CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate)
+                    .WithProgress(progress)
+                    .WithCancellationTokenSource(cancellationTokenSource)
+                    .OnBottomRight()
+                    .ShowInfo();
+                await SoftwareUpdater.PerformUpdateAsync(progress, cancellationTokenSource.Token);
+            }
+            else
+            {
+                await SoftwareUpdater.PerformUpdateAsync(cancellationToken: cancellationToken);
+            }
         }
         catch (Exception ex)
         {

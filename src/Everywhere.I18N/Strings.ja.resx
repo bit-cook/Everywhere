@@ -876,10 +876,6 @@
     <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>視覚コンテキスト長予算</value>
     </data>
-    <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
-        <value>アップデートが利用可能です。
-{0} -&gt; {1}</value>
-    </data>
     <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
         <value>深く考えています</value>
     </data>

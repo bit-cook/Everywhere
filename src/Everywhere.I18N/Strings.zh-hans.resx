@@ -876,10 +876,6 @@
     <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>视觉上下文长度预算</value>
     </data>
-    <data name="SoftwareUpdater_UpdateAvailable_Toast_Message" xml:space="preserve">
-        <value>有新版本可用。
-{0} -&gt; {1}</value>
-    </data>
     <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
         <value>深度思考</value>
     </data>
@@ -2852,5 +2848,11 @@
     </data>
     <data name="OAuthCloudClient_FreeWebSearchDepletedNotification_Content" xml:space="preserve">
         <value>你已用尽免费云搜索次数，云搜索将会扣减积分。</value>
+    </data>
+    <data name="ChatInputArea_UpdateButton_ToolTip" xml:space="preserve">
+        <value>新版本已准备好，点击立即更新。
+当前版本: {0}
+最新版本: {1}
+发布日期: {2}</value>
     </data>
 </root>

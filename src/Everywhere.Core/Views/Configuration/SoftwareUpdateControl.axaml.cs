@@ -31,7 +31,7 @@ public partial class SoftwareUpdateControl(
     private async Task UpdateOrCheckAsync(CancellationToken cancellationToken)
     {
         UpdateOrCheckTitle = new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_CheckingUpdateTitle_Text);
-        if (SoftwareUpdater.LatestVersion is not null)
+        if (SoftwareUpdater.LatestUpdate is not null)
         {
             serviceProvider.GetRequiredService<MainViewModel>().NavigateTo(serviceProvider.GetRequiredService<ChangeLogView>());
             return;

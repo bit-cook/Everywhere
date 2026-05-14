@@ -67,6 +67,8 @@ public class NativeHelper(IEventHelper eventHelper) : INativeHelper
 
     public bool IsAdministratorStartupEnabled { get; set; }
 
+    public bool IsLowDataModeActive => throw new NotImplementedException();
+
     public void RestartAsAdministrator()
     {
         throw new NotSupportedException();

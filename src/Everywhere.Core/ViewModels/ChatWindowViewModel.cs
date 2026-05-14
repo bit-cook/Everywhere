@@ -101,6 +101,8 @@ public sealed partial class ChatWindowViewModel :
     [ObservableProperty]
     public partial IDynamicResourceKey? ChatInputAreaWatermarkKey { get; private set; }
 
+    public ISoftwareUpdater SoftwareUpdater { get; }
+
     private readonly IChatService _chatService;
     private readonly IVisualElementContext _visualElementContext;
     private readonly IBlobStorage _blobStorage;
@@ -122,6 +124,7 @@ public sealed partial class ChatWindowViewModel :
         PersistentState persistentState,
         IChatContextManager chatContextManager,
         IChatPluginManager chatPluginManager,
+        ISoftwareUpdater softwareUpdater,
         IChatService chatService,
         IVisualElementContext visualElementContext,
         IBlobStorage blobStorage,
@@ -132,6 +135,7 @@ public sealed partial class ChatWindowViewModel :
         Settings = settings;
         PersistentState = persistentState;
         ChatContextManager = chatContextManager;
+        SoftwareUpdater = softwareUpdater;
 
         _chatService = chatService;
         _visualElementContext = visualElementContext;

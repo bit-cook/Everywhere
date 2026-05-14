@@ -12,9 +12,15 @@ public interface ISoftwareUpdater : INotifyPropertyChanged
     DateTimeOffset? LastCheckTime { get; }
 
     /// <summary>
-    /// Gets the latest version for update. Null if no update is available or the check has not been performed yet.
+    /// Gets the full metadata for the latest available update, or <see langword="null"/> if none.
+    /// Includes version, publication date, release notes, download asset, and download state.
     /// </summary>
-    Version? LatestVersion { get; }
+    SoftwareUpdateMetadata? LatestUpdate { get; }
+
+    /// <summary>
+    /// Gets whether the update asset is currently being downloaded in the background.
+    /// </summary>
+    bool IsDownloading { get; }
 
     /// <summary>
     /// Runs the automatic update check in the background.
@@ -34,5 +40,5 @@ public interface ISoftwareUpdater : INotifyPropertyChanged
     /// </summary>
     /// <param name="progress">a 0-1 progress indicator for the update process</param>
     /// <param name="cancellationToken"></param>
-    Task PerformUpdateAsync(IProgress<double> progress, CancellationToken cancellationToken = default);
+    Task PerformUpdateAsync(IProgress<double>? progress = null, CancellationToken cancellationToken = default);
 }

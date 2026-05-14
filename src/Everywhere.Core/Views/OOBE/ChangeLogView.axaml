@@ -1,12 +1,10 @@
 ﻿<UserControl
   x:Class="Everywhere.Views.ChangeLogView" xmlns="https://github.com/avaloniaui"
-  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
-  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:vc="clr-namespace:Everywhere.ValueConverters"
-  xmlns:vm="clr-namespace:Everywhere.ViewModels"
-  xmlns:common="clr-namespace:Everywhere.Common"
-  d:DesignHeight="450"
-  d:DesignWidth="800"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:common="clr-namespace:Everywhere.Common"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
+  xmlns:vc="clr-namespace:Everywhere.ValueConverters" xmlns:vm="clr-namespace:Everywhere.ViewModels"
+  d:DesignHeight="450" d:DesignWidth="800"
   x:DataType="{x:Type vm:ChangeLogViewModel}"
   mc:Ignorable="d">
   <shadui:NavigationView
@@ -89,7 +87,7 @@
           Command="{Binding PerformUpdateCommand}"
           Content="{I18N {x:Static LocaleKey.ChangeLogView_UpdateButton_Content}}"
           FontWeight="Bold"
-          IsVisible="{Binding SoftwareUpdater.LatestVersion, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+          IsVisible="{Binding SoftwareUpdater.LatestUpdate, Converter={x:Static ObjectConverters.IsNotNull}}"/>
       </Grid>
     </shadui:NavigationView.PaneContent>
 

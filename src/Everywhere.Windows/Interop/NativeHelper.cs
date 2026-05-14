@@ -2,6 +2,7 @@
 using System.Security;
 using System.Security.Principal;
 using Windows.Data.Xml.Dom;
+using Windows.Networking.Connectivity;
 using Windows.UI.Notifications;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
@@ -94,6 +95,18 @@ public class NativeHelper : INativeHelper
             {
                 TaskSchedulerHelper.DeleteScheduledTask(AppName);
             }
+        }
+    }
+
+    public bool IsLowDataModeActive
+    {
+        get
+        {
+            var profile = NetworkInformation.GetInternetConnectionProfile();
+            if (profile == null) return false;
+
+            var cost = profile.GetConnectionCost();
+            return cost.NetworkCostType != NetworkCostType.Unrestricted || cost.ApproachingDataLimit || cost.OverDataLimit;
         }
     }
 
