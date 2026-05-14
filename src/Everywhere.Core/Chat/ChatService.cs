@@ -587,7 +587,16 @@ public sealed partial class ChatService : IChatService
             SetChatUsageTags(activity, usage);
             RecordChatUsageMetrics(usage, kernelMixin.ModelId);
 
-            span?.FinishedAt ??= generationEndTime;
+            // Post to UI thread to ensure all pending text/reasoning Dispatcher.UIThread.Post
+            // callbacks (which create spans and append content) have executed before we
+            // signal completion.  Otherwise we race: the finally runs on the thread pool
+            // while span may still be null because the Post lambdas haven't fired yet.
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (assistantChatMessage.Spans is { Count: > 0 } spans)
+                    spans[^1].FinishedAt ??= generationEndTime;
+            });
+
             callingToolsBusyMessage?.Dispose();
         }
 
@@ -661,169 +670,176 @@ public sealed partial class ChatService : IChatService
         var functionCallSpan = new AssistantChatMessageFunctionCallSpan();
         assistantChatMessage.AddSpan(functionCallSpan);
 
-        foreach (var functionCallContentGroup in functionCallContents.GroupBy(f => f.FunctionName))
+        try
         {
-            // 1. Grouped by function name.
-            // After grouping, we need to find the corresponding plugin and function.
-            // For example, in the above example,
-            // 1st functionCallContentGroup: Key = "Function1", Values = [Call1, Call2]
-            // 2nd functionCallContentGroup: Key = "Function2", Values = [Call1]
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // functionCallContentGroup.Key is the function name.
-            if (chatPluginScope is null)
+            foreach (var functionCallContentGroup in functionCallContents.GroupBy(f => f.FunctionName))
             {
-                // Function calling is not enabled
-                // Display error in the chat span (UI).
-                var errorFunctionMessage = new FunctionCallChatMessage(
-                    LucideIconKind.X,
-                    new DirectResourceKey(functionCallContentGroup.Key));
-                functionCallSpan.Add(errorFunctionMessage);
+                // 1. Grouped by function name.
+                // After grouping, we need to find the corresponding plugin and function.
+                // For example, in the above example,
+                // 1st functionCallContentGroup: Key = "Function1", Values = [Call1, Call2]
+                // 2nd functionCallContentGroup: Key = "Function2", Values = [Call1]
 
-                // Iterate through the function call contents in the group.
-                // Add the error message for each function call.
-                foreach (var functionCallContent in functionCallContentGroup)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // functionCallContentGroup.Key is the function name.
+                if (chatPluginScope is null)
                 {
-                    // Add the function call content to the missing function chat message for DB storage.
-                    errorFunctionMessage.Calls.Add(functionCallContent);
+                    // Function calling is not enabled
+                    // Display error in the chat span (UI).
+                    var errorFunctionMessage = new FunctionCallChatMessage(
+                        LucideIconKind.X,
+                        new DirectResourceKey(functionCallContentGroup.Key));
+                    functionCallSpan.Add(errorFunctionMessage);
 
-                    // Create the corresponding function result content with the error message.
-                    var missingFunctionResultContent = new FunctionResultContent(
-                        functionCallContent,
-                        "Tool calling is disabled by the user");
-
-                    // Add the function result content to the missing function chat message for DB storage.
-                    errorFunctionMessage.Results.Add(missingFunctionResultContent);
-                }
-
-                errorFunctionMessage.ErrorMessageKey = new FormattedDynamicResourceKey(
-                    LocaleKey.HandledFunctionInvokingException_FunctionCallingDisabled,
-                    new DirectResourceKey(functionCallContentGroup.Key));
-
-                continue;
-            }
-
-            if (!chatPluginScope.TryGetPluginAndFunction(
-                    functionCallContentGroup.Key,
-                    out var chatPlugin,
-                    out var chatFunction,
-                    out var similarFunctionNames))
-            {
-                // Not found the function, tell AI.
-
-                var errorMessageBuilder = new StringBuilder();
-                errorMessageBuilder.Append("Tool '").Append(functionCallContentGroup.Key).Append("' is not available.");
-
-                if (similarFunctionNames.Count > 0)
-                {
-                    errorMessageBuilder.Append(" Did you mean:");
-                    foreach (var similarFunctionName in similarFunctionNames)
+                    // Iterate through the function call contents in the group.
+                    // Add the error message for each function call.
+                    foreach (var functionCallContent in functionCallContentGroup)
                     {
-                        errorMessageBuilder.Append(' ').AppendLine(similarFunctionName);
-                    }
-                }
+                        // Add the function call content to the missing function chat message for DB storage.
+                        errorFunctionMessage.Calls.Add(functionCallContent);
 
-                // Display error in the chat span (UI).
-                var errorFunctionMessage = new FunctionCallChatMessage(
-                    LucideIconKind.X,
-                    new DirectResourceKey(functionCallContentGroup.Key));
-                functionCallSpan.Add(errorFunctionMessage);
+                        // Create the corresponding function result content with the error message.
+                        var missingFunctionResultContent = new FunctionResultContent(
+                            functionCallContent,
+                            "Tool calling is disabled by the user");
 
-                // Iterate through the function call contents in the group.
-                // Add the error message for each function call.
-                foreach (var functionCallContent in functionCallContentGroup)
-                {
-                    // Add the function call content to the missing function chat message for DB storage.
-                    errorFunctionMessage.Calls.Add(functionCallContent);
-
-                    // Create the corresponding function result content with the error message.
-                    var missingFunctionResultContent = new FunctionResultContent(functionCallContent, errorMessageBuilder.ToString());
-
-                    // Add the function result content to the missing function chat message for DB storage.
-                    errorFunctionMessage.Results.Add(missingFunctionResultContent);
-                }
-
-                errorFunctionMessage.ErrorMessageKey = new FormattedDynamicResourceKey(
-                    LocaleKey.HandledFunctionInvokingException_FunctionNotFound,
-                    new DirectResourceKey(functionCallContentGroup.Key));
-
-                continue;
-            }
-
-            var functionCallChatMessage = new FunctionCallChatMessage(
-                chatFunction.Icon ?? chatPlugin.Icon ?? LucideIconKind.Hammer,
-                chatFunction.HeaderKey)
-            {
-                IsBusy = true,
-            };
-            functionCallSpan.Add(functionCallChatMessage);
-
-            var functionCallContext = new FunctionCallContext(
-                kernel,
-                chatContext,
-                chatPlugin,
-                chatFunction,
-                functionCallChatMessage,
-                _settings.Plugin.IsPermissionGrantedRecords);
-            chatContext.FunctionCallContext.Value = functionCallContext;
-
-            try
-            {
-                // Iterate through the function call contents in the group.
-                foreach (var functionCallContent in functionCallContentGroup)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // This should be processed in KernelMixin.
-                    // All function calls must have an ID (returned from the LLM, or generated by us).
-                    if (functionCallContent.Id.IsNullOrEmpty())
-                    {
-                        // This should never happen.
-                        throw new InvalidOperationException("Tool call must have an ID");
+                        // Add the function result content to the missing function chat message for DB storage.
+                        errorFunctionMessage.Results.Add(missingFunctionResultContent);
                     }
 
-                    // Add the function call content to the function call chat message.
-                    // This will record the function call in the database.
-                    functionCallChatMessage.Calls.Add(functionCallContent);
+                    errorFunctionMessage.ErrorMessageKey = new FormattedDynamicResourceKey(
+                        LocaleKey.HandledFunctionInvokingException_FunctionCallingDisabled,
+                        new DirectResourceKey(functionCallContentGroup.Key));
 
-                    // Also add a display block for the function call content.
-                    // This will allow the UI to display the function call content.
-                    var friendlyContent = chatFunction.GetFriendlyCallContent(functionCallContent);
-                    if (friendlyContent is not null) functionCallChatMessage.DisplaySink.AppendBlock(friendlyContent);
+                    continue;
+                }
 
-                    var resultContent = await InvokeFunctionAsync(
-                        kernelMixin,
-                        functionCallContent,
-                        functionCallContext,
-                        friendlyContent,
-                        cancellationToken);
+                if (!chatPluginScope.TryGetPluginAndFunction(
+                        functionCallContentGroup.Key,
+                        out var chatPlugin,
+                        out var chatFunction,
+                        out var similarFunctionNames))
+                {
+                    // Not found the function, tell AI.
 
-                    // Try to cancel if requested immediately after function invocation (a long-time await).
-                    cancellationToken.ThrowIfCancellationRequested();
+                    var errorMessageBuilder = new StringBuilder();
+                    errorMessageBuilder.Append("Tool '").Append(functionCallContentGroup.Key).Append("' is not available.");
 
-                    // dd the function result content to the function call chat message.
-                    // This will record the function result in the database.
-                    functionCallChatMessage.Results.Add(resultContent);
-
-                    if (resultContent.InnerContent is Exception ex)
+                    if (similarFunctionNames.Count > 0)
                     {
-                        functionCallChatMessage.ErrorMessageKey = ex.GetFriendlyMessage();
-                        break; // If an error occurs, we stop processing further function calls.
+                        errorMessageBuilder.Append(" Did you mean:");
+                        foreach (var similarFunctionName in similarFunctionNames)
+                        {
+                            errorMessageBuilder.Append(' ').AppendLine(similarFunctionName);
+                        }
+                    }
+
+                    // Display error in the chat span (UI).
+                    var errorFunctionMessage = new FunctionCallChatMessage(
+                        LucideIconKind.X,
+                        new DirectResourceKey(functionCallContentGroup.Key));
+                    functionCallSpan.Add(errorFunctionMessage);
+
+                    // Iterate through the function call contents in the group.
+                    // Add the error message for each function call.
+                    foreach (var functionCallContent in functionCallContentGroup)
+                    {
+                        // Add the function call content to the missing function chat message for DB storage.
+                        errorFunctionMessage.Calls.Add(functionCallContent);
+
+                        // Create the corresponding function result content with the error message.
+                        var missingFunctionResultContent = new FunctionResultContent(functionCallContent, errorMessageBuilder.ToString());
+
+                        // Add the function result content to the missing function chat message for DB storage.
+                        errorFunctionMessage.Results.Add(missingFunctionResultContent);
+                    }
+
+                    errorFunctionMessage.ErrorMessageKey = new FormattedDynamicResourceKey(
+                        LocaleKey.HandledFunctionInvokingException_FunctionNotFound,
+                        new DirectResourceKey(functionCallContentGroup.Key));
+
+                    continue;
+                }
+
+                var functionCallChatMessage = new FunctionCallChatMessage(
+                    chatFunction.Icon ?? chatPlugin.Icon ?? LucideIconKind.Hammer,
+                    chatFunction.HeaderKey)
+                {
+                    IsBusy = true,
+                };
+                functionCallSpan.Add(functionCallChatMessage);
+
+                var functionCallContext = new FunctionCallContext(
+                    kernel,
+                    chatContext,
+                    chatPlugin,
+                    chatFunction,
+                    functionCallChatMessage,
+                    _settings.Plugin.IsPermissionGrantedRecords);
+                chatContext.FunctionCallContext.Value = functionCallContext;
+
+                try
+                {
+                    // Iterate through the function call contents in the group.
+                    foreach (var functionCallContent in functionCallContentGroup)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        // This should be processed in KernelMixin.
+                        // All function calls must have an ID (returned from the LLM, or generated by us).
+                        if (functionCallContent.Id.IsNullOrEmpty())
+                        {
+                            // This should never happen.
+                            throw new InvalidOperationException("Tool call must have an ID");
+                        }
+
+                        // Add the function call content to the function call chat message.
+                        // This will record the function call in the database.
+                        functionCallChatMessage.Calls.Add(functionCallContent);
+
+                        // Also add a display block for the function call content.
+                        // This will allow the UI to display the function call content.
+                        var friendlyContent = chatFunction.GetFriendlyCallContent(functionCallContent);
+                        if (friendlyContent is not null) functionCallChatMessage.DisplaySink.AppendBlock(friendlyContent);
+
+                        var resultContent = await InvokeFunctionAsync(
+                            kernelMixin,
+                            functionCallContent,
+                            functionCallContext,
+                            friendlyContent,
+                            cancellationToken);
+
+                        // Try to cancel if requested immediately after function invocation (a long-time await).
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        // dd the function result content to the function call chat message.
+                        // This will record the function result in the database.
+                        functionCallChatMessage.Results.Add(resultContent);
+
+                        if (resultContent.InnerContent is Exception ex)
+                        {
+                            functionCallChatMessage.ErrorMessageKey = ex.GetFriendlyMessage();
+                            break; // If an error occurs, we stop processing further function calls.
+                        }
+                    }
+                }
+                finally
+                {
+                    functionCallChatMessage.FinishedAt = DateTimeOffset.UtcNow;
+                    functionCallChatMessage.IsBusy = false;
+                    chatContext.FunctionCallContext.Value = null;
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        functionCallChatMessage.ErrorMessageKey ??= new DynamicResourceKey(LocaleKey.FriendlyExceptionMessage_OperationCanceled);
                     }
                 }
             }
-            finally
-            {
-                functionCallChatMessage.FinishedAt = DateTimeOffset.UtcNow;
-                functionCallChatMessage.IsBusy = false;
-                chatContext.FunctionCallContext.Value = null;
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    functionCallChatMessage.ErrorMessageKey ??= new DynamicResourceKey(LocaleKey.FriendlyExceptionMessage_OperationCanceled);
-                }
-            }
+        }
+        finally
+        {
+            functionCallSpan.FinishedAt = DateTimeOffset.UtcNow;
         }
     }
 
