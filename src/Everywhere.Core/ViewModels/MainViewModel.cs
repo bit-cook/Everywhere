@@ -3,11 +3,12 @@ using System.Reactive.Disposables;
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
-using Everywhere.Cloud;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
+using Everywhere.Messages;
 using Everywhere.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -16,13 +17,11 @@ using ZLinq;
 
 namespace Everywhere.ViewModels;
 
-public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
+public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<MainViewNavigateMessage>, IDisposable
 {
     [ObservableProperty] public partial NavigationBarItem? SelectedItem { get; set; }
 
     public ReadOnlyObservableCollection<NavigationBarItem> Items { get; }
-
-    public ICloudClient CloudClient { get; }
 
     /// <summary>
     /// Use public property for MVVM binding
@@ -38,13 +37,10 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
     private bool _isFirstLoad = true;
 
     public MainViewModel(
-        ICloudClient cloudClient,
         IServiceProvider serviceProvider,
         Settings settings,
         PersistentState persistentState)
     {
-        CloudClient = cloudClient;
-
         _serviceProvider = serviceProvider;
         _settings = settings;
         PersistentState = persistentState;
@@ -54,6 +50,8 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
             .ObserveOnAvaloniaDispatcher()
             .BindEx(_disposables);
         InitializeNavigationBarItems();
+
+        WeakReferenceMessenger.Default.Register(this);
     }
 
     protected internal override async Task ViewLoaded(CancellationToken cancellationToken)
@@ -236,6 +234,12 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IDisposable
 
         ServiceLocator.Resolve<INativeHelper>().ShowDesktopNotificationAsync(LocaleResolver.MainView_EverywhereHasMinimizedToTray);
         PersistentState.IsHideToTrayIconNotificationShown = true;
+    }
+
+    void IRecipient<MainViewNavigateMessage>.Receive(MainViewNavigateMessage message)
+    {
+        if (message.Route is Type routeType) NavigateToType(routeType);
+        else NavigateTo(message.Route);
     }
 
     public void Dispose()

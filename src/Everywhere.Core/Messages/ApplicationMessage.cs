@@ -17,7 +17,7 @@ public abstract partial class ApplicationMessage;
 /// The name of the ViewModel to be shown.
 /// </param>
 [MessagePackObject]
-public partial class ShowWindowMessage(string name, string? route = null) : ApplicationMessage
+public partial class ShowWindowMessage(string name, object? route = null) : ApplicationMessage
 {
     public const string MainWindow = nameof(MainWindow);
     public const string ChatWindow = nameof(ChatWindow);
@@ -26,7 +26,7 @@ public partial class ShowWindowMessage(string name, string? route = null) : Appl
     public string Name { get; } = name;
 
     [Key(1)]
-    public string? Route { get; } = route;
+    public object? Route { get; } = route;
 }
 
 /// <summary>

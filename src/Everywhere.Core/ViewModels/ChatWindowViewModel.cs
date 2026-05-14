@@ -651,9 +651,15 @@ public sealed partial class ChatWindowViewModel :
     }
 
     [RelayCommand]
+    private static void OpenPluginSettings()
+    {
+        WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(ShowWindowMessage.MainWindow, "ChatPluginPage"));
+    }
+
+    [RelayCommand]
     private static void OpenSettings()
     {
-        WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(ShowWindowMessage.MainWindow));
+        WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(ShowWindowMessage.MainWindow, "SettingsPage"));
     }
 
     [RelayCommand]

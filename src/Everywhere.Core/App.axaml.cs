@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Input.Platform;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -17,7 +18,6 @@ using Everywhere.Views;
 using LiveMarkdown.Avalonia;
 using Serilog;
 using ShadUI;
-using Window = Avalonia.Controls.Window;
 
 namespace Everywhere;
 
@@ -40,7 +40,12 @@ public class App : Application, IRecipient<ApplicationMessage>
     private static TopLevel? _topLevel;
     private static ThemeManager? _themeManager;
 
-    private TransientWindow? _mainWindow, _debugWindow;
+    private readonly Dictionary<Type, TransientWindow> _transientWindows = new();
+
+    /// <summary>
+    /// Flag to prevent multiple calls to ShowWindow method from event loop.
+    /// </summary>
+    private bool _isShowWindowBusy;
 
     public override void Initialize()
     {
@@ -58,6 +63,8 @@ public class App : Application, IRecipient<ApplicationMessage>
         }
 #endif
 
+        Window.WindowClosedEvent.AddClassHandler<TransientWindow>(HandleTransientWindowClosed);
+
         // After this, ThemeChanged event from the system can be received
         _themeManager = new ThemeManager(this);
 
@@ -71,6 +78,17 @@ public class App : Application, IRecipient<ApplicationMessage>
         TrayIcon.SetIcons(this, [new MainTrayIcon(this)]);
 
         RecordAppLaunchMetric();
+    }
+
+    private void HandleTransientWindowClosed(TransientWindow sender, RoutedEventArgs args)
+    {
+        sender.Content = null;
+
+        if (sender.Content is { } content)
+        {
+            _transientWindows.Remove(content.GetType());
+            content.To<ISetLogicalParent>().SetParent(null);
+        }
     }
 
     private static void InitializeErrorHandler()
@@ -193,37 +211,45 @@ public class App : Application, IRecipient<ApplicationMessage>
         // If the --ui command line argument is present, show the main window.
         if (Environment.GetCommandLineArgs().Contains("--ui") || previousVersion < currentVersion)
         {
-            ShowWindow<MainView>(ref _mainWindow);
+            ShowWindow<MainView>();
         }
 
         persistentState.PreviousLaunchVersion = currentVersion.ToString();
     }
 
 
-    /// <summary>
-    /// Flag to prevent multiple calls to ShowWindow method from event loop.
-    /// </summary>
-    private static bool _isShowWindowBusy;
 
-    private static void ShowWindow<TContent>(ref TransientWindow? window) where TContent : Control
+    private void ShowWindow<TContent>() where TContent : Control
     {
         if (_isShowWindowBusy) return;
         try
         {
             _isShowWindowBusy = true;
-            if (window is { IsVisible: true })
+
+            var windowType = typeof(TContent);
+            _transientWindows.TryGetValue(windowType, out var window);
+
+            if (window is { IsLoaded: true })
             {
                 if (window.WindowState is WindowState.Minimized)
                 {
                     window.WindowState = WindowState.Normal;
                 }
 
-                var windowHelper = ServiceLocator.Resolve<IWindowHelper>();
-                windowHelper.SetCloaked(window, false);
+                var topMost = window.Topmost;
+                window.Topmost = true;
+                window.Topmost = topMost;
+
+                window.Activate();
             }
             else
             {
-                window?.Close();
+                if (window is not null)
+                {
+                    window.Content = null;
+                    window.Close();
+                }
+
                 var content = ServiceLocator.Resolve<TContent>();
                 content.To<ISetLogicalParent>().SetParent(null);
                 window = new TransientWindow
@@ -231,6 +257,8 @@ public class App : Application, IRecipient<ApplicationMessage>
                     [SaveWindowPlacementAssist.KeyProperty] = typeof(TContent).FullName,
                     Content = content
                 };
+                _transientWindows[windowType] = window;
+
                 window.Show();
             }
         }
@@ -240,15 +268,19 @@ public class App : Application, IRecipient<ApplicationMessage>
         }
     }
 
-    public void ShowMainWindow() => ShowWindow<MainView>(ref _mainWindow);
+    public void ShowMainWindow() => ShowWindow<MainView>();
 
-    public void ShowDebugWindow() => ShowWindow<VisualTreeDebugger>(ref _debugWindow);
+    public void ShowDebugWindow() => ShowWindow<VisualTreeDebugger>();
 
     void IRecipient<ApplicationMessage>.Receive(ApplicationMessage message)
     {
-        if (message is ShowWindowMessage { Name: ShowWindowMessage.MainWindow })
+        if (message is ShowWindowMessage { Name: ShowWindowMessage.MainWindow } showWindowMessage)
         {
-            Dispatcher.UIThread.Invoke(() => ShowWindow<MainView>(ref _mainWindow));
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                ShowWindow<MainView>();
+                if (showWindowMessage.Route is not null) WeakReferenceMessenger.Default.Send(new MainViewNavigateMessage(showWindowMessage.Route));
+            });
         }
     }
 }
