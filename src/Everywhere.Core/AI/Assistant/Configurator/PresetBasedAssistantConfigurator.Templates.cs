@@ -25,6 +25,18 @@ partial class PresetBasedAssistantConfigurator
             [
                 new ModelDefinitionTemplate
                 {
+                    ModelId = "gpt-5.5",
+                    Name = "GPT-5.5",
+                    SupportsReasoning = true,
+                    SupportsToolCall = true,
+                    SupportsTemperature = false,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 1_050_000,
+                    OutputLimit = 128_000
+                },
+                new ModelDefinitionTemplate
+                {
                     ModelId = "gpt-5.4",
                     Name = "GPT-5.4",
                     SupportsReasoning = true,
@@ -450,6 +462,7 @@ partial class PresetBasedAssistantConfigurator
                     Name = "Kimi K2",
                     SupportsReasoning = false,
                     SupportsToolCall = true,
+                    DeprecationDate = new DateOnly(2026, 5, 25),
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 262_144,
@@ -462,6 +475,7 @@ partial class PresetBasedAssistantConfigurator
                     Name = "Kimi K2 Turbo",
                     SupportsReasoning = false,
                     SupportsToolCall = true,
+                    DeprecationDate = new DateOnly(2026, 5, 25),
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 262_144,
@@ -473,6 +487,7 @@ partial class PresetBasedAssistantConfigurator
                     Name = "Kimi K2 Thinking",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
+                    DeprecationDate = new DateOnly(2026, 5, 25),
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 262_144,
@@ -484,6 +499,7 @@ partial class PresetBasedAssistantConfigurator
                     Name = "Kimi K2 Thinking Turbo",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
+                    DeprecationDate = new DateOnly(2026, 5, 25),
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 262_144,
