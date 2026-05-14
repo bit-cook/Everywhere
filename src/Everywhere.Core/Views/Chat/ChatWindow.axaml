@@ -242,17 +242,21 @@
       <Setter Property="Padding" Value="0"/>
       <Setter Property="CornerRadius" Value="{DynamicResource FullCornerRadius}"/>
     </Style>
+
+    <Style Selector="shadui|ResponsiveDrawer:top">
+      <Setter Property="DisplayMode" Value="Overlay"/>
+    </Style>
   </v:ReactiveShadWindow.Styles>
 
   <Panel Margin="0,12,0,0">
     <shadui:ResponsiveDrawer
       DrawerHeight="{Binding PersistentState.ChatWindowHistoryDrawerHeight, Mode=TwoWay}"
-      DrawerMaxHeight="280" DrawerMaxWidth="450"
-      DrawerMinHeight="120" DrawerMinWidth="100"
+      DrawerMaxHeight="260" DrawerMaxWidth="450"
+      DrawerMinHeight="260" DrawerMinWidth="100"
       DrawerWidth="{Binding PersistentState.ChatWindowHistoryDrawerWidth, Mode=TwoWay}"
       IsOpened="{Binding PersistentState.IsChatWindowHistoryOpened, Mode=TwoWay}"
-      ResponsiveWidth="800" SplitterSize="5"
-      VerticalPlacement="Top">
+      OverlayBrush="#88000000" ResponsiveWidth="800"
+      SplitterSize="5" VerticalPlacement="Top">
       <shadui:ResponsiveDrawer.SplitterTheme>
         <ControlTheme TargetType="GridSplitter">
           <Setter Property="Template">
