@@ -165,4 +165,15 @@
     </None>
   </ItemGroup>
 
+  <Target Name="_SetShellScriptsPublishFolderType"
+          BeforeTargets="_ComputePublishLocation"
+          Condition="'$(IsMacEnabled)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish
+        Condition="'%(Extension)' == '.zsh' Or '%(Extension)' == '.bash' Or '%(Extension)' == '.ps1'">
+        <PublishFolderType>Assembly</PublishFolderType>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+
 </Project>

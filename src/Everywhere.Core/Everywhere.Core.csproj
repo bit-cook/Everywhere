@@ -108,18 +108,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Assets\Terminal\shellIntegration.ps1">
+    <Content Include="Assets\Terminal\shellIntegration.ps1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <Link>Assets\Terminal\shellIntegration.ps1</Link>
-    </None>
-    <None Include="Assets\Terminal\shellIntegration.zsh">
+    </Content>
+    <Content Include="Assets\Terminal\shellIntegration.zsh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <Link>Assets\Terminal\shellIntegration.zsh</Link>
-    </None>
-    <None Include="Assets\Terminal\shellIntegration.bash">
+    </Content>
+    <Content Include="Assets\Terminal\shellIntegration.bash">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <Link>Assets\Terminal\shellIntegration.bash</Link>
-    </None>
+    </Content>
   </ItemGroup>
 
   <Import Project="..\Build.Generate.Telemetry.targets"/>
