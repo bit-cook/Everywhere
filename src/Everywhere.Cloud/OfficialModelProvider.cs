@@ -150,6 +150,7 @@ public sealed partial class OfficialModelProvider :
         [property: JsonPropertyName("description")] JsonDynamicResourceKey? DescriptionKey,
         [property: JsonPropertyName("reasoning")] bool SupportsReasoning,
         [property: JsonPropertyName("toolCall")] bool SupportsToolCall,
+        [property: JsonPropertyName("temperature")] bool SupportsTemperature,
         [property: JsonPropertyName("knowledge")] string? KnowledgeCutoff,
         [property: JsonPropertyName("releaseDate")] string? ReleaseDate,
         [property: JsonPropertyName("deprecationDate")] string? DeprecationDate,
@@ -176,7 +177,8 @@ public sealed partial class OfficialModelProvider :
                 OutputLimit = LimitInfo.Output,
                 IconUrl = Icon,
                 DescriptionKey = DescriptionKey,
-                Pricing = ConvertPricing(Pricing)
+                Pricing = ConvertPricing(Pricing),
+                SupportsTemperature = SupportsTemperature
             };
 
         private static Modalities ConvertModalities(IReadOnlyList<string> modalityStrings) => modalityStrings.AsValueEnumerable().Aggregate(

@@ -19,6 +19,11 @@ public interface IModelDefinition
     bool SupportsToolCall { get; }
 
     /// <summary>
+    /// Whether the model supports temperature adjustment for controlling randomness in output generation.
+    /// </summary>
+    bool SupportsTemperature { get; }
+
+    /// <summary>
     /// Modalities supported by the model for input.
     /// </summary>
     Modalities InputModalities { get; }

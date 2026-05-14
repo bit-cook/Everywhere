@@ -54,6 +54,9 @@ public sealed partial record ModelDefinitionTemplate : IModelDefinition
     [Key(14)]
     public ModelPricing? Pricing { get; init; }
 
+    [Key(15)]
+    public bool SupportsTemperature { get; init; }
+
     /// <summary>
     /// Gets or sets the default model in a model provider.
     /// This indicates the best (powerful but economical) model in the provider.

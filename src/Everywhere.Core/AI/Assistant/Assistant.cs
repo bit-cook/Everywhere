@@ -38,6 +38,10 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
 
     [ObservableProperty]
     [SettingsItemIgnore]
+    public partial bool SupportsTemperature { get; set; } = true;
+
+    [ObservableProperty]
+    [SettingsItemIgnore]
     public partial Modalities InputModalities { get; set; }
 
     [ObservableProperty]
@@ -93,6 +97,7 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
     [DynamicResourceKey(
         LocaleKey.Assistant_Temperature_Header,
         LocaleKey.Assistant_Temperature_Description)]
+    [SettingsItem(IsVisibleBindingPath = nameof(SupportsTemperature))]
     [SettingsDoubleItem(Min = 0.0, Max = 2.0, Step = 0.01)]
     public partial Customizable<double> Temperature { get; set; } = 1.0;
 
@@ -100,6 +105,7 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
     [DynamicResourceKey(
         LocaleKey.Assistant_TopP_Header,
         LocaleKey.Assistant_TopP_Description)]
+    [SettingsItem(IsVisibleBindingPath = nameof(SupportsTemperature))]
     [SettingsDoubleItem(Min = 0.0, Max = 1.0, Step = 0.01)]
     public partial Customizable<double> TopP { get; set; } = 0.9;
 
@@ -179,6 +185,7 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
             ModelId = modelDefinitionTemplate.ModelId;
             SupportsReasoning = modelDefinitionTemplate.SupportsReasoning;
             SupportsToolCall = modelDefinitionTemplate.SupportsToolCall;
+            SupportsTemperature = modelDefinitionTemplate.SupportsTemperature;
             InputModalities = modelDefinitionTemplate.InputModalities;
             OutputModalities = modelDefinitionTemplate.OutputModalities;
             ContextLimit = modelDefinitionTemplate.ContextLimit;
@@ -189,6 +196,7 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
             ModelId = string.Empty;
             SupportsReasoning = false;
             SupportsToolCall = false;
+            SupportsTemperature = true;
             InputModalities = default;
             OutputModalities = default;
             ContextLimit = 0;

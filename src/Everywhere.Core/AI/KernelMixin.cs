@@ -25,6 +25,8 @@ public abstract class KernelMixin(Assistant assistant, ModelConnection connectio
 
     public bool SupportsToolCall { get; } = assistant.SupportsToolCall;
 
+    public bool SupportsTemperature { get; } = assistant.SupportsTemperature;
+
     public Modalities InputModalities { get; } = assistant.InputModalities;
 
     public Modalities OutputModalities { get; } = assistant.OutputModalities;
@@ -35,15 +37,17 @@ public abstract class KernelMixin(Assistant assistant, ModelConnection connectio
 
     public ModelSpecializations Specializations { get; } = assistant.Specializations;
 
-    public double? Temperature { get; } = assistant.Temperature.IsCustomValueSet ? assistant.Temperature.ActualValue : null;
+    protected double? Temperature { get; } =
+        assistant is { SupportsTemperature: true, Temperature.IsCustomValueSet: true } ? assistant.Temperature.ActualValue : null;
 
-    public double? TopP { get; } = assistant.TopP.IsCustomValueSet ? assistant.TopP.ActualValue : null;
+    protected double? TopP { get; } =
+        assistant is { SupportsTemperature: true, TopP.IsCustomValueSet: true } ? assistant.TopP.ActualValue : null;
 
-    public string? ThinkingType { get; } = assistant.ThinkingType;
+    protected string? ThinkingType { get; } = assistant.ThinkingType;
 
-    public string? ReasoningEffort { get; } = assistant.ReasoningEffort;
+    protected string? ReasoningEffort { get; } = assistant.ReasoningEffort;
 
-    public string? ThinkingBudget { get; } = assistant.ThinkingBudget;
+    protected string? ThinkingBudget { get; } = assistant.ThinkingBudget;
 
     public abstract IChatCompletionService ChatCompletionService { get; }
 
