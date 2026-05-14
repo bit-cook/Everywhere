@@ -1,3 +1,4 @@
+using System.Text;
 using Everywhere.Configuration;
 
 namespace Everywhere.Terminal;
@@ -58,8 +59,7 @@ internal static class ShellIntegrationScript
         return shellType switch
         {
             ShellType.PowerShell => EnsurePowerShellScript() is { } psScript
-                ? ["-NoProfile", "-NoLogo", "-NoExit",
-                   "-Command", $"try {{ . '{psScript.Replace("'", "''")}' }} catch {{}}"]
+                ? ["-NoProfile", "-NoLogo", "-NoExit", "-Command", $"try {{ . '{psScript.Replace("'", "''")}' }} catch {{}}"]
                 : null,
 
             ShellType.Zsh => EnsureZshScript() is not null
@@ -132,18 +132,17 @@ internal static class ShellIntegrationScript
         var scriptPath = EnsureZshScript();
         var userZshrc = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".zshrc");
 
-        var content = $"""
-            # Everywhere Shell Integration wrapper
-            export EVERYWHERE_NONCE='{nonce}'
-            source '{scriptPath}'
-            """;
+        var contentBuilder = new StringBuilder()
+            .AppendLine("# Everywhere Shell Integration wrapper")
+            .Append("export EVERYWHERE_NONCE='").Append(nonce).AppendLine("'")
+            .Append("source '").Append(scriptPath).AppendLine("'");
 
         if (File.Exists(userZshrc))
         {
-            content += $"source '{userZshrc}'\n";
+            contentBuilder.Append("source '").Append(userZshrc).AppendLine("'");
         }
 
-        File.WriteAllText(wrapperZshrc, content);
+        File.WriteAllText(wrapperZshrc, contentBuilder.ToString());
         return wrapperDirectory;
     }
 

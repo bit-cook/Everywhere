@@ -46,8 +46,8 @@ internal static partial class OutputCleaner
         if (BashZshPromptRegex().IsMatch(line)) return true;
         // Cmd: C:\path>
         if (CmdPromptRegex().IsMatch(line)) return true;
-        // Generic: ends with $ or > (short lines only, to avoid false positives)
-        if (line.Length < 200 && (line.EndsWith('$') || line.EndsWith('>'))) return true;
+        // Generic: ends with $ or > or % (short lines only, to avoid false positives)
+        if (line.Length < 200 && (line.EndsWith('$') || line.EndsWith('>') || line.EndsWith('%'))) return true;
 
         return false;
     }
@@ -329,7 +329,7 @@ internal static partial class OutputCleaner
     [GeneratedRegex(@"(?<!\\)\n")]
     private static partial Regex IsMultilineRegex();
 
-    [GeneratedRegex(@"\w+@[\w.-]+:")]
+    [GeneratedRegex(@"\w+@[\w.-]+[:\s]")]
     private static partial Regex UnixAtRegex();
 
     [GeneratedRegex(@"[\w.-]+:\S")]
@@ -341,10 +341,10 @@ internal static partial class OutputCleaner
     [GeneratedRegex(@"^[A-Z]:\\")]
     private static partial Regex CmdRegex();
 
-    [GeneratedRegex(@"^\s*\w+@[\w.-]+:.*[#$]\s*$")]
+    [GeneratedRegex(@"^\s*\w+@[\w.-]+[:\s].*[#$%]\s*$")]
     private static partial Regex BashZshPromptRegex();
 
-    [GeneratedRegex(@"^\s*[\w.-]+:\S.*\s\w+[#$]\s*$")]
+    [GeneratedRegex(@"^\s*[\w.-]+:\S.*\s\w+[#$%]\s*$")]
     private static partial Regex HostNamePathPromptRegex();
 
     [GeneratedRegex(@"^PS\s+[A-Z]:\\.*>\s*$")]
@@ -353,7 +353,7 @@ internal static partial class OutputCleaner
     [GeneratedRegex(@"^[A-Z]:\\.*>\s*$")]
     private static partial Regex CmdPromptRegex();
 
-    [GeneratedRegex(@"^\s*[\w/.-]+[#$]\s*$")]
+    [GeneratedRegex(@"^\s*[\w/.-]+[#$%]\s*$")]
     private static partial Regex WrappedFragmentEndingPromptRegex();
 
     [GeneratedRegex(@"^\[\s*[\w.-]+(@[\w.-]+)?:[~/]")]
@@ -362,7 +362,7 @@ internal static partial class OutputCleaner
     [GeneratedRegex(@"^\s*[\w][-\w.]*(@[\w.-]+)?:\S")]
     private static partial Regex WrappedContinuationPromptRegex();
 
-    [GeneratedRegex(@"\]\s*[#$]\s*$")]
+    [GeneratedRegex(@"\]\s*[#$%]\s*$")]
     private static partial Regex BracketedPromptEndRegex();
 
     #endregion

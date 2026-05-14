@@ -6,8 +6,9 @@ namespace Everywhere.Terminal;
 
 /// <summary>
 /// Execute strategy used when Shell Integration (OSC 633) markers are detected.
-/// Uses the markers to precisely extract command output between B (CommandReady) and A (PromptStart).
-/// Falls back to idle detection if markers are incomplete (e.g., command crashes).
+/// Tracks every C (CommandExecuted) marker to build multi-segment output ranges,
+/// correctly handling both atomic multi-line paste execution and burst multi-command
+/// execution. Falls back to idle detection if markers are incomplete (e.g., command crashes).
 /// </summary>
 internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
 {
@@ -23,10 +24,10 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
 
         // Track Shell Integration markers
         int? exitCode = null;
-        var commandExecuted = false;
-        var commandFinished = false;
-        var commandReadyLine = -1; // B marker line
-        var promptStartLine = -1; // A marker line (after D)
+        var commandStartLines = new List<int>(); // C marker line for each command
+        var commandCount = 0;
+        var finishedCount = 0;
+        var promptStartLine = -1; // Final A marker line (after all commands)
 
         var parser = new VtSequenceParser(
             vtBuffer,
@@ -35,24 +36,28 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
                 switch (marker.Type)
                 {
                     case ShellIntegrationMarkerType.CommandReady:
-                        commandReadyLine = marker.Line;
                         logger.LogDebug("[Rich] B (CommandReady) at line {Line}", marker.Line);
                         break;
                     case ShellIntegrationMarkerType.CommandExecuted:
-                        commandExecuted = true;
-                        logger.LogDebug("[Rich] C (CommandExecuted) at line {Line}", marker.Line);
+                        commandCount++;
+                        commandStartLines.Add(marker.Line);
+                        logger.LogDebug("[Rich] C (CommandExecuted) # {Count} at line {Line}", commandCount, marker.Line);
                         break;
                     case ShellIntegrationMarkerType.CommandFinished:
-                        commandFinished = true;
+                        finishedCount++;
                         exitCode = marker.ExitCode;
-                        logger.LogDebug("[Rich] D (CommandFinished) exitCode={ExitCode} at line {Line}", marker.ExitCode, marker.Line);
+                        logger.LogDebug(
+                            "[Rich] D (CommandFinished) # {Count} exitCode={ExitCode} at line {Line}",
+                            finishedCount,
+                            marker.ExitCode,
+                            marker.Line);
                         break;
                     case ShellIntegrationMarkerType.PromptStart:
-                        // A after D means the next prompt has started — command is done
-                        if (commandExecuted)
+                        // A after commands have started means a prompt has arrived
+                        if (commandCount > 0)
                         {
                             promptStartLine = marker.Line;
-                            logger.LogDebug("[Rich] A (PromptStart) after execution at line {Line}", marker.Line);
+                            logger.LogDebug("[Rich] A (PromptStart) at line {Line}", marker.Line);
                         }
                         break;
                 }
@@ -78,10 +83,10 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
         {
             while (!linkedToken.IsCancellationRequested)
             {
-                // Check if we have the complete marker sequence
-                if (commandFinished && promptStartLine >= 0)
+                // Check if all commands are finished and the final prompt has arrived
+                if (commandCount > 0 && finishedCount >= commandCount && promptStartLine >= 0)
                 {
-                    logger.LogDebug("[Rich] Complete marker sequence detected, extracting output");
+                    logger.LogDebug("[Rich] All {Count} command(s) finished, final prompt at line {Line}", commandCount, promptStartLine);
                     break;
                 }
 
@@ -110,25 +115,24 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
                 else
                 {
                     // Idle — no data within pollIntervalMs
-                    if (!commandExecuted) continue;
+                    if (commandCount == 0) continue;
 
                     consecutiveIdlePolls++;
-                    if (consecutiveIdlePolls >= minIdlePolls)
-                    {
-                        // Check if the last line looks like a shell prompt
-                        var lastLine = vtBuffer.GetLastLine();
-                        if (OutputCleaner.IsShellPrompt(lastLine))
-                        {
-                            logger.LogDebug("[Rich] Idle detected with prompt, last line: {LastLine}", lastLine);
-                            break;
-                        }
+                    if (consecutiveIdlePolls < minIdlePolls) continue;
 
-                        // Fallback: force exit if terminal has been silent for ~2s
-                        if (consecutiveIdlePolls >= maxFallbackIdlePolls)
-                        {
-                            logger.LogWarning("[Rich] Maximum idle threshold reached without strict prompt match. Assuming complete.");
-                            break;
-                        }
+                    // Check if the last line looks like a shell prompt
+                    var lastLine = vtBuffer.GetLastLine();
+                    if (OutputCleaner.IsShellPrompt(lastLine))
+                    {
+                        logger.LogDebug("[Rich] Idle detected with prompt, last line: {LastLine}", lastLine);
+                        break;
+                    }
+
+                    // Fallback: force exit if terminal has been silent for ~2s
+                    if (consecutiveIdlePolls >= maxFallbackIdlePolls)
+                    {
+                        logger.LogWarning("[Rich] Maximum idle threshold reached without strict prompt match. Assuming complete.");
+                        break;
                     }
                 }
             }
@@ -137,19 +141,39 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
         {
             logger.LogWarning("[Rich] Read timed out");
             try { pty.Kill(); }
-            catch { /* ignore */ }
+            catch
+            { /* ignore */
+            }
         }
 
-        // Extract output
+        // Extract output — multi-segment for multi-command bursts
         string output;
-        if (commandReadyLine >= 0 && promptStartLine > commandReadyLine)
+        if (commandStartLines.Count > 0 && promptStartLine >= 0)
         {
-            // Use precise B→A extraction
-            output = vtBuffer.GetTextBetween(commandReadyLine + 1, promptStartLine - 1);
+            var segments = new List<string>(commandStartLines.Count);
+
+            // Segments between consecutive C markers
+            for (var i = 0; i < commandStartLines.Count - 1; i++)
+            {
+                var seg = vtBuffer.GetTextBetween(
+                    commandStartLines[i],
+                    commandStartLines[i + 1] - 1);
+                if (!string.IsNullOrEmpty(seg))
+                    segments.Add(seg);
+            }
+
+            // Final segment: last C to final A
+            var lastSeg = vtBuffer.GetTextBetween(
+                commandStartLines[^1],
+                promptStartLine - 1);
+            if (!string.IsNullOrEmpty(lastSeg))
+                segments.Add(lastSeg);
+
+            output = string.Join('\n', segments);
             logger.LogDebug(
-                "[Rich] Extracted output between lines {Start} and {End}, length={Length}",
-                commandReadyLine + 1,
-                promptStartLine - 1,
+                "[Rich] Multi-segment extraction: {CmdCount} command(s), {SegCount} non-empty segment(s), total length={Length}",
+                commandStartLines.Count,
+                segments.Count,
                 output.Length);
         }
         else
@@ -177,7 +201,7 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
     {
         if (isMultiline)
         {
-            var normalizedScript = script.Replace("\r\n", "\r").Replace("\n", "\r");
+            var normalizedScript = script.Replace("\r\n", "\n").Replace("\r", "\n");
             var scriptBytes = Encoding.UTF8.GetBytes(normalizedScript);
 
             // Bracketed paste: wrap entire script in \e[200~ ... \e[201~\r
