@@ -1,4 +1,5 @@
 ﻿using System.Buffers.Text;
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -7,8 +8,10 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
+using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using DynamicData;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Extensions;
@@ -23,7 +26,12 @@ public sealed record UserProfileUpdatedMessage;
 
 public sealed record SubscriptionInformationUpdatedMessage;
 
-public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, IAsyncInitializer, IRecipient<ApplicationMessage>
+public sealed partial class OAuthCloudClient :
+    ObservableObject,
+    ICloudClient,
+    IAsyncInitializer,
+    IRecipient<ApplicationMessage>,
+    IRecipient<CloudClientNotificationDismissedMessage>
 {
     private const string ServiceName = "com.sylinko.everywhere";
     private const string TokenDataKey = "oauth_token_data";
@@ -48,6 +56,8 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
     [ObservableProperty]
     public partial IDynamicResourceKey? LastLoginErrorKey { get; private set; }
 
+    public ReadOnlyObservableCollection<CloudClientNotification> Notifications { get; set; }
+
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OAuthCloudClient> _logger;
 
@@ -55,17 +65,25 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
     private readonly TokenSessionContext _session;
     private volatile InteractiveOAuthFlow? _activeAuthFlow;
 
+    private readonly SourceList<CloudClientNotification> _notificationsSourceList = new();
+    private readonly HashSet<string> _dismissedNotificationIds = [];
+
     // Concurrency control for the UI entry point to prevent multiple login windows
     private readonly SemaphoreSlim _loginLock = new(1, 1);
     private readonly SemaphoreSlim _userDataLock = new(1, 1); // Prevent concurrent user data refreshes
 
     public OAuthCloudClient(IHttpClientFactory httpClientFactory, ILogger<OAuthCloudClient> logger)
     {
+        Notifications = _notificationsSourceList
+            .Connect()
+            .ObserveOnAvaloniaDispatcher()
+            .BindEx(out _);
+
         _httpClientFactory = httpClientFactory;
         _logger = logger;
 
         _session = new TokenSessionContext(httpClientFactory, logger);
-        WeakReferenceMessenger.Default.Register(this);
+        WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
     public async Task LoginAsync(CancellationToken cancellationToken)
@@ -217,17 +235,96 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
             cancellationToken);
 
         Subscription = payload.EnsureData();
+        UpdateNotifications();
         WeakReferenceMessenger.Default.Send(new SubscriptionInformationUpdatedMessage());
+    }
 
-        if (Subscription.Plan == SubscriptionPlan.Banned)
+    private void UpdateNotifications()
+    {
+        if (Subscription is not { } subscription)
         {
-            await LogoutAsync(CancellationToken.None); // Enforce ban immediately, cannot be canceled by user
+            _notificationsSourceList.Clear();
+            return;
         }
+
+        if (subscription.Plan == SubscriptionPlan.Banned)
+        {
+            _notificationsSourceList.Reset(
+            [
+                new CloudClientNotification(
+                    "banned",
+                    new DynamicResourceKey(LocaleKey.OAuthCloudClient_BannedNotification_Title),
+                    NotificationType.Error,
+                    false)
+            ]);
+            return;
+        }
+
+        _notificationsSourceList.Edit(list =>
+        {
+            lock (_dismissedNotificationIds)
+            {
+                list.Clear();
+
+                if (subscription.Status == SubscriptionStatus.Unpaid)
+                {
+                    _notificationsSourceList.Add(
+                        new CloudClientNotification(
+                            "unpaid",
+                            new DynamicResourceKey(LocaleKey.OAuthCloudClient_UnpaidNotification_Title),
+                            NotificationType.Error,
+                            false));
+                }
+
+                if (subscription.Plan != SubscriptionPlan.Free)
+                {
+                    if (subscription.PeriodEnd is { } periodEnd && (periodEnd - DateTimeOffset.UtcNow).TotalDays > 7)
+                    {
+                        if (subscription is { BonusCredits: < 10000, PlanCreditsUsageRatio: > 0.8d and < 0.99d })
+                        {
+                            AddNotification(
+                                new CloudClientNotification(
+                                    "credits_running_low",
+                                    new DynamicResourceKey(LocaleKey.OAuthCloudClient_CreditsRunningLowNotification_Content),
+                                    NotificationType.Warning,
+                                    true));
+                        }
+
+                        if (subscription.FreeWebSearchUsageRatio is > 0.8d and < 0.99d)
+                        {
+                            AddNotification(
+                                new CloudClientNotification(
+                                    "free_web_search_running_low",
+                                    new DynamicResourceKey(LocaleKey.OAuthCloudClient_FreeWebSearchRunningLowNotification_Content),
+                                    NotificationType.Warning,
+                                    true));
+                        }
+                    }
+
+                    if (subscription.FreeWebSearchUsageRatio >= 1.0d)
+                    {
+                        AddNotification(
+                            new CloudClientNotification(
+                                "free_web_search_depleted",
+                                new DynamicResourceKey(LocaleKey.OAuthCloudClient_FreeWebSearchDepletedNotification_Content),
+                                NotificationType.Error,
+                                true));
+                    }
+                }
+
+                void AddNotification(CloudClientNotification notification)
+                {
+                    if (notification.CanDismiss && _dismissedNotificationIds.Contains(notification.Id)) return;
+
+                    list.Add(notification);
+                }
+            }
+        });
     }
 
     public DelegatingHandler CreateAuthenticationHandler() => new CloudAuthenticationHandler(_session, _logger);
 
-    public void Receive(ApplicationMessage message)
+    void IRecipient<ApplicationMessage>.Receive(ApplicationMessage message)
     {
         if (message is not UrlProtocolCallbackMessage oauth) return;
 
@@ -235,6 +332,25 @@ public sealed partial class OAuthCloudClient : ObservableObject, ICloudClient, I
 
         // Route the callback to the active interactive flow if one is currently awaiting
         _activeAuthFlow?.HandleCallback(oauth.Url);
+    }
+
+    void IRecipient<CloudClientNotificationDismissedMessage>.Receive(CloudClientNotificationDismissedMessage message)
+    {
+        _notificationsSourceList.Edit(list =>
+        {
+            for (var i = list.Count - 1; i >= 0; i--)
+            {
+                if (list[i].Id == message.Notification.Id)
+                {
+                    list.RemoveAt(i);
+                }
+            }
+        });
+
+        lock (_dismissedNotificationIds)
+        {
+            _dismissedNotificationIds.Add(message.Notification.Id);
+        }
     }
 
     #region IAsyncInitializer Implementation

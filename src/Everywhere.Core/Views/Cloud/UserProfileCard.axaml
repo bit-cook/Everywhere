@@ -62,14 +62,27 @@
                 </DetachedFromVisualTreeTrigger>
               </Interaction.Behaviors>
 
-              <!--  Unpaid warning  -->
-              <shadui:Toast
-                MinWidth="0" Margin="0"
-                Padding="12,8" HorizontalAlignment="Stretch"
-                CanDismiss="False" CanDismissByClicking="False"
-                Content="{I18N {x:Static LocaleKey.UserProfilePresenter_UnpaidToast_Title}}"
-                IsVisible="{Binding CloudClient.Subscription.Status, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static cloud:SubscriptionStatus.Unpaid}, FallbackValue={x:False}, TargetNullValue={x:False}}"
-                Notification="Error"/>
+              <ItemsControl ItemsSource="{Binding CloudClient?.Notifications}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel
+                      Orientation="Vertical" Spacing="4"/>
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="cloud:CloudClientNotification">
+                    <shadui:Toast
+                      MinWidth="0" Margin="0"
+                      Padding="12,8" HorizontalAlignment="Stretch"
+                      CanDismiss="{Binding CanDismiss, Mode=OneTime}"
+                      CanDismissByClicking="False"
+                      Content="{Binding ContentKey^, FallbackValue={x:Null}}"
+                      DismissCommand="{Binding DismissCommand, Mode=OneTime}"
+                      Notification="{Binding Type, Converter={x:Static shadui:NotificationTypeToNotificationConverter.Shared}}"/>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
 
               <!--  User Info Header  -->
               <StackPanel
@@ -78,7 +91,7 @@
                   Orientation="Horizontal" Spacing="4">
                   <TextBlock
                     VerticalAlignment="Center" FontWeight="SemiBold"
-                    Text="{Binding CloudClient?.UserProfile?.Name, TargetNullValue={x:Null}}"
+                    Text="{Binding CloudClient?.UserProfile?.Name}"
                     TextTrimming="CharacterEllipsis"/>
                   <shadui:Badge
                     Classes="Secondary" Padding="4,2"
@@ -110,9 +123,9 @@
                     <TextBlock
                       Classes="Caption Muted" Grid.Column="1">
                       <TextBlock.Text>
-                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_RemainingTextBlock_Text}">
+                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_UsedTextBlock_Text}">
                           <Binding
-                            Path="CloudClient?.Subscription?.PlanCreditsUsagePercentage" StringFormat="{}{0:P0}"
+                            Path="CloudClient?.Subscription?.PlanCreditsUsageRatio" StringFormat="{}{0:P0}"
                             TargetNullValue="0%"/>
                         </I18N>
                       </TextBlock.Text>
@@ -157,9 +170,9 @@
                     <TextBlock
                       Classes="Caption Muted" Grid.Column="1">
                       <TextBlock.Text>
-                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_RemainingTextBlock_Text}">
+                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_UsedTextBlock_Text}">
                           <Binding
-                            Path="CloudClient?.Subscription?.FreeWebSearchUsagePercentage" StringFormat="{}{0:P0}"
+                            Path="CloudClient?.Subscription?.FreeWebSearchUsageRatio" StringFormat="{}{0:P0}"
                             TargetNullValue="0%"/>
                         </I18N>
                       </TextBlock.Text>
@@ -170,7 +183,7 @@
                       ToolTip.Placement="Top">
                       <ToolTip.Tip>
                         <TextBlock Grid.Column="1">
-                          <Run Text="{Binding CloudClient.Subscription.RemainingFreeWebSearchCount, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
+                          <Run Text="{Binding CloudClient.Subscription.UsedFreeWebSearchCount, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
                           <Run Text="/"/>
                           <Run Text="{Binding CloudClient.Subscription.TotalFreeWebSearchCount, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
                         </TextBlock>
@@ -179,7 +192,7 @@
                   </Grid>
                   <ProgressBar
                     Maximum="{Binding CloudClient.Subscription.TotalFreeWebSearchCount, FallbackValue=1, TargetNullValue=1}"
-                    Value="{Binding CloudClient.Subscription.RemainingFreeWebSearchCount, FallbackValue=0, TargetNullValue=0}"/>
+                    Value="{Binding CloudClient.Subscription.UsedFreeWebSearchCount, FallbackValue=0, TargetNullValue=0}"/>
                 </StackPanel>
 
                 <Grid

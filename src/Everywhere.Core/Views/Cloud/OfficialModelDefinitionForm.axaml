@@ -190,8 +190,8 @@
               </StackPanel>
 
               <shadui:Toast
-                MaxWidth="2000" Margin="0"
-                Padding="8"
+                Margin="0" Padding="8"
+                CanDismiss="False" CanDismissByClicking="False"
                 IsVisible="{Binding SelectedItem.DeprecationDate, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
                 Notification="Warning">
                 <shadui:Toast.Title>

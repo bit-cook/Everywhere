@@ -2171,10 +2171,10 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Bonus Credits</value>
     </data>
-    <data name="UserProfilePresenter_RemainingTextBlock_Text" xml:space="preserve">
-        <value>Remaining {0}</value>
+    <data name="UserProfilePresenter_UsedTextBlock_Text" xml:space="preserve">
+        <value/>
     </data>
-    <data name="UserProfilePresenter_UnpaidToast_Title" xml:space="preserve">
+    <data name="OAuthCloudClient_UnpaidNotification_Title" xml:space="preserve">
         <value>You have pending payments, please address them soon</value>
     </data>
     <data name="UserProfilePresenter_OpenDashboardButton_Content" xml:space="preserve">
@@ -2839,5 +2839,17 @@ Use scroll wheel or number keys to switch selection mode</value>
     </data>
     <data name="HandledChatException_InvalidThoughtSignature" xml:space="preserve">
         <value>The signature is private data for certain thought models, and Everywhere cannot decode it. Switching between different provider models in a context with thought content may cause this issue; starting a new conversation can resolve it.</value>
+    </data>
+    <data name="OAuthCloudClient_BannedNotification_Title" xml:space="preserve">
+        <value />
+    </data>
+    <data name="OAuthCloudClient_CreditsRunningLowNotification_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="OAuthCloudClient_FreeWebSearchRunningLowNotification_Content" xml:space="preserve">
+        <value />
+    </data>
+    <data name="OAuthCloudClient_FreeWebSearchDepletedNotification_Content" xml:space="preserve">
+        <value />
     </data>
 </root>

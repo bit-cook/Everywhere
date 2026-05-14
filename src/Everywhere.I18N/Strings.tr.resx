@@ -2170,10 +2170,10 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Bonus Puan Paketi</value>
     </data>
-    <data name="UserProfilePresenter_RemainingTextBlock_Text" xml:space="preserve">
-        <value>Kalan {0}</value>
+    <data name="UserProfilePresenter_UsedTextBlock_Text" xml:space="preserve">
+        <value/>
     </data>
-    <data name="UserProfilePresenter_UnpaidToast_Title" xml:space="preserve">
+    <data name="OAuthCloudClient_UnpaidNotification_Title" xml:space="preserve">
         <value>Tamamlanmamış bir ödeme var, lütfen en kısa sürede halledin</value>
     </data>
     <data name="UserProfilePresenter_OpenDashboardButton_Content" xml:space="preserve">

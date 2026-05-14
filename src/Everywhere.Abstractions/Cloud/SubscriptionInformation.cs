@@ -12,17 +12,17 @@ public sealed partial class SubscriptionInformation : ObservableObject
     public partial SubscriptionPlan Plan { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PlanCreditsUsagePercentage))]
+    [NotifyPropertyChangedFor(nameof(PlanCreditsUsageRatio))]
     [JsonPropertyName("planCredits")]
     public partial long PlanCredits { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PlanCreditsUsagePercentage))]
+    [NotifyPropertyChangedFor(nameof(PlanCreditsUsageRatio))]
     [JsonPropertyName("totalPlanCredits")]
     public partial long TotalPlanCredits { get; set; }
 
     [JsonIgnore]
-    public double PlanCreditsUsagePercentage => TotalPlanCredits > 0 ? (double)PlanCredits / TotalPlanCredits : 0;
+    public double PlanCreditsUsageRatio => TotalPlanCredits > 0 ? (double)PlanCredits / TotalPlanCredits : 0;
 
     [ObservableProperty]
     [JsonPropertyName("bonusCredits")]
@@ -56,22 +56,17 @@ public sealed partial class SubscriptionInformation : ObservableObject
     public partial SubscriptionStatus? Status { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(RemainingFreeWebSearchCount))]
-    [NotifyPropertyChangedFor(nameof(FreeWebSearchUsagePercentage))]
+    [NotifyPropertyChangedFor(nameof(FreeWebSearchUsageRatio))]
     [JsonPropertyName("freeWebSearchCount")]
-    public partial int FreeWebSearchCount { get; set; }
+    public partial int UsedFreeWebSearchCount { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(RemainingFreeWebSearchCount))]
-    [NotifyPropertyChangedFor(nameof(FreeWebSearchUsagePercentage))]
+    [NotifyPropertyChangedFor(nameof(FreeWebSearchUsageRatio))]
     [JsonPropertyName("totalFreeWebSearchCount")]
     public partial int TotalFreeWebSearchCount { get; set; }
 
     [JsonIgnore]
-    public double RemainingFreeWebSearchCount => TotalFreeWebSearchCount - FreeWebSearchCount;
-
-    [JsonIgnore]
-    public double FreeWebSearchUsagePercentage => TotalFreeWebSearchCount > 0 ? 1d - (double)FreeWebSearchCount / TotalFreeWebSearchCount : 0;
+    public double FreeWebSearchUsageRatio => TotalFreeWebSearchCount > 0 ? (double)UsedFreeWebSearchCount / TotalFreeWebSearchCount : 0;
 }
 
 [JsonSerializable(typeof(ApiPayload<SubscriptionInformation>))]

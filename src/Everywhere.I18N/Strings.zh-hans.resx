@@ -2172,10 +2172,10 @@
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>加量包积分</value>
     </data>
-    <data name="UserProfilePresenter_RemainingTextBlock_Text" xml:space="preserve">
-        <value>剩余 {0}</value>
+    <data name="UserProfilePresenter_UsedTextBlock_Text" xml:space="preserve">
+        <value>已用 {0}</value>
     </data>
-    <data name="UserProfilePresenter_UnpaidToast_Title" xml:space="preserve">
+    <data name="OAuthCloudClient_UnpaidNotification_Title" xml:space="preserve">
         <value>有未完成的支付，请尽快处理</value>
     </data>
     <data name="UserProfilePresenter_OpenDashboardButton_Content" xml:space="preserve">
@@ -2840,5 +2840,17 @@
     </data>
     <data name="HandledChatException_InvalidThoughtSignature" xml:space="preserve">
         <value>signature 是某些思考模型的私有数据，Everywhere 无法解码。在带有思考内容的上下文中切换不同提供商的模型可能导致此问题，开启一个新的对话可以解决此问题。</value>
+    </data>
+    <data name="OAuthCloudClient_BannedNotification_Title" xml:space="preserve">
+        <value>由于违反我们的服务条款，你已被封禁，详情请联系支持。</value>
+    </data>
+    <data name="OAuthCloudClient_CreditsRunningLowNotification_Content" xml:space="preserve">
+        <value>你已使用超过 80% 的积分，可考虑换用更经济的模型。</value>
+    </data>
+    <data name="OAuthCloudClient_FreeWebSearchRunningLowNotification_Content" xml:space="preserve">
+        <value>你已使用超过 80% 的免费云搜索次数，超出免费次数的云搜索将会扣减积分。</value>
+    </data>
+    <data name="OAuthCloudClient_FreeWebSearchDepletedNotification_Content" xml:space="preserve">
+        <value>你已用尽免费云搜索次数，云搜索将会扣减积分。</value>
     </data>
 </root>
