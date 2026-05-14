@@ -257,14 +257,14 @@ public partial class ChatWindow :
             BeginMoveDrag(e);
     }
 
-    public void Receive(CloakChatWindowMessage message)
+    void IRecipient<CloakChatWindowMessage>.Receive(CloakChatWindowMessage message)
     {
-        Dispatcher.UIThread.InvokeOnDemand(() => SetCloaked(message.IsCloaked));
+        Dispatcher.UIThread.Invoke(() => SetCloaked(message.IsCloaked));
     }
 
-    public void Receive(FlashChatWindowMessage message)
+    void IRecipient<FlashChatWindowMessage>.Receive(FlashChatWindowMessage message)
     {
-        Dispatcher.UIThread.InvokeOnDemand(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             if (!IsFocused) _windowHelper.RequestUserAttention(this);
 
@@ -274,7 +274,7 @@ public partial class ChatWindow :
                 {
                     if (t is { IsCompletedSuccessfully: true, Result: true })
                     {
-                        Dispatcher.UIThread.InvokeOnDemand(() => SetCloaked(false));
+                        Dispatcher.UIThread.Invoke(() => SetCloaked(false));
                     }
                 });
             }
@@ -285,7 +285,7 @@ public partial class ChatWindow :
     {
         if (message is ShowWindowMessage { Name: ShowWindowMessage.ChatWindow })
         {
-            Dispatcher.UIThread.InvokeOnDemand(() => SetCloaked(false));
+            Dispatcher.UIThread.Invoke(() => SetCloaked(false));
         }
     }
 

@@ -176,7 +176,7 @@ public class KeyboardShortcutInputBox : TemplatedControl
     }
 
     private void HandleShortcutScopePressingShortcutChanged(IKeyboardShortcutScope _, KeyboardShortcut hotkey) =>
-        Dispatcher.UIThread.InvokeOnDemand(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             UpdateShortcutParts(hotkey);
             _shortcutBeforePressed = default;
@@ -184,7 +184,7 @@ public class KeyboardShortcutInputBox : TemplatedControl
 
     private void HandleShortcutScopeShortcutFinished(IKeyboardShortcutScope _, KeyboardShortcut shortcut)
     {
-        Dispatcher.UIThread.InvokeOnDemand(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             Shortcut = shortcut;
             TopLevel.GetTopLevel(this)?.Focus();

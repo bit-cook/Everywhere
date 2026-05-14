@@ -61,7 +61,7 @@ public sealed class NetworkInitializer : IAsyncInitializer
 
             if (notifyOnError)
             {
-                Dispatcher.UIThread.InvokeOnDemand(() =>
+                Dispatcher.UIThread.Invoke(() =>
                 {
                     ServiceLocator
                         .Resolve<ToastManager>()

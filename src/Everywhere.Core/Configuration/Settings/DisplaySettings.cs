@@ -96,7 +96,7 @@ public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
     {
         get
         {
-            return Dispatcher.UIThread.InvokeOnDemand(GetFontSize);
+            return Dispatcher.UIThread.Invoke(GetFontSize);
 
             int GetFontSize()
             {
@@ -115,7 +115,7 @@ public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
         }
         set
         {
-            Dispatcher.UIThread.InvokeOnDemand(SetFontSize);
+            Dispatcher.UIThread.Invoke(SetFontSize);
             OnPropertyChanged();
 
             void SetFontSize()

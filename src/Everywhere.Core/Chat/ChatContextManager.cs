@@ -219,7 +219,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                 }
                 _saveDebounceExecutor.Trigger();
 
-                Dispatcher.UIThread.InvokeOnDemand(CreateNewCommand.NotifyCanExecuteChanged);
+                Dispatcher.UIThread.Invoke(CreateNewCommand.NotifyCanExecuteChanged);
                 break;
             }
         }
@@ -516,7 +516,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     {
         OnPropertyChanged(nameof(Current));
         OnPropertyChanged(nameof(CurrentMetadata));
-        Dispatcher.UIThread.InvokeOnDemand(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             RemoveCommand.NotifyCanExecuteChanged();
             CreateNewCommand.NotifyCanExecuteChanged();

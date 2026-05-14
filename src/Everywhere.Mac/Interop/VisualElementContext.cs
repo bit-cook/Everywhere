@@ -47,7 +47,7 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
 
     public IVisualElement? ElementFromPointer(ScreenSelectionMode mode = ScreenSelectionMode.Element)
     {
-        var point = Dispatcher.UIThread.InvokeOnDemand<PixelPoint?>(() =>
+        var point = Dispatcher.UIThread.Invoke<PixelPoint?>(() =>
         {
             // NSEvent.CurrentMouseLocation gives coordinates with the origin at the bottom-left of the primary screen.
             var mouseLocation = NSEvent.CurrentMouseLocation;

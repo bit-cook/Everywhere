@@ -246,7 +246,7 @@ public sealed partial class Direct3D11ScreenCapture : IVisualElement.ICapturedBi
         _direct3DDevice?.Dispose();
         _d3D11Device?.Dispose();
 
-        Dispatcher.UIThread.InvokeOnDemand(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             _session?.Dispose();
             _framePool?.Dispose();
