@@ -58,16 +58,32 @@ internal static partial class OutputCleaner
     /// shell treats them as a single paste instead of executing each line as it
     /// arrives.
     ///
-    /// Bare line continuations (`\` immediately before a newline) are **not**
-    /// considered multi-line because the shell joins them into a single logical
-    /// line. Only newlines that are *not* preceded by a backslash count.
+    /// Bare POSIX line continuations (`\` immediately before a newline) are
+    /// **not** considered multi-line because the shell joins them into a single
+    /// logical line. Only newlines that are not preceded by the continuation
+    /// character count.
     /// </summary>
     public static bool IsMultilineCommand(string command)
     {
         // Normalize all line-ending variants to \n, then check for a newline
-        // that is not preceded by a backslash (i.e. not a line continuation).
+        // that is not preceded by a POSIX line-continuation character.
         var normalized = MultilineNormalizeRegex().Replace(command, "\n");
-        return IsMultilineRegex().IsMatch(normalized);
+        return PosixMultilineRegex().IsMatch(normalized);
+    }
+
+    /// <summary>
+    /// Shell-aware variant of <see cref="IsMultilineCommand(string)"/>.
+    /// PowerShell uses a backtick for line continuation, while bash/zsh use a
+    /// backslash. Unknown shells keep the POSIX/default behavior.
+    /// </summary>
+    public static bool IsMultilineCommand(string command, ShellType shellType)
+    {
+        var normalized = MultilineNormalizeRegex().Replace(command, "\n");
+        return shellType switch
+        {
+            ShellType.PowerShell => PowerShellMultilineRegex().IsMatch(normalized),
+            _ => PosixMultilineRegex().IsMatch(normalized),
+        };
     }
 
     /// <summary>
@@ -327,7 +343,10 @@ internal static partial class OutputCleaner
     private static partial Regex MultilineNormalizeRegex();
 
     [GeneratedRegex(@"(?<!\\)\n")]
-    private static partial Regex IsMultilineRegex();
+    private static partial Regex PosixMultilineRegex();
+
+    [GeneratedRegex(@"(?<!`)\n")]
+    private static partial Regex PowerShellMultilineRegex();
 
     [GeneratedRegex(@"\w+@[\w.-]+[:\s]")]
     private static partial Regex UnixAtRegex();

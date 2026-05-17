@@ -1,6 +1,7 @@
+using System.Text;
 using Everywhere.Terminal;
 
-namespace Everywhere.Core.Tests;
+namespace Everywhere.Core.Tests.Terminal;
 
 /// <summary>
 /// Unit tests for <see cref="VtSequenceParser"/> and <see cref="VirtualTerminalBuffer"/>.
@@ -217,8 +218,8 @@ public class VtParserTests
     {
         var buffer = new VirtualTerminalBuffer(80);
         buffer.WriteString("hello");
-        buffer.CursorHorizontalAbsolute(1); // Move to column 1 (0-based index 0)
-        Assert.That(buffer.CursorX, Is.EqualTo(0));
+        buffer.CursorHorizontalAbsolute(n: 1); // Move to column 1 (0-based index 0)
+        Assert.That(buffer.CursorX, Is.Zero);
     }
 
     #endregion
@@ -278,6 +279,19 @@ public class VtParserTests
     }
 
     [Test]
+    public void Feed_TextHandler_EmitsGroundTextButSkipsControlSequences()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var text = new StringBuilder();
+        var parser = new VtSequenceParser(buffer, terminalTextHandler: c => text.Append(c));
+
+        parser.Feed("A\e[31mB\e[0m\e]633;A\a\r\nC");
+
+        Assert.That(text.ToString(), Is.EqualTo("AB\r\nC"));
+        Assert.That(buffer.GetText(), Is.EqualTo("AB\nC"));
+    }
+
+    [Test]
     public void Feed_CursorMovement_CSI()
     {
         var buffer = new VirtualTerminalBuffer(80);
@@ -318,7 +332,7 @@ public class VtParserTests
         var buffer = new VirtualTerminalBuffer(80);
         var parser = new VtSequenceParser(buffer);
         // OSC 633;A = PromptStart
-        parser.Feed("\e]633;A\x07");
+        parser.Feed("\e]633;A\a");
         Assert.That(parser.HasDetectedShellIntegration, Is.True);
     }
 
@@ -327,16 +341,16 @@ public class VtParserTests
     {
         var buffer = new VirtualTerminalBuffer(80);
         var markers = new List<ShellIntegrationMarker>();
-        var parser = new VtSequenceParser(buffer, (in ShellIntegrationMarker m) => markers.Add(m));
+        var parser = new VtSequenceParser(buffer, (in m) => markers.Add(m));
 
         // A = PromptStart
-        parser.Feed("\e]633;A\x07");
+        parser.Feed("\e]633;A\a");
         // B = CommandReady
-        parser.Feed("\e]633;B\x07");
+        parser.Feed("\e]633;B\a");
         // C = CommandExecuted
-        parser.Feed("\e]633;C\x07");
+        parser.Feed("\e]633;C\a");
         // D with exit code = CommandFinished
-        parser.Feed("\e]633;D;0\x07");
+        parser.Feed("\e]633;D;0\a");
 
         Assert.That(markers, Has.Count.EqualTo(4));
         Assert.That(markers[0].Type, Is.EqualTo(ShellIntegrationMarkerType.PromptStart));
@@ -351,9 +365,9 @@ public class VtParserTests
     {
         var buffer = new VirtualTerminalBuffer(80);
         var markers = new List<ShellIntegrationMarker>();
-        var parser = new VtSequenceParser(buffer, (in ShellIntegrationMarker m) => markers.Add(m));
+        var parser = new VtSequenceParser(buffer, (in m) => markers.Add(m));
 
-        parser.Feed("\e]633;D;42\x07");
+        parser.Feed("\e]633;D;42\a");
 
         Assert.That(markers, Has.Count.EqualTo(1));
         Assert.That(markers[0].Type, Is.EqualTo(ShellIntegrationMarkerType.CommandFinished));
@@ -365,9 +379,9 @@ public class VtParserTests
     {
         var buffer = new VirtualTerminalBuffer(80);
         var markers = new List<ShellIntegrationMarker>();
-        var parser = new VtSequenceParser(buffer, (in ShellIntegrationMarker m) => markers.Add(m));
+        var parser = new VtSequenceParser(buffer, (in m) => markers.Add(m));
 
-        parser.Feed("\e]633;E;echo hello;nonce123\x07");
+        parser.Feed("\e]633;E;echo hello;nonce123\a");
 
         Assert.That(markers, Has.Count.EqualTo(1));
         Assert.That(markers[0].Type, Is.EqualTo(ShellIntegrationMarkerType.CommandLine));
@@ -392,7 +406,7 @@ public class VtParserTests
     {
         var buffer = new VirtualTerminalBuffer(80);
         var markers = new List<ShellIntegrationMarker>();
-        var parser = new VtSequenceParser(buffer, (in ShellIntegrationMarker m) => markers.Add(m));
+        var parser = new VtSequenceParser(buffer, (in m) => markers.Add(m));
 
         // OSC terminated with ESC\ (String Terminator) instead of BEL
         parser.Feed("\e]633;A\e\\");
@@ -450,10 +464,181 @@ public class VtParserTests
     {
         var buffer = new VirtualTerminalBuffer(80);
         var parser = new VtSequenceParser(buffer);
-        parser.Feed("\e]633;A\x07");
+        parser.Feed("\e]633;A\a");
         Assert.That(parser.HasDetectedShellIntegration, Is.True);
         parser.ResetShellIntegrationDetected();
         Assert.That(parser.HasDetectedShellIntegration, Is.False);
+    }
+
+    #endregion
+
+    #region VtSequenceParser — CJK / Unicode round-trip
+
+    [Test]
+    public void Feed_Cjk_Chinese_RoundTrip()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("你好世界");
+        Assert.That(buffer.GetText(), Is.EqualTo("你好世界"));
+    }
+
+    [Test]
+    public void Feed_Cjk_Japanese_RoundTrip()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("こんにちは");
+        Assert.That(buffer.GetText(), Is.EqualTo("こんにちは"));
+    }
+
+    [Test]
+    public void Feed_Cjk_Korean_RoundTrip()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("안녕하세요");
+        Assert.That(buffer.GetText(), Is.EqualTo("안녕하세요"));
+    }
+
+    [Test]
+    public void Feed_Cjk_MixedWithAscii()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("Hello 你好 World 世界!");
+        Assert.That(buffer.GetText(), Is.EqualTo("Hello 你好 World 世界!"));
+    }
+
+    [Test]
+    public void Feed_Emoji_4ByteUtf8_RoundTrip()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("🎉🎊✨");
+        var text = buffer.GetText();
+        Assert.That(text, Is.EqualTo("🎉🎊✨"));
+    }
+
+    [Test]
+    public void Feed_ReplacementChar_UFFFD_Preserved()
+    {
+        // U+FFFD must not be silently discarded by the buffer or parser.
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("Before\uFFFDBetween\uFFFDAfter");
+        var text = buffer.GetText();
+        Assert.That(text, Does.Contain("\uFFFD"),
+            "U+FFFD replacement characters must be preserved in buffer output");
+        Assert.That(text, Is.EqualTo("Before\uFFFDBetween\uFFFDAfter"));
+    }
+
+    [Test]
+    public void Feed_ReplacementChar_WithLineBreaks()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("Line1\uFFFD\r\nLine2\uFFFD");
+        var text = buffer.GetText();
+        Assert.That(text, Is.EqualTo("Line1\uFFFD\nLine2\uFFFD"));
+    }
+
+    [Test]
+    public void Feed_Cjk_WithAnsiColorSequences()
+    {
+        // CJK characters should survive ANSI SGR sequences without corruption.
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("\e[31m红色\e[0m \e[32m绿色\e[0m \e[34m蓝色\e[0m");
+        var text = buffer.GetText();
+        Assert.That(text, Is.EqualTo("红色 绿色 蓝色"));
+    }
+
+    [Test]
+    public void Feed_Cjk_WithCursorMovement_CorrectBufferState()
+    {
+        // Cursor movement should work correctly with CJK characters
+        // (each CJK char is 1 display column in terminal, 1 char in buffer).
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("你好世界");
+        Assert.That(buffer.CursorX, Is.EqualTo(4),
+            "Cursor should advance by 4 columns for 4 CJK characters");
+    }
+
+    #endregion
+
+    #region VtSequenceParser — Multi-line output order (regression: output reversal)
+
+    [Test]
+    public void GetText_MultiLine_PreservesChronologicalOrder()
+    {
+        // Regression: ensure GetText() returns lines in chronological order (not reversed).
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("1\r\n2\r\n3\r\n4\r\n5");
+        var text = buffer.GetText();
+        Assert.That(text, Is.EqualTo("1\n2\n3\n4\n5"),
+            "GetText() must return lines in chronological order, not reversed");
+    }
+
+    [Test]
+    public void GetText_MultiLine_CrLfSequence()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("FIRST\r\nSECOND\r\nTHIRD");
+        var text = buffer.GetText();
+        Assert.That(text, Is.EqualTo("FIRST\nSECOND\nTHIRD"));
+    }
+
+    [Test]
+    public void TerminalTextHandler_PreservesOrder_DuringPsReadlineRedraw()
+    {
+        // Simulate PSReadLine repainting a pasted multi-line command before execution.
+        // The terminalTextHandler transcript must preserve chronological order,
+        // NOT the virtual screen order after cursor movement / erase sequences.
+        var buffer = new VirtualTerminalBuffer(80);
+        var transcript = new StringBuilder();
+        var parser = new VtSequenceParser(buffer, terminalTextHandler: c => transcript.Append(c));
+
+        // PSReadLine writes the multi-line paste:
+        //   1. Write all 3 lines to screen (cursor moves down)
+        //   2. Move cursor up 2 lines (\e[2A)
+        //   3. Erase and rewrite each line from top to bottom (\e[2K)
+        // The transcript must capture text in the order it ARRIVES, not screen position order.
+        parser.Feed("LINE_1\r\nLINE_2\r\nLINE_3");
+        parser.Feed("\e[2A"); // cursor up 2 lines (cursor is at line 0, col after LINE_1)
+        parser.Feed("\r\e[2KLINE_3\r\n"); // CR to col 0, erase + rewrite bottom
+        parser.Feed("\r\e[2KLINE_2\r\n"); // CR to col 0, erase + rewrite middle
+        parser.Feed("\r\e[2KLINE_1\r\n"); // CR to col 0, erase + rewrite top
+
+        // The transcript should contain BOTH the initial write and the redraw,
+        // in the order they arrived.
+        var transcriptText = transcript.ToString();
+        Assert.That(transcriptText, Does.Contain("LINE_1"),
+            "Transcript must capture LINE_1 from initial write");
+        Assert.That(transcriptText, Does.Contain("LINE_2"),
+            "Transcript must capture LINE_2 from initial write");
+        Assert.That(transcriptText, Does.Contain("LINE_3"),
+            "Transcript must capture LINE_3 from initial write");
+
+        // But: the virtual screen buffer after redraw should show the final state
+        var screenText = buffer.GetText();
+        Assert.That(screenText, Is.EqualTo("LINE_3\nLINE_2\nLINE_1"),
+            "Virtual screen after PSReadLine bottom-up redraw shows correct final state");
+    }
+
+    [Test]
+    public void GetTextBetween_PreservesOrder()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+        parser.Feed("line0\r\nline1\r\nline2\r\nline3\r\nline4");
+
+        var text = buffer.GetTextBetween(1, 3);
+        Assert.That(text, Is.EqualTo("line1\nline2\nline3"),
+            "GetTextBetween must return lines in forward order");
     }
 
     #endregion

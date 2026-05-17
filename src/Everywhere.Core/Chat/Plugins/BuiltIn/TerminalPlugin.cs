@@ -162,7 +162,7 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
                 executeResult = await strategy.ExecuteAsync(
                     pty,
                     script,
-                    OutputCleaner.IsMultilineCommand(script),
+                    shellType,
                     TimeSpan.FromSeconds(30),
                     cancellationToken);
             }

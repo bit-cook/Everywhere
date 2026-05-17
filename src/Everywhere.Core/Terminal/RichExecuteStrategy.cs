@@ -6,27 +6,30 @@ namespace Everywhere.Terminal;
 
 /// <summary>
 /// Execute strategy used when Shell Integration (OSC 633) markers are detected.
-/// Tracks every C (CommandExecuted) marker to build multi-segment output ranges,
-/// correctly handling both atomic multi-line paste execution and burst multi-command
-/// execution. Falls back to idle detection if markers are incomplete (e.g., command crashes).
+/// Captures text in parser order between C (CommandExecuted) and D (CommandFinished)
+/// markers so terminal redraws cannot reorder multi-line command output.
+/// Falls back to idle detection if markers are incomplete (e.g., command crashes).
 /// </summary>
 internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
 {
     public async Task<ExecuteResult> ExecuteAsync(
         IPtyConnection pty,
         string script,
-        bool isMultiline,
+        ShellType shellType,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
         var readBuffer = new byte[4096];
+        var textDecoder = new PtyTextDecoder(readBuffer.Length);
         var vtBuffer = new VirtualTerminalBuffer(1024);
 
         // Track Shell Integration markers
         int? exitCode = null;
-        var commandStartLines = new List<int>(); // C marker line for each command
+        var transcript = new StringBuilder();
         var commandCount = 0;
-        var finishedCount = 0;
+        var isCapturingTranscript = false;
+        var hasCommandFinished = false;
+        var hasFinalPrompt = false;
         var promptStartLine = -1; // Final A marker line (after all commands)
 
         var parser = new VtSequenceParser(
@@ -40,31 +43,47 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
                         break;
                     case ShellIntegrationMarkerType.CommandExecuted:
                         commandCount++;
-                        commandStartLines.Add(marker.Line);
+                        if (!isCapturingTranscript)
+                        {
+                            hasCommandFinished = false;
+                            hasFinalPrompt = false;
+                            isCapturingTranscript = true;
+                        }
                         logger.LogDebug("[Rich] C (CommandExecuted) # {Count} at line {Line}", commandCount, marker.Line);
                         break;
                     case ShellIntegrationMarkerType.CommandFinished:
-                        finishedCount++;
-                        exitCode = marker.ExitCode;
+                        if (commandCount > 0)
+                        {
+                            hasCommandFinished = true;
+                            isCapturingTranscript = false;
+                            exitCode = marker.ExitCode;
+                        }
                         logger.LogDebug(
-                            "[Rich] D (CommandFinished) # {Count} exitCode={ExitCode} at line {Line}",
-                            finishedCount,
+                            "[Rich] D (CommandFinished) exitCode={ExitCode} at line {Line}",
                             marker.ExitCode,
                             marker.Line);
                         break;
                     case ShellIntegrationMarkerType.PromptStart:
                         // A after commands have started means a prompt has arrived
-                        if (commandCount > 0)
+                        if (commandCount > 0 && hasCommandFinished)
                         {
+                            hasFinalPrompt = true;
                             promptStartLine = marker.Line;
                             logger.LogDebug("[Rich] A (PromptStart) at line {Line}", marker.Line);
                         }
                         break;
                 }
+            },
+            value =>
+            {
+                if (isCapturingTranscript)
+                {
+                    transcript.Append(value);
+                }
             });
 
         // Send the command
-        await SendCommandAsync(pty, script, isMultiline, cancellationToken);
+        await SendCommandAsync(pty, script, shellType, cancellationToken);
 
         // Read output until we get the D+A sequence or timeout.
         // Uses Task.WhenAny pattern for efficient async polling.
@@ -83,10 +102,13 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
         {
             while (!linkedToken.IsCancellationRequested)
             {
-                // Check if all commands are finished and the final prompt has arrived
-                if (commandCount > 0 && finishedCount >= commandCount && promptStartLine >= 0)
+                // Check if command output has ended and the final prompt has arrived
+                if (commandCount > 0 && hasCommandFinished && hasFinalPrompt)
                 {
-                    logger.LogDebug("[Rich] All {Count} command(s) finished, final prompt at line {Line}", commandCount, promptStartLine);
+                    logger.LogDebug(
+                        "[Rich] Command output finished after {Count} C marker(s), final prompt at line {Line}",
+                        commandCount,
+                        promptStartLine);
                     break;
                 }
 
@@ -100,14 +122,18 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
                     var bytesRead = await pendingReadTask;
                     pendingReadTask = null;
 
-                    if (bytesRead == 0) break; // Stream closed
+                    if (bytesRead == 0)
+                    {
+                        parser.Feed(textDecoder.Flush());
+                        break; // Stream closed
+                    }
 
-                    var text = Encoding.UTF8.GetString(readBuffer, 0, bytesRead);
+                    var text = textDecoder.Decode(readBuffer.AsSpan(0, bytesRead));
                     parser.Feed(text);
 
-                    if (text.Contains('\n') || text.Contains('\r'))
+                    if (text.IndexOfAny('\n', '\r') >= 0)
                     {
-                        logger.LogDebug("[PTY RAW] {EscapeForLog}", OutputCleaner.EscapeForLog(text));
+                        logger.LogDebug("[PTY RAW] {EscapeForLog}", OutputCleaner.EscapeForLog(new string(text)));
                     }
 
                     consecutiveIdlePolls = 0;
@@ -146,34 +172,14 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
             }
         }
 
-        // Extract output — multi-segment for multi-command bursts
+        // Extract output from the chronological transcript when C/D markers bracketed it.
         string output;
-        if (commandStartLines.Count > 0 && promptStartLine >= 0)
+        if (commandCount > 0 && hasCommandFinished)
         {
-            var segments = new List<string>(commandStartLines.Count);
-
-            // Segments between consecutive C markers
-            for (var i = 0; i < commandStartLines.Count - 1; i++)
-            {
-                var seg = vtBuffer.GetTextBetween(
-                    commandStartLines[i],
-                    commandStartLines[i + 1] - 1);
-                if (!string.IsNullOrEmpty(seg))
-                    segments.Add(seg);
-            }
-
-            // Final segment: last C to final A
-            var lastSeg = vtBuffer.GetTextBetween(
-                commandStartLines[^1],
-                promptStartLine - 1);
-            if (!string.IsNullOrEmpty(lastSeg))
-                segments.Add(lastSeg);
-
-            output = string.Join('\n', segments);
+            output = transcript.ToString();
             logger.LogDebug(
-                "[Rich] Multi-segment extraction: {CmdCount} command(s), {SegCount} non-empty segment(s), total length={Length}",
-                commandStartLines.Count,
-                segments.Count,
+                "[Rich] Transcript extraction: {CmdCount} C marker(s), total length={Length}",
+                commandCount,
                 output.Length);
         }
         else
@@ -193,12 +199,13 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
     /// Send command using bracketed paste mode for multi-line commands.
     /// Requires Shell Integration + PSReadLine to correctly handle bracketed paste.
     /// </summary>
-    public async Task SendCommandAsync(
+    private async static Task SendCommandAsync(
         IPtyConnection pty,
         string script,
-        bool isMultiline,
+        ShellType shellType,
         CancellationToken cancellationToken)
     {
+        var isMultiline = OutputCleaner.IsMultilineCommand(script, shellType);
         if (isMultiline)
         {
             var normalizedScript = script.Replace("\r\n", "\n").Replace("\r", "\n");

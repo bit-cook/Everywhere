@@ -12,14 +12,17 @@ namespace Everywhere.Terminal;
 /// </summary>
 internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
 {
+    private bool _isCapturingTranscript;
+
     public async Task<ExecuteResult> ExecuteAsync(
         IPtyConnection pty,
         string script,
-        bool isMultiline,
+        ShellType shellType,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
-        var rawOutput = await ExecuteWithRawOutputAsync(pty, script, isMultiline, timeout, cancellationToken);
+        var rawOutput = await ExecuteWithRawOutputAsync(pty, script, shellType, timeout, cancellationToken);
+        logger.LogDebug("[None] Raw output: {EscapeForLog}", OutputCleaner.EscapeForLog(rawOutput));
         var output = OutputCleaner.CleanOutput(rawOutput, script);
 
         logger.LogDebug("[None] Output length={Length}", output.Length);
@@ -29,13 +32,23 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
     private async ValueTask<string> ExecuteWithRawOutputAsync(
         IPtyConnection pty,
         string script,
-        bool isMultiline,
+        ShellType shellType,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
         var readBuffer = new byte[4096];
+        var textDecoder = new PtyTextDecoder(readBuffer.Length);
         var vtBuffer = new VirtualTerminalBuffer(1024);
-        var parser = new VtSequenceParser(vtBuffer);
+        var transcript = new StringBuilder();
+        var parser = new VtSequenceParser(
+            vtBuffer,
+            terminalTextHandler: value =>
+            {
+                if (_isCapturingTranscript)
+                {
+                    transcript.Append(value);
+                }
+            });
 
         // Shared read task holder — carries the pending ReadAsync across all phases
         // so we never lose data that arrives between phases.
@@ -50,6 +63,7 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
             TimeSpan.FromSeconds(5),
             TimeSpan.FromMilliseconds(200),
             readTaskHolder,
+            textDecoder,
             cancellationToken);
 
         logger.LogDebug("[None] Sending Ctrl+C to cancel residual input");
@@ -64,19 +78,28 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
             TimeSpan.FromMilliseconds(500),
             TimeSpan.FromMilliseconds(200),
             readTaskHolder,
+            textDecoder,
             cancellationToken);
+
+        // Drop startup prompt/control output so completion checks only see data
+        // produced after this command is sent.
+        vtBuffer.Reset();
+        parser.Reset();
+        transcript.Clear();
 
         // Record the start position (cursor line before command)
         var startLine = vtBuffer.CursorY;
 
-        logger.LogDebug("[None] Sending command (multiline={IsMultiline})", isMultiline);
-        await SendCommandAsync(pty, script, isMultiline, cancellationToken);
+        logger.LogDebug("[None] Sending command (shellType={ShellType})", shellType);
+        _isCapturingTranscript = true;
+        await SendCommandAsync(pty, script, shellType, cancellationToken);
 
-        logger.LogDebug("[None] Waiting for cursor to move past start line {StartLine}", startLine);
-        await WaitForCursorMoveAsync(pty, readBuffer, parser, startLine, TimeSpan.FromSeconds(3), readTaskHolder, cancellationToken);
+        logger.LogDebug("[None] Waiting for command output to start from line {StartLine}", startLine);
+        await WaitForCommandOutputStartAsync(pty, readBuffer, parser, startLine, TimeSpan.FromSeconds(3), readTaskHolder, textDecoder, cancellationToken);
 
         logger.LogDebug("[None] Waiting for idle with prompt heuristics");
-        var hasReceivedData = true;
+        var hasReceivedData = transcript.Length > 0;
+        var hasSeenCommandEcho = ContainsCommandEcho(transcript, script);
         var consecutiveIdlePolls = 0;
         const int pollIntervalMs = 150;
         const int minIdlePolls = 4; // 4 × 150ms = 600ms idle
@@ -88,13 +111,6 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
 
         try
         {
-            // Early check: if already drained the prompt into vtBuffer
-            if (CheckForPrompt(vtBuffer))
-            {
-                logger.LogDebug("[None] Prompt detected immediately after command send");
-                return vtBuffer.GetText();
-            }
-
             while (!linkedToken.IsCancellationRequested)
             {
                 readTaskHolder.Task ??= pty.ReaderStream.ReadAsync(readBuffer, linkedToken).AsTask();
@@ -107,20 +123,25 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
                     // Received new data
                     var bytesRead = await readTaskHolder.Task;
                     readTaskHolder.Task = null;
-                    if (bytesRead == 0) break;
+                    if (bytesRead == 0)
+                    {
+                        parser.Feed(textDecoder.Flush());
+                        break;
+                    }
 
-                    var text = Encoding.UTF8.GetString(readBuffer, 0, bytesRead);
+                    var text = textDecoder.Decode(readBuffer.AsSpan(0, bytesRead));
                     parser.Feed(text);
 
-                    if (text.Contains('\n') || text.Contains('\r'))
+                    if (text.IndexOfAny('\n', '\r') >= 0)
                     {
-                        logger.LogDebug("[PTY RAW] {EscapeForLog}", OutputCleaner.EscapeForLog(text));
+                        logger.LogDebug("[PTY RAW] {EscapeForLog}", OutputCleaner.EscapeForLog(new string(text)));
                     }
 
                     consecutiveIdlePolls = 0;
                     hasReceivedData = true;
+                    hasSeenCommandEcho |= ContainsCommandEcho(transcript, script);
 
-                    if (CheckForPrompt(vtBuffer))
+                    if (hasSeenCommandEcho && CheckForPrompt(vtBuffer))
                     {
                         logger.LogDebug("[None] Prompt detected after receiving data");
                         break;
@@ -134,7 +155,7 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
                     consecutiveIdlePolls++;
                     if (consecutiveIdlePolls >= minIdlePolls)
                     {
-                        if (CheckForPrompt(vtBuffer))
+                        if (hasSeenCommandEcho && CheckForPrompt(vtBuffer))
                         {
                             logger.LogDebug("[None] Idle detected with prompt");
                             break;
@@ -164,7 +185,8 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
             }
         }
 
-        return vtBuffer.GetText();
+        _isCapturingTranscript = false;
+        return transcript.Length > 0 ? NormalizeCapturedText(transcript.ToString()) : vtBuffer.GetText();
     }
 
     /// <summary>
@@ -185,13 +207,30 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
     /// Does not use bracketed paste mode — each line is sent as a separate Enter keypress.
     /// This is safe without Shell Integration or PSReadLine.
     /// </summary>
-    public async Task SendCommandAsync(
+    public async static Task SendCommandAsync(
         IPtyConnection pty,
         string script,
-        bool isMultiline,
+        ShellType shellType,
         CancellationToken cancellationToken)
     {
-        if (!isMultiline)
+        var isMultiline = OutputCleaner.IsMultilineCommand(script, shellType);
+        if (isMultiline)
+        {
+            // Multi-line: split and send line by line
+            var lines = script.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (trimmed.Length == 0) continue;
+
+                await pty.WriterStream.WriteAsync(Encoding.UTF8.GetBytes(trimmed), cancellationToken);
+                await pty.WriterStream.WriteAsync("\r"u8.ToArray(), cancellationToken);
+                await pty.WriterStream.FlushAsync(cancellationToken);
+                // Brief pause between lines to let the shell process each one
+                await Task.Delay(100, cancellationToken);
+            }
+        }
+        else
         {
             var trimmed = script.Trim();
             if (trimmed.Length > 0)
@@ -200,22 +239,21 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
                 await pty.WriterStream.WriteAsync("\r"u8.ToArray(), cancellationToken);
                 await pty.WriterStream.FlushAsync(cancellationToken);
             }
-
-            return;
         }
+    }
 
-        // Multi-line: split and send line by line
-        var lines = script.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
-        foreach (var line in lines)
-        {
-            var trimmed = line.Trim();
-            if (trimmed.Length == 0) continue;
-            await pty.WriterStream.WriteAsync(Encoding.UTF8.GetBytes(trimmed), cancellationToken);
-            await pty.WriterStream.WriteAsync("\r"u8.ToArray(), cancellationToken);
-            await pty.WriterStream.FlushAsync(cancellationToken);
-            // Brief pause between lines to let the shell process each one
-            await Task.Delay(100, cancellationToken);
-        }
+    private static string NormalizeCapturedText(string text)
+    {
+        return text
+            .Replace("\r\n", "\n")
+            .Replace("\r", "\n");
+    }
+
+    private static bool ContainsCommandEcho(StringBuilder transcript, string script)
+    {
+        if (transcript.Length == 0) return false;
+        var normalized = NormalizeCapturedText(transcript.ToString());
+        return OutputCleaner.FindCommandEcho(normalized, script, allowSuffixMatch: true).HasValue;
     }
 
     /// <summary>
@@ -231,6 +269,7 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
         TimeSpan maxWait,
         TimeSpan quietPeriod,
         ReadTaskHolder readTaskHolder,
+        PtyTextDecoder textDecoder,
         CancellationToken cancellationToken)
     {
         var quietMs = (int)quietPeriod.TotalMilliseconds;
@@ -252,8 +291,13 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
                     // Received data — reset quiet period
                     var bytesRead = await readTaskHolder.Task;
                     readTaskHolder.Task = null;
-                    if (bytesRead == 0) break;
-                    parser.Feed(Encoding.UTF8.GetString(readBuffer, 0, bytesRead));
+                    if (bytesRead == 0)
+                    {
+                        parser.Feed(textDecoder.Flush());
+                        break;
+                    }
+
+                    parser.Feed(textDecoder.Decode(readBuffer.AsSpan(0, bytesRead)));
                 }
                 else
                 {
@@ -269,16 +313,17 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
     }
 
     /// <summary>
-    /// Wait for the cursor to move past a specific line.
+    /// Wait for command output to begin.
     /// Stores the pending read task in the holder so it can carry over to the next phase.
     /// </summary>
-    private static async Task WaitForCursorMoveAsync(
+    private static async Task WaitForCommandOutputStartAsync(
         IPtyConnection pty,
         byte[] readBuffer,
         VtSequenceParser parser,
         int startLine,
         TimeSpan timeout,
         ReadTaskHolder readTaskHolder,
+        PtyTextDecoder textDecoder,
         CancellationToken cancellationToken)
     {
         using var timeoutCts = new CancellationTokenSource(timeout);
@@ -299,8 +344,14 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
                 {
                     var bytesRead = await readTaskHolder.Task;
                     readTaskHolder.Task = null;
-                    if (bytesRead == 0) break;
-                    parser.Feed(Encoding.UTF8.GetString(readBuffer, 0, bytesRead));
+                    if (bytesRead == 0)
+                    {
+                        parser.Feed(textDecoder.Flush());
+                        break;
+                    }
+
+                    parser.Feed(textDecoder.Decode(readBuffer.AsSpan(0, bytesRead)));
+                    return;
                 }
             }
         }

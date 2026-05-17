@@ -1,9 +1,9 @@
 using Everywhere.Terminal;
 
-namespace Everywhere.Core.Tests;
+namespace Everywhere.Core.Tests.Terminal;
 
 /// <summary>
-/// Unit tests for <see cref="Terminal.OutputCleaner"/> — pure functions with no side effects.
+/// Unit tests for <see cref="OutputCleaner"/> — pure functions with no side effects.
 /// </summary>
 [TestFixture]
 public class OutputCleanerTests
@@ -54,17 +54,30 @@ public class OutputCleanerTests
     }
 
     [Test]
+    public void IsMultilineCommand_PowerShellBacktickLineContinuation_ReturnsFalse()
+    {
+        // Backtick immediately before newline = PowerShell line continuation, NOT multi-line
+        Assert.That(OutputCleaner.IsMultilineCommand("Write-Host \"a\" `\n\"b\"", ShellType.PowerShell), Is.False);
+    }
+
+    [Test]
+    public void IsMultilineCommand_BashBackslashLineContinuation_ReturnsFalse()
+    {
+        Assert.That(OutputCleaner.IsMultilineCommand("printf '%s %s\\n' 'a' \\\n'b'", ShellType.Bash), Is.False);
+    }
+
+    [Test]
     public void IsMultilineCommand_Heredoc_ReturnsTrue()
     {
         var script = "cat <<EOF\nhello\nworld\nEOF";
-        Assert.That(OutputCleaner.IsMultilineCommand(script), Is.True);
+        Assert.That(OutputCleaner.IsMultilineCommand(script, ShellType.Bash), Is.True);
     }
 
     [Test]
     public void IsMultilineCommand_PowerShellMultiLine_ReturnsTrue()
     {
         var script = "Write-Host \"line1\"\nWrite-Host \"line2\"";
-        Assert.That(OutputCleaner.IsMultilineCommand(script), Is.True);
+        Assert.That(OutputCleaner.IsMultilineCommand(script, ShellType.PowerShell), Is.True);
     }
 
     #endregion

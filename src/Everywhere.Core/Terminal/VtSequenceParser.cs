@@ -4,6 +4,8 @@ namespace Everywhere.Terminal;
 
 internal delegate void ShellIntegrationMarkerHandler(in ShellIntegrationMarker marker);
 
+internal delegate void TerminalTextHandler(char value);
+
 /// <summary>
 /// A minimal VT100/ECMA-48 sequence parser that drives a <see cref="VirtualTerminalBuffer"/>.
 /// Implements the state machine needed to handle ANSI escape sequences from PTY output,
@@ -12,7 +14,11 @@ internal delegate void ShellIntegrationMarkerHandler(in ShellIntegrationMarker m
 /// This parser is intentionally minimal — it only handles sequences that affect text layout
 /// (cursor movement, erase, scroll, etc.). Color/style sequences are consumed but ignored.
 /// </summary>
-internal sealed class VtSequenceParser(VirtualTerminalBuffer buffer, ShellIntegrationMarkerHandler? shellIntegrationMarkerHandler = null)
+internal sealed class VtSequenceParser(
+    VirtualTerminalBuffer buffer,
+    ShellIntegrationMarkerHandler? shellIntegrationMarkerHandler = null,
+    TerminalTextHandler? terminalTextHandler = null
+)
 {
     /// <summary>
     /// The virtual terminal buffer driven by this parser.
@@ -80,7 +86,9 @@ internal sealed class VtSequenceParser(VirtualTerminalBuffer buffer, ShellIntegr
                 if (_state == State.Ground)
                 {
                     Buffer.WriteChar(_highSurrogate);
+                    terminalTextHandler?.Invoke(_highSurrogate);
                     Buffer.WriteChar(c);
+                    terminalTextHandler?.Invoke(c);
                 }
                 _highSurrogate = '\0';
             }
@@ -95,6 +103,7 @@ internal sealed class VtSequenceParser(VirtualTerminalBuffer buffer, ShellIntegr
             if (_state == State.Ground)
             {
                 Buffer.WriteChar(_highSurrogate);
+                terminalTextHandler?.Invoke(_highSurrogate);
             }
             _highSurrogate = '\0';
         }
@@ -140,17 +149,21 @@ internal sealed class VtSequenceParser(VirtualTerminalBuffer buffer, ShellIntegr
                 break;
             case '\r': // CR
                 Buffer.CarriageReturn();
+                terminalTextHandler?.Invoke(c);
                 break;
             case '\n': // LF
             case '\v': // VT
             case '\f': // FF
                 Buffer.LineFeed();
+                terminalTextHandler?.Invoke(c);
                 break;
             case '\b': // BS
                 Buffer.Backspace();
+                terminalTextHandler?.Invoke(c);
                 break;
             case '\t': // HT
                 Buffer.Tab();
+                terminalTextHandler?.Invoke(c);
                 break;
             case '\a': // BEL — ignore
                 break;
@@ -160,6 +173,7 @@ internal sealed class VtSequenceParser(VirtualTerminalBuffer buffer, ShellIntegr
                 if (c >= 0x20) // Printable character (including Unicode)
                 {
                     Buffer.WriteChar(c);
+                    terminalTextHandler?.Invoke(c);
                 }
                 break;
         }

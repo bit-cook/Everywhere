@@ -1,4 +1,3 @@
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Porta.Pty;
 
@@ -22,26 +21,15 @@ internal interface IExecuteStrategy
     /// </summary>
     /// <param name="pty">The PTY connection to use.</param>
     /// <param name="script">The script to execute.</param>
-    /// <param name="isMultiline">Whether the script contains multiple lines.</param>
+    /// <param name="shellType"></param>
     /// <param name="timeout">Maximum time to wait for the command to complete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The execution result containing output and exit code.</returns>
     Task<ExecuteResult> ExecuteAsync(
         IPtyConnection pty,
         string script,
-        bool isMultiline,
+        ShellType shellType,
         TimeSpan timeout,
-        CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Send a command to the PTY. Each strategy implements its own sending logic:
-    /// - Rich: uses bracketed paste mode for multi-line commands (requires Shell Integration + PSReadLine)
-    /// - None: sends commands line by line for multi-line commands (no Shell Integration needed)
-    /// </summary>
-    Task SendCommandAsync(
-        IPtyConnection pty,
-        string script,
-        bool isMultiline,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -55,47 +43,81 @@ internal interface IExecuteStrategy
         CancellationToken cancellationToken = default)
     {
         var readBuffer = new byte[4096];
+        var textDecoder = new PtyTextDecoder(readBuffer.Length);
         var vtBuffer = new VirtualTerminalBuffer(1024);
         var parser = new VtSequenceParser(vtBuffer);
 
         // Read initial output for a short period to detect shell integration markers
-        var detectionTimeout = TimeSpan.FromSeconds(3);
-        using var timeoutCts = new CancellationTokenSource(detectionTimeout);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-        var linkedToken = linkedCts.Token;
+        var absoluteTimeout = TimeSpan.FromSeconds(30);
+        var idleTimeout = TimeSpan.FromSeconds(10);
+        var startTime = DateTimeOffset.UtcNow;
 
-        try
+        logger.LogDebug(
+            "[Detect] Starting Shell Integration detection for {ShellType} (Idle: {Idle}s, Max: {Max}s)",
+            shellType,
+            idleTimeout.TotalSeconds,
+            absoluteTimeout.TotalSeconds);
+
+        while (true)
         {
-            logger.LogDebug(
-                "[Detect] Starting Shell Integration detection for {ShellType} (Timeout: {Timeout}s)",
-                shellType,
-                detectionTimeout.TotalSeconds);
+            cancellationToken.ThrowIfCancellationRequested();
 
-            while (!linkedToken.IsCancellationRequested)
+            var remainingAbsolute = absoluteTimeout - (DateTimeOffset.UtcNow - startTime);
+            if (remainingAbsolute <= TimeSpan.Zero)
             {
-                var bytesRead = await pty.ReaderStream.ReadAsync(readBuffer, linkedToken);
-                if (bytesRead == 0)
+                logger.LogWarning("[Detect] Absolute timeout reached ({AbsoluteTimeout}s). Stream was too noisy.", absoluteTimeout.TotalSeconds);
+                break;
+            }
+
+            var readTimeout = remainingAbsolute < idleTimeout ? remainingAbsolute : idleTimeout;
+            using var readTimeoutCts = new CancellationTokenSource(readTimeout);
+            using var linkedReadCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, readTimeoutCts.Token);
+
+            int bytesRead;
+            try
+            {
+                bytesRead = await pty.ReaderStream.ReadAsync(readBuffer, linkedReadCts.Token);
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && readTimeoutCts.IsCancellationRequested)
+            {
+                if (DateTimeOffset.UtcNow - startTime >= absoluteTimeout)
                 {
-                    logger.LogWarning("[Detect] PTY stream closed unexpectedly during detection.");
-                    break;
+                    logger.LogWarning(
+                        "[Detect] Absolute timeout reached ({AbsoluteTimeout}s). Stream was too noisy.",
+                        absoluteTimeout.TotalSeconds);
+                }
+                else
+                {
+                    logger.LogInformation(
+                        "[Detect] Idle timeout reached ({IdleTimeout}s). Marker not found, output settled.",
+                        idleTimeout.TotalSeconds);
                 }
 
-                var text = Encoding.UTF8.GetString(readBuffer, 0, bytesRead);
-                parser.Feed(text);
+                break;
+            }
+
+            if (bytesRead == 0)
+            {
+                var finalText = textDecoder.Flush();
+                parser.Feed(finalText);
 
                 if (parser.HasDetectedShellIntegration)
                 {
                     logger.LogDebug("[Detect] Shell Integration detected for {ShellType}, using Rich strategy", shellType);
                     return new RichExecuteStrategy(logger);
                 }
+
+                logger.LogWarning("[Detect] PTY stream closed unexpectedly during detection.");
+                break;
             }
-        }
-        catch (OperationCanceledException)
-        {
-            // Detection timeout reached
-            if (timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+
+            var text = textDecoder.Decode(readBuffer.AsSpan(0, bytesRead));
+            parser.Feed(text);
+
+            if (parser.HasDetectedShellIntegration)
             {
-                logger.LogDebug("[Detect] Timeout reached. Shell Integration markers not found.");
+                logger.LogDebug("[Detect] Shell Integration detected for {ShellType}, using Rich strategy", shellType);
+                return new RichExecuteStrategy(logger);
             }
         }
 
