@@ -21,6 +21,13 @@ Get-PSReadlineOption | ForEach-Object {
     }
 }
 
+# Fix for PSReadLine issue #496: LF bytes inside bracketed paste are
+# interpreted as Ctrl+Enter, whose default binding InsertLineAbove
+# reverses multi-line command order. Replace with plain newline insertion.
+Set-PSReadLineKeyHandler -Chord Ctrl+Enter -ScriptBlock {
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert("`n")
+}
+
 $Global:__EverywhereState = @{
 	OriginalPrompt = $function:Prompt
 	LastHistoryId = -1
