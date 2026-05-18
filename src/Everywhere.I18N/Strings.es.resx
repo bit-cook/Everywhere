@@ -148,7 +148,7 @@
     <data name="ActionChatMessage_Header_WebSearching" xml:space="preserve">
         <value>Búsqueda en la Web</value>
     </data>
-    <data name="ChatWindow_ChatMessage_Assistant_Regenerate" xml:space="preserve">
+    <data name="ChatMessageControl_RetryButton_Content" xml:space="preserve">
         <value>Regenerar</value>
     </data>
     <data name="MainTrayIcon_Menu_OpenMainWindow" xml:space="preserve">
@@ -792,16 +792,16 @@ Mi inteligencia está impulsada por un modelo de lenguaje grande, y necesito que
     <data name="ChatWindowSettings_ShowChatStatistics_Description" xml:space="preserve">
         <value>Cuando está habilitado, los datos de uso se mostrarán al final de cada ronda de conversación dentro de la ventana de chat.</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_InputTokenCountRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_InputTokenCountRun" xml:space="preserve">
         <value>Entrada</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_OutputTokenCountRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_OutputTokenCountRun" xml:space="preserve">
         <value>Salida</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_TotalTokenCountRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_TotalTokenCountRun" xml:space="preserve">
         <value>Total</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_ElapsedRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_ElapsedRun" xml:space="preserve">
         <value>Tiempo Total</value>
     </data>
     <data name="HandledChatException_InvalidConfiguration" xml:space="preserve">
@@ -876,7 +876,7 @@ Mi inteligencia está impulsada por un modelo de lenguaje grande, y necesito que
     <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>Límite de longitud del árbol visual</value>
     </data>
-    <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
+    <data name="ChatMessageControl_Assistant_Reasoning" xml:space="preserve">
         <value>Pensamiento profundo</value>
     </data>
     <data name="ChatFunctionPermissions_ScreenRead" xml:space="preserve">
@@ -1433,7 +1433,7 @@ Rueda de desplazamiento o teclas numéricas para cambiar modos de selección</va
     <data name="Common_Copy" xml:space="preserve">
         <value>Copiar</value>
     </data>
-    <data name="ChatWindow_ChatMessage_User_Edit" xml:space="preserve">
+    <data name="ChatMessageControl_EditButton_Content" xml:space="preserve">
         <value>Editar</value>
     </data>
     <data name="ChatWindow_EditingTextBlock_Text" xml:space="preserve">
@@ -1604,10 +1604,10 @@ Rueda de desplazamiento o teclas numéricas para cambiar modos de selección</va
     <data name="ChatWindow_ChatHistory_ExportMarkdownMenuItem_Header" xml:space="preserve">
         <value>Exportar como Markdown</value>
     </data>
-    <data name="ChatWindow_ChatMessage_ContextFlyout_CopyLink" xml:space="preserve">
+    <data name="ChatMessageControl_ContextFlyout_CopyLink" xml:space="preserve">
         <value>Copiar enlace</value>
     </data>
-    <data name="ChatWindow_ChatMessage_ContextFlyout_OpenLink" xml:space="preserve">
+    <data name="ChatMessageControl_ContextFlyout_OpenLink" xml:space="preserve">
         <value>Abrir enlace</value>
     </data>
     <data name="DebugFeaturesControl_CreateDumpButton_Content" xml:space="preserve">

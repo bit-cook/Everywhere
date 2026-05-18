@@ -583,10 +583,10 @@ public sealed partial class ChatWindowViewModel :
             userMessage = new UserChatMessage(message, attachments!);
         }
 
-        if (EditingUserMessageNode is { } originalNode)
+        if (EditingUserMessageNode is { } oldNode)
         {
             CancelEditing();
-            _chatService.Edit(originalNode, userMessage);
+            _chatService.Edit(oldNode, userMessage);
         }
         else
         {
@@ -640,6 +640,12 @@ public sealed partial class ChatWindowViewModel :
     private void Retry(ChatMessageNode chatMessageNode)
     {
         _chatService.Retry(chatMessageNode);
+    }
+
+    [RelayCommand(CanExecute = nameof(IsNotBusy))]
+    private void Continue(ChatMessageNode chatMessageNode)
+    {
+        _chatService.Continue(chatMessageNode);
     }
 
     [RelayCommand(CanExecute = nameof(IsBusy))]
@@ -763,6 +769,7 @@ public sealed partial class ChatWindowViewModel :
         SendMessageCommand.NotifyCanExecuteChanged();
         EditCommand.NotifyCanExecuteChanged();
         RetryCommand.NotifyCanExecuteChanged();
+        ContinueCommand.NotifyCanExecuteChanged();
         CancelCommand.NotifyCanExecuteChanged();
 
         UpdateWatermark(value, SelectedStrategy);

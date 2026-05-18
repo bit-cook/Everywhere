@@ -12,6 +12,7 @@ namespace Everywhere.Chat;
 [Union(3, typeof(ActionChatMessage))]
 [Union(4, typeof(FunctionCallChatMessage))]
 [Union(5, typeof(UserStrategyChatMessage))]
+[Union(6, typeof(UserActionChatMessage))]
 public abstract partial class ChatMessage : ObservableObject
 {
     public abstract AuthorRole Role { get; }

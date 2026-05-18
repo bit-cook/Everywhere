@@ -12,8 +12,8 @@ namespace Everywhere.Chat;
 [MessagePackObject(AllowPrivate = true, OnlyIncludeKeyedMembers = true)]
 public sealed partial class ActionChatMessage : ChatMessage
 {
-    [Key(0)]
-    public override AuthorRole Role { get; }
+    [IgnoreMember]
+    public override AuthorRole Role => new("action");
 
     [Key(1)]
     [ObservableProperty]
@@ -48,9 +48,8 @@ public sealed partial class ActionChatMessage : ChatMessage
     [SerializationConstructor]
     private ActionChatMessage() { }
 
-    public ActionChatMessage(AuthorRole role, LucideIconKind icon, DynamicResourceKey? headerKey)
+    public ActionChatMessage(LucideIconKind icon, DynamicResourceKey? headerKey)
     {
-        Role = role;
         Icon = icon;
         HeaderKey = headerKey;
     }

@@ -1,7 +1,6 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:chat="clr-namespace:Everywhere.Chat" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
-  xmlns:v="using:Everywhere.Views">
+  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="using:Everywhere.Views">
   <ControlTheme
     x:Key="{x:Type v:ChatMessageItemsControl}"
     TargetType="v:ChatMessageItemsControl">
@@ -26,17 +25,6 @@
           </ItemsPresenter>
         </shadui:Timeline>
       </ControlTemplate>
-    </Setter>
-    <Setter Property="shadui:BindingAssist.DataTemplates">
-      <DataTemplates>
-        <DataTemplate x:DataType="chat:ChatMessageNode">
-          <v:ChatMessageControl Content="{Binding Message}"/>
-        </DataTemplate>
-
-        <DataTemplate x:DataType="chat:ChatMessage">
-          <v:ChatMessageControl Content="{Binding}"/>
-        </DataTemplate>
-      </DataTemplates>
     </Setter>
   </ControlTheme>
 </ResourceDictionary>

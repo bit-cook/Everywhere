@@ -11,17 +11,23 @@ public interface IChatService
     void SendMessage(UserChatMessage message);
 
     /// <summary>
+    /// Edit a previously sent user message. This will create a branch in the chat history. This method is NOT thread safe.
+    /// </summary>
+    /// <param name="oldNode"></param>
+    /// <param name="newMessage"></param>
+    void Edit(ChatMessageNode oldNode, UserChatMessage newMessage);
+
+    /// <summary>
     /// Retry sending a message that previously failed. This will create a branch in the chat history. This method is NOT thread safe.
     /// </summary>
     /// <param name="node"></param>
     void Retry(ChatMessageNode node);
 
     /// <summary>
-    /// Edit a previously sent user message. This will create a branch in the chat history. This method is NOT thread safe.
+    /// Continues generating a response for a given chat message node. This will create a branch in the chat history. This method is NOT thread safe.
     /// </summary>
-    /// <param name="originalNode"></param>
-    /// <param name="newMessage"></param>
-    void Edit(ChatMessageNode originalNode, UserChatMessage newMessage);
+    /// <param name="node"></param>
+    void Continue(ChatMessageNode node);
 
     /// <summary>
     /// Generates a response for the given chat context and assistant chat message.

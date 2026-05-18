@@ -53,7 +53,7 @@ public static class ChatHistoryBuilder
 
         for (var i = chatMessages.Count - 1; i >= 0; i--)
         {
-            if (chatMessages[i] is not UserChatMessage)
+            if (chatMessages[i].Role != AuthorRole.User)
             {
                 continue;
             }
@@ -211,9 +211,9 @@ public static class ChatHistoryBuilder
                 yield return new ChatMessageContent(AuthorRole.User, items);
                 break;
             }
-            case { Role.Label: "system" or "user" or "developer" or "tool" }:
+            case { Role.Label: "system" or "user" or "developer" or "tool" } when chatMessage.ToString() is { Length: > 0 } content:
             {
-                yield return new ChatMessageContent(chatMessage.Role, chatMessage.ToString());
+                yield return new ChatMessageContent(chatMessage.Role, content);
                 break;
             }
         }

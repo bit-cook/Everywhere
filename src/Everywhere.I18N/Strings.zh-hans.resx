@@ -148,7 +148,7 @@
     <data name="ActionChatMessage_Header_WebSearching" xml:space="preserve">
         <value>搜索网络</value>
     </data>
-    <data name="ChatWindow_ChatMessage_Assistant_Regenerate" xml:space="preserve">
+    <data name="ChatMessageControl_RetryButton_Content" xml:space="preserve">
         <value>重新回答</value>
     </data>
     <data name="MainTrayIcon_Menu_OpenMainWindow" xml:space="preserve">
@@ -792,16 +792,16 @@
     <data name="ChatWindowSettings_ShowChatStatistics_Description" xml:space="preserve">
         <value>开启后，聊天窗口内每轮对话结束后，会显示用量数据。</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_InputTokenCountRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_InputTokenCountRun" xml:space="preserve">
         <value>输入</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_OutputTokenCountRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_OutputTokenCountRun" xml:space="preserve">
         <value>输出</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_TotalTokenCountRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_TotalTokenCountRun" xml:space="preserve">
         <value>总计</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_ElapsedRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_ElapsedRun" xml:space="preserve">
         <value>总用时</value>
     </data>
     <data name="HandledChatException_InvalidConfiguration" xml:space="preserve">
@@ -876,7 +876,7 @@
     <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>视觉上下文长度预算</value>
     </data>
-    <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
+    <data name="ChatMessageControl_Assistant_Reasoning" xml:space="preserve">
         <value>深度思考</value>
     </data>
     <data name="ChatFunctionPermissions_ScreenRead" xml:space="preserve">
@@ -1434,7 +1434,7 @@
     <data name="Common_Copy" xml:space="preserve">
         <value>复制</value>
     </data>
-    <data name="ChatWindow_ChatMessage_User_Edit" xml:space="preserve">
+    <data name="ChatMessageControl_EditButton_Content" xml:space="preserve">
         <value>编辑</value>
     </data>
     <data name="ChatWindow_EditingTextBlock_Text" xml:space="preserve">
@@ -1605,10 +1605,10 @@
     <data name="ChatWindow_ChatHistory_ExportMarkdownMenuItem_Header" xml:space="preserve">
         <value>导出为 Markdown</value>
     </data>
-    <data name="ChatWindow_ChatMessage_ContextFlyout_CopyLink" xml:space="preserve">
+    <data name="ChatMessageControl_ContextFlyout_CopyLink" xml:space="preserve">
         <value>复制链接</value>
     </data>
-    <data name="ChatWindow_ChatMessage_ContextFlyout_OpenLink" xml:space="preserve">
+    <data name="ChatMessageControl_ContextFlyout_OpenLink" xml:space="preserve">
         <value>打开链接</value>
     </data>
     <data name="DebugFeaturesControl_CreateDumpButton_Content" xml:space="preserve">
@@ -2854,5 +2854,11 @@
 当前版本: {0}
 最新版本: {1}
 发布日期: {2}</value>
+    </data>
+    <data name="ChatMessageControl_ContinueButton_Content" xml:space="preserve">
+        <value>继续并重试</value>
+    </data>
+    <data name="ChatMessageControl_ContinueButton_ToolTip" xml:space="preserve">
+        <value>从此处继续并重试，不清除本轮次内已有的助手消息</value>
     </data>
 </root>

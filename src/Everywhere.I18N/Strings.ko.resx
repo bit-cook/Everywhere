@@ -148,7 +148,7 @@
     <data name="ActionChatMessage_Header_WebSearching" xml:space="preserve">
         <value>웹 검색</value>
     </data>
-    <data name="ChatWindow_ChatMessage_Assistant_Regenerate" xml:space="preserve">
+    <data name="ChatMessageControl_RetryButton_Content" xml:space="preserve">
         <value>다시 생성</value>
     </data>
     <data name="MainTrayIcon_Menu_OpenMainWindow" xml:space="preserve">
@@ -792,16 +792,16 @@
     <data name="ChatWindowSettings_ShowChatStatistics_Description" xml:space="preserve">
         <value>활성화되면 각 대화 라운드가 끝날 때 채팅 창에 사용 데이터가 표시됩니다.</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_InputTokenCountRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_InputTokenCountRun" xml:space="preserve">
         <value>입력</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_OutputTokenCountRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_OutputTokenCountRun" xml:space="preserve">
         <value>출력</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_TotalTokenCountRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_TotalTokenCountRun" xml:space="preserve">
         <value>총계</value>
     </data>
-    <data name="ChatWindow_ChatStatisticsTextBlock_ElapsedRun" xml:space="preserve">
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_ElapsedRun" xml:space="preserve">
         <value>총 소요 시간</value>
     </data>
     <data name="HandledChatException_InvalidConfiguration" xml:space="preserve">
@@ -876,7 +876,7 @@
     <data name="PersistentState_VisualContextLengthLimit_Header" xml:space="preserve">
         <value>시각적 맥락 길이 예산</value>
     </data>
-    <data name="ChatWindow_ChatMessage_Assistant_DeepThinking" xml:space="preserve">
+    <data name="ChatMessageControl_Assistant_Reasoning" xml:space="preserve">
         <value>깊은 사고</value>
     </data>
     <data name="ChatFunctionPermissions_ScreenRead" xml:space="preserve">
@@ -1433,7 +1433,7 @@
     <data name="Common_Copy" xml:space="preserve">
         <value>복사</value>
     </data>
-    <data name="ChatWindow_ChatMessage_User_Edit" xml:space="preserve">
+    <data name="ChatMessageControl_EditButton_Content" xml:space="preserve">
         <value>수정</value>
     </data>
     <data name="ChatWindow_EditingTextBlock_Text" xml:space="preserve">
@@ -1604,10 +1604,10 @@
     <data name="ChatWindow_ChatHistory_ExportMarkdownMenuItem_Header" xml:space="preserve">
         <value>마크다운으로 내보내기</value>
     </data>
-    <data name="ChatWindow_ChatMessage_ContextFlyout_CopyLink" xml:space="preserve">
+    <data name="ChatMessageControl_ContextFlyout_CopyLink" xml:space="preserve">
         <value>링크 복사</value>
     </data>
-    <data name="ChatWindow_ChatMessage_ContextFlyout_OpenLink" xml:space="preserve">
+    <data name="ChatMessageControl_ContextFlyout_OpenLink" xml:space="preserve">
         <value>링크 열기</value>
     </data>
     <data name="DebugFeaturesControl_CreateDumpButton_Content" xml:space="preserve">

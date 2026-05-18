@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Messaging;
+using DynamicData;
 using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
@@ -110,6 +111,46 @@ public sealed partial class ChatService : IChatService
             _logger.ToExceptionHandler());
     }
 
+    public void Edit(ChatMessageNode oldNode, UserChatMessage newMessage)
+    {
+        if (oldNode.Message.Role != AuthorRole.User)
+        {
+            throw new InvalidOperationException("Only user messages can be edited.");
+        }
+
+        var chatContext = oldNode.Context;
+        var customAssistant = _settings.Model.SelectedCustomAssistant;
+
+        chatContext.TryExecute(
+            async cancellationToken =>
+            {
+                using var activity = _activitySource.StartActivity();
+                activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
+
+                chatContext.CreateBranchOn(oldNode, newMessage);
+
+                if (customAssistant is null)
+                {
+                    chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
+                    return;
+                }
+
+                ProcessUserChatMessage(chatContext, newMessage, cancellationToken);
+
+                var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
+                chatContext.Add(assistantChatMessage);
+
+                var systemPromptOverride = newMessage.As<UserStrategyChatMessage>()?.Strategy.SystemPrompt;
+                await GenerateAsync(
+                    chatContext,
+                    customAssistant,
+                    assistantChatMessage,
+                    systemPromptOverride: systemPromptOverride,
+                    cancellationToken: cancellationToken);
+            },
+            _logger.ToExceptionHandler());
+    }
+
     public void Retry(ChatMessageNode node)
     {
         if (node.Message.Role != AuthorRole.Assistant)
@@ -140,14 +181,20 @@ public sealed partial class ChatService : IChatService
             _logger.ToExceptionHandler());
     }
 
-    public void Edit(ChatMessageNode originalNode, UserChatMessage newMessage)
+    public void Continue(ChatMessageNode node)
     {
-        if (originalNode.Message.Role != AuthorRole.User)
+        if (node.Message.Role != AuthorRole.Assistant)
         {
-            throw new InvalidOperationException("Only user messages can be edited.");
+            throw new InvalidOperationException("Only assistant messages can be continued.");
         }
 
-        var chatContext = originalNode.Context;
+        var chatContext = node.Context;
+        var branchNodes = chatContext.Items;
+        if (branchNodes.Count == 0 || branchNodes.IndexOf(node) != branchNodes.Count - 1)
+        {
+            throw new InvalidOperationException("Only last assistant message can be continued.");
+        }
+
         var customAssistant = _settings.Model.SelectedCustomAssistant;
 
         chatContext.TryExecute(
@@ -156,26 +203,16 @@ public sealed partial class ChatService : IChatService
                 using var activity = _activitySource.StartActivity();
                 activity?.SetTag("chat.context.id", chatContext.Metadata.Id);
 
-                chatContext.CreateBranchOn(originalNode, newMessage);
-
                 if (customAssistant is null)
                 {
                     chatContext.Add(CreateCustomAssistantNotSelectedErrorAssistantChatMessage());
                     return;
                 }
 
-                ProcessUserChatMessage(chatContext, newMessage, cancellationToken);
-
                 var assistantChatMessage = new AssistantChatMessage { IsBusy = true };
                 chatContext.Add(assistantChatMessage);
 
-                var systemPromptOverride = newMessage.As<UserStrategyChatMessage>()?.Strategy.SystemPrompt;
-                await GenerateAsync(
-                    chatContext,
-                    customAssistant,
-                    assistantChatMessage,
-                    systemPromptOverride: systemPromptOverride,
-                    cancellationToken: cancellationToken);
+                await GenerateAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken: cancellationToken);
             },
             _logger.ToExceptionHandler());
     }
@@ -217,7 +254,6 @@ public sealed partial class ChatService : IChatService
         if (visualElementAttachments.Count == 0) return;
 
         var analyzingContextMessage = new ActionChatMessage(
-            new AuthorRole("action"),
             LucideIconKind.TextSearch,
             LocaleKey.ActionChatMessage_Header_AnalyzingContext)
         {

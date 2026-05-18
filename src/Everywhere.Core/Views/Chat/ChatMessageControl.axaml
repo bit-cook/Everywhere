@@ -118,7 +118,7 @@
     <Setter Property="ClipToBounds" Value="False"/>
     <Setter Property="shadui:BindingAssist.DataTemplates">
       <DataTemplates>
-        <DataTemplate DataType="chat:AssistantChatMessage">
+        <DataTemplate x:DataType="chat:AssistantChatMessage">
           <StackPanel
             Classes="ChatMessage Assistant" Background="Transparent"
             Orientation="Vertical" Spacing="4">
@@ -239,12 +239,12 @@
                         <MenuItem
                           Command="{Binding OpenCommand, DataType=md:Link}"
                           Cursor="Hand"
-                          Header="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_ContextFlyout_OpenLink}}"
+                          Header="{I18N {x:Static LocaleKey.ChatMessageControl_ContextFlyout_OpenLink}}"
                           Icon="{LucideIconContent ExternalLink}"/>
                         <MenuItem
                           Command="{Binding CopyCommand, DataType=md:Link}"
                           Cursor="Hand"
-                          Header="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_ContextFlyout_CopyLink}}"
+                          Header="{I18N {x:Static LocaleKey.ChatMessageControl_ContextFlyout_CopyLink}}"
                           Icon="{LucideIconContent Link}"/>
                         <Separator IsVisible="{Binding $parent[md:MarkdownRenderer].CanCopy}"/>
                         <MenuItem
@@ -262,7 +262,7 @@
                 <DataTemplate x:DataType="chat:AssistantChatMessageReasoningSpan">
                   <v:ChatActionBubble
                     ElapsedSeconds="{Binding ElapsedSeconds}"
-                    Header="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_Assistant_DeepThinking}}"
+                    Header="{I18N {x:Static LocaleKey.ChatMessageControl_Assistant_Reasoning}}"
                     Icon="Brain"
                     IsBusy="{Binding FinishedAt, Converter={x:Static ObjectConverters.IsNull}}"
                     IsExpanded="{Binding $self.IsBusy, Mode=OneWay, Delay=3000}">
@@ -329,45 +329,82 @@
               </ItemsControl.DataTemplates>
             </ItemsControl>
 
-            <Border
-              Margin="4,0" Padding="8,4"
-              HorizontalAlignment="Left"
-              Background="{DynamicResource ErrorColor20}"
-              CornerRadius="4"
-              IsVisible="{Binding ErrorMessageKey, Converter={x:Static ObjectConverters.IsNotNull}, FallbackValue=False}">
-              <SelectableTextBlock
-                Text="{Binding ErrorMessageKey^, FallbackValue={x:Null}}"
-                TextWrapping="Wrap"/>
-            </Border>
+            <v:ConditionalContentControl
+              Margin="4,0"
+              Condition="{Binding ErrorMessageKey, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <v:ConditionalContentControl.TrueContent>
+                <ControlTemplate x:DataType="chat:AssistantChatMessage">
+                  <StackPanel
+                    Orientation="Vertical" Spacing="4">
+                    <Border
+                      Padding="8,4" HorizontalAlignment="Left"
+                      Background="{DynamicResource ErrorColor20}"
+                      CornerRadius="4">
+                      <SelectableTextBlock
+                        Text="{Binding ErrorMessageKey^, FallbackValue={x:Null}}"
+                        TextWrapping="Wrap"/>
+                    </Border>
 
-            <SelectableTextBlock
-              Classes="Muted" Margin="4,0"
-              FontSize="{DynamicResource FontSizeS}">
-              <TextBlock.IsVisible>
+                    <Button
+                      Classes="Primary Compact" HorizontalAlignment="Left"
+                      shadui:ButtonAssist.Icon="{LucideIconContent ChevronsRight}"
+                      shadui:ButtonAssist.IconSize="{DynamicResource FontSizeXl}"
+                      Command="{Binding ViewModel.ContinueCommand, RelativeSource={RelativeSource AncestorType=v:ChatWindow}}"
+                      CommandParameter="{Binding DataContext, RelativeSource={RelativeSource AncestorType=v:ChatMessageControl}}"
+                      Content="{I18N {x:Static LocaleKey.ChatMessageControl_ContinueButton_Content}}"
+                      Focusable="False" ToolTip.Placement="Right"
+                      ToolTip.Tip="{I18N {x:Static LocaleKey.ChatMessageControl_ContinueButton_ToolTip}}">
+                      <Button.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                          <Binding
+                            Path="!IsReadonly"
+                            RelativeSource="{RelativeSource AncestorType=v:ChatMessageItemsControl}"/>
+                          <Binding
+                            Path="IsLast"
+                            RelativeSource="{RelativeSource AncestorType=v:ChatMessageControl}"/>
+                        </MultiBinding>
+                      </Button.IsVisible>
+                    </Button>
+                  </StackPanel>
+                </ControlTemplate>
+              </v:ConditionalContentControl.TrueContent>
+            </v:ConditionalContentControl>
+
+            <v:ConditionalContentControl Margin="4,0">
+              <v:ConditionalContentControl.Condition>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="$parent[v:ChatWindow].ViewModel.Settings.ChatWindow.ShowChatStatistics"/>
                   <Binding Path="!IsBusy"/>
                 </MultiBinding>
-              </TextBlock.IsVisible>
+              </v:ConditionalContentControl.Condition>
 
-              <Run Text="{I18N {x:Static LocaleKey.ChatWindow_ChatStatisticsTextBlock_InputTokenCountRun}}"/>
-              <Run Text="{Binding UsageDetails.InputTokenCount}"/>
-              <Run Text="·"/>
-              <Run Text="{I18N {x:Static LocaleKey.ChatWindow_ChatStatisticsTextBlock_OutputTokenCountRun}}"/>
-              <Run Text="{Binding UsageDetails.OutputTokenCount}"/>
-              <Run Text="·"/>
-              <Run Text="{I18N {x:Static LocaleKey.ChatWindow_ChatStatisticsTextBlock_TotalTokenCountRun}}"/>
-              <Run Text="{Binding UsageDetails.TotalTokenCount}"/>
-              <Run Text="·"/>
-              <Run Text="{Binding UsageDetails.TokensPerSecond, StringFormat='{}{0:F1}', Mode=OneWay}"/>
-              <Run Text="tokens/s"/>
-              <Run Text="·"/>
-              <Run Text="{I18N {x:Static LocaleKey.ChatWindow_ChatStatisticsTextBlock_ElapsedRun}}"/>
-              <Run Text="{Binding ElapsedSeconds, StringFormat='{}{0:F1}s', Mode=OneWay}"/>
-            </SelectableTextBlock>
+              <v:ConditionalContentControl.TrueContent>
+                <ControlTemplate x:DataType="chat:AssistantChatMessage">
+                  <SelectableTextBlock
+                    Classes="Muted"
+                    FontSize="{DynamicResource FontSizeS}">
+                    <Run Text="{I18N {x:Static LocaleKey.ChatMessageControl_ChatStatisticsTextBlock_InputTokenCountRun}}"/>
+                    <Run Text="{Binding UsageDetails.InputTokenCount}"/>
+                    <Run Text="·"/>
+                    <Run Text="{I18N {x:Static LocaleKey.ChatMessageControl_ChatStatisticsTextBlock_OutputTokenCountRun}}"/>
+                    <Run Text="{Binding UsageDetails.OutputTokenCount}"/>
+                    <Run Text="·"/>
+                    <Run Text="{I18N {x:Static LocaleKey.ChatMessageControl_ChatStatisticsTextBlock_TotalTokenCountRun}}"/>
+                    <Run Text="{Binding UsageDetails.TotalTokenCount}"/>
+                    <Run Text="·"/>
+                    <Run Text="{Binding UsageDetails.TokensPerSecond, StringFormat='{}{0:F1}', Mode=OneWay}"/>
+                    <Run Text="tokens/s"/>
+                    <Run Text="·"/>
+                    <Run Text="{I18N {x:Static LocaleKey.ChatMessageControl_ChatStatisticsTextBlock_ElapsedRun}}"/>
+                    <Run Text="{Binding ElapsedSeconds, StringFormat='{}{0:F1}s', Mode=OneWay}"/>
+                  </SelectableTextBlock>
+                </ControlTemplate>
+              </v:ConditionalContentControl.TrueContent>
+            </v:ConditionalContentControl>
 
             <StackPanel
-              x:Name="ChatMessageOperationPanel" Orientation="Horizontal">
+              x:Name="ChatMessageOperationPanel" shadui:Timeline.Anchor="0,0"
+              shadui:Timeline.IsBreak="True" Orientation="Horizontal">
               <StackPanel.IsVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
                   <Binding Path="!$parent[v:ChatMessageItemsControl].IsReadonly"/>
@@ -388,7 +425,7 @@
                 CommandParameter="{Binding $parent[ContentControl].DataContext}"
                 Content="{LucideIconContent RefreshCcw}"
                 Focusable="False"
-                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_Assistant_Regenerate}}"/>
+                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatMessageControl_RetryButton_Content}}"/>
               <Button
                 Classes="Ghost Compact Uniform"
                 Command="{Binding $parent[v:ChatWindow].ViewModel.CopyCommand}"
@@ -403,8 +440,7 @@
         <DataTemplate x:DataType="chat:UserStrategyChatMessage">
           <StackPanel
             Classes="ChatMessage User" Margin="36,0,0,0"
-            HorizontalAlignment="Right" shadui:Timeline.Anchor="0,0"
-            shadui:Timeline.IsBreak="True" Background="Transparent"
+            HorizontalAlignment="Right" Background="Transparent"
             Orientation="Vertical" Spacing="4">
             <StackPanel.Styles>
               <Style Selector="Border.Editing">
@@ -457,7 +493,7 @@
                 CommandParameter="{Binding $parent[ContentControl].DataContext}"
                 Content="{LucideIconContent SquarePen}"
                 Focusable="False"
-                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_User_Edit}}"/>
+                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatMessageControl_EditButton_Content}}"/>
               <Button
                 Classes="Ghost Compact Uniform"
                 Command="{Binding $parent[v:ChatWindow].ViewModel.CopyCommand}"
@@ -472,8 +508,7 @@
         <DataTemplate DataType="chat:UserChatMessage">
           <StackPanel
             Classes="ChatMessage User" Margin="36,0,0,0"
-            HorizontalAlignment="Right" shadui:Timeline.Anchor="0,0"
-            shadui:Timeline.IsBreak="True" Background="Transparent"
+            HorizontalAlignment="Right" Background="Transparent"
             Orientation="Vertical" Spacing="4">
             <StackPanel.Styles>
               <Style Selector="Border.Editing">
@@ -514,7 +549,7 @@
                 CommandParameter="{Binding $parent[ContentControl].DataContext}"
                 Content="{LucideIconContent SquarePen}"
                 Focusable="False"
-                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_ChatMessage_User_Edit}}"/>
+                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatMessageControl_EditButton_Content}}"/>
               <Button
                 Classes="Ghost Compact Uniform"
                 Command="{Binding $parent[v:ChatWindow].ViewModel.CopyCommand}"
@@ -523,6 +558,24 @@
                 Focusable="False"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Copy}}"/>
             </StackPanel>
+          </StackPanel>
+        </DataTemplate>
+
+        <DataTemplate DataType="chat:UserActionChatMessage">
+          <StackPanel
+            Classes="ChatMessage User" Margin="36,0,0,0"
+            HorizontalAlignment="Right" Background="Transparent"
+            Orientation="Vertical" Spacing="4">
+            <Border
+              Classes="ChatBubble" HorizontalAlignment="Right">
+              <StackPanel
+                Orientation="Horizontal" Spacing="2">
+                <LucideIcon
+                  Kind="{Binding Icon}"
+                  Size="{DynamicResource FontSizeXl}"/>
+                <TextBlock Text="{Binding HeaderKey^, FallbackValue={x:Null}}"/>
+              </StackPanel>
+            </Border>
           </StackPanel>
         </DataTemplate>
 
