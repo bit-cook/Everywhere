@@ -361,7 +361,7 @@ partial class PresetBasedAssistantConfigurator
                 },
                 new ModelDefinitionTemplate
                 {
-                    ModelId = "gemini-3.1-flash-lite-preview",
+                    ModelId = "gemini-3.1-flash-lite",
                     Name = "Gemini 3.1 Flash-Lite",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
