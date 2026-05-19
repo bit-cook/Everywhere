@@ -806,17 +806,14 @@ public class HandledChatException(
         var context = new ExceptionParsingContext(exception);
 
         // First layer: provider-specific exceptions
-        if (!new ParserChain<ClientResultExceptionParser,
-                ParserChain<HttpOperationExceptionParser,
-                    ParserChain<AnthropicExceptionParser,
-                        ParserChain<OllamaExceptionParser,
-                            HttpRequestExceptionParser>>>>().TryParse(ref context))
-        {
-            // Second layer: general network/socket exceptions
-            new ParserChain<GeneralChatExceptionParser,
-                ParserChain<SocketExceptionParser,
-                    HttpStatusCodeParser>>().TryParse(ref context);
-        }
+        new ParserChain<ClientResultExceptionParser,
+            ParserChain<HttpOperationExceptionParser,
+                ParserChain<AnthropicExceptionParser,
+                    ParserChain<OllamaExceptionParser,
+                        ParserChain<HttpRequestExceptionParser,
+                            ParserChain<GeneralChatExceptionParser,
+                                ParserChain<SocketExceptionParser,
+                                    HttpStatusCodeParser>>>>>>>().TryParse(ref context);
 
         return new HandledChatException(
             originalException: exception,
@@ -827,6 +824,13 @@ public class HandledChatException(
             SocketError = context.SocketError,
             ModelId = kernelMixin?.ModelId,
         };
+    }
+
+    public static HandledChatException FromErrorCode(Exception exception, string code)
+    {
+        return new HandledChatException(
+            originalException: exception,
+            type: IExceptionParser.ParseMessage(code) ?? HandledChatExceptionType.Unknown);
     }
 
     private ref struct ExceptionParsingContext(Exception exception)
@@ -858,7 +862,7 @@ public class HandledChatException(
         /// <param name="message"></param>
         /// <param name="fallback"></param>
         /// <returns></returns>
-        protected static HandledChatExceptionType? ParseMessage(string? message, HandledChatExceptionType? fallback = null)
+        static HandledChatExceptionType? ParseMessage(string? message, HandledChatExceptionType? fallback = null)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -945,6 +949,7 @@ public class HandledChatException(
             }
 
             context.StatusCode = (HttpStatusCode)clientResult.Status;
+            context.ExceptionType = IExceptionParser.ParseMessage(clientResult.Message);
             return false;
         }
     }

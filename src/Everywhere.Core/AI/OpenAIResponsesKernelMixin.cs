@@ -1,5 +1,6 @@
 ﻿using System.ClientModel;
 using System.ClientModel.Primitives;
+using Everywhere.Common;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -57,14 +58,16 @@ public sealed class OpenAIResponsesKernelMixin : KernelMixin
                 for (var i = 0; i < update.Contents.Count; i++)
                 {
                     var content = update.Contents[i];
-                    if (content is FunctionCallContent { Name.Length: > 0, CallId: null or { Length: 0 } } missingIdContent)
+                    update.Contents[i] = content switch
                     {
-                        // Generate a unique ToolCallId for the function call update.
-                        update.Contents[i] = new FunctionCallContent(
-                            Guid.CreateVersion7().ToString("N"),
-                            missingIdContent.Name,
-                            missingIdContent.Arguments);
-                    }
+                        FunctionCallContent { Name.Length: > 0, CallId: null or { Length: 0 } } missingIdContent =>
+                            // Generate a unique ToolCallId for the function call update.
+                            new FunctionCallContent(Guid.CreateVersion7().ToString("N"), missingIdContent.Name, missingIdContent.Arguments),
+                        ErrorContent errorContent => throw HandledChatException.FromErrorCode(
+                            new Exception(errorContent.Message),
+                            errorContent.ErrorCode ?? errorContent.Message),
+                        _ => update.Contents[i]
+                    };
                 }
 
                 yield return update;
