@@ -95,7 +95,7 @@ public sealed partial class OAuthCloudClient :
         {
             LastLoginErrorKey = null;
 
-            if (await _session.GetValidTokenDataAsync(true, cancellationToken) != null)
+            if (await TryGetExistingSessionTokenForLoginAsync(cancellationToken) != null)
             {
                 LoginStatus = CloudClientLoginStatus.AutoLoggingIn;
                 await ReloadUserDataAsync(true, cancellationToken);
@@ -151,6 +151,22 @@ public sealed partial class OAuthCloudClient :
         }
     }
 
+    private async Task<TokenData?> TryGetExistingSessionTokenForLoginAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _session.GetValidTokenDataAsync(true, cancellationToken);
+        }
+        catch (OAuthTokenRequestException ex) when (ex.IsRefreshTokenRejected)
+        {
+            _logger.LogInformation(
+                ex,
+                "Stored OAuth refresh token was rejected by the server. Clearing local session before interactive login.");
+            _session.ClearLocalSession();
+            return null;
+        }
+    }
+
     public Task LogoutAsync(CancellationToken cancellationToken) => LogoutCoreAsync(true, cancellationToken);
 
     private async Task LogoutCoreAsync(bool acquireLock, CancellationToken cancellationToken)
@@ -180,7 +196,7 @@ public sealed partial class OAuthCloudClient :
         {
             // Ensure we have valid tokens, triggering a refresh if necessary.
             // According to BetterAuth docs, /userinfo needs to be authenticated with the Access Token (Opaque), not the ID token (JWT).
-            var tokenData = await _session.GetValidTokenDataAsync(true, cancellationToken);
+            var tokenData = await _session.GetValidTokenDataAsync(throwOnError, cancellationToken);
             var accessToken = tokenData?.AccessToken;
 
             if (string.IsNullOrEmpty(accessToken))
@@ -380,7 +396,22 @@ public sealed partial class OAuthCloudClient :
             // Try to refresh token and restore user data silently if a refresh token exists
             if (_session.HasRefreshToken)
             {
-                var tokenData = await _session.GetValidTokenDataAsync(true, CancellationToken.None);
+                TokenData? tokenData;
+                try
+                {
+                    tokenData = await _session.GetValidTokenDataAsync(true, CancellationToken.None);
+                }
+                catch (OAuthTokenRequestException ex) when (ex.IsRefreshTokenRejected)
+                {
+                    _logger.LogInformation(
+                        ex,
+                        "Stored OAuth refresh token was rejected during silent login. Clearing local session.");
+                    _session.ClearLocalSession();
+                    LoginStatus = CloudClientLoginStatus.LoginFailed;
+                    LastLoginErrorKey = ex.FriendlyMessageKey;
+                    return;
+                }
+
                 if (tokenData is not null)
                 {
                     await ReloadUserDataAsync(true, CancellationToken.None);
@@ -439,6 +470,119 @@ public sealed partial class OAuthCloudClient :
         }
 
         public string ToJson() => JsonSerializer.Serialize(this, TokenDataJsonSerializerContext.Default.TokenData);
+    }
+
+    private sealed partial record OAuthErrorResponse(
+        [property: JsonPropertyName("error")] string? Error,
+        [property: JsonPropertyName("error_description")] string? ErrorDescription = null,
+        [property: JsonPropertyName("error_uri")] string? ErrorUri = null
+    )
+    {
+        [JsonSerializable(typeof(OAuthErrorResponse))]
+        public partial class OAuthErrorResponseJsonSerializerContext : JsonSerializerContext;
+
+        public static OAuthErrorResponse? FromJson(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+
+            try
+            {
+                return JsonSerializer.Deserialize(json, OAuthErrorResponseJsonSerializerContext.Default.OAuthErrorResponse);
+            }
+            catch (JsonException)
+            {
+                return null;
+            }
+        }
+    }
+
+    private sealed class OAuthTokenRequestException : HandledException
+    {
+        public HttpStatusCode StatusCode { get; }
+        public string Error { get; }
+        public string ErrorDescription { get; }
+        public string? ErrorUri { get; }
+
+        public bool IsRefreshTokenRejected => Error is "invalid_grant" or "invalid_token";
+
+        private OAuthTokenRequestException(
+            HttpStatusCode statusCode,
+            string error,
+            string errorDescription,
+            string? errorUri
+        ) : base(
+            new HttpRequestException(
+                FormatExceptionMessage(statusCode, error, errorDescription, errorUri),
+                null,
+                statusCode),
+            CreateFriendlyMessageKey(statusCode, error, errorDescription, errorUri),
+            showDetails: false)
+        {
+            StatusCode = statusCode;
+            Error = error;
+            ErrorDescription = errorDescription;
+            ErrorUri = errorUri;
+        }
+
+        public static OAuthTokenRequestException FromResponse(HttpStatusCode statusCode, string responseContent)
+        {
+            var errorResponse = OAuthErrorResponse.FromJson(responseContent);
+            var error = Normalize(errorResponse?.Error) ?? $"http_{(int)statusCode}";
+            var errorDescription =
+                Normalize(errorResponse?.ErrorDescription) ??
+                NormalizeNonJsonResponse(responseContent) ??
+                statusCode.ToString();
+            var errorUri = Normalize(errorResponse?.ErrorUri);
+
+            return new OAuthTokenRequestException(statusCode, error, errorDescription, errorUri);
+        }
+
+        private static IDynamicResourceKey CreateFriendlyMessageKey(
+            HttpStatusCode statusCode,
+            string error,
+            string errorDescription,
+            string? errorUri)
+        {
+            var key = error switch
+            {
+                "invalid_grant" or "invalid_token" => LocaleKey.OAuthCloudClient_TokenInvalidGrant,
+                "invalid_client" => LocaleKey.OAuthCloudClient_TokenInvalidClient,
+                "server_error" or "temporarily_unavailable" => LocaleKey.OAuthCloudClient_TokenEndpointUnavailable,
+                _ when (int)statusCode >= 500 => LocaleKey.OAuthCloudClient_TokenEndpointUnavailable,
+                _ => LocaleKey.OAuthCloudClient_TokenRejected
+            };
+
+            return new FormattedDynamicResourceKey(
+                key,
+                new DirectResourceKey(error),
+                new DirectResourceKey(FormatErrorDescription(errorDescription, errorUri)));
+        }
+
+        private static string FormatExceptionMessage(
+            HttpStatusCode statusCode,
+            string error,
+            string errorDescription,
+            string? errorUri)
+        {
+            var message = $"OAuth token request failed with {(int)statusCode} {statusCode}: {error}. {errorDescription}";
+            return string.IsNullOrWhiteSpace(errorUri) ? message : $"{message} {errorUri}";
+        }
+
+        private static string FormatErrorDescription(string errorDescription, string? errorUri) =>
+            string.IsNullOrWhiteSpace(errorUri) ? errorDescription : $"{errorDescription} ({errorUri})";
+
+        private static string? Normalize(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+            value = value.Trim();
+            return value.Length <= 500 ? value : value[..500];
+        }
+
+        private static string? NormalizeNonJsonResponse(string responseContent)
+        {
+            var normalized = Normalize(responseContent);
+            return normalized?.ReplaceLineEndings(" ");
+        }
     }
 
     /// <summary>
@@ -603,19 +747,32 @@ public sealed partial class OAuthCloudClient :
 
         public void SetToken(TokenData data)
         {
-            _tokenData = data;
             try
             {
                 OsSecretVault.SetSecret(ServiceName, TokenDataKey, data.ToJson());
+                _tokenData = data;
             }
             catch (Exception ex)
             {
+                _tokenData = data;
                 ex = HandledSystemException.Handle(ex);
-                logger.LogWarning(ex, "Failed to save token data to secure storage");
+                logger.LogWarning(
+                    ex,
+                    "Failed to save token data to secure storage. Clearing persisted token to avoid reusing a stale refresh token later.");
+
+                try
+                {
+                    OsSecretVault.DeleteSecret(ServiceName, TokenDataKey);
+                }
+                catch (Exception deleteEx)
+                {
+                    deleteEx = HandledSystemException.Handle(deleteEx);
+                    logger.LogWarning(deleteEx, "Failed to clear token data from secure storage after save failure");
+                }
             }
         }
 
-        private void Clear()
+        public void ClearLocalSession()
         {
             _tokenData = null;
             try
@@ -672,11 +829,21 @@ public sealed partial class OAuthCloudClient :
                 SetToken(newTokenData);
                 return true;
             }
+            catch (OAuthTokenRequestException ex) when (!throwOnError && ex.IsRefreshTokenRejected)
+            {
+                logger.LogWarning(
+                    ex,
+                    "Refresh token rejected by server. Clearing local session. OAuth error: {OAuthError}; description: {OAuthErrorDescription}",
+                    ex.Error,
+                    ex.ErrorDescription);
+                ClearLocalSession();
+                return false;
+            }
             catch (HttpRequestException ex) when (!throwOnError && ex.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.BadRequest)
             {
                 // Refresh token is explicitly rejected by the server (e.g., revoked, expired)
                 logger.LogWarning(ex, "Refresh token rejected by server. Clearing local session.");
-                Clear();
+                ClearLocalSession();
                 return false;
             }
             catch (Exception ex) when (!throwOnError)
@@ -701,7 +868,7 @@ public sealed partial class OAuthCloudClient :
             var accessToken = _tokenData.AccessToken;
             var refreshToken = _tokenData.RefreshToken;
 
-            Clear(); // Clear locally first to ensure UI reflects logout immediately
+            ClearLocalSession(); // Clear locally first to ensure UI reflects logout immediately
 
             if (!string.IsNullOrEmpty(accessToken)) await RevokeTokenInternalAsync(httpClient, accessToken, "access_token", cancellationToken);
             if (!string.IsNullOrEmpty(refreshToken)) await RevokeTokenInternalAsync(httpClient, refreshToken, "refresh_token", cancellationToken);
@@ -744,7 +911,10 @@ public sealed partial class OAuthCloudClient :
 
         var response = await httpClient.SendAsync(request, ct);
         var content = await response.Content.ReadAsStringAsync(ct);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            throw OAuthTokenRequestException.FromResponse(response.StatusCode, content);
+        }
 
         var tokenData = TokenData.FromJson(content);
         return tokenData ?? throw new HttpRequestException("Failed to parse token response. Invalid format.", null, response.StatusCode);
