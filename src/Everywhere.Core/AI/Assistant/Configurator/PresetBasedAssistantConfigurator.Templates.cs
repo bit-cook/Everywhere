@@ -403,8 +403,8 @@ partial class PresetBasedAssistantConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 1_048_576,
-                    OutputLimit = 393_216
+                    ContextLimit = 1_000_000,
+                    OutputLimit = 384_000
                 },
                 new ModelDefinitionTemplate
                 {
@@ -414,8 +414,8 @@ partial class PresetBasedAssistantConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 1_048_576,
-                    OutputLimit = 393_216,
+                    ContextLimit = 1_000_000,
+                    OutputLimit = 384_000,
                     IsDefault = true,
                     Specializations = ModelSpecializations.TitleGeneration | ModelSpecializations.ContextCompression
                 }
@@ -455,55 +455,6 @@ partial class PresetBasedAssistantConfigurator
                     OutputModalities = Modalities.Text,
                     ContextLimit = 262_144,
                     OutputLimit = 262_144
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "kimi-k2-0905-preview",
-                    Name = "Kimi K2",
-                    SupportsReasoning = false,
-                    SupportsToolCall = true,
-                    DeprecationDate = new DateOnly(2026, 5, 25),
-                    InputModalities = Modalities.Text,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 262_144,
-                    OutputLimit = 262_144,
-                    Specializations = ModelSpecializations.TitleGeneration | ModelSpecializations.ContextCompression
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "kimi-k2-turbo-preview",
-                    Name = "Kimi K2 Turbo",
-                    SupportsReasoning = false,
-                    SupportsToolCall = true,
-                    DeprecationDate = new DateOnly(2026, 5, 25),
-                    InputModalities = Modalities.Text,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 262_144,
-                    OutputLimit = 262_144,
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "kimi-k2-thinking",
-                    Name = "Kimi K2 Thinking",
-                    SupportsReasoning = true,
-                    SupportsToolCall = true,
-                    DeprecationDate = new DateOnly(2026, 5, 25),
-                    InputModalities = Modalities.Text,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 262_144,
-                    OutputLimit = 262_144,
-                },
-                new ModelDefinitionTemplate
-                {
-                    ModelId = "kimi-k2-thinking-turbo",
-                    Name = "Kimi K2 Thinking Turbo",
-                    SupportsReasoning = true,
-                    SupportsToolCall = true,
-                    DeprecationDate = new DateOnly(2026, 5, 25),
-                    InputModalities = Modalities.Text,
-                    OutputModalities = Modalities.Text,
-                    ContextLimit = 262_144,
-                    OutputLimit = 262_144,
                 }
             ]
         },
@@ -620,7 +571,7 @@ partial class PresetBasedAssistantConfigurator
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_048_576,
-                    OutputLimit = 65_536,
+                    OutputLimit = 131_072,
                     IsDefault = true,
                     Specializations = ModelSpecializations.TitleGeneration | ModelSpecializations.ContextCompression
                 },
@@ -643,7 +594,7 @@ partial class PresetBasedAssistantConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 204_800,
+                    ContextLimit = 196_608,
                     OutputLimit = 131_072,
                 },
                 new ModelDefinitionTemplate
@@ -654,7 +605,7 @@ partial class PresetBasedAssistantConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 163_840,
+                    ContextLimit = 131_072,
                     OutputLimit = 65_536,
                 },
                 new ModelDefinitionTemplate
@@ -663,7 +614,7 @@ partial class PresetBasedAssistantConfigurator
                     Name = "Anthropic: Claude Sonnet 4.6",
                     SupportsReasoning = true,
                     SupportsToolCall = true,
-                    InputModalities = Modalities.Text | Modalities.Image,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_000_000,
                     OutputLimit = 128_000,
@@ -709,8 +660,8 @@ partial class PresetBasedAssistantConfigurator
                     SupportsToolCall = true,
                     InputModalities = Modalities.Text,
                     OutputModalities = Modalities.Text,
-                    ContextLimit = 204_800,
-                    OutputLimit = 131_072,
+                    ContextLimit = 196_608,
+                    OutputLimit = 196_608,
                 },
                 new ModelDefinitionTemplate
                 {
@@ -732,7 +683,7 @@ partial class PresetBasedAssistantConfigurator
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Audio | Modalities.Video | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 1_048_576,
-                    OutputLimit = 65_536,
+                    OutputLimit = 65_535,
                 },
                 new ModelDefinitionTemplate
                 {
@@ -743,7 +694,7 @@ partial class PresetBasedAssistantConfigurator
                     InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
                     OutputModalities = Modalities.Text,
                     ContextLimit = 200_000,
-                    OutputLimit = 32_000,
+                    OutputLimit = 64_000,
                 },
                 new ModelDefinitionTemplate
                 {
