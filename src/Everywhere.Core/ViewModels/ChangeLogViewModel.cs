@@ -185,7 +185,7 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
             {
                 var progress = new Progress<double>();
                 var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                ToastManager
+                ToastHost
                     .CreateToast(LocaleResolver.Common_Info)
                     .WithContent(LocaleResolver.CommonSettings_SoftwareUpdate_Toast_DownloadingUpdate)
                     .WithProgress(progress)

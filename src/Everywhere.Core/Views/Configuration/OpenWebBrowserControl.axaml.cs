@@ -7,11 +7,7 @@ using ShadUI;
 
 namespace Everywhere.Views;
 
-public partial class OpenWebBrowserControl(
-    IWebBrowserHost webBrowserHost,
-    ToastManager toastManager,
-    ILogger<RestartAsAdministratorControl> logger
-) : TemplatedControl
+public partial class OpenWebBrowserControl(IWebBrowserHost webBrowserHost, ILogger<OpenWebBrowserControl> logger) : TemplatedControl
 {
     [RelayCommand]
     private async Task OpenBrowserAsync()
@@ -24,12 +20,7 @@ public partial class OpenWebBrowserControl(
         {
             ex = HandledSystemException.Handle(ex);
             logger.LogInformation(ex, "Failed to open web browser");
-            toastManager
-                .CreateToast(LocaleResolver.Common_Error)
-                .WithContent(ex.GetFriendlyMessage())
-                .DismissOnClick()
-                .OnBottomRight()
-                .ShowError();
+            ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
         }
     }
 }

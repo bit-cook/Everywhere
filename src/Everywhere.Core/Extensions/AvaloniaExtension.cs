@@ -13,8 +13,8 @@ public static class AvaloniaExtension
     public static AnonymousExceptionHandler ToExceptionHandler(this DialogManager dialogManager) => new((exception, message, source, lineNumber) =>
         dialogManager.CreateDialog(exception.GetFriendlyMessage().ToString() ?? "Unknown error", $"[{source}:{lineNumber}] {message ?? "Error"}"));
 
-    public static AnonymousExceptionHandler ToExceptionHandler(this ToastManager toastManager) => new((exception, message, source, lineNumber) =>
-        toastManager.CreateToast($"[{source}:{lineNumber}] {message ?? "Error"}")
+    public static AnonymousExceptionHandler ToExceptionHandler(this ToastHost toastHost) => new((exception, message, source, lineNumber) =>
+        toastHost.CreateToast($"[{source}:{lineNumber}] {message ?? "Error"}")
             .WithContent(exception.GetFriendlyMessage().ToTextBlock())
             .DismissOnClick()
             .ShowError());
@@ -34,7 +34,7 @@ public static class AvaloniaExtension
         {
             return services
                 .AddTransient<DialogManager>(_ => TryGetReactiveHost()?.DialogHost.Manager ?? new DialogManager())
-                .AddTransient<ToastManager>(_ => TryGetReactiveHost()?.ToastHost.Manager ?? new ToastManager());
+                .AddTransient<ToastHost>(_ => TryGetReactiveHost()?.ToastHost ?? new ToastHost());
 
             IReactiveHost? TryGetReactiveHost()
             {
@@ -44,26 +44,6 @@ public static class AvaloniaExtension
                     lifetime.MainWindow as IReactiveHost ??
                     lifetime.Windows.AsValueEnumerable().OfType<IReactiveHost>().FirstOrDefault();
             }
-        }
-
-        public IServiceCollection AddDialogAndToastExceptionHandler()
-        {
-            return services
-                .AddKeyedSingleton<IExceptionHandler>(
-                    typeof(DialogManager),
-                    (provider, _) => new DelegateExceptionHandler(() => provider.GetRequiredService<DialogManager>().ToExceptionHandler()))
-                .AddKeyedSingleton<IExceptionHandler>(
-                    typeof(ToastManager),
-                    (provider, _) => new DelegateExceptionHandler(() => provider.GetRequiredService<ToastManager>().ToExceptionHandler()));
-        }
-    }
-
-    private sealed class DelegateExceptionHandler(Func<IExceptionHandler> handlerFactory) : IExceptionHandler
-    {
-        public void HandleException(Exception exception, string? message = null, object? source = null, int lineNumber = 0)
-        {
-            // ReSharper disable once ExplicitCallerInfoArgument
-            handlerFactory().HandleException(exception, message, source, lineNumber);
         }
     }
 }

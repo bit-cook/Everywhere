@@ -21,9 +21,7 @@ public static class ServiceExtension
     {
         public IServiceCollection AddAvaloniaBasicServices()
         {
-            return services
-                .AddDialogManagerAndToastManager()
-                .AddDialogAndToastExceptionHandler();
+            return services.AddDialogManagerAndToastManager();
         }
 
         public IServiceCollection AddViewsAndViewModels() =>

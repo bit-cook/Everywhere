@@ -1,4 +1,3 @@
-using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Common;
 using ShadUI;
@@ -27,10 +26,7 @@ public sealed partial class TerminalPluginSettings : ObservableObject
 
             if (value)
             {
-                Dispatcher.UIThread.PostOnDemand(() => ServiceLocator.Resolve<ToastManager>().CreateToast(LocaleResolver.Common_Warning)
-                    .WithContent(LocaleResolver.TerminalPluginSettings_AutoApprove_WarningToast_Content)
-                    .WithDurationSeconds(5d)
-                    .ShowWarning());
+                ToastManager.Warning(LocaleResolver.Common_Warning, LocaleResolver.TerminalPluginSettings_AutoApprove_WarningToast_Content);
             }
         }
     }

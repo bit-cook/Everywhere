@@ -271,12 +271,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to update recent chat context history");
-            Dispatcher.UIThread.Post(() =>
-                ServiceLocator
-                    .Resolve<ToastManager>()
-                    .CreateToast(LocaleResolver.Common_Error)
-                    .WithContent(ex.GetFriendlyMessage())
-                    .ShowError());
+            ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
         }
     }
 
@@ -295,12 +290,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load more chat context history");
-            Dispatcher.UIThread.Post(() =>
-                ServiceLocator
-                    .Resolve<ToastManager>()
-                    .CreateToast(LocaleResolver.Common_Error)
-                    .WithContent(ex.GetFriendlyMessage())
-                    .ShowError());
+            ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
         }
     }
 
@@ -366,9 +356,8 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                             currentProgress += 0.2d;
                             progress.To<IProgress<double>>().Report(currentProgress);
                         });
-                    ServiceLocator
-                        .Resolve<ToastManager>()
-                        .CreateToast(
+                    ToastManager
+                        .Create(
                             new FormattedDynamicResourceKey(
                                 LocaleKey.ChatContextManager_DeletingToast_Content,
                                 new DirectResourceKey(metadata.ActualTopic ?? string.Empty)).ToString())
@@ -490,14 +479,12 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
 
             await Dispatcher.UIThread.InvokeOnDemandAsync(() =>
             {
-                ServiceLocator
-                    .Resolve<ToastManager>()
-                    .CreateToast(LocaleResolver.Common_Error)
-                    .WithContent(
+                ToastManager
+                    .Error(
+                        LocaleResolver.Common_Error,
                         new FormattedDynamicResourceKey(
                             LocaleKey.ChatContextManager_LoadChatContextFailedToast_Content,
-                            ex.GetFriendlyMessage()).ToTextBlock())
-                    .ShowError();
+                            ex.GetFriendlyMessage()));
             });
 
             if (deleteIfFailed)

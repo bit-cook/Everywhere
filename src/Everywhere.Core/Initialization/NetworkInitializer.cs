@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using Avalonia.Threading;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Utilities;
@@ -61,16 +60,7 @@ public sealed class NetworkInitializer : IAsyncInitializer
 
             if (notifyOnError)
             {
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    ServiceLocator
-                        .Resolve<ToastManager>()
-                        .CreateToast(LocaleResolver.Common_Error)
-                        .WithContent(ex.GetFriendlyMessage().ToTextBlock())
-                        .DismissOnClick()
-                        .OnBottomRight()
-                        .ShowError();
-                });
+                ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage().ToTextBlock());
             }
         }
     }

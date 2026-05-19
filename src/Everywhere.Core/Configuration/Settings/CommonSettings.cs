@@ -91,7 +91,7 @@ public sealed partial class CommonSettings : SettingsBase, ISettingsCategory
             {
                 ex = HandledSystemException.Handle(ex); // maybe blocked by UAC or antivirus, handle it gracefully
                 Log.ForContext<CommonSettings>().Error(ex, "Failed to set user startup enabled.");
-                ShowErrorToast(ex);
+                ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
             }
         }
     }
@@ -119,7 +119,7 @@ public sealed partial class CommonSettings : SettingsBase, ISettingsCategory
             {
                 ex = HandledSystemException.Handle(ex); // maybe blocked by UAC or antivirus, handle it gracefully
                 Log.ForContext<CommonSettings>().Error(ex, "Failed to set administrator startup enabled.");
-                ShowErrorToast(ex);
+                ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
             }
 
             OnPropertyChanged();
@@ -145,7 +145,7 @@ public sealed partial class CommonSettings : SettingsBase, ISettingsCategory
             {
                 ex = HandledSystemException.Handle(ex); // maybe blocked by UAC or antivirus, handle it gracefully
                 Log.ForContext<CommonSettings>().Error(ex, "Failed to set user startup enabled.");
-                ShowErrorToast(ex);
+                ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
             }
         }
     }
@@ -169,11 +169,4 @@ public sealed partial class CommonSettings : SettingsBase, ISettingsCategory
         LocaleKey.SoftwareSettings_DebugFeatures_Header,
         LocaleKey.SoftwareSettings_DebugFeatures_Description)]
     public SettingsControl<DebugFeaturesControl> DebugFeatures { get; } = new();
-
-    private static void ShowErrorToast(Exception ex) => ServiceLocator.Resolve<ToastManager>()
-        .CreateToast(LocaleResolver.Common_Error)
-        .WithContent(ex.GetFriendlyMessage())
-        .DismissOnClick()
-        .OnBottomRight()
-        .ShowError();
 }

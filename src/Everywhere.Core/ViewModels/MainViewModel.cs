@@ -170,7 +170,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<Ma
             if (previousVersion < currentVersion)
             {
                 NavigateTo(_serviceProvider.GetRequiredService<ChangeLogView>());
-                ToastManager
+                ToastHost
                     .CreateToast(LocaleResolver.MainViewModel_UpgradeSuccessfulToast_Title)
                     .WithDurationSeconds(5)
                     .ShowAsync()

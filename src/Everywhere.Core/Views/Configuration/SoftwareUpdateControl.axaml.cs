@@ -10,7 +10,6 @@ namespace Everywhere.Views;
 public partial class SoftwareUpdateControl(
     Settings settings,
     ISoftwareUpdater softwareUpdater,
-    ToastManager toastManager,
     IServiceProvider serviceProvider
 ) : TemplatedControl
 {
@@ -44,12 +43,7 @@ public partial class SoftwareUpdateControl(
         catch (Exception ex)
         {
             ex = new HandledException(ex, new DynamicResourceKey(LocaleKey.CommonSettings_SoftwareUpdate_Toast_CheckForUpdatesFailed_Content));
-            toastManager
-                .CreateToast(LocaleResolver.Common_Error)
-                .WithContent(ex.GetFriendlyMessage())
-                .DismissOnClick()
-                .OnBottomRight()
-                .ShowError();
+            ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
         }
     }
 }

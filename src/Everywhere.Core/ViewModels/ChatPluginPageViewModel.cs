@@ -133,14 +133,14 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
 
             if (count == 0)
             {
-                ToastManager
+                ToastHost
                     .CreateToast(LocaleResolver.ChatPluginPageViewModel_ImportMcpPlugin_NotFoundToast_Title)
                     .OnBottomRight()
                     .ShowWarning();
             }
             else if (count < configurations.Count)
             {
-                ToastManager
+                ToastHost
                     .CreateToast(
                         LocaleResolver.ChatPluginPageViewModel_ImportMcpPlugin_PartialSuccessToast_Title.Format(count, configurations.Count - count))
                     .OnBottomRight()
@@ -148,7 +148,7 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
             }
             else
             {
-                ToastManager
+                ToastHost
                     .CreateToast(LocaleResolver.ChatPluginPageViewModel_ImportMcpPlugin_SuccessToast_Title.Format(count))
                     .OnBottomRight()
                     .ShowSuccess();
@@ -387,7 +387,7 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
         if (logEntries is not { Count: > 0 }) return;
 
         await App.Clipboard.SetTextAsync(string.Join('\n', logEntries));
-        ToastManager
+        ToastHost
             .CreateToast("Logs copied to clipboard.")
             .OnBottomRight()
             .ShowSuccess();

@@ -100,7 +100,7 @@ public partial class CustomAssistantPageViewModel(IKernelMixinFactory kernelMixi
         {
             kernelMixin = kernelMixinFactory.Create(customAssistant);
             await kernelMixin.CheckConnectivityAsync(cancellationToken);
-            ToastManager
+            ToastHost
                 .CreateToast(LocaleResolver.CustomAssistantPageViewModel_CheckConnectivity_SuccessToast_Title)
                 .DismissOnClick()
                 .ShowSuccess();
@@ -113,7 +113,7 @@ public partial class CustomAssistantPageViewModel(IKernelMixinFactory kernelMixi
                 "Failed to check connectivity key for endpoint {ProviderId} and model {ModelId}",
                 customAssistant.Endpoint,
                 customAssistant.ModelId);
-            ToastManager
+            ToastHost
                 .CreateToast(LocaleResolver.CustomAssistantPageViewModel_CheckConnectivity_FailedToast_Title)
                 .WithContent(ex.GetFriendlyMessage().ToTextBlock())
                 .DismissOnClick()

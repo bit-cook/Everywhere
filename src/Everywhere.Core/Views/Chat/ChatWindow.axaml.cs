@@ -484,7 +484,7 @@ public partial class ChatWindow :
         DragDropOverlay.IsVisible = false;
         e.Handled = true;
 
-        HandleDropAsync().Detach(ToastHost.Manager.ToExceptionHandler());
+        HandleDropAsync().Detach(ToastHost.ToExceptionHandler());
 
         async Task HandleDropAsync()
         {

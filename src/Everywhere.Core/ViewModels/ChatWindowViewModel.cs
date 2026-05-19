@@ -504,7 +504,7 @@ public sealed partial class ChatWindowViewModel :
             ex = HandledSystemException.Handle(ex);
             _logger.LogError(ex, "Failed to create file attachment for {FilePath}", filePath);
 
-            ToastManager
+            ToastHost
                 .CreateToast(LocaleResolver.Common_Error)
                 .WithContent(ex.GetFriendlyMessage().ToTextBlock())
                 .DismissOnClick()
@@ -678,7 +678,7 @@ public sealed partial class ChatWindowViewModel :
         var chatContext = await ChatContextManager.LoadChatContextAsync(metadata, cancellationToken);
         if (chatContext is null)
         {
-            ToastManager
+            ToastHost
                 .CreateToast(LocaleResolver.Common_Error)
                 .WithContent(LocaleResolver.ChatWindowViewModel_ExportMarkdown_FailedToLoadChatContext)
                 .DismissOnClick()
@@ -733,7 +733,7 @@ public sealed partial class ChatWindowViewModel :
 
             _logger.LogError(e, "Failed to export chat context to markdown file.");
 
-            ToastManager
+            ToastHost
                 .CreateToast(LocaleResolver.ChatWindowViewModel_ExportMarkdown_FailedToSaveFile)
                 .WithContent(e.GetFriendlyMessage())
                 .DismissOnClick()
@@ -743,7 +743,7 @@ public sealed partial class ChatWindowViewModel :
         }
 
         // Show success toast and open file
-        ToastManager
+        ToastHost
             .CreateToast(LocaleResolver.ChatWindowViewModel_ExportMarkdown_ExportSuccess)
             .WithContent(exportPath)
             .DismissOnClick()

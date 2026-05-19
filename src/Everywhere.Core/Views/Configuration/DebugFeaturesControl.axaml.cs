@@ -9,10 +9,7 @@ using ShadUI;
 
 namespace Everywhere.Views;
 
-public partial class DebugFeaturesControl(
-    ToastManager toastManager,
-    ILogger<DebugFeaturesControl> logger)
-    : TemplatedControl
+public partial class DebugFeaturesControl(ILogger<DebugFeaturesControl> logger) : TemplatedControl
 {
     [RelayCommand]
     private async Task EditSettingsFileAsync()
@@ -30,12 +27,7 @@ public partial class DebugFeaturesControl(
         {
             ex = HandledSystemException.Handle(ex);
             logger.LogError(ex, "Failed to open settings file.");
-            toastManager
-                .CreateToast(LocaleResolver.Common_Error)
-                .WithContent(ex.GetFriendlyMessage())
-                .DismissOnClick()
-                .OnBottomRight()
-                .ShowError();
+            ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
         }
     }
 
@@ -55,12 +47,7 @@ public partial class DebugFeaturesControl(
         {
             ex = HandledSystemException.Handle(ex);
             logger.LogError(ex, "Failed to open logs folder.");
-            toastManager
-                .CreateToast(LocaleResolver.Common_Error)
-                .WithContent(ex.GetFriendlyMessage())
-                .DismissOnClick()
-                .OnBottomRight()
-                .ShowError();
+            ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
         }
     }
 
@@ -87,13 +74,7 @@ public partial class DebugFeaturesControl(
             };
 
             // toast: Everywhere will freeze for a few seconds while the dump is being created.
-            toastManager
-                .CreateToast(LocaleResolver.Common_Warning)
-                .WithContent(LocaleResolver.DebugFeaturesControl_CreateDumpToast_Content)
-                .DismissOnClick()
-                .OnBottomRight()
-                .WithDurationSeconds(1)
-                .ShowWarning();
+            ToastManager.Warning(LocaleResolver.Common_Warning, LocaleResolver.DebugFeaturesControl_CreateDumpToast_Content, durationSeconds: 3d);
             await Task.Delay(500); // Give the toast time to show before freezing the UI.
 
             var process = Process.Start(psi);
@@ -111,13 +92,8 @@ public partial class DebugFeaturesControl(
             await process.WaitForExitAsync();
             if (process.ExitCode != 0)
             {
-                toastManager
-                    .CreateToast(LocaleResolver.Common_Error)
-                    .WithContent(error.Trim())
-                    .DismissOnClick()
-                    .OnBottomRight()
-                    .ShowWarning();
                 // The dump may still have been created despite the non-zero exit code.
+                ToastManager.Error(LocaleResolver.Common_Error, error.Trim());
 
                 if (!File.Exists(dumpPath))
                 {
@@ -132,12 +108,7 @@ public partial class DebugFeaturesControl(
         {
             ex = HandledSystemException.Handle(ex);
             logger.LogError(ex, "Failed to create dump.");
-            toastManager
-                .CreateToast(LocaleResolver.Common_Error)
-                .WithContent(ex.GetFriendlyMessage())
-                .DismissOnClick()
-                .OnBottomRight()
-                .ShowError();
+            ToastManager.Error(LocaleResolver.Common_Error, ex.GetFriendlyMessage());
         }
     }
 }

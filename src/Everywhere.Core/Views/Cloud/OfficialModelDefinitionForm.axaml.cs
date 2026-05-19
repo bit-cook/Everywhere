@@ -13,7 +13,7 @@ using ZLinq;
 
 namespace Everywhere.Views;
 
-public partial class OfficialModelDefinitionForm : TemplatedControl
+public partial class OfficialModelDefinitionForm : TemplatedControl, IExceptionHandler
 {
     private readonly SourceCache<ModelDefinitionTemplate, string> _uiProxyCache = new(x => x.ModelId);
 
@@ -46,7 +46,6 @@ public partial class OfficialModelDefinitionForm : TemplatedControl
 
     public IOfficialModelProvider OfficialModelProvider { get; }
 
-    private readonly IExceptionHandler _exceptionHandler;
     private readonly Assistant _assistant;
 
     private CompositeDisposable? _visualTreeDisposables;
@@ -57,7 +56,6 @@ public partial class OfficialModelDefinitionForm : TemplatedControl
         _assistant = assistant;
         CloudClient = serviceProvider.GetRequiredService<ICloudClient>();
         OfficialModelProvider = serviceProvider.GetRequiredService<IOfficialModelProvider>();
-        _exceptionHandler = serviceProvider.GetRequiredKeyedService<IExceptionHandler>(typeof(ToastManager));
 
         _uiProxyCache
             .Connect()
@@ -132,5 +130,10 @@ public partial class OfficialModelDefinitionForm : TemplatedControl
     }
 
     [RelayCommand]
-    private Task RefreshAsync() => OfficialModelProvider.RefreshAsync(_exceptionHandler);
+    private Task RefreshAsync() => OfficialModelProvider.RefreshAsync(this);
+
+    void IExceptionHandler.HandleException(Exception exception, string? message, object? source, int lineNumber)
+    {
+        ToastManager.Error(message ?? LocaleResolver.Common_Error, exception.GetFriendlyMessage());
+    }
 }

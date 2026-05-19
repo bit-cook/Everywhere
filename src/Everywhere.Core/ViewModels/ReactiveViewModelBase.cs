@@ -21,9 +21,9 @@ public abstract class ReactiveViewModelBase : ObservableValidator
     }
 
     [field: AllowNull, MaybeNull]
-    protected ToastManager ToastManager
+    protected ToastHost ToastHost
     {
-        get => field ??= ServiceLocator.Resolve<ToastManager>();
+        get => field ??= ServiceLocator.Resolve<ToastHost>();
         private set;
     }
 
@@ -31,18 +31,20 @@ public abstract class ReactiveViewModelBase : ObservableValidator
         _topLevel?.Clipboard ?? throw new InvalidOperationException("Clipboard is not available.");
 
     protected IStorageProvider StorageProvider =>
-        _topLevel?.StorageProvider?? throw new InvalidOperationException("StorageProvider is not available.");
+        _topLevel?.StorageProvider ?? throw new InvalidOperationException("StorageProvider is not available.");
 
     protected static ILauncher Launcher => BetterBclLauncher.Shared;
 
     private TopLevel? _topLevel;
 
-    protected AnonymousExceptionHandler DialogExceptionHandler => new((exception, message, source, lineNumber) =>
-        DialogManager.CreateDialog(exception.GetFriendlyMessage().ToString() ?? "Unknown error", $"[{source}:{lineNumber}] {message ?? "Error"}"));
+    protected AnonymousExceptionHandler DialogExceptionHandler => new((exception, message, _, _) =>
+        DialogManager.CreateDialog(
+            exception.GetFriendlyMessage().ToString() ?? LocaleResolver.Common_Unknown,
+            message ?? LocaleResolver.Common_Error));
 
-    protected AnonymousExceptionHandler ToastExceptionHandler => new((exception, message, source, lineNumber) =>
-        ToastManager.CreateToast($"[{source}:{lineNumber}] {message ?? "Error"}")
-            .WithContent(exception.GetFriendlyMessage().ToTextBlock())
+    protected AnonymousExceptionHandler ToastExceptionHandler => new((exception, message, _, _) =>
+        ToastHost.CreateToast(message ?? LocaleResolver.Common_Error)
+            .WithContent(exception.GetFriendlyMessage())
             .DismissOnClick()
             .ShowError());
 
@@ -80,7 +82,7 @@ public abstract class ReactiveViewModelBase : ObservableValidator
                 if (_topLevel is IReactiveHost reactiveHost)
                 {
                     DialogManager = reactiveHost.DialogHost.Manager;
-                    ToastManager = reactiveHost.ToastHost.Manager;
+                    ToastHost = reactiveHost.ToastHost;
                 }
 
                 await ViewLoaded(cancellationTokenSource.Token);

@@ -227,7 +227,7 @@ public sealed partial class WelcomeViewModelAssistantStep(WelcomeViewModel viewM
                 {
                     ex = HandledChatException.Handle(ex, kernelMixin);
                     _logger.LogError(ex, "Failed to validate assistant connectivity");
-                    ToastManager
+                    ToastHost
                         .CreateToast(LocaleResolver.WelcomeViewModel_ValidateApiKey_FailedToast_Title)
                         .WithContent(ex.GetFriendlyMessage().ToTextBlock())
                         .DismissOnClick()
