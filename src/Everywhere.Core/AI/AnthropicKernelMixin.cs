@@ -41,44 +41,53 @@ public sealed partial class AnthropicKernelMixin : KernelMixin
         _client.Dispose();
     }
 
-    private sealed partial class OptimizedChatClient(IChatClient originalClient, AnthropicKernelMixin owner) : DelegatingChatClient(originalClient)
+    private sealed partial class OptimizedChatClient : DelegatingChatClient
     {
+        private readonly AnthropicKernelMixin _owner;
+        private readonly bool _isClaude;
+        private readonly bool _isClaude46;
+        private readonly bool _isClaude47;
+
+        public OptimizedChatClient(IChatClient originalClient, AnthropicKernelMixin owner) : base(originalClient)
+        {
+            _owner = owner;
+            _isClaude = owner.ModelId.Contains("claude", StringComparison.OrdinalIgnoreCase);
+            _isClaude46 = _isClaude && Claude46Regex().IsMatch(owner.ModelId);
+            _isClaude47 = _isClaude && Claude47Regex().IsMatch(owner.ModelId);
+        }
+
         private void BuildOptions(ref ChatOptions? options)
         {
             options ??= new ChatOptions();
             options.RawRepresentationFactory = RawRepresentationFactory;
 
-            if (owner.Temperature is { } temperature) options.Temperature = (float)temperature;
-            if (owner.TopP is { } topP) options.TopP = (float)topP;
+            if (_owner.Temperature is { } temperature) options.Temperature = (float)temperature;
+            if (_owner.TopP is { } topP) options.TopP = (float)topP;
         }
 
         private MessageCreateParams RawRepresentationFactory(IChatClient _)
         {
-            var maxTokens = owner.OutputLimit switch
+            var maxTokens = _owner.OutputLimit switch
             {
-                > 0 => owner.OutputLimit,
+                > 0 => _owner.OutputLimit,
                 _ => 4096,
             };
 
-            var isClaude = owner.ModelId.Contains("claude", StringComparison.OrdinalIgnoreCase);
-            var isClaude46 = isClaude && Claude46Regex().IsMatch(owner.ModelId);
-            var isClaude47 = isClaude && Claude47Regex().IsMatch(owner.ModelId);
-
             ThinkingConfigParam thinkingConfigParam;
-            if (owner.ThinkingType?.Equals("disabled", StringComparison.OrdinalIgnoreCase) is true)
+            if (_owner.ThinkingType?.Equals("disabled", StringComparison.OrdinalIgnoreCase) is true)
             {
                 thinkingConfigParam = new ThinkingConfigParam(new ThinkingConfigDisabled());
             }
             else
             {
                 // Only Claude 4.6 and 4.7 supports adaptive and don't support budgetTokens so we ignore ThinkingBudget for them.
-                if (isClaude46 || isClaude47)
+                if (_isClaude46 || _isClaude47)
                 {
                     thinkingConfigParam = new ThinkingConfigParam(new ThinkingConfigAdaptive());
                 }
                 else
                 {
-                    if (!long.TryParse(owner.ThinkingBudget, out var budgetTokens))
+                    if (!long.TryParse(_owner.ThinkingBudget, out var budgetTokens))
                     {
                         budgetTokens = -1L;
                     }
@@ -92,7 +101,7 @@ public sealed partial class AnthropicKernelMixin : KernelMixin
             }
 
             OutputConfig? outputConfig = null;
-            if (owner.ReasoningEffort is { Length: > 0 } reasoningEffort)
+            if (_owner.ReasoningEffort is { Length: > 0 } reasoningEffort)
             {
                 outputConfig = new OutputConfig
                 {
@@ -104,26 +113,32 @@ public sealed partial class AnthropicKernelMixin : KernelMixin
             {
                 MaxTokens = maxTokens,
                 Messages = [], // Leave empty and underlying implementation will handle it
-                Model = owner.ModelId,
+                Model = _owner.ModelId,
                 Thinking = thinkingConfigParam,
                 OutputConfig = outputConfig,
                 CacheControl = new CacheControlEphemeral()
             };
         }
 
-        private static IEnumerable<ChatMessage> PreprocessMessages(IEnumerable<ChatMessage> originalMessages)
+        private IEnumerable<ChatMessage> PreprocessMessages(IEnumerable<ChatMessage> originalMessages)
         {
-            return originalMessages.Invoke(static chatMessage =>
+            if (_isClaude)
             {
-                for (var i = chatMessage.Contents.Count - 1; i >= 0; i--)
+                return originalMessages.Invoke(static chatMessage =>
                 {
-                    // Remove those TextReasoningContent with empty ProtectedData as they are likely to cause issues for some models (e.g. Claude 4.6) that don't support reasoning effort and expect the content to be text-only.
-                    if (chatMessage.Contents[i] is TextReasoningContent { ProtectedData: not { Length: > 0 } })
+                    for (var i = chatMessage.Contents.Count - 1; i >= 0; i--)
                     {
-                        chatMessage.Contents.RemoveAt(i);
+                        // Remove those TextReasoningContent with empty ProtectedData as they are likely to cause issues
+                        // for claude models that don't support reasoning effort and expect the content to be text-only.
+                        if (chatMessage.Contents[i] is TextReasoningContent { ProtectedData: not { Length: > 0 } })
+                        {
+                            chatMessage.Contents.RemoveAt(i);
+                        }
                     }
-                }
-            });
+                });
+            }
+
+            return originalMessages;
         }
 
         public override Task<ChatResponse> GetResponseAsync(

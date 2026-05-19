@@ -2872,4 +2872,7 @@ Release date: {2}</value>
     <data name="ChatMessageControl_ContinueButton_ToolTip" xml:space="preserve">
         <value>Continue from here and retry without clearing existing assistant messages in this round</value>
     </data>
+    <data name="HandledChatException_InvalidReasoningContent" xml:space="preserve">
+        <value />
+    </data>
 </root>
