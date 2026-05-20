@@ -95,7 +95,7 @@
     <PackageVersion Include="Xaml.Behaviors.Avalonia" Version="$(XamlBehaviorsVersion)" />
   </ItemGroup>
   <ItemGroup Label="Windows">
-    <PackageVersion Include="FlaUI.UIA3" Version="5.0.0" />
+    <PackageVersion Include="Interop.UIAutomationClient" Version="10.19041.0" />
     <PackageVersion Include="Microsoft.PowerShell.SDK" Version="7.6.0" />
     <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.275">
       <PrivateAssets>all</PrivateAssets>

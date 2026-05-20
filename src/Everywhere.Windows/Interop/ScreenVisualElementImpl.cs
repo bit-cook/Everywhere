@@ -52,7 +52,7 @@ public partial class VisualElementContext
 
                         if (PInvoke.MonitorFromWindow(hWnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONULL) != _hMonitor) return true;
 
-                        if (TryCreateVisualElement(() => Automation.FromHandle(hWnd)) is not { } visualElement) return true;
+                        if (TryCreateVisualElement(() => Automation.ElementFromHandle(hWnd)) is not { } visualElement) return true;
 
                         result.Add(visualElement);
                         return true; // continue enumeration

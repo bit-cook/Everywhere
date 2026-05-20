@@ -14,6 +14,7 @@ using DynamicData;
 using Everywhere.Interop;
 using Everywhere.Utilities;
 using Everywhere.Views;
+using Interop.UIAutomationClient;
 using Point = System.Drawing.Point;
 
 namespace Everywhere.Windows.Interop;
@@ -309,7 +310,7 @@ public partial class VisualElementContext
                     var rootHWnd = PInvoke.GetAncestor(targetHWnd, GET_ANCESTOR_FLAGS.GA_ROOTOWNER);
                     if (rootHWnd.IsNull) break;
 
-                    PickingElement = TryCreateVisualElement(() => Automation.FromHandle(rootHWnd));
+                    PickingElement = TryCreateVisualElement(() => Automation.ElementFromHandle(rootHWnd));
                     if (PickingElement == null) break;
 
                     maskRect = PickingElement.BoundingRectangle;
@@ -317,7 +318,7 @@ public partial class VisualElementContext
                 }
                 case ScreenSelectionMode.Element:
                 {
-                    PickingElement = TryCreateVisualElement(() => Automation.FromPoint(new Point(cursorPos.X, cursorPos.Y)));
+                    PickingElement = TryCreateVisualElement(() => Automation.ElementFromPoint(new tagPOINT { x = cursorPos.X, y = cursorPos.Y }));
 
                     if (PickingElement == null) break;
 

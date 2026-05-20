@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop"/>
-    <PackageReference Include="FlaUI.UIA3"/>
+    <PackageReference Include="Interop.UIAutomationClient"/>
     <PackageReference Include="Microsoft.Windows.CsWin32">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -67,8 +67,6 @@
     <TrimmerRootAssembly Include="CSharpMath.Avalonia"/>
     <TrimmerRootAssembly Include="DirectWriteForwarder"/>
     <TrimmerRootAssembly Include="ExCSS"/>
-    <TrimmerRootAssembly Include="FlaUI.Core"/>
-    <TrimmerRootAssembly Include="FlaUI.UIA3"/>
     <TrimmerRootAssembly Include="Interop.UIAutomationClient"/>
     <TrimmerRootAssembly Include="MessagePack"/>
     <TrimmerRootAssembly Include="MicroCom.Runtime"/>

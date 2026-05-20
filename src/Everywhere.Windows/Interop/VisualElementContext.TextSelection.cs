@@ -12,8 +12,7 @@ using Windows.Win32.UI.Shell;
 using Windows.Win32.UI.WindowsAndMessaging;
 using Everywhere.Interop;
 using Everywhere.Utilities;
-using FlaUI.Core.AutomationElements;
-using FlaUI.Core.Definitions;
+using Interop.UIAutomationClient;
 using Microsoft.Win32.SafeHandles;
 using Serilog;
 using Point = System.Drawing.Point;
@@ -394,7 +393,7 @@ partial class VisualElementContext
 
                 string? text = null;
                 IVisualElement? visualElement = null;
-                var uiaControlType = ControlType.Unknown;
+                var uiaControlType = AutomationExtension.UnknownControlTypeId;
 
                 // 1. Try to get selection from element
                 // Console.WriteLine("1. TryGetSelectionTextFromElement");
@@ -418,12 +417,12 @@ partial class VisualElementContext
 
                 void TryGetSelectionTextFromElement()
                 {
-                    AutomationElement? element;
+                    IUIAutomationElement? element;
                     try
                     {
-                        element = Automation.FocusedElement();
+                        element = Automation.GetFocusedElement();
                         if (element is null) return;
-                        if (element.Properties.ProcessId.ValueOrDefault != pid) return;
+                        if (element.GetCurrentProcessIdOrDefault() != pid) return;
                     }
                     catch
                     {
@@ -432,7 +431,7 @@ partial class VisualElementContext
 
                     if (cancellationToken.IsCancellationRequested) return;
 
-                    element.Properties.ControlType.TryGetValue(out uiaControlType);
+                    uiaControlType = element.GetCurrentControlTypeOrDefault();
                     visualElement = new AutomationVisualElementImpl(element);
                     text = visualElement.GetSelectionText();
                 }
@@ -478,7 +477,7 @@ partial class VisualElementContext
         /// Check if we should process GetTextViaClipboard
         /// </summary>
         /// <returns></returns>
-        private bool ShouldProcessViaClipboard(ControlType uiaControlType, string processName)
+        private bool ShouldProcessViaClipboard(int uiaControlType, string processName)
         {
             // when mouse down or up, any one of them is beamCursor, we can use clipboard
             // otherwise, we have to check the situation further
@@ -508,7 +507,10 @@ partial class VisualElementContext
             // chrome devtools: UIA_GroupControlTypeId (50026)
             // chrome pages: UIA_DocumentControlTypeId (50030), UIA_TextControlTypeId (50020)
             //
-            return uiaControlType is ControlType.Unknown or ControlType.Group or ControlType.Document or ControlType.Text;
+            return uiaControlType is AutomationExtension.UnknownControlTypeId
+                or UIA_ControlTypeIds.UIA_GroupControlTypeId
+                or UIA_ControlTypeIds.UIA_DocumentControlTypeId
+                or UIA_ControlTypeIds.UIA_TextControlTypeId;
         }
 
         private async static Task<string?> GetTextViaClipboardAsync(string processName, CancellationToken cancellationToken)
@@ -530,7 +532,7 @@ partial class VisualElementContext
             byte[]? backupData = null;
             uint backupFormat = 0;
 
-            if (PInvoke.OpenClipboard(default))
+            if (PInvoke.OpenClipboard())
             {
                 // Priority 1: Text
                 if (TryGetClipboardData(CF_UNICODETEXT, out backupData))
@@ -672,7 +674,7 @@ partial class VisualElementContext
                 else
                 {
                     // If we didn't have recognized data, clear the clipboard to remove the "Selected Text"
-                    if (PInvoke.OpenClipboard(default))
+                    if (PInvoke.OpenClipboard())
                     {
                         PInvoke.EmptyClipboard();
                         PInvoke.CloseClipboard();
@@ -847,7 +849,7 @@ partial class VisualElementContext
         private static unsafe bool TryGetClipboardText(out string? text, bool emptyClipboard = false, bool openClipboard = true)
         {
             text = null;
-            if (openClipboard && !PInvoke.OpenClipboard(default)) return false;
+            if (openClipboard && !PInvoke.OpenClipboard()) return false;
 
             try
             {
@@ -908,7 +910,7 @@ partial class VisualElementContext
 
         private static unsafe void SetClipboardData(uint format, byte[] data)
         {
-            if (!PInvoke.OpenClipboard(default)) return;
+            if (!PInvoke.OpenClipboard()) return;
 
             try
             {

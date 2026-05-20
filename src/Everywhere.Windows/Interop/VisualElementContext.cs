@@ -14,9 +14,7 @@ using Everywhere.Common;
 using Everywhere.I18N;
 using Everywhere.Interop;
 using Everywhere.Windows.Extensions;
-using FlaUI.Core;
-using FlaUI.Core.AutomationElements;
-using FlaUI.UIA3;
+using Interop.UIAutomationClient;
 using Serilog;
 using Bitmap = Avalonia.Media.Imaging.Bitmap;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
@@ -28,10 +26,10 @@ namespace Everywhere.Windows.Interop;
 
 public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualElementContext
 {
-    private static readonly UIA3Automation Automation = new();
-    private static readonly ITreeWalker TreeWalker = Automation.TreeWalkerFactory.GetContentViewWalker();
+    private static readonly IUIAutomation Automation = new CUIAutomation8Class();
+    private static readonly IUIAutomationTreeWalker TreeWalker = Automation.ContentViewWalker;
 
-    public IVisualElement? FocusedElement => TryCreateVisualElement(Automation.FocusedElement);
+    public IVisualElement? FocusedElement => TryCreateVisualElement(Automation.GetFocusedElement);
 
     public IVisualElement? ElementFromPoint(PixelPoint point, ScreenSelectionMode mode = ScreenSelectionMode.Element)
     {
@@ -39,11 +37,11 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
         {
             case ScreenSelectionMode.Element:
             {
-                return TryCreateVisualElement(() => Automation.FromPoint(new Point(point.X, point.Y)));
+                return TryCreateVisualElement(() => Automation.ElementFromPoint(new tagPOINT { x = point.X, y = point.Y }));
             }
             case ScreenSelectionMode.Window:
             {
-                IVisualElement? element = TryCreateVisualElement(() => Automation.FromPoint(new Point(point.X, point.Y)));
+                IVisualElement? element = TryCreateVisualElement(() => Automation.ElementFromPoint(new tagPOINT { x = point.X, y = point.Y }));
                 while (element is AutomationVisualElementImpl { IsTopLevelWindow: false })
                 {
                     element = element.Parent;
@@ -68,14 +66,14 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
 
     public IVisualElement? ElementFromWindowHandle(IntPtr windowHandle)
     {
-        return TryCreateVisualElement(() => Automation.FromHandle(windowHandle));
+        return TryCreateVisualElement(() => Automation.ElementFromHandle(windowHandle));
     }
 
     public Task<IVisualElement?> PickVisualElementAsync(ScreenSelectionMode? initialMode) => PickerSession.PickAsync(windowHelper, initialMode);
 
     public Task<Bitmap?> TakeScreenshotAsync(ScreenSelectionMode? initialMode) => ScreenshotSession.TakeAsync(windowHelper, initialMode);
 
-    private static AutomationVisualElementImpl? TryCreateVisualElement(Func<AutomationElement?> factory)
+    private static AutomationVisualElementImpl? TryCreateVisualElement(Func<IUIAutomationElement?> factory)
     {
         try
         {
@@ -90,9 +88,6 @@ public partial class VisualElementContext(IWindowHelper windowHelper) : IVisualE
 
         return null;
     }
-
-    private static bool IsAutomationException(Exception ex) =>
-        ex.GetType().Namespace?.StartsWith("FlaUI.", StringComparison.Ordinal) == true;
 
     /// <summary>
     /// Captures a screenshot of the specified rectangle on the screen.
