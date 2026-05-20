@@ -25,8 +25,17 @@
             BorderBrush="{TemplateBinding BorderBrush}"
             BorderThickness="{TemplateBinding BorderThickness}"
             CornerRadius="{DynamicResource FullCornerRadius}"
-            ToolTip.Placement="Right"
-            ToolTip.Tip="{Binding CloudClient?.UserProfile?.Name, TargetNullValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}">
+            ToolTip.Placement="Right">
+            <ToolTip.Tip>
+              <MultiBinding Converter="{x:Static vc:CommonConverters.FirstNotNull}">
+                <Binding
+                  Path="CloudClient?.LastLoginErrorKey^" FallbackValue="{x:Null}"
+                  TargetNullValue="{x:Null}" RelativeSource="{RelativeSource TemplatedParent}"/>
+                <Binding
+                  Path="CloudClient?.UserProfile?.Name" FallbackValue="{x:Null}"
+                  TargetNullValue="{x:Null}" RelativeSource="{RelativeSource TemplatedParent}"/>
+              </MultiBinding>
+            </ToolTip.Tip>
             <Button.Flyout>
               <Flyout
                 Placement="Top" VerticalOffset="-8">
@@ -60,7 +69,43 @@
             Background="{DynamicResource ErrorColor}"
             Content="!" CornerRadius="8"
             FontSize="10"
-            IsVisible="{Binding CloudClient?.Subscription?.Status, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static cloud:SubscriptionStatus.Unpaid}, TargetNullValue={x:False}, RelativeSource={RelativeSource TemplatedParent}}"/>
+            ToolTip.Tip="{Binding CloudClient?.LastLoginErrorKey^, FallbackValue={x:Null}, TargetNullValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}">
+            <shadui:Badge.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                <Binding
+                  Path="CloudClient?.LoginStatus" Converter="{x:Static ObjectConverters.Equal}"
+                  ConverterParameter="{x:Static cloud:CloudClientLoginStatus.LoginFailed}" FallbackValue="{x:False}"
+                  TargetNullValue="{x:False}" RelativeSource="{RelativeSource TemplatedParent}"/>
+                <Binding
+                  Path="CloudClient?.LastLoginErrorKey" Converter="{x:Static ObjectConverters.IsNotNull}"
+                  FallbackValue="{x:False}" TargetNullValue="{x:False}" RelativeSource="{RelativeSource TemplatedParent}"/>
+              </MultiBinding>
+            </shadui:Badge.IsVisible>
+          </shadui:Badge>
+
+          <shadui:Badge
+            Width="16" Height="16"
+            Margin="0,-4,-4,0" Padding="0"
+            HorizontalAlignment="Right" VerticalAlignment="Top"
+            Background="{DynamicResource ErrorColor}"
+            Content="!" CornerRadius="8"
+            FontSize="10">
+            <shadui:Badge.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding
+                  Path="CloudClient?.Subscription?.Status" Converter="{x:Static ObjectConverters.Equal}"
+                  ConverterParameter="{x:Static cloud:SubscriptionStatus.Unpaid}" FallbackValue="{x:False}"
+                  TargetNullValue="{x:False}" RelativeSource="{RelativeSource TemplatedParent}"/>
+                <Binding
+                  Path="CloudClient?.LoginStatus" Converter="{x:Static ObjectConverters.NotEqual}"
+                  ConverterParameter="{x:Static cloud:CloudClientLoginStatus.LoginFailed}" FallbackValue="{x:True}"
+                  TargetNullValue="{x:True}" RelativeSource="{RelativeSource TemplatedParent}"/>
+                <Binding
+                  Path="CloudClient?.LastLoginErrorKey" Converter="{x:Static ObjectConverters.IsNull}"
+                  FallbackValue="{x:True}" TargetNullValue="{x:True}" RelativeSource="{RelativeSource TemplatedParent}"/>
+              </MultiBinding>
+            </shadui:Badge.IsVisible>
+          </shadui:Badge>
         </Panel>
       </ControlTemplate>
     </Setter>

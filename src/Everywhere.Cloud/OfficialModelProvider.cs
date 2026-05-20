@@ -18,7 +18,6 @@ public sealed partial class OfficialModelProvider :
     IOfficialModelProvider,
     IRecipient<UserProfileUpdatedMessage>,
     IRecipient<SubscriptionInformationUpdatedMessage>,
-    IAsyncInitializer,
     IDisposable
 {
     public ISourceList<ModelDefinitionTemplate> ModelDefinitions { get; } = new SourceList<ModelDefinitionTemplate>();
@@ -246,16 +245,4 @@ public sealed partial class OfficialModelProvider :
 
     [JsonSerializable(typeof(ApiPayload<IReadOnlyList<CloudModelDefinition>>))]
     private sealed partial class ModelsResponseJsonSerializerContext : JsonSerializerContext;
-
-    #region Async Initializer Implementation
-
-    public AsyncInitializerIndex Index => AsyncInitializerIndex.Startup;
-
-    public Task InitializeAsync()
-    {
-        RefreshAsync().Detach();
-        return Task.CompletedTask;
-    }
-
-    #endregion
 }
