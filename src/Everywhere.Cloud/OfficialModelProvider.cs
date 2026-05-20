@@ -58,9 +58,14 @@ public sealed partial class OfficialModelProvider :
         try
         {
             if (CloudConstants.AIGatewayBaseUrl.IsNullOrEmpty()) return;
-            if (DateTimeOffset.Now < _nextFetchCooldownTime) return; // Enforce a cooldown between fetches to avoid hammering the endpoint.
 
             IsBusy = true;
+            if (DateTimeOffset.Now < _nextFetchCooldownTime)
+            {
+                // Enforce a cooldown between fetches to avoid hammering the endpoint.
+                await Task.Delay(1000, cancellationToken);
+                return;
+            }
 
             using var httpClient = _httpClientFactory.CreateClient(nameof(ICloudClient));
             var request = new HttpRequestMessage(HttpMethod.Get, $"{CloudConstants.AIGatewayBaseUrl}/v1/models");

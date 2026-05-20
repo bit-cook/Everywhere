@@ -1,9 +1,9 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:ai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions" xmlns:cloud="clr-namespace:Everywhere.Cloud;assembly=Everywhere.Abstractions"
-  xmlns:common="clr-namespace:Everywhere.Common" xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
-  xmlns:mdSkia="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia.Svg.Skia" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
-  xmlns:v="using:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters">
+  xmlns:cloud="clr-namespace:Everywhere.Cloud;assembly=Everywhere.Abstractions" xmlns:common="clr-namespace:Everywhere.Common"
+  xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:mdSkia="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia.Svg.Skia"
+  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="using:Everywhere.Views"
+  xmlns:vc="clr-namespace:Everywhere.ValueConverters">
   <ControlTheme
     x:Key="{x:Type v:OfficialModelDefinitionForm}"
     TargetType="v:OfficialModelDefinitionForm">
@@ -28,152 +28,160 @@
               Classes="Large"
               Text="{I18N {x:Static LocaleKey.OfficialModelDefinitionForm_SelectModelTextBlock_Text}}"
               TextTrimming="CharacterEllipsis"/>
-            <DockPanel
-              HorizontalAlignment="Left" HorizontalSpacing="8"
-              LastChildFill="True">
-              <DockPanel.Styles>
-                <Style Selector="Button#RefreshButton[IsEnabled=False] LucideIcon">
-                  <Style.Animations>
-                    <Animation
-                      IterationCount="Infinite" Duration="0:0:1">
-                      <KeyFrame Cue="0%">
-                        <Setter Property="RotateTransform.Angle" Value="0.0"/>
-                      </KeyFrame>
-                      <KeyFrame Cue="100%">
-                        <Setter Property="RotateTransform.Angle" Value="-360.0"/>
-                      </KeyFrame>
-                    </Animation>
-                  </Style.Animations>
-                </Style>
-              </DockPanel.Styles>
 
-              <Button
-                x:Name="RefreshButton" Classes="Ghost"
-                DockPanel.Dock="Right" Width="36"
-                Padding="0"
-                Command="{Binding RefreshCommand, RelativeSource={RelativeSource TemplatedParent}}"
-                IsEnabled="{Binding !OfficialModelProvider.IsBusy, RelativeSource={RelativeSource TemplatedParent}}"
-                ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Refresh}}">
-                <LucideIcon
-                  Kind="RefreshCcw"
-                  Size="{DynamicResource FontSizeL}"/>
-              </Button>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition
+                  Width="*" MinWidth="240"
+                  MaxWidth="512"/>
+              </Grid.ColumnDefinitions>
 
-              <ComboBox
-                MinWidth="480" HorizontalAlignment="Left"
-                HorizontalContentAlignment="Stretch" shadui:ControlAssist.MinHeight="40"
-                ItemsSource="{TemplateBinding ItemsSource}"
-                MaxDropDownHeight="480"
-                SelectedItem="{TemplateBinding SelectedItem, Mode=TwoWay}">
-                <ComboBox.Styles>
-                  <Style Selector="ComboBoxItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+              <DockPanel
+                HorizontalSpacing="8" LastChildFill="True">
+                <DockPanel.Styles>
+                  <Style Selector="Button#RefreshButton[IsEnabled=False] LucideIcon">
+                    <Style.Animations>
+                      <Animation
+                        IterationCount="Infinite" Duration="0:0:1">
+                        <KeyFrame Cue="0%">
+                          <Setter Property="RotateTransform.Angle" Value="0.0"/>
+                        </KeyFrame>
+                        <KeyFrame Cue="100%">
+                          <Setter Property="RotateTransform.Angle" Value="-360.0"/>
+                        </KeyFrame>
+                      </Animation>
+                    </Style.Animations>
                   </Style>
-                </ComboBox.Styles>
+                </DockPanel.Styles>
 
-                <ComboBox.ItemTemplate>
-                  <DataTemplate x:DataType="ai:ModelDefinitionTemplate">
-                    <Grid
-                      Margin="0,0,12,0" ColumnSpacing="4">
-                      <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition/>
-                        <ColumnDefinition
-                          Width="Auto" SharedSizeGroup="Badges"/>
-                      </Grid.ColumnDefinitions>
+                <Button
+                  x:Name="RefreshButton" Classes="Ghost"
+                  DockPanel.Dock="Right" Width="36"
+                  Padding="0"
+                  Command="{Binding RefreshCommand, RelativeSource={RelativeSource TemplatedParent}}"
+                  IsEnabled="{Binding !OfficialModelProvider.IsBusy, RelativeSource={RelativeSource TemplatedParent}}"
+                  ToolTip.Tip="{I18N {x:Static LocaleKey.Common_Refresh}}">
+                  <LucideIcon
+                    Kind="RefreshCcw"
+                    Size="{DynamicResource FontSizeL}"/>
+                </Button>
 
-                      <Border
-                        Grid.Column="0"
-                        Width="{DynamicResource FontSize2Xl}"
-                        Height="{DynamicResource FontSize2Xl}"
-                        VerticalAlignment="Center" Background="#333333"
-                        ClipToBounds="True"
-                        CornerRadius="{DynamicResource FullCornerRadius}">
-                        <Image
-                          Margin="3" md:AsyncImageLoader.SizeToContent="Manual"
-                          md:AsyncImageLoader.Source="{Binding IconUrl}"
-                          mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"
-                          IsVisible="{Binding IconUrl, Converter={x:Static ObjectConverters.IsNotNull}}"
-                          Stretch="UniformToFill"/>
-                      </Border>
+                <ComboBox
+                  HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                  shadui:ControlAssist.MinHeight="40"
+                  ItemsSource="{TemplateBinding ItemsSource}"
+                  MaxDropDownHeight="480"
+                  SelectedItem="{Binding SelectedItemWrapper, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                  <ComboBox.Styles>
+                    <Style Selector="ComboBoxItem">
+                      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    </Style>
+                  </ComboBox.Styles>
 
-                      <TextBlock
-                        Grid.Column="1" Margin="4,0"
-                        VerticalAlignment="Center"
-                        Text="{Binding Name}"
-                        TextTrimming="CharacterEllipsis"
-                        ToolTip.Tip="{Binding DescriptionKey^, FallbackValue={x:Null}}"/>
-                      <LucideIcon
-                        Grid.Column="2" HorizontalAlignment="Left"
-                        Foreground="{DynamicResource WarningColor}"
-                        IsVisible="{Binding DeprecationDate, Converter={x:Static ObjectConverters.IsNotNull}}"
-                        Kind="TriangleAlert"
-                        Size="{DynamicResource FontSizeL}"
-                        ToolTip.Placement="Top">
-                        <ToolTip.Tip>
-                          <I18N Key="{x:Static LocaleKey.OfficialModelDefinitionForm_DeprecationToast_Text}">
-                            <Binding
-                              Path="DeprecationDate" StringFormat="{}{0:D}"/>
-                          </I18N>
-                        </ToolTip.Tip>
-                      </LucideIcon>
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="v:OfficialModelDefinitionForm+ItemWrapper">
+                      <Grid
+                        Margin="0,0,12,0" ColumnSpacing="4">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition/>
+                          <ColumnDefinition
+                            Width="Auto" SharedSizeGroup="Badges"/>
+                        </Grid.ColumnDefinitions>
 
-                      <StackPanel
-                        Grid.Column="3" Margin="16,0,0,0"
-                        HorizontalAlignment="Right" Orientation="Horizontal"
-                        Spacing="2">
-                        <StackPanel.Styles>
-                          <Style Selector="shadui|Badge">
-                            <Setter Property="Foreground" Value="{DynamicResource BadgeForegroundColor}"/>
-                            <Setter Property="Height" Value="{DynamicResource FontSizeXl}"/>
-                            <Setter Property="CornerRadius" Value="4"/>
-                            <Style Selector="^ LucideIcon">
-                              <Setter Property="Size" Value="{DynamicResource FontSizeL}"/>
-                            </Style>
-                          </Style>
-                        </StackPanel.Styles>
+                        <Border
+                          Grid.Column="0"
+                          Width="{DynamicResource FontSize2Xl}"
+                          Height="{DynamicResource FontSize2Xl}"
+                          VerticalAlignment="Center" Background="#333333"
+                          ClipToBounds="True"
+                          CornerRadius="{DynamicResource FullCornerRadius}">
+                          <Image
+                            Margin="3" md:AsyncImageLoader.SizeToContent="Manual"
+                            md:AsyncImageLoader.Source="{Binding Model.IconUrl}"
+                            mdSkia:SvgImageExtension.Css=":nth-child(0) { font-size: 1px }"
+                            IsVisible="{Binding Model.IconUrl, Converter={x:Static ObjectConverters.IsNotNull}}"
+                            Stretch="UniformToFill"/>
+                        </Border>
 
-                        <shadui:Badge
-                          Background="Chocolate"
-                          IsVisible="{Binding InputModalities, Converter={x:Static vc:ModalitiesConverters.SupportsImage}}"
-                          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsImage_Header}}">
-                          <LucideIcon Kind="Eye"/>
-                        </shadui:Badge>
-                        <shadui:Badge
-                          Background="CadetBlue"
-                          IsVisible="{Binding SupportsToolCall}"
-                          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsToolCall_Header}}">
-                          <LucideIcon Kind="Hammer"/>
-                        </shadui:Badge>
-                        <shadui:Badge
-                          Background="ForestGreen"
-                          IsVisible="{Binding SupportsReasoning}"
-                          ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsReasoning_Header}}">
-                          <LucideIcon Kind="Brain"/>
-                        </shadui:Badge>
-                        <shadui:Badge
-                          Padding="6,0" Background="MediumSlateBlue">
+                        <TextBlock
+                          Grid.Column="1" Margin="4,0"
+                          VerticalAlignment="Center"
+                          Text="{Binding Model.Name}"
+                          TextTrimming="CharacterEllipsis"
+                          ToolTip.Tip="{Binding Model.DescriptionKey^, FallbackValue={x:Null}}"/>
+                        <LucideIcon
+                          Grid.Column="2" HorizontalAlignment="Left"
+                          Foreground="{DynamicResource WarningColor}"
+                          IsVisible="{Binding Model.DeprecationDate, Converter={x:Static ObjectConverters.IsNotNull}}"
+                          Kind="TriangleAlert"
+                          Size="{DynamicResource FontSizeL}"
+                          ToolTip.Placement="Top">
                           <ToolTip.Tip>
-                            <TextBlock>
-                              <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_ContextLimit_Header}}"/>
-                              <Run Text="{Binding ContextLimit, StringFormat=' {0:N0}', FallbackValue={x:Null}}"/>
-                              <LineBreak/>
-                              <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputLimit_Header}}"/>
-                              <Run Text="{Binding OutputLimit, StringFormat=' {0:N0}', FallbackValue={x:Null}}"/>
-                            </TextBlock>
+                            <I18N Key="{x:Static LocaleKey.OfficialModelDefinitionForm_DeprecationToast_Text}">
+                              <Binding
+                                Path="Model.DeprecationDate" StringFormat="{}{0:D}"/>
+                            </I18N>
                           </ToolTip.Tip>
+                        </LucideIcon>
 
-                          <TextBlock
-                            FontSize="{DynamicResource FontSizeS}"
-                            Text="{Binding ContextLimit, Converter={x:Static vc:TokenCountHumanizationConverter.Shared}}"/>
-                        </shadui:Badge>
-                      </StackPanel>
-                    </Grid>
-                  </DataTemplate>
-                </ComboBox.ItemTemplate>
-              </ComboBox>
-            </DockPanel>
+                        <StackPanel
+                          Grid.Column="3" Margin="16,0,0,0"
+                          HorizontalAlignment="Right" Orientation="Horizontal"
+                          Spacing="2">
+                          <StackPanel.Styles>
+                            <Style Selector="shadui|Badge">
+                              <Setter Property="Foreground" Value="{DynamicResource BadgeForegroundColor}"/>
+                              <Setter Property="Height" Value="{DynamicResource FontSizeXl}"/>
+                              <Setter Property="CornerRadius" Value="4"/>
+                              <Style Selector="^ LucideIcon">
+                                <Setter Property="Size" Value="{DynamicResource FontSizeL}"/>
+                              </Style>
+                            </Style>
+                          </StackPanel.Styles>
+
+                          <shadui:Badge
+                            Background="Chocolate"
+                            IsVisible="{Binding Model.InputModalities, Converter={x:Static vc:ModalitiesConverters.SupportsImage}}"
+                            ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsImage_Header}}">
+                            <LucideIcon Kind="Eye"/>
+                          </shadui:Badge>
+                          <shadui:Badge
+                            Background="CadetBlue"
+                            IsVisible="{Binding Model.SupportsToolCall}"
+                            ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsToolCall_Header}}">
+                            <LucideIcon Kind="Hammer"/>
+                          </shadui:Badge>
+                          <shadui:Badge
+                            Background="ForestGreen"
+                            IsVisible="{Binding Model.SupportsReasoning}"
+                            ToolTip.Tip="{I18N {x:Static LocaleKey.CustomAssistant_SupportsReasoning_Header}}">
+                            <LucideIcon Kind="Brain"/>
+                          </shadui:Badge>
+                          <shadui:Badge
+                            Padding="6,0" Background="MediumSlateBlue">
+                            <ToolTip.Tip>
+                              <TextBlock>
+                                <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_ContextLimit_Header}}"/>
+                                <Run Text="{Binding Model.ContextLimit, StringFormat=' {0:N0}', FallbackValue={x:Null}}"/>
+                                <LineBreak/>
+                                <Run Text="{I18N {x:Static LocaleKey.CustomAssistant_OutputLimit_Header}}"/>
+                                <Run Text="{Binding Model.OutputLimit, StringFormat=' {0:N0}', FallbackValue={x:Null}}"/>
+                              </TextBlock>
+                            </ToolTip.Tip>
+
+                            <TextBlock
+                              FontSize="{DynamicResource FontSizeS}"
+                              Text="{Binding Model.ContextLimit, Converter={x:Static vc:TokenCountHumanizationConverter.Shared}}"/>
+                          </shadui:Badge>
+                        </StackPanel>
+                      </Grid>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </DockPanel>
+            </Grid>
 
             <StackPanel
               Margin="0,8,0,0" Spacing="8">
@@ -191,8 +199,17 @@
               </StackPanel>
 
               <shadui:Toast
+                Title="{I18N {x:Static LocaleKey.OfficialModelDefinitionForm_ModelUnavailableToast_Text}}"
                 Margin="0" Padding="8"
-                CanDismiss="False" CanDismissByClicking="False" HorizontalAlignment="Left"
+                HorizontalAlignment="Left" CanDismiss="False"
+                CanDismissByClicking="False"
+                IsVisible="{Binding IsSelectedModelUnavailable, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
+                Notification="Error"/>
+
+              <shadui:Toast
+                Margin="0" Padding="8"
+                HorizontalAlignment="Left" CanDismiss="False"
+                CanDismissByClicking="False"
                 IsVisible="{Binding SelectedItem.DeprecationDate, Converter={x:Static ObjectConverters.IsNotNull}, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:False}}"
                 Notification="Warning">
                 <shadui:Toast.Title>

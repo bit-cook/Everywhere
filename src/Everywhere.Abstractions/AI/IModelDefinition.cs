@@ -47,4 +47,9 @@ public interface IModelDefinition
     /// Special capabilities or optimizations that the model may have for specific tasks, such as generating titles or compressing context.
     /// </summary>
     ModelSpecializations Specializations { get; }
+
+    /// <summary>
+    /// The date when the model is expected to be deprecated. This is used to evaluate model availability and show warnings to users if their selected model is nearing deprecation or already deprecated.
+    /// </summary>
+    DateOnly? DeprecationDate { get; }
 }

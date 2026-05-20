@@ -1,132 +1,242 @@
-﻿using System.Collections.ObjectModel;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
+using System.Collections.ObjectModel;
 using Avalonia.Controls.Primitives;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using Everywhere.AI;
 using Everywhere.Cloud;
 using Everywhere.Common;
+using Everywhere.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using ShadUI;
-using ZLinq;
 
 namespace Everywhere.Views;
 
-public partial class OfficialModelDefinitionForm : TemplatedControl, IExceptionHandler
+public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvider, Assistant assistant) : TemplatedControl, IExceptionHandler
 {
-    private readonly SourceCache<ModelDefinitionTemplate, string> _uiProxyCache = new(x => x.ModelId);
+    public sealed class ItemWrapper(ModelDefinitionTemplate model)
+    {
+        public ModelDefinitionTemplate Model { get; } = model;
 
-    public static readonly DirectProperty<OfficialModelDefinitionForm, ReadOnlyObservableCollection<ModelDefinitionTemplate>?> ItemsSourceProperty =
-        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, ReadOnlyObservableCollection<ModelDefinitionTemplate>?>(
+        public string ModelId => Model.ModelId;
+
+        public override string ToString() => Model.ToString();
+    }
+
+    public static readonly DirectProperty<OfficialModelDefinitionForm, ObservableCollection<ItemWrapper>> ItemsSourceProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, ObservableCollection<ItemWrapper>>(
             nameof(ItemsSource),
             o => o.ItemsSource);
 
-    public ReadOnlyObservableCollection<ModelDefinitionTemplate> ItemsSource { get; }
+    public ObservableCollection<ItemWrapper> ItemsSource { get; } = [];
 
-    private ModelDefinitionTemplate? _selectedItem;
     public static readonly DirectProperty<OfficialModelDefinitionForm, ModelDefinitionTemplate?> SelectedItemProperty =
         AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, ModelDefinitionTemplate?>(
             nameof(SelectedItem),
-            o => o.SelectedItem,
-            (o, v) => o.SelectedItem = v);
+            o => o.SelectedItem);
 
     public ModelDefinitionTemplate? SelectedItem
     {
         get => _selectedItem;
-        set
+        private set
         {
-            if (!SetAndRaise(SelectedItemProperty, ref _selectedItem, value)) return;
+            if (ReferenceEquals(_selectedItem, value)) return;
 
-            if (value is not null) _assistant.ApplyTemplate(value);
+            var oldValue = _selectedItem;
+            _selectedItem = value;
+            RaisePropertyChanged(SelectedItemProperty, oldValue, value);
         }
     }
 
-    public ICloudClient CloudClient { get; }
+    public static readonly DirectProperty<OfficialModelDefinitionForm, ItemWrapper?> SelectedItemWrapperProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, ItemWrapper?>(
+            nameof(SelectedItemWrapper),
+            o => o.SelectedItemWrapper,
+            (o, v) => o.SelectedItemWrapper = v);
 
-    public IOfficialModelProvider OfficialModelProvider { get; }
-
-    private readonly Assistant _assistant;
-
-    private CompositeDisposable? _visualTreeDisposables;
-    private bool _isFirstLoad = true;
-
-    public OfficialModelDefinitionForm(IServiceProvider serviceProvider, Assistant assistant)
+    public ItemWrapper? SelectedItemWrapper
     {
-        _assistant = assistant;
-        CloudClient = serviceProvider.GetRequiredService<ICloudClient>();
-        OfficialModelProvider = serviceProvider.GetRequiredService<IOfficialModelProvider>();
-
-        _uiProxyCache
-            .Connect()
-            .ObserveOnAvaloniaDispatcher()
-            .Bind(out var readOnlyList)
-            .Subscribe();
-        ItemsSource = readOnlyList;
+        get => _selectedItemWrapper;
+        set => SetSelectedItemWrapper(value);
     }
+
+    public static readonly DirectProperty<OfficialModelDefinitionForm, string?> SelectedModelIdProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, string?>(
+            nameof(SelectedModelId),
+            o => o.SelectedModelId,
+            (o, v) => o.SelectedModelId = v);
+
+    public string? SelectedModelId
+    {
+        get => _selectedModelId;
+        set => SetSelectedModelId(value);
+    }
+
+    public static readonly DirectProperty<OfficialModelDefinitionForm, bool> IsSelectedModelUnavailableProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, bool>(
+            nameof(IsSelectedModelUnavailable),
+            o => o.IsSelectedModelUnavailable);
+
+    public bool IsSelectedModelUnavailable
+    {
+        get;
+        private set => SetAndRaise(IsSelectedModelUnavailableProperty, ref field, value);
+    }
+
+    public ICloudClient CloudClient { get; } = serviceProvider.GetRequiredService<ICloudClient>();
+
+    public IOfficialModelProvider OfficialModelProvider { get; } = serviceProvider.GetRequiredService<IOfficialModelProvider>();
+
+    private IDisposable? _modelDefinitionsSubscription;
+    private ModelDefinitionTemplate? _selectedItem;
+    private ItemWrapper? _selectedItemWrapper;
+    private string? _selectedModelId = assistant.ModelId;
+    private ModelDefinitionTemplate? _selectedSnapshot;
+    private bool _isSynchronizingItems;
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        _visualTreeDisposables = new CompositeDisposable();
 
-        OfficialModelProvider.ModelDefinitions
+        _modelDefinitionsSubscription = OfficialModelProvider.ModelDefinitions
             .Connect()
             .ToCollection()
             .ObserveOnAvaloniaDispatcher()
-            .Subscribe(ReconcileProxyList)
-            .DisposeWith(_visualTreeDisposables);
+            .Subscribe(ReconcileProxyList);
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
-        _visualTreeDisposables?.Dispose();
-        _visualTreeDisposables = null;
+
+        DisposeCollector.DisposeToDefault(ref _modelDefinitionsSubscription);
     }
 
     private void ReconcileProxyList(IReadOnlyCollection<ModelDefinitionTemplate> cloudItems)
     {
-        var finalItems = cloudItems.ToList();
+        var result = Reconcile(
+            assistant,
+            _selectedModelId ?? _selectedItem?.ModelId,
+            _selectedSnapshot ?? _selectedItem,
+            cloudItems);
 
-        var targetModelId = _isFirstLoad ? _assistant.ModelId : _selectedItem?.ModelId;
-        if (!string.IsNullOrEmpty(targetModelId))
+        IsSelectedModelUnavailable = result.IsSelectedModelUnavailable;
+
+        _isSynchronizingItems = true;
+        try
         {
-            if (finalItems.AsValueEnumerable().All(x => x.ModelId != targetModelId))
+            ApplyItems(result.Items, result.TargetModelId);
+        }
+        finally
+        {
+            _isSynchronizingItems = false;
+        }
+    }
+
+    private void ApplyItems(IReadOnlyList<ModelDefinitionTemplate> items, string? targetModelId)
+    {
+        var desiredSelectedModel = items.FirstOrDefault(x => x.ModelId == targetModelId);
+        if (desiredSelectedModel is not null)
+        {
+            var desiredSelectedItemWrapper = ItemsSource.FirstOrDefault(x => ReferenceEquals(x.Model, desiredSelectedModel)) ??
+                new ItemWrapper(desiredSelectedModel);
+            if (!ItemsSource.Contains(desiredSelectedItemWrapper))
             {
-                if (_assistant.ModelId is not null)
-                {
-                    finalItems.Insert(0, new ModelDefinitionTemplate
-                    {
-                        ModelId = _assistant.ModelId,
-                        Name = _assistant.ModelId,
-                        SupportsReasoning = _assistant.SupportsReasoning,
-                        SupportsToolCall = _assistant.SupportsToolCall,
-                        InputModalities = _assistant.InputModalities,
-                        OutputModalities = _assistant.OutputModalities,
-                        ContextLimit = _assistant.ContextLimit,
-                        OutputLimit = _assistant.OutputLimit
-                    });
-                }
-                else if (_selectedItem is not null)
-                {
-                    finalItems.Insert(0, _selectedItem);
-                }
+                var desiredIndex = items.IndexOf(desiredSelectedModel);
+                ItemsSource.Insert(Math.Min(desiredIndex, ItemsSource.Count), desiredSelectedItemWrapper);
+            }
+
+            SetSelectedItemWrapper(desiredSelectedItemWrapper, forceUpdate: true);
+        }
+
+        for (var i = ItemsSource.Count - 1; i >= 0; i--)
+        {
+            var item = ItemsSource[i];
+            if (items.Any(model => ReferenceEquals(model, item.Model))) continue;
+
+            ItemsSource.RemoveAt(i);
+        }
+
+        for (var desiredIndex = 0; desiredIndex < items.Count; desiredIndex++)
+        {
+            var model = items[desiredIndex];
+            var itemWrapper = ItemsSource.FirstOrDefault(x => ReferenceEquals(x.Model, model));
+            if (itemWrapper is null)
+            {
+                ItemsSource.Insert(desiredIndex, new ItemWrapper(model));
+                continue;
+            }
+
+            var currentIndex = ItemsSource.IndexOf(itemWrapper);
+            if (currentIndex != desiredIndex)
+            {
+                ItemsSource.Move(currentIndex, desiredIndex);
             }
         }
 
-        _uiProxyCache.EditDiff(finalItems, (oldItem, newItem) => oldItem.ModelId == newItem.ModelId);
+        SetSelectedItemWrapper(ItemsSource.FirstOrDefault(x => x.ModelId == targetModelId), forceUpdate: true);
+    }
 
-        if (!string.IsNullOrEmpty(targetModelId))
+    private void SetSelectedItemWrapper(ItemWrapper? value, bool forceUpdate = false)
+    {
+        // ComboBox can briefly push null while ItemsSource is being rebuilt. Ignore that lifecycle artifact so the
+        // selected model id remains the source of truth during list reconciliation.
+        if (_isSynchronizingItems && value is null && !forceUpdate) return;
+        if (value is null && !_selectedModelId.IsNullOrWhiteSpace() && !forceUpdate) return;
+
+        if (!forceUpdate && ReferenceEquals(_selectedItemWrapper, value)) return;
+
+        var oldItemWrapper = _selectedItemWrapper;
+        _selectedItemWrapper = value;
+        RaisePropertyChanged(SelectedItemWrapperProperty, oldItemWrapper, value);
+
+        ApplySelectedModel(value?.ModelId, value?.Model, forceUpdate);
+    }
+
+    private void SetSelectedModelId(string? value, bool forceUpdate = false)
+    {
+        if (_isSynchronizingItems && value is null && !forceUpdate) return;
+
+        var itemWrapper = ItemsSource.FirstOrDefault(x => x.ModelId == value);
+        if (itemWrapper is not null)
         {
-            var proxyItem = _uiProxyCache.Lookup(targetModelId);
-            if (proxyItem.HasValue)
-            {
-                SelectedItem = proxyItem.Value;
-            }
+            SetSelectedItemWrapper(itemWrapper, forceUpdate);
+            return;
         }
 
-        if (_isFirstLoad) _isFirstLoad = false;
+        var oldItemWrapper = _selectedItemWrapper;
+        _selectedItemWrapper = null;
+        RaisePropertyChanged(SelectedItemWrapperProperty, oldItemWrapper, null);
+        ApplySelectedModel(value, null, forceUpdate);
+    }
+
+    private void ApplySelectedModel(string? modelId, ModelDefinitionTemplate? model, bool forceUpdate)
+    {
+        if (!forceUpdate &&
+            string.Equals(_selectedModelId, modelId, StringComparison.Ordinal) &&
+            ReferenceEquals(_selectedItem, model))
+        {
+            return;
+        }
+
+        var oldValue = _selectedModelId;
+        _selectedModelId = modelId;
+        RaisePropertyChanged(SelectedModelIdProperty, oldValue, modelId);
+
+        SelectedItem = model;
+        if (model is not null)
+        {
+            _selectedSnapshot = model;
+            assistant.ApplyTemplate(model);
+        }
+
+        UpdateSelectedModelUnavailable(OfficialModelProvider.ModelDefinitions.Items);
+    }
+
+    private void UpdateSelectedModelUnavailable(IReadOnlyCollection<ModelDefinitionTemplate> cloudItems)
+    {
+        IsSelectedModelUnavailable = _selectedModelId is { Length: > 0 } modelId &&
+            cloudItems.Count > 0 &&
+            cloudItems.All(x => x.ModelId != modelId);
     }
 
     [RelayCommand]
@@ -136,4 +246,66 @@ public partial class OfficialModelDefinitionForm : TemplatedControl, IExceptionH
     {
         ToastManager.Error(message ?? LocaleResolver.Common_Error, exception.GetFriendlyMessage());
     }
+
+    internal sealed record ReconcileResult(
+        IReadOnlyList<ModelDefinitionTemplate> Items,
+        string? TargetModelId,
+        ModelDefinitionTemplate? SelectedItem,
+        bool IsSelectedModelUnavailable);
+
+    /// <summary>
+    /// Rebuilds the UI model list from the cloud list while preserving the selected model id.
+    /// </summary>
+    internal static ReconcileResult Reconcile(
+        Assistant assistant,
+        string? targetModelId,
+        ModelDefinitionTemplate? selectedSnapshot,
+        IReadOnlyCollection<ModelDefinitionTemplate> cloudItems)
+    {
+        var finalItems = cloudItems.ToList();
+        var desiredModelId = FirstNonEmpty(targetModelId, selectedSnapshot?.ModelId, assistant.ModelId);
+        if (desiredModelId.IsNullOrWhiteSpace())
+        {
+            return new ReconcileResult(finalItems, null, null, false);
+        }
+
+        var selectedItem = finalItems.FirstOrDefault(x => x.ModelId == desiredModelId);
+        var isUnavailable = cloudItems.Count > 0 && selectedItem is null;
+        if (selectedItem is null)
+        {
+            selectedItem = CreateFallbackSnapshot(assistant, desiredModelId, selectedSnapshot);
+            finalItems.Insert(0, selectedItem);
+        }
+
+        return new ReconcileResult(finalItems, desiredModelId, selectedItem, isUnavailable);
+    }
+
+    private static ModelDefinitionTemplate CreateFallbackSnapshot(
+        Assistant assistant,
+        string modelId,
+        ModelDefinitionTemplate? selectedSnapshot)
+    {
+        if (selectedSnapshot is not null && selectedSnapshot.ModelId == modelId)
+        {
+            return selectedSnapshot;
+        }
+
+        return new ModelDefinitionTemplate
+        {
+            ModelId = modelId,
+            Name = modelId,
+            SupportsReasoning = assistant.SupportsReasoning,
+            SupportsToolCall = assistant.SupportsToolCall,
+            SupportsTemperature = assistant.SupportsTemperature,
+            InputModalities = assistant.InputModalities,
+            OutputModalities = assistant.OutputModalities,
+            ContextLimit = assistant.ContextLimit,
+            OutputLimit = assistant.OutputLimit,
+            Specializations = assistant.Specializations,
+            DeprecationDate = assistant.DeprecationDate
+        };
+    }
+
+    private static string? FirstNonEmpty(params string?[] values) =>
+        values.FirstOrDefault(value => !value.IsNullOrWhiteSpace());
 }

@@ -37,6 +37,8 @@ public abstract class KernelMixin(Assistant assistant, ModelConnection connectio
 
     public ModelSpecializations Specializations { get; } = assistant.Specializations;
 
+    public DateOnly? DeprecationDate { get; } = assistant.DeprecationDate;
+
     protected double? Temperature { get; } =
         assistant is { SupportsTemperature: true, Temperature.IsCustomValueSet: true } ? assistant.Temperature.ActualValue : null;
 

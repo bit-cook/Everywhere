@@ -62,6 +62,10 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
 
     [ObservableProperty]
     [SettingsItemIgnore]
+    public partial DateOnly? DeprecationDate { get; set; }
+
+    [ObservableProperty]
+    [SettingsItemIgnore]
     [NotifyPropertyChangedFor(nameof(Configurator))]
     public partial AssistantConfiguratorType ConfiguratorType { get; set; } = AssistantConfiguratorType.Official;
 
@@ -190,6 +194,8 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
             OutputModalities = modelDefinitionTemplate.OutputModalities;
             ContextLimit = modelDefinitionTemplate.ContextLimit;
             OutputLimit = modelDefinitionTemplate.OutputLimit;
+            Specializations = modelDefinitionTemplate.Specializations;
+            DeprecationDate = modelDefinitionTemplate.DeprecationDate;
         }
         else
         {
@@ -201,6 +207,8 @@ public abstract partial class Assistant : ObservableValidator, IModelDefinition
             OutputModalities = default;
             ContextLimit = 0;
             OutputLimit = 0;
+            Specializations = default;
+            DeprecationDate = null;
         }
     }
 }

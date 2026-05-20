@@ -105,6 +105,12 @@ public class PersistentState(IKeyValueStorage storage) : ObservableObject
         set => Set(value);
     }
 
+    public IReadOnlyList<string>? DismissedOfficialModelWarningKeys
+    {
+        get => Get<IReadOnlyList<string>>();
+        set => Set(value);
+    }
+
     public bool IsCloudSyncEnabled
     {
         get => Get(false);

@@ -560,8 +560,8 @@
                         Width="{DynamicResource FontSizeXl}"
                         Height="{DynamicResource FontSizeXl}"
                         Margin="4,0,-4,0" VerticalAlignment="Center"
-                        Icon="{Binding Icon, Mode=OneTime}"
                         Foreground="{DynamicResource BadgeForegroundColor}"
+                        Icon="{Binding Icon, Mode=OneTime}"
                         IconSize="{DynamicResource FontSizeM}"/>
 
                       <TextBlock
@@ -677,6 +677,102 @@
             </ScrollViewer>
           </DockPanel>
 
+          <ItemsControl
+            IsVisible="{Binding ChatWarnings.Count, Converter={x:Static vc:Int32Converters.IsNotZero}}"
+            ItemsSource="{Binding ChatWarnings}">
+            <ItemsControl.Styles>
+              <Style Selector="Border#Notification">
+                <Style Selector="^.Basic">
+                  <Style Selector="^ PathIcon#NotificationIcon">
+                    <Setter Property="IsVisible" Value="False"/>
+                  </Style>
+                </Style>
+                <Style Selector="^.Success">
+                  <Setter Property="Background" Value="{DynamicResource SuccessColor20}"/>
+                  <Style Selector="^ PathIcon#NotificationIcon">
+                    <Setter Property="Data" Value="{x:Static shadui:Icons.Success}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource SuccessColor60}"/>
+                  </Style>
+                </Style>
+                <Style Selector="^.Info">
+                  <Setter Property="Background" Value="{DynamicResource InfoColor20}"/>
+                  <Style Selector="^ PathIcon#NotificationIcon">
+                    <Setter Property="Data" Value="{x:Static shadui:Icons.Info}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource InfoColor60}"/>
+                  </Style>
+                </Style>
+                <Style Selector="^.Warning">
+                  <Setter Property="Background" Value="{DynamicResource WarningColor20}"/>
+                  <Style Selector="^ PathIcon#NotificationIcon">
+                    <Setter Property="Data" Value="{x:Static shadui:Icons.Warning}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource WarningColor60}"/>
+                  </Style>
+                </Style>
+                <Style Selector="^.Error">
+                  <Setter Property="Background" Value="{DynamicResource ErrorColor20}"/>
+                  <Style Selector="^ PathIcon#NotificationIcon">
+                    <Setter Property="Data" Value="{x:Static shadui:Icons.Error}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource ErrorColor60}"/>
+                  </Style>
+                </Style>
+              </Style>
+            </ItemsControl.Styles>
+
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Spacing="4"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="chat:ChatWindowNotification">
+                <Border
+                  x:Name="Notification" Padding="8,2"
+                  BorderBrush="{DynamicResource BorderColor60}"
+                  BorderThickness="0,1,0,0"
+                  Classes.Basic="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Basic}, Mode=OneTime}"
+                  Classes.Error="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Error}, Mode=OneTime}"
+                  Classes.Info="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Info}, Mode=OneTime}"
+                  Classes.Success="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Success}, Mode=OneTime}"
+                  Classes.Warning="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Warning}, Mode=OneTime}">
+                  <Grid
+                    ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
+                    <PathIcon
+                      x:Name="NotificationIcon" Grid.Column="0"
+                      Width="{DynamicResource FontSizeL}"
+                      Height="{DynamicResource FontSizeL}"
+                      Margin="0,2,4,2" VerticalAlignment="Center"/>
+                    <TextBlock
+                      Classes="Caption" Grid.Column="1"
+                      VerticalAlignment="Center"
+                      Text="{Binding MessageKey^, FallbackValue={x:Null}, Mode=OneTime}"
+                      TextWrapping="Wrap"/>
+
+                    <Button
+                      Classes="Ghost Compact Uniform" Grid.Column="2"
+                      Padding="4,1" VerticalAlignment="Center"
+                      Command="{Binding Command, Mode=OneTime}"
+                      CommandParameter="{x:Static shadui:ToastResult.ActionButtonClicked}"
+                      Content="{Binding ActionButtonContentKey^, FallbackValue={x:Null}, Mode=OneTime}"
+                      CornerRadius="4"
+                      IsVisible="{Binding Command, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}"/>
+
+                    <Button
+                      Classes="Ghost Compact Uniform" Grid.Column="3"
+                      Padding="1" VerticalAlignment="Center"
+                      Command="{Binding Command, Mode=OneTime}"
+                      CommandParameter="{x:Static shadui:ToastResult.Dismissed}"
+                      IsVisible="{Binding CanDismiss, Mode=OneTime}">
+                      <LucideIcon
+                        Kind="X"
+                        Size="{DynamicResource FontSizeL}"/>
+                    </Button>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
           <v:ChatPluginUserInterfaceHost
             Margin="8"
             IsVisible="{Binding !!$self.ItemsSource?.Count, TargetNullValue={x:False}}"
@@ -753,7 +849,7 @@
           <Border
             Padding="8,2"
             Background="{DynamicResource SuccessColor20}"
-            BorderBrush="{DynamicResource BorderColor}"
+            BorderBrush="{DynamicResource BorderColor60}"
             BorderThickness="0,1,0,0"
             IsVisible="{Binding ChatContextManager.Current.BusyMessageKey, Converter={x:Static ObjectConverters.IsNotNull}, Delay=200}">
             <StackPanel
@@ -770,31 +866,26 @@
           <Border
             Padding="8,2"
             Background="{DynamicResource WarningColor20}"
-            BorderBrush="{DynamicResource BorderColor}"
+            BorderBrush="{DynamicResource BorderColor60}"
             BorderThickness="0,1,0,0"
             IsVisible="{Binding EditingUserMessageNode, Converter={x:Static ObjectConverters.IsNotNull}}">
             <DockPanel LastChildFill="True">
               <Button
                 Classes="Ghost Compact Uniform" DockPanel.Dock="Right"
-                Padding="2,1" VerticalAlignment="Center"
+                Padding="1" VerticalAlignment="Center"
                 Command="{Binding $parent[v:ChatWindow].ViewModel.CancelEditingCommand}"
                 CommandParameter="{Binding}"
-                CornerRadius="4"
                 ToolTip.Tip="{I18N {x:Static LocaleKey.ChatWindow_CancelEditingButton_ToolTip}}">
-                <StackPanel Orientation="Horizontal">
-                  <LucideIcon
-                    Margin="0,1,0,-1" Kind="X"
-                    Size="14"/>
-                  <TextBlock
-                    Classes="Caption"
-                    Text="{I18N {x:Static LocaleKey.Common_Cancel}}"/>
-                </StackPanel>
+                <TextBlock
+                  Classes="Caption"
+                  Text="{I18N {x:Static LocaleKey.Common_Cancel}}"/>
               </Button>
 
               <StackPanel
                 Orientation="Horizontal" Spacing="4">
                 <LucideIcon
-                  Kind="SquarePen" Size="14"/>
+                  Kind="SquarePen"
+                  Size="{DynamicResource FontSizeL}"/>
                 <TextBlock
                   Classes="Caption" VerticalAlignment="Center"
                   Text="{I18N {x:Static LocaleKey.ChatWindow_EditingTextBlock_Text}}"/>
@@ -1058,7 +1149,8 @@
 
               <v:ChatInputArea.SettingsMenuItemsSource>
                 <StackPanel
-                  Orientation="Vertical" Spacing="4" Margin="0,0,0,4">
+                  Margin="0,0,0,4" Orientation="Vertical"
+                  Spacing="4">
                   <StackPanel
                     Orientation="Horizontal" Spacing="4">
                     <TextBlock
@@ -1081,10 +1173,9 @@
                   </TextBlock>
 
                   <Slider
-                    Margin="0,-2,0,0"
-                    MinWidth="160" IsSnapToTickEnabled="True"
-                    Maximum="4" Minimum="0"
-                    TickFrequency="1"
+                    MinWidth="160" Margin="0,-2,0,0"
+                    IsSnapToTickEnabled="True" Maximum="4"
+                    Minimum="0" TickFrequency="1"
                     Value="{Binding PersistentState.VisualContextLengthLimit, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
                 </StackPanel>
 
@@ -1113,10 +1204,9 @@
                   </TextBlock>
 
                   <Slider
-                    MinWidth="160" IsSnapToTickEnabled="True"
-                    Maximum="2" Minimum="0"
-                    Margin="0,-2,0,0"
-                    TickFrequency="1"
+                    MinWidth="160" Margin="0,-2,0,0"
+                    IsSnapToTickEnabled="True" Maximum="2"
+                    Minimum="0" TickFrequency="1"
                     Value="{Binding PersistentState.VisualContextDetailLevel, Mode=TwoWay, Converter={x:Static vc:Int32Converters.FromEnum}}"/>
                 </StackPanel>
 
@@ -1146,10 +1236,9 @@
                   </TextBlock>
 
                   <Slider
-                    MinWidth="160" IsSnapToTickEnabled="True"
-                    Margin="0,-2,0,0"
-                    Maximum="30" Minimum="-1"
-                    TickFrequency="1"
+                    MinWidth="160" Margin="0,-2,0,0"
+                    IsSnapToTickEnabled="True" Maximum="30"
+                    Minimum="-1" TickFrequency="1"
                     Value="{Binding PersistentState.MaxContextRounds, Mode=TwoWay}"/>
                 </StackPanel>
 
@@ -1162,15 +1251,14 @@
 
               <v:ChatInputArea.LeadingContentTemplate>
                 <DataTemplate x:DataType="se:Strategy">
-                  <shadui:Badge
-                    Background="{DynamicResource PrimaryColor}">
+                  <shadui:Badge Background="{DynamicResource PrimaryColor}">
                     <StackPanel
                       Orientation="Horizontal" Spacing="4">
                       <v:IconPresenter
                         VerticalAlignment="Center"
                         Background="{x:Null}"
-                        Icon="{Binding Icon}"
                         Foreground="{DynamicResource BadgeForegroundColor}"
+                        Icon="{Binding Icon}"
                         IconSize="{DynamicResource FontSizeM}"/>
                       <TextBlock
                         Text="{Binding NameKey^}"
