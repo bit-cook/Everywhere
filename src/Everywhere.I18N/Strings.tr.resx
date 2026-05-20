@@ -1552,6 +1552,30 @@ Seçim modlarını değiştirmek için kaydırma tekerleğini veya sayı tuşlar
     <data name="ChatPluginManager_Common_FailedToStartMcpPlugin" xml:space="preserve">
         <value>MCP eklentisi &quot;{0}&quot; başlatılamadı</value>
     </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_Warning" xml:space="preserve">
+        <value>This MCP server requires {0}, but Everywhere could not find it.</value>
+    </data>
+    <data name="ChatPluginPage_ResolveRuntimeDependencyButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="ChatPluginPage_WarningActionButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_Toast_Content" xml:space="preserve">
+        <value>Downloading and installing {0}...</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_SuccessToast_Title" xml:space="preserve">
+        <value>{0} is ready</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_FailedToast_Content" xml:space="preserve">
+        <value>Failed to install {0}.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_StartFailure" xml:space="preserve">
+        <value>This MCP server requires {0}. Install it before starting the server.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginCommandNotFound_StartFailure" xml:space="preserve">
+        <value>The MCP command &quot;{0}&quot; was not found. Install it or update the command path.</value>
+    </data>
     <data name="ChatPluginPage_TabItem_Logs_Header" xml:space="preserve">
         <value>Günlükler</value>
     </data>
@@ -2828,9 +2852,6 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     </data>
     <data name="BuiltInChatPlugin_Terminal_UnsupportedShell" xml:space="preserve">
         <value>Geçerli Shell türü desteklenmiyor veya bulunamadı, lütfen bilgisayarınızda en az PowerShell, zsh veya bash yüklü olduğundan emin olun.</value>
-    </data>
-    <data name="Assistant_ReasoningEffort_Description" xml:space="preserve">
-        <value>Özel akıl yürütme gücünü seçin veya girin. Farklı modellerin desteklediği seçenekler farklıdır, ayrıntılar için ilgili belgeleri kontrol edin. Boş bırakmak, bu parametreyi isteğe dahil etmemek anlamına gelir.</value>
     </data>
     <data name="Assistant_ThinkingType_Header" xml:space="preserve">
         <value>Düşünme Türü (thinking.type)</value>

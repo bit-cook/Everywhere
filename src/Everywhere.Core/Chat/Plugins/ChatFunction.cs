@@ -38,7 +38,7 @@ public abstract partial class ChatFunction : ObservableObject
 
     public bool IsExperimental { get; set; }
 
-    public bool IsVisible { get; set; }
+    public bool IsVisible { get; set; } = true;
 
     public abstract KernelFunction KernelFunction { get; }
 

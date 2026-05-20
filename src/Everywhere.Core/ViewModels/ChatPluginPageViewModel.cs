@@ -99,14 +99,7 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
             return;
         }
 
-        try
-        {
-            await manager.StartMcpClientAsync(newPlugin, cancellationToken);
-        }
-        catch (Exception e)
-        {
-            ToastExceptionHandler.HandleException(e, "Failed to start MCP Plugin");
-        }
+        manager.RefreshMcpRuntimeWarnings();
     }
 
     [RelayCommand]

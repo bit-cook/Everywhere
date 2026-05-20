@@ -85,8 +85,13 @@ public static class NetworkExtension
         services
             .AddSingleton<DynamicWebProxy>()
             .AddSingleton<IWebProxy>(x => x.GetRequiredService<DynamicWebProxy>())
+            .AddSingleton<FileDownloadService>()
+            .AddSingleton<IFileDownloadService>(x => x.GetRequiredService<FileDownloadService>())
+            .AddSingleton<RuntimeManager>()
+            .AddSingleton<IRuntimeManager>(x => x.GetRequiredService<RuntimeManager>())
             .AddTransient<UserAgentHandler>()
-            .AddTransient<IAsyncInitializer, NetworkInitializer>();
+            .AddTransient<IAsyncInitializer, NetworkInitializer>()
+            .AddTransient<IAsyncInitializer>(x => x.GetRequiredService<RuntimeManager>());
 
         // Configure the default HttpClient to use the DynamicWebProxy.
         services

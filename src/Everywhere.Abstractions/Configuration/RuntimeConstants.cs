@@ -19,6 +19,11 @@ public static class RuntimeConstants
     public static string WritableFolderPath { get; }
 
     /// <summary>
+    /// Gets the writable folder used for portable runtime binaries managed by Everywhere.
+    /// </summary>
+    public static string BinFolderPath { get; }
+
+    /// <summary>
     /// Gets the cache path for the application. This path is intended for storing temporary files and cache data that can be safely deleted without affecting the application's core functionality.
     /// </summary>
     public static string CacheFolderPath { get; }
@@ -33,6 +38,7 @@ public static class RuntimeConstants
     {
         DeviceId = EnsureDeviceId();
         WritableFolderPath = EnsureDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Everywhere"));
+        BinFolderPath = EnsureDirectory(Path.Combine(WritableFolderPath, "bin"));
         CacheFolderPath = EnsureDirectory(Path.Combine(WritableFolderPath, "cache"));
         ConfigurationFolderPath = EnsureDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".everywhere"));
     }
@@ -104,6 +110,7 @@ public static class RuntimeConstants
 
     private static string EnsureDirectory(string path)
     {
+        path = Path.GetFullPath(path);
         Directory.CreateDirectory(path);
         return path;
     }

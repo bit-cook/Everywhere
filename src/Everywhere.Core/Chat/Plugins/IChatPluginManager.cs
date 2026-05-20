@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using Everywhere.Common;
 
 namespace Everywhere.Chat.Plugins;
 
@@ -52,6 +53,16 @@ public interface IChatPluginManager
     /// </summary>
     /// <param name="mcpChatPlugin"></param>
     Task RemoveMcpPluginAsync(McpChatPlugin mcpChatPlugin);
+
+    /// <summary>
+    /// Gets the missing runtime dependency for the MCP plugin, if any.
+    /// </summary>
+    RuntimeDependency? GetMissingRuntimeDependency(McpChatPlugin mcpChatPlugin);
+
+    /// <summary>
+    /// Refreshes runtime warning messages for MCP plugins.
+    /// </summary>
+    void RefreshMcpRuntimeWarnings();
 
     /// <summary>
     /// Creates a new scope for available chat plugins and their functions.

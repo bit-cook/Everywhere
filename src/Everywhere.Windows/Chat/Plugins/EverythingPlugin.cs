@@ -26,6 +26,7 @@ public sealed class EverythingPlugin : BuiltInChatPlugin
         new DynamicResourceKey(LocaleKey.Windows_BuiltInChatPlugin_Everything_Description);
 
     public override LucideIconKind? Icon => LucideIconKind.Search;
+
     public override string BeautifulIcon => "avares://Everywhere/Assets/Icons/Everything.svg";
 
     private readonly SemaphoreSlim _asyncLock = new(1, 1);

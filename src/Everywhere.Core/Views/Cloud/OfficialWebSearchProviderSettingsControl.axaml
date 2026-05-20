@@ -28,7 +28,7 @@
             Condition="{Binding CloudClient.UserProfile, Converter={x:Static ObjectConverters.IsNull}, RelativeSource={RelativeSource TemplatedParent}}"
             ContentDataBinding="{Binding CloudClient, RelativeSource={RelativeSource TemplatedParent}}">
             <v:ConditionalContentControl.TrueContent>
-              <ControlTemplate x:DataType="cloud:ICloudClient">
+              <DataTemplate x:DataType="cloud:ICloudClient">
                 <Border
                   Background="{DynamicResource SecondaryCardBackgroundColor}"
                   CornerRadius="{DynamicResource XlCornerRadius}">
@@ -37,7 +37,7 @@
                     HorizontalAlignment="Center" VerticalAlignment="Center"
                     ShowActionsButton="False"/>
                 </Border>
-              </ControlTemplate>
+              </DataTemplate>
             </v:ConditionalContentControl.TrueContent>
           </v:ConditionalContentControl>
         </Panel>

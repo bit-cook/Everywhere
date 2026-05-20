@@ -135,7 +135,7 @@
               </v:LazyIndexedContentControl.IsVisible>
 
               <v:ConditionalContentControl.TrueContent>
-                <ControlTemplate>
+                <DataTemplate>
                   <StackPanel Spacing="6">
                     <shadui:Skeleton
                       Width="100"
@@ -180,7 +180,7 @@
                         CornerRadius="4"/>
                     </Grid>
                   </StackPanel>
-                </ControlTemplate>
+                </DataTemplate>
               </v:ConditionalContentControl.TrueContent>
             </v:ConditionalContentControl>
 
@@ -333,7 +333,7 @@
               Margin="4,0"
               Condition="{Binding ErrorMessageKey, Converter={x:Static ObjectConverters.IsNotNull}}">
               <v:ConditionalContentControl.TrueContent>
-                <ControlTemplate x:DataType="chat:AssistantChatMessage">
+                <DataTemplate x:DataType="chat:AssistantChatMessage">
                   <StackPanel
                     Orientation="Vertical" Spacing="4">
                     <Border
@@ -366,7 +366,7 @@
                       </Button.IsVisible>
                     </Button>
                   </StackPanel>
-                </ControlTemplate>
+                </DataTemplate>
               </v:ConditionalContentControl.TrueContent>
             </v:ConditionalContentControl>
 
@@ -379,7 +379,7 @@
               </v:ConditionalContentControl.Condition>
 
               <v:ConditionalContentControl.TrueContent>
-                <ControlTemplate x:DataType="chat:AssistantChatMessage">
+                <DataTemplate x:DataType="chat:AssistantChatMessage">
                   <SelectableTextBlock
                     Classes="Muted"
                     FontSize="{DynamicResource FontSizeS}">
@@ -398,7 +398,7 @@
                     <Run Text="{I18N {x:Static LocaleKey.ChatMessageControl_ChatStatisticsTextBlock_ElapsedRun}}"/>
                     <Run Text="{Binding ElapsedSeconds, StringFormat='{}{0:F1}s', Mode=OneWay}"/>
                   </SelectableTextBlock>
-                </ControlTemplate>
+                </DataTemplate>
               </v:ConditionalContentControl.TrueContent>
             </v:ConditionalContentControl>
 

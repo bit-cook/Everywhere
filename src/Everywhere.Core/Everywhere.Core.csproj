@@ -125,6 +125,29 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(IsWindows)' == 'true'">
+    <None Update="Assets\Shims\kiennq\checksum.sha512">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="Assets\Shims\kiennq\version.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="Assets\Shims\kiennq\shim.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="Assets\Shims\kiennq\checksum.sha256">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="Assets\Shims\kiennq\README.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
   <Import Project="..\Build.Generate.Telemetry.targets"/>
   <Import Project="..\Build.Generate.Cloud.targets"/>
 

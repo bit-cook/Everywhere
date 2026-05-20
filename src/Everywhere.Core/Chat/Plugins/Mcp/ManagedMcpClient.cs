@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Utilities;
@@ -27,6 +28,7 @@ public sealed partial class ManagedMcpClient : IAsyncDisposable
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IWatchdogManager _watchdogManager;
     private readonly IKeyValueStorage _keyValueStorage;
+    private readonly IRuntimeManager _runtimeManager;
     private readonly ILoggerFactory _loggerFactory;
     private readonly PluginSettings _pluginSettings;
     private readonly ILogger _logger;
@@ -57,6 +59,7 @@ public sealed partial class ManagedMcpClient : IAsyncDisposable
         _httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
         _watchdogManager = serviceProvider.GetRequiredService<IWatchdogManager>();
         _keyValueStorage = serviceProvider.GetRequiredService<IKeyValueStorage>();
+        _runtimeManager = serviceProvider.GetRequiredService<IRuntimeManager>();
         _loggerFactory = loggerFactory;
         _pluginSettings = pluginSettings;
         _logger = loggerFactory.CreateLogger<ManagedMcpClient>();
@@ -122,6 +125,11 @@ public sealed partial class ManagedMcpClient : IAsyncDisposable
             _isSessionExpired = false;
 
             await RegisterStdioWatchdogAsync(_clientTransport);
+
+            // if (mcpClient.ServerInfo.Icons is { Count: > 0 } icons)
+            // {
+            //     McpChatPlugin.UpdateBeautifulIcon(icons[0].Source);
+            // }
 
             var tools = (await ListToolsAsync(linkedCts.Token)).OrderBy(x => x.ProtocolTool.Name).ToList();
             McpChatPlugin.EditFunctions(list =>
@@ -413,7 +421,8 @@ public sealed partial class ManagedMcpClient : IAsyncDisposable
                             .ToDictionary(
                                 kv => kv.Key,
                                 kv => kv.Value,
-                                OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal)),
+                                OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal),
+                        _runtimeManager.GetPathEntries()),
                 },
                 _loggerFactory),
             HttpMcpTransportConfiguration sse => new HttpClientTransport(
@@ -471,17 +480,36 @@ public sealed partial class ManagedMcpClient : IAsyncDisposable
             RuntimeConstants.EnsureWritableDataFolderPath("plugins", "mcp", McpChatPlugin.Id.ToString("N"));
     }
 
-    private static Dictionary<string, string?> EnsureLatestPath(Dictionary<string, string?> environmentVariables)
+    private static Dictionary<string, string?> EnsureLatestPath(
+        Dictionary<string, string?> environmentVariables,
+        IReadOnlyList<string> managedPathEntries)
     {
         var latestPath = EnvironmentVariableUtilities.GetLatestPathVariable();
-        if (latestPath.IsNullOrEmpty()) return environmentVariables;
 
-        var pathBuilder = new StringBuilder(latestPath);
+        var pathBuilder = new StringBuilder();
+        var seenPaths = new HashSet<string>(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+
+        void AppendPaths(string? paths)
+        {
+            if (paths.IsNullOrEmpty()) return;
+
+            foreach (var path in paths.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (!seenPaths.Add(path)) continue;
+                if (pathBuilder.Length > 0) pathBuilder.Append(Path.PathSeparator);
+                pathBuilder.Append(path);
+            }
+        }
+
+        AppendPaths(string.Join(Path.PathSeparator, managedPathEntries));
+        AppendPaths(latestPath);
 
         if (environmentVariables.TryGetValue("PATH", out var existingPath) && !existingPath.IsNullOrEmpty())
         {
-            pathBuilder.Append(Path.PathSeparator).Append(existingPath);
+            AppendPaths(existingPath);
         }
+
+        if (pathBuilder.Length == 0) return environmentVariables;
 
         environmentVariables["PATH"] = pathBuilder.ToString();
         return environmentVariables;

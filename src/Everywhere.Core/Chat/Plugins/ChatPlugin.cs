@@ -1,7 +1,9 @@
 ﻿using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using System.Text.Json.Serialization;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using Everywhere.Chat.Permissions;
@@ -16,8 +18,13 @@ using ZLinq;
 namespace Everywhere.Chat.Plugins;
 
 [ObservableObject]
-public abstract partial class ChatPlugin(string name) : KernelPlugin(name), IDisposable
+public abstract partial class ChatPlugin : KernelPlugin, IDisposable
 {
+    protected ChatPlugin(string name) : base(name)
+    {
+        Warnings.CollectionChanged += HandleWarningsChanged;
+    }
+
     public abstract string Key { get; }
 
     [JsonIgnore]
@@ -30,7 +37,7 @@ public abstract partial class ChatPlugin(string name) : KernelPlugin(name), IDis
     public virtual LucideIconKind? Icon => null;
 
     /// <summary>
-    /// Gets the uri or svg data of the icon.
+    /// Gets the uri or base64 data of the icon.
     /// </summary>
     [JsonIgnore]
     public virtual string? BeautifulIcon => null;
@@ -48,6 +55,15 @@ public abstract partial class ChatPlugin(string name) : KernelPlugin(name), IDis
         ChatFunctionPermissions.ClipboardAccess |
         ChatFunctionPermissions.FileRead;
 
+    [JsonIgnore]
+    public ObservableCollection<ChatPluginWarning> Warnings { get; } = [];
+
+    [JsonIgnore]
+    public bool HasWarnings => Warnings.Count > 0;
+
+    [JsonIgnore]
+    public IDynamicResourceKey? FirstWarningMessageKey => Warnings.FirstOrDefault()?.MessageKey;
+
     /// <summary>
     /// Gets the list of functions provided by this plugin for Binding use in the UI.
     /// </summary>
@@ -61,6 +77,38 @@ public abstract partial class ChatPlugin(string name) : KernelPlugin(name), IDis
     public abstract IReadOnlyList<ChatFunction> GetChatFunctions();
 
     public abstract void Dispose();
+
+    public void SetWarning(string key, IDynamicResourceKey? messageKey, ICommand? command = null)
+    {
+        RemoveWarning(key);
+        if (messageKey is not null)
+        {
+            Warnings.Add(new ChatPluginWarning(key, messageKey, command));
+        }
+    }
+
+    public void RemoveWarning(string key)
+    {
+        for (var i = Warnings.Count - 1; i >= 0; i--)
+        {
+            if (string.Equals(Warnings[i].Key, key, StringComparison.Ordinal))
+            {
+                Warnings.RemoveAt(i);
+            }
+        }
+    }
+
+    private void HandleWarningsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        OnPropertyChanged(nameof(HasWarnings));
+        OnPropertyChanged(nameof(FirstWarningMessageKey));
+    }
+}
+
+public sealed record ChatPluginWarning(string Key, IDynamicResourceKey MessageKey, ICommand? Command = null)
+{
+    public IDynamicResourceKey? ActionButtonContentKey =>
+        Command is null ? null : new DynamicResourceKey(LocaleKey.ChatPluginPage_WarningActionButton_Content);
 }
 
 public abstract class ChatPlugin<TChatFunction> : ChatPlugin where TChatFunction : ChatFunction
@@ -183,6 +231,8 @@ public sealed partial class McpChatPlugin : ChatPlugin<McpChatFunction>, ILogger
         _ => null
     };
 
+    public override string? BeautifulIcon => _beautifulIcon;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HeaderKey))]
     [NotifyPropertyChangedFor(nameof(DescriptionKey))]
@@ -209,6 +259,8 @@ public sealed partial class McpChatPlugin : ChatPlugin<McpChatFunction>, ILogger
 
     private readonly SourceList<LogEntry> _logEntriesSource = new();
     private readonly IDisposable _logEntriesConnection;
+
+    private string? _beautifulIcon;
 
     /// <summary>
     /// Chat kernel plugin implemented with MCP.
@@ -237,6 +289,16 @@ public sealed partial class McpChatPlugin : ChatPlugin<McpChatFunction>, ILogger
     public void EditFunctions(Action<IExtendedList<McpChatFunction>> updateAction)
     {
         _functionsSource.Edit(updateAction);
+    }
+
+    /// <summary>
+    /// Updates the BeautifulIcon of this plugin and raises the PropertyChanged event.
+    /// </summary>
+    /// <param name="imageSource"></param>
+    public void UpdateBeautifulIcon(string? imageSource)
+    {
+        _beautifulIcon = imageSource;
+        OnPropertyChanged(nameof(BeautifulIcon));
     }
 
     void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)

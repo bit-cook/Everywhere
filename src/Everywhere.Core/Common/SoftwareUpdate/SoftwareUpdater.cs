@@ -1,7 +1,4 @@
 using System.Diagnostics;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Security.Cryptography;
 using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Configuration;
@@ -17,6 +14,7 @@ namespace Everywhere.Common;
 public sealed partial class SoftwareUpdater(
     IPlatformUpdateHandler platformHandler,
     IHttpClientFactory httpClientFactory,
+    IFileDownloadService fileDownloadService,
     INativeHelper nativeHelper,
     ILogger<SoftwareUpdater> logger
 ) : ObservableObject, ISoftwareUpdater, IDisposable
@@ -333,198 +331,18 @@ public sealed partial class SoftwareUpdater(
         var installPath = RuntimeConstants.EnsureWritableDataFolderPath("updates");
         var assetDownloadPath = Path.Combine(installPath, asset.Name);
 
-        var fileInfo = new FileInfo(assetDownloadPath);
-        if (fileInfo.Exists)
-        {
-            if (fileInfo.Length == asset.Size && string.Equals(await HashFileAsync(), asset.Digest, StringComparison.OrdinalIgnoreCase))
-            {
-                logger.LogInformation("Asset {AssetName} already exists and is valid, skipping download.", asset.Name);
-                progress?.Report(1.0);
-                return assetDownloadPath;
-            }
-
-            // If the existing file is larger than expected (corrupt), delete and restart.
-            if (fileInfo.Length > asset.Size)
-            {
-                logger.LogInformation("Asset {AssetName} is larger than expected, redownloading.", asset.Name);
-                fileInfo.Delete();
-            }
-            else
-            {
-                logger.LogInformation(
-                    "Asset {AssetName} partial download detected ({Existing}/{Total} bytes), resuming.",
-                    asset.Name,
-                    fileInfo.Length,
-                    asset.Size);
-            }
-        }
-
-        using var httpClient = httpClientFactory.CreateClient(Options.DefaultName);
-        var resumeOffset = fileInfo.Exists ? fileInfo.Length : 0L;
-        var url = resumeOffset > 0 ? asset.DirectDownloadUrl : await SelectDownloadUrlAsync(httpClient, asset, cancellationToken);
-
-        // If resuming, prefer the direct URL; fall back to proxy on failure.
-        if (resumeOffset > 0)
-        {
-            try
-            {
-                return await DownloadWithResumeAsync(httpClient, url, assetDownloadPath, asset, resumeOffset, progress, cancellationToken);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                var handledEx = HandledSystemException.Handle(ex);
-                logger.LogWarning(handledEx, "Resume download failed, restarting from proxy.");
-                fileInfo.Delete();
-                resumeOffset = 0;
-                url = asset.ProxyDownloadUrl;
-            }
-        }
-
-        return await DownloadWithResumeAsync(httpClient, url, assetDownloadPath, asset, resumeOffset, progress, cancellationToken);
-
-        async Task<string> HashFileAsync()
-        {
-            await using var fileStream = new FileStream(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var sha256 = await SHA256.HashDataAsync(fileStream, cancellationToken);
-            return "sha256:" + Convert.ToHexString(sha256);
-        }
-    }
-
-    /// <summary>
-    /// Selects the best download URL: direct GitHub with a 3-second timeout, falling back to the proxy.
-    /// </summary>
-    private async Task<string> SelectDownloadUrlAsync(
-        HttpClient httpClient,
-        SoftwareUpdateMetadata.UpdateAsset asset,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            var directPingCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            logger.LogInformation("Attempting to download update direct via GitHub: {Url}", asset.DirectDownloadUrl);
-
-            var fetchTask = httpClient.GetAsync(asset.DirectDownloadUrl, HttpCompletionOption.ResponseHeadersRead, directPingCts.Token);
-            var completedTask = await Task.WhenAny(fetchTask, Task.Delay(3000, cancellationToken));
-
-            if (completedTask == fetchTask && fetchTask.Status == TaskStatus.RanToCompletion)
-            {
-                fetchTask.Result.EnsureSuccessStatusCode();
-                fetchTask.Result.Dispose();
-                logger.LogInformation("Direct download is responsive, proceeding to download asset.");
-                return asset.DirectDownloadUrl;
-            }
-
-            await directPingCts.CancelAsync();
-            if (fetchTask.IsFaulted)
-            {
-                logger.LogWarning(fetchTask.Exception, "GitHub direct download failed. Falling back to ghproxy.");
-            }
-            else
-            {
-                logger.LogWarning("GitHub direct download timed out. Falling back to ghproxy.");
-            }
-        }
-        catch (Exception ex)
-        {
-            ex = HandledSystemException.Handle(ex);
-            logger.LogInformation(ex, "Failed during download selection. Falling back to ghproxy.");
-        }
-
-        return asset.ProxyDownloadUrl;
-    }
-
-    /// <summary>
-    /// Downloads the asset with HTTP Range support and token-bucket bandwidth throttling.
-    /// </summary>
-    private async Task<string> DownloadWithResumeAsync(
-        HttpClient httpClient,
-        string url,
-        string downloadPath,
-        SoftwareUpdateMetadata.UpdateAsset asset,
-        long resumeOffset,
-        IProgress<double>? progress,
-        CancellationToken cancellationToken)
-    {
-        var request = new HttpRequestMessage(HttpMethod.Get, url);
-        if (resumeOffset > 0)
-        {
-            request.Headers.Range = new RangeHeaderValue(resumeOffset, null);
-            logger.LogInformation("Requesting range: bytes={Offset}-", resumeOffset);
-        }
-
-        var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-
-        if (resumeOffset > 0 && response.StatusCode == HttpStatusCode.OK)
-        {
-            // Server ignored the Range header; we must restart from scratch.
-            response.Dispose();
-            request.Dispose();
-            logger.LogWarning("Server did not honor Range request, restarting download.");
-            File.Delete(downloadPath);
-            resumeOffset = 0;
-            request = new HttpRequestMessage(HttpMethod.Get, url);
-            response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        }
-
-        response.EnsureSuccessStatusCode();
-
-        {
-            var totalBytes = (response.Content.Headers.ContentLength ?? (asset.Size - resumeOffset)) + resumeOffset;
-            var fileMode = resumeOffset > 0 ? FileMode.Append : FileMode.Create;
-            await using var writeStream = new FileStream(downloadPath, fileMode, FileAccess.Write, FileShare.None);
-            writeStream.Seek(resumeOffset, SeekOrigin.Begin);
-
-            await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-
-            // Wrap with token-bucket rate limiter for smooth, non-bursty throttling.
-            var rateLimiter = new TokenBucketRateLimiter(AutoDownloadBytesPerSecond);
-            var totalBytesRead = resumeOffset;
-            var buffer = new byte[81920];
-
-            while (totalBytesRead < totalBytes)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var requested = (int)Math.Min(buffer.Length, totalBytes - totalBytesRead);
-                var allowed = await rateLimiter.AcquireAsync(requested, cancellationToken);
-
-                var bytesRead = await contentStream.ReadAsync(buffer.AsMemory(0, allowed), cancellationToken);
-                if (bytesRead == 0) break;
-
-                await writeStream.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken);
-                totalBytesRead += bytesRead;
-
-                // Return unused tokens if the stream returned fewer bytes than we acquired.
-                if (bytesRead < allowed)
-                {
-                    rateLimiter.ReturnUnused(allowed - bytesRead);
-                }
-
-                progress?.Report((double)totalBytesRead / totalBytes);
-            }
-
-            response.Dispose();
-
-            if (totalBytesRead < totalBytes)
-            {
-                throw new InvalidOperationException(
-                    $"Download incomplete: received {totalBytesRead} of {totalBytes} bytes for {asset.Name}.");
-            }
-        }
-
-        {
-            await using var readStream = new FileStream(downloadPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var sha256 = await SHA256.HashDataAsync(readStream, cancellationToken);
-            if (!string.Equals(
-                    "sha256:" + Convert.ToHexString(sha256),
-                    asset.Digest,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException($"Downloaded asset {asset.Name} hash does not match expected digest.");
-            }
-        }
-
-        return downloadPath;
+        return await fileDownloadService.DownloadAsync(
+            new FileDownloadRequest(
+                assetDownloadPath,
+                [
+                    new FileDownloadSource(asset.DirectDownloadUrl, "GitHub"),
+                    new FileDownloadSource(asset.ProxyDownloadUrl, "Proxy")
+                ],
+                asset.Size,
+                asset.Digest,
+                AutoDownloadBytesPerSecond),
+            progress,
+            cancellationToken);
     }
 
     public void Dispose()

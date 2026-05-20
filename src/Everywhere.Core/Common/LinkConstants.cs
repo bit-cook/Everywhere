@@ -11,4 +11,7 @@ public static class LinkConstants
     // aka
     public static Uri AkaDiscordUri => new("https://aka.sylinko.com/everywhere-discord", UriKind.Absolute);
     public static Uri AkaQQGroupUri => new("https://aka.sylinko.com/everywhere-qq-group", UriKind.Absolute);
+
+    // Runtime dependencies
+    public static Uri DockerInstallGuideUri => new("https://docs.docker.com/get-started/get-docker/", UriKind.Absolute);
 }

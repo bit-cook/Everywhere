@@ -1,31 +1,41 @@
 using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
+using Avalonia.Media;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins.Mcp;
 using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
+using Everywhere.Interop;
 using Everywhere.Utilities;
 using FuzzySharp;
 using Lucide.Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using ShadUI;
 using ZLinq;
 
 namespace Everywhere.Chat.Plugins;
 
 public class ChatPluginManager : IChatPluginManager
 {
+    private const string McpRuntimeWarningKey = "mcp.runtime";
+
     public ReadOnlyObservableCollection<BuiltInChatPlugin> BuiltInPlugins { get; }
 
     public ReadOnlyObservableCollection<McpChatPlugin> McpPlugins { get; }
 
     private readonly IServiceProvider _serviceProvider;
     private readonly Settings _settings;
+    private readonly IRuntimeManager _runtimeManager;
+    private readonly ILogger<ChatPluginManager> _logger;
 
     private readonly ConcurrentDictionary<Guid, ManagedMcpClient> _managedClients = [];
     private readonly CompositeDisposable _disposables = new(3);
@@ -36,11 +46,15 @@ public class ChatPluginManager : IChatPluginManager
         IServiceProvider serviceProvider,
         IEnumerable<BuiltInChatPlugin> builtInPlugins,
         Settings settings,
+        IRuntimeManager runtimeManager,
         ILogger<ChatPluginManager> logger)
     {
         _serviceProvider = serviceProvider;
         _builtInPluginsSource.AddRange(builtInPlugins);
         _settings = settings;
+        _runtimeManager = runtimeManager;
+        _logger = logger;
+        _runtimeManager.StatusChanged += HandleRuntimeManagerStatusChanged;
 
         // Load MCP plugins from settings.
         var mcpPlugins = settings.Plugin.McpChatPlugins.AsValueEnumerable().Select(m => m.ToMcpChatPlugin()).OfType<McpChatPlugin>().ToList();
@@ -97,6 +111,7 @@ public class ChatPluginManager : IChatPluginManager
 
         new ObjectObserver((in e) => HandleChatPluginChanged(BuiltInPlugins, e)).Observe(BuiltInPlugins);
         new ObjectObserver((in e) => HandleChatPluginChanged(McpPlugins, e)).Observe(McpPlugins);
+        RefreshMcpRuntimeWarnings();
 
         void InitializeMcpPlugins()
         {
@@ -195,6 +210,7 @@ public class ChatPluginManager : IChatPluginManager
         var mcpChatPlugin = new McpChatPlugin(configuration);
         GetOrCreateClient(mcpChatPlugin);
         _mcpPluginsSource.Add(mcpChatPlugin);
+        UpdateMcpRuntimeWarning(mcpChatPlugin);
         return mcpChatPlugin;
     }
 
@@ -214,6 +230,7 @@ public class ChatPluginManager : IChatPluginManager
         }
 
         mcpChatPlugin.TransportConfiguration = configuration;
+        UpdateMcpRuntimeWarning(mcpChatPlugin);
 
         if (wasRunning)
         {
@@ -255,8 +272,17 @@ public class ChatPluginManager : IChatPluginManager
                 new DynamicResourceKey(LocaleKey.ChatPluginManager_Common_InvalidMcpTransportConfiguration));
         }
 
+        await EnsureMcpStartPreconditionsAsync(mcpChatPlugin, transportConfiguration, cancellationToken);
+
         var client = GetOrCreateClient(mcpChatPlugin);
-        await client.StartAsync(cancellationToken);
+        try
+        {
+            await client.StartAsync(cancellationToken);
+        }
+        catch (Exception ex) when (TryCreateMcpStartHandledException(transportConfiguration, ex, out var handledException))
+        {
+            throw handledException;
+        }
     }
 
     public async Task StopMcpClientAsync(McpChatPlugin mcpChatPlugin)
@@ -272,6 +298,176 @@ public class ChatPluginManager : IChatPluginManager
         await StopMcpClientAsync(mcpChatPlugin);
         _mcpPluginsSource.Remove(mcpChatPlugin);
     }
+
+    public RuntimeDependency? GetMissingRuntimeDependency(McpChatPlugin mcpChatPlugin)
+    {
+        return mcpChatPlugin.TransportConfiguration is StdioMcpTransportConfiguration stdio ?
+            _runtimeManager.GetMissingDependency(stdio.Command) :
+            null;
+    }
+
+    public void RefreshMcpRuntimeWarnings()
+    {
+        foreach (var mcpPlugin in _mcpPluginsSource.Items)
+        {
+            UpdateMcpRuntimeWarning(mcpPlugin);
+        }
+    }
+
+    private async Task EnsureMcpStartPreconditionsAsync(
+        McpChatPlugin mcpChatPlugin,
+        McpTransportConfiguration transportConfiguration,
+        CancellationToken cancellationToken)
+    {
+        if (transportConfiguration is not StdioMcpTransportConfiguration stdio) return;
+
+        if (!_runtimeManager.HasRefreshed)
+        {
+            await _runtimeManager.RefreshAsync(cancellationToken);
+        }
+
+        UpdateMcpRuntimeWarning(mcpChatPlugin);
+        if (GetMissingRuntimeDependency(mcpChatPlugin) is { } missingDependency)
+        {
+            throw new HandledException(
+                new FileNotFoundException(
+                    $"MCP stdio command '{stdio.Command}' requires missing runtime '{missingDependency.DisplayName}'.",
+                    stdio.Command),
+                new FormattedDynamicResourceKey(
+                    LocaleKey.ChatPluginManager_McpPluginMissingRuntime_StartFailure,
+                    new DirectResourceKey(missingDependency.DisplayName)));
+        }
+
+        var command = NormalizeCommand(stdio.Command);
+        if (command.IsNullOrWhiteSpace()) return;
+        if (IsStdioCommandAvailable(stdio, command)) return;
+
+        throw new HandledException(
+            new FileNotFoundException($"MCP stdio command '{command}' was not found.", command),
+            new FormattedDynamicResourceKey(
+                LocaleKey.ChatPluginManager_McpPluginCommandNotFound_StartFailure,
+                new DirectResourceKey(command)));
+    }
+
+    private static bool TryCreateMcpStartHandledException(
+        McpTransportConfiguration transportConfiguration,
+        Exception exception,
+        [NotNullWhen(true)] out HandledException? handledException)
+    {
+        handledException = null;
+        if (exception is HandledException handled)
+        {
+            handledException = handled;
+            return true;
+        }
+
+        if (transportConfiguration is not StdioMcpTransportConfiguration stdio)
+        {
+            return false;
+        }
+
+        var systemException = exception.Segregate().FirstOrDefault(static e =>
+            e is Win32Exception or FileNotFoundException or DirectoryNotFoundException);
+        if (systemException is null)
+        {
+            return false;
+        }
+
+        var command = NormalizeCommand(stdio.Command);
+        var messageKey = new FormattedDynamicResourceKey(
+            LocaleKey.ChatPluginManager_McpPluginCommandNotFound_StartFailure,
+            new DirectResourceKey(command));
+        handledException = new HandledException(
+            new InvalidOperationException(
+                $"Failed to start MCP stdio command '{command}'. Error type: {systemException.GetType().Name}.",
+                exception),
+            messageKey);
+        return true;
+    }
+
+    private bool IsStdioCommandAvailable(StdioMcpTransportConfiguration stdio, string command)
+    {
+        if (RuntimeDependencyDetector.LooksLikePath(command))
+        {
+            var commandPath = Path.IsPathFullyQualified(command) ?
+                command :
+                Path.GetFullPath(command, GetConfiguredWorkingDirectory(stdio));
+            return File.Exists(commandPath);
+        }
+
+        foreach (var directory in GetStdioPathEntries(stdio))
+        {
+            if (!Directory.Exists(directory)) continue;
+
+            foreach (var candidate in GetExecutableCandidates(command))
+            {
+                if (File.Exists(Path.Combine(directory, candidate)))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private IEnumerable<string> GetStdioPathEntries(StdioMcpTransportConfiguration stdio)
+    {
+        foreach (var path in _runtimeManager.GetPathEntries())
+        {
+            yield return path;
+        }
+
+        foreach (var path in SplitPath(EnvironmentVariableUtilities.GetLatestPathVariable()))
+        {
+            yield return path;
+        }
+
+        var pathComparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        string? configuredPath = null;
+        foreach (var kv in stdio.EnvironmentVariables.AsValueEnumerable())
+        {
+            if (!pathComparer.Equals(kv.Key, "PATH")) continue;
+            configuredPath = kv.Value;
+            break;
+        }
+
+        foreach (var path in SplitPath(configuredPath))
+        {
+            yield return path;
+        }
+    }
+
+    private static IEnumerable<string> SplitPath(string? path)
+    {
+        if (path.IsNullOrWhiteSpace()) yield break;
+
+        foreach (var entry in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            yield return entry;
+        }
+    }
+
+    private static IEnumerable<string> GetExecutableCandidates(string command)
+    {
+        yield return command;
+
+        if (!OperatingSystem.IsWindows() || Path.HasExtension(command)) yield break;
+
+        yield return command + ".exe";
+        yield return command + ".cmd";
+        yield return command + ".bat";
+        yield return command + ".com";
+    }
+
+    private static string GetConfiguredWorkingDirectory(StdioMcpTransportConfiguration stdio)
+    {
+        return !stdio.WorkingDirectory.IsNullOrWhiteSpace() && Directory.Exists(stdio.WorkingDirectory) ?
+            stdio.WorkingDirectory :
+            Environment.CurrentDirectory;
+    }
+
+    private static string NormalizeCommand(string command) => command.Trim().Trim('"');
 
     public async Task<IChatPluginScope> CreateScopeAsync(
         ToolRulesets? toolRulesets,
@@ -301,6 +497,10 @@ public class ChatPluginManager : IChatPluginManager
                     try
                     {
                         await StartMcpClientAsync(mcpChatPlugin, cancellationToken);
+                    }
+                    catch (HandledException)
+                    {
+                        throw;
                     }
                     catch (Exception ex)
                     {
@@ -374,6 +574,8 @@ public class ChatPluginManager : IChatPluginManager
 
     public void Dispose()
     {
+        _runtimeManager.StatusChanged -= HandleRuntimeManagerStatusChanged;
+
         foreach (var mcpClient in _managedClients.Values)
         {
             mcpClient.DisposeAsync().Detach(IExceptionHandler.DangerouslyIgnoreAllException);
@@ -382,6 +584,65 @@ public class ChatPluginManager : IChatPluginManager
         _managedClients.Clear();
         _mcpPluginsSource.Clear();
         _disposables.Dispose();
+    }
+
+    private void HandleRuntimeManagerStatusChanged(object? sender, EventArgs e)
+    {
+        Dispatcher.UIThread.PostOnDemand(RefreshMcpRuntimeWarnings);
+    }
+
+    private void UpdateMcpRuntimeWarning(McpChatPlugin mcpChatPlugin)
+    {
+        var missingDependency = GetMissingRuntimeDependency(mcpChatPlugin);
+        if (missingDependency is null)
+        {
+            mcpChatPlugin.RemoveWarning(McpRuntimeWarningKey);
+            return;
+        }
+
+        mcpChatPlugin.SetWarning(
+            McpRuntimeWarningKey,
+            new FormattedDynamicResourceKey(
+                LocaleKey.ChatPluginManager_McpPluginMissingRuntime_Warning,
+                new DirectResourceKey(missingDependency.DisplayName)),
+            new AsyncRelayCommand<ToastResult>(result => ResolveMcpRuntimeDependencyAsync(mcpChatPlugin, missingDependency, result)));
+    }
+
+    private async Task ResolveMcpRuntimeDependencyAsync(
+        McpChatPlugin mcpChatPlugin,
+        RuntimeDependency dependency,
+        ToastResult? toastResult)
+    {
+        if (toastResult != ToastResult.ActionButtonClicked) return;
+
+        try
+        {
+            if (dependency.Kind == RuntimeKind.Docker)
+            {
+                await App.Launcher.LaunchUriAsync(LinkConstants.DockerInstallGuideUri);
+                return;
+            }
+
+            var progress = new Progress<double>();
+            var cancellationTokenSource = new CancellationTokenSource();
+            ToastManager
+                .Create(LocaleResolver.Common_Info)
+                .WithContent(LocaleResolver.RuntimeManager_InstallRuntime_Toast_Content.Format(dependency.DisplayName))
+                .WithProgress(progress)
+                .WithCancellationTokenSource(cancellationTokenSource)
+                .OnBottomRight()
+                .ShowInfo();
+
+            await _runtimeManager.InstallAsync(dependency.Kind, progress, cancellationTokenSource.Token);
+            RefreshMcpRuntimeWarnings();
+
+            ToastManager.Success(LocaleResolver.RuntimeManager_InstallRuntime_SuccessToast_Title.Format(dependency.DisplayName));
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to resolve runtime dependency {RuntimeKind} for MCP plugin {PluginId}.", dependency.Kind, mcpChatPlugin.Id);
+            ToastManager.Error($"[{nameof(ChatPluginManager)}] Failed to resolve runtime dependency", e.GetFriendlyMessage());
+        }
     }
 
     /// <summary>

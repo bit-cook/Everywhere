@@ -23,13 +23,13 @@ public class ConditionalContentControl : ContentControl
     /// <summary>
     /// Defines the <see cref="TrueContent"/> property.
     /// </summary>
-    public static readonly StyledProperty<IControlTemplate?> TrueContentProperty =
-        AvaloniaProperty.Register<ConditionalContentControl, IControlTemplate?>(nameof(TrueContent));
+    public static readonly StyledProperty<IDataTemplate?> TrueContentProperty =
+        AvaloniaProperty.Register<ConditionalContentControl, IDataTemplate?>(nameof(TrueContent));
 
     /// <summary>
     /// Gets or sets the content template to display when <see cref="Condition"/> is true.
     /// </summary>
-    public IControlTemplate? TrueContent
+    public IDataTemplate? TrueContent
     {
         get => GetValue(TrueContentProperty);
         set => SetValue(TrueContentProperty, value);
@@ -38,13 +38,13 @@ public class ConditionalContentControl : ContentControl
     /// <summary>
     /// Defines the <see cref="FalseContent"/> property.
     /// </summary>
-    public static readonly StyledProperty<IControlTemplate?> FalseContentProperty =
-        AvaloniaProperty.Register<ConditionalContentControl, IControlTemplate?>(nameof(FalseContent));
+    public static readonly StyledProperty<IDataTemplate?> FalseContentProperty =
+        AvaloniaProperty.Register<ConditionalContentControl, IDataTemplate?>(nameof(FalseContent));
 
     /// <summary>
     /// Gets or sets the content template to display when <see cref="Condition"/> is false.
     /// </summary>
-    public IControlTemplate? FalseContent
+    public IDataTemplate? FalseContent
     {
         get => GetValue(FalseContentProperty);
         set => SetValue(FalseContentProperty, value);
@@ -53,13 +53,13 @@ public class ConditionalContentControl : ContentControl
     /// <summary>
     /// Defines the <see cref="NullContent"/> property.
     /// </summary>
-    public static readonly StyledProperty<IControlTemplate?> NullContentProperty =
-        AvaloniaProperty.Register<ConditionalContentControl, IControlTemplate?>(nameof(NullContent));
+    public static readonly StyledProperty<IDataTemplate?> NullContentProperty =
+        AvaloniaProperty.Register<ConditionalContentControl, IDataTemplate?>(nameof(NullContent));
 
     /// <summary>
     /// Gets or sets the content template to display when <see cref="Condition"/> is null.
     /// </summary>
-    public IControlTemplate? NullContent
+    public IDataTemplate? NullContent
     {
         get => GetValue(NullContentProperty);
         set => SetValue(NullContentProperty, value);
@@ -106,7 +106,7 @@ public class ConditionalContentControl : ContentControl
             false => FalseContent,
             _ => NullContent,
         };
-        var control = content?.Build(this)?.Result;
+        var control = content?.Build(this);
         control?.DataContext = ContentDataBinding ?? DataContext;
         Content = control;
     }

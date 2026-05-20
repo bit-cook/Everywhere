@@ -1553,6 +1553,30 @@
     <data name="ChatPluginManager_Common_FailedToStartMcpPlugin" xml:space="preserve">
         <value>MCPプラグイン「{0}」の起動に失敗しました</value>
     </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_Warning" xml:space="preserve">
+        <value>This MCP server requires {0}, but Everywhere could not find it.</value>
+    </data>
+    <data name="ChatPluginPage_ResolveRuntimeDependencyButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="ChatPluginPage_WarningActionButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_Toast_Content" xml:space="preserve">
+        <value>Downloading and installing {0}...</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_SuccessToast_Title" xml:space="preserve">
+        <value>{0} is ready</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_FailedToast_Content" xml:space="preserve">
+        <value>Failed to install {0}.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_StartFailure" xml:space="preserve">
+        <value>This MCP server requires {0}. Install it before starting the server.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginCommandNotFound_StartFailure" xml:space="preserve">
+        <value>The MCP command &quot;{0}&quot; was not found. Install it or update the command path.</value>
+    </data>
     <data name="ChatPluginPage_TabItem_Logs_Header" xml:space="preserve">
         <value>ログ</value>
     </data>
@@ -2829,9 +2853,6 @@
     </data>
     <data name="BuiltInChatPlugin_Terminal_UnsupportedShell" xml:space="preserve">
         <value>現在のシェルタイプはサポートされていないか、見つかりません。コンピュータにPowerShell、zsh、またはbashが少なくともインストールされていることを確認してください。</value>
-    </data>
-    <data name="Assistant_ReasoningEffort_Description" xml:space="preserve">
-        <value>カスタム推論の強度を選択または入力します。異なるモデルがサポートするオプションは異なりますので、詳細は対応するドキュメントを参照してください。空白の場合、このパラメータはリクエストに含まれません。</value>
     </data>
     <data name="Assistant_ThinkingType_Header" xml:space="preserve">
         <value>思考タイプ (thinking.type)</value>

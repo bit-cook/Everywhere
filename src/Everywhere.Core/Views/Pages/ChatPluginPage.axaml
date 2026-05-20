@@ -1,12 +1,9 @@
 ﻿<UserControl
   x:Class="Everywhere.Views.Pages.ChatPluginPage" xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-  xmlns:in="clr-namespace:Everywhere.Interactions"
-  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-  xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia"
-  xmlns:p="clr-namespace:Everywhere.Chat.Plugins"
-  xmlns:permissions="clr-namespace:Everywhere.Chat.Permissions"
-  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
+  xmlns:in="clr-namespace:Everywhere.Interactions" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:md="clr-namespace:LiveMarkdown.Avalonia;assembly=LiveMarkdown.Avalonia" xmlns:p="clr-namespace:Everywhere.Chat.Plugins"
+  xmlns:permissions="clr-namespace:Everywhere.Chat.Permissions" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
   xmlns:v="clr-namespace:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters"
   xmlns:vm="clr-namespace:Everywhere.ViewModels" d:DesignHeight="450"
   d:DesignWidth="800" x:Name="Self"
@@ -31,45 +28,62 @@
       <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
       <Setter Property="ItemTemplate">
         <DataTemplate DataType="p:ChatPlugin">
-          <DockPanel>
-            <ToggleSwitch
-              DockPanel.Dock="Right" Margin="8,0,4,0"
-              IsChecked="{Binding IsEnabled}"/>
+          <Grid
+            ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="8">
+            <LucideIcon
+              Grid.Column="0" Margin="0,0,10,0"
+              Kind="{Binding Icon}"/>
+            <StackPanel
+              Grid.Column="1" VerticalAlignment="Center"
+              Spacing="4">
+              <TextBlock
+                Classes="p" IsHitTestVisible="False"
+                Text="{Binding HeaderKey^}"
+                TextTrimming="CharacterEllipsis"/>
+              <TextBlock
+                Classes="Muted" IsHitTestVisible="False"
+                IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                MaxLines="2"
+                Text="{Binding DescriptionKey^}"
+                TextTrimming="CharacterEllipsis"/>
+            </StackPanel>
 
-            <Grid ColumnDefinitions="Auto,*,Auto">
-              <LucideIcon
-                Grid.Column="0" Margin="0,0,10,0"
-                Kind="{Binding Icon}"/>
-              <StackPanel
-                Grid.Column="1" VerticalAlignment="Center"
-                Spacing="4">
-                <TextBlock
-                  Classes="p" IsHitTestVisible="False"
-                  Text="{Binding HeaderKey^}"
-                  TextTrimming="CharacterEllipsis"/>
-                <TextBlock
-                  Classes="Muted" IsHitTestVisible="False"
-                  IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                  MaxLines="2"
-                  Text="{Binding DescriptionKey^}"
-                  TextTrimming="CharacterEllipsis"/>
-              </StackPanel>
-              <Border
-                Grid.Column="2" Width="8"
-                Height="8" Background="Gray"
-                CornerRadius="8"
-                IsVisible="{Binding !(p:McpChatPlugin).IsRunning, FallbackValue=false}"
-                ToolTip.Placement="Top"
-                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatPluginPage_PluginStatus_NotRunning_ToolTip}}"/>
-              <Border
-                Grid.Column="2" Width="8"
-                Height="8" Background="Green"
-                CornerRadius="8"
-                IsVisible="{Binding (p:McpChatPlugin).IsRunning, FallbackValue=false}"
-                ToolTip.Placement="Top"
-                ToolTip.Tip="{I18N {x:Static LocaleKey.ChatPluginPage_PluginStatus_Running_ToolTip}}"/>
-            </Grid>
-          </DockPanel>
+            <LucideIcon
+              Grid.Column="2"
+              Foreground="{DynamicResource WarningColor}"
+              IsVisible="{Binding HasWarnings}"
+              Kind="TriangleAlert"
+              Size="{DynamicResource FontSizeL}"
+              ToolTip.Placement="Top"
+              ToolTip.Tip="{Binding FirstWarningMessageKey^, FallbackValue={x:Null}}"/>
+
+            <v:ConditionalContentControl
+              Grid.Column="3"
+              Condition="{Binding Converter={x:Static vc:CommonConverters.TypeEquals}, ConverterParameter={x:Type p:McpChatPlugin}}">
+              <v:ConditionalContentControl.TrueContent>
+                <DataTemplate x:DataType="p:McpChatPlugin">
+                  <Panel>
+                    <Border
+                      Width="8" Height="8"
+                      Background="Gray" CornerRadius="8"
+                      IsVisible="{Binding !IsRunning, FallbackValue={x:False}}"
+                      ToolTip.Placement="Top"
+                      ToolTip.Tip="{I18N {x:Static LocaleKey.ChatPluginPage_PluginStatus_NotRunning_ToolTip}}"/>
+                    <Border
+                      Width="8" Height="8"
+                      Background="Green" CornerRadius="8"
+                      IsVisible="{Binding IsRunning, FallbackValue={x:False}}"
+                      ToolTip.Placement="Top"
+                      ToolTip.Tip="{I18N {x:Static LocaleKey.ChatPluginPage_PluginStatus_Running_ToolTip}}"/>
+                  </Panel>
+                </DataTemplate>
+              </v:ConditionalContentControl.TrueContent>
+            </v:ConditionalContentControl>
+
+            <ToggleSwitch
+              Grid.Column="4" Margin="0,0,4,0"
+              IsChecked="{Binding IsEnabled}"/>
+          </Grid>
         </DataTemplate>
       </Setter>
     </Style>
@@ -256,42 +270,69 @@
 
     <shadui:NavigationView.ContentTemplate>
       <DataTemplate DataType="p:ChatPlugin">
-        <DockPanel
-          Margin="0,12,0,0" VerticalSpacing="16">
-          <Grid
-            DockPanel.Dock="Top" ColumnDefinitions="Auto,*">
-            <Viewbox
-              Grid.Column="0" Width="64" Height="64"
-              IsVisible="{Binding BeautifulIcon, FallbackValue=false, Converter={x:Static ObjectConverters.IsNotNull}}">
-              <Image
-                md:AsyncImageLoader.SizeToContent="Manual"
-                md:AsyncImageLoader.Source="{Binding BeautifulIcon, FallbackValue={x:Null}}"
-                Stretch="Uniform"/>
-            </Viewbox>
-            <LucideIcon
-              Grid.Column="0" VerticalAlignment="Top"
-              IsVisible="{Binding BeautifulIcon, FallbackValue=false, Converter={x:Static ObjectConverters.IsNull}}"
-              Kind="{Binding Icon, FallbackValue=Hammer}"
-              Size="64"/>
+        <Grid
+          Margin="0,12,0,0" ColumnDefinitions="Auto,*"
+          RowDefinitions="Auto,Auto,*" RowSpacing="8">
+          <Image
+            Grid.Row="0" Grid.Column="0"
+            Width="64" Height="64"
+            md:AsyncImageLoader.SizeToContent="Manual"
+            md:AsyncImageLoader.Source="{Binding BeautifulIcon}"
+            IsVisible="{Binding BeautifulIcon, Converter={x:Static ObjectConverters.IsNotNull}}"
+            Stretch="Uniform"/>
+          <LucideIcon
+            Grid.Row="0" Grid.Column="0"
+            VerticalAlignment="Top"
+            IsVisible="{Binding BeautifulIcon, Converter={x:Static ObjectConverters.IsNull}}"
+            Kind="{Binding Icon, FallbackValue=Hammer}"
+            Size="64"/>
 
-            <StackPanel Margin="12,0,0,0"
-              Grid.Column="1" Orientation="Vertical" Spacing="2">
+          <StackPanel
+            Grid.Row="0" Grid.Column="1"
+            Margin="12,0,0,0" Orientation="Vertical"
+            Spacing="2">
+            <TextBlock
+              Classes="h3"
+              Text="{Binding HeaderKey^, FallbackValue={x:Null}}"
+              TextTrimming="CharacterEllipsis"/>
+
+            <ScrollViewer
+              MaxHeight="80" HorizontalScrollBarVisibility="Disabled">
               <TextBlock
-                Classes="h3"
-                Text="{Binding HeaderKey^, FallbackValue={x:Null}}"
-                TextTrimming="CharacterEllipsis"/>
+                Classes="Muted"
+                Text="{Binding DescriptionKey^, FallbackValue={x:Null}}"
+                TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
+            </ScrollViewer>
+          </StackPanel>
 
-              <ScrollViewer
-                MaxHeight="80" HorizontalScrollBarVisibility="Disabled">
-                <TextBlock
-                  Classes="Muted"
-                  Text="{Binding DescriptionKey^, FallbackValue={x:Null}}"
-                  TextTrimming="CharacterEllipsis" TextWrapping="Wrap"/>
-              </ScrollViewer>
-            </StackPanel>
-          </Grid>
+          <ItemsControl
+            Grid.Row="1" Grid.Column="0"
+            Grid.ColumnSpan="2" Margin="0"
+            HorizontalAlignment="Stretch"
+            IsVisible="{Binding HasWarnings}"
+            ItemsSource="{Binding Warnings}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <StackPanel Spacing="8"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="p:ChatPluginWarning">
+                <shadui:Toast
+                  Title="{Binding MessageKey^, FallbackValue={x:Null}}"
+                  HorizontalAlignment="Stretch"
+                  ActionButtonContent="{Binding ActionButtonContentKey^, FallbackValue={x:Null}}"
+                  CanDismiss="False" CanDismissByClicking="False"
+                  Command="{Binding Command}"
+                  Notification="Warning"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
 
-          <TabControl ItemsSource="{Binding #Self.ViewModel.ContentTabItems}">
+          <TabControl
+            Grid.Row="2" Grid.Column="0"
+            Grid.ColumnSpan="2"
+            ItemsSource="{Binding #Self.ViewModel.ContentTabItems}">
             <TabControl.ItemTemplate>
               <DataTemplate x:DataType="vm:ChatPluginPageViewModel+IContentTabItem">
                 <TextBlock Text="{Binding Header^}"/>
@@ -452,7 +493,7 @@
               </DataTemplate>
             </TabControl.DataTemplates>
           </TabControl>
-        </DockPanel>
+        </Grid>
       </DataTemplate>
     </shadui:NavigationView.ContentTemplate>
 

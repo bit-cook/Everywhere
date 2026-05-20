@@ -1552,6 +1552,30 @@ Scrollrad oder Zifferntasten zum Wechseln der Auswahlmodi</value>
     <data name="ChatPluginManager_Common_FailedToStartMcpPlugin" xml:space="preserve">
         <value>Fehler beim Starten des MCP-Plugins „{0}“</value>
     </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_Warning" xml:space="preserve">
+        <value>This MCP server requires {0}, but Everywhere could not find it.</value>
+    </data>
+    <data name="ChatPluginPage_ResolveRuntimeDependencyButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="ChatPluginPage_WarningActionButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_Toast_Content" xml:space="preserve">
+        <value>Downloading and installing {0}...</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_SuccessToast_Title" xml:space="preserve">
+        <value>{0} is ready</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_FailedToast_Content" xml:space="preserve">
+        <value>Failed to install {0}.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_StartFailure" xml:space="preserve">
+        <value>This MCP server requires {0}. Install it before starting the server.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginCommandNotFound_StartFailure" xml:space="preserve">
+        <value>The MCP command &quot;{0}&quot; was not found. Install it or update the command path.</value>
+    </data>
     <data name="ChatPluginPage_TabItem_Logs_Header" xml:space="preserve">
         <value>Protokolle</value>
     </data>
@@ -2828,9 +2852,6 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     </data>
     <data name="BuiltInChatPlugin_Terminal_UnsupportedShell" xml:space="preserve">
         <value>Der aktuelle Shell-Typ wird nicht unterstützt oder wurde nicht gefunden. Bitte stellen Sie sicher, dass mindestens PowerShell, zsh oder bash auf dem Computer installiert ist.</value>
-    </data>
-    <data name="Assistant_ReasoningEffort_Description" xml:space="preserve">
-        <value>Wählen oder geben Sie die benutzerdefinierte Intensität des Denkens ein. Verschiedene Modelle unterstützen unterschiedliche Optionen, bitte beachten Sie die entsprechenden Dokumente. Ein leerer Wert bedeutet, dass dieser Parameter nicht in der Anfrage enthalten ist.</value>
     </data>
     <data name="Assistant_ThinkingType_Header" xml:space="preserve">
         <value>Denkenstyp (thinking.type)</value>

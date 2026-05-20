@@ -77,8 +77,8 @@
                       Padding="12,8" HorizontalAlignment="Stretch"
                       CanDismiss="{Binding CanDismiss, Mode=OneTime}"
                       CanDismissByClicking="False"
+                      Command="{Binding DismissCommand, Mode=OneTime}"
                       Content="{Binding ContentKey^, FallbackValue={x:Null}}"
-                      DismissCommand="{Binding DismissCommand, Mode=OneTime}"
                       Notification="{Binding Type, Converter={x:Static shadui:NotificationTypeToNotificationConverter.Shared}}"/>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

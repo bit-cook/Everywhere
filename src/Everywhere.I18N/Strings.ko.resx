@@ -1553,6 +1553,30 @@
     <data name="ChatPluginManager_Common_FailedToStartMcpPlugin" xml:space="preserve">
         <value>MCP 플러그인 &quot;{0}&quot; 시작 실패</value>
     </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_Warning" xml:space="preserve">
+        <value>This MCP server requires {0}, but Everywhere could not find it.</value>
+    </data>
+    <data name="ChatPluginPage_ResolveRuntimeDependencyButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="ChatPluginPage_WarningActionButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_Toast_Content" xml:space="preserve">
+        <value>Downloading and installing {0}...</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_SuccessToast_Title" xml:space="preserve">
+        <value>{0} is ready</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_FailedToast_Content" xml:space="preserve">
+        <value>Failed to install {0}.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_StartFailure" xml:space="preserve">
+        <value>This MCP server requires {0}. Install it before starting the server.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginCommandNotFound_StartFailure" xml:space="preserve">
+        <value>The MCP command &quot;{0}&quot; was not found. Install it or update the command path.</value>
+    </data>
     <data name="ChatPluginPage_TabItem_Logs_Header" xml:space="preserve">
         <value>로그</value>
     </data>
@@ -2829,9 +2853,6 @@
     </data>
     <data name="BuiltInChatPlugin_Terminal_UnsupportedShell" xml:space="preserve">
         <value>현재 Shell 유형이 지원되지 않거나 찾을 수 없습니다. 컴퓨터에 PowerShell, zsh 또는 bash가 최소한 하나 이상 설치되어 있는지 확인하십시오.</value>
-    </data>
-    <data name="Assistant_ReasoningEffort_Description" xml:space="preserve">
-        <value>사용자 정의 추론 강도를 선택하거나 입력하세요. 서로 다른 모델이 지원하는 옵션이 다르므로, 자세한 내용은 해당 문서를 참조하세요. 비워두면 요청에 이 매개변수를 포함하지 않습니다.</value>
     </data>
     <data name="Assistant_ThinkingType_Header" xml:space="preserve">
         <value>사고 유형 (thinking.type)</value>

@@ -1554,6 +1554,30 @@
     <data name="ChatPluginManager_Common_FailedToStartMcpPlugin" xml:space="preserve">
         <value>无法启动 MCP 插件 &quot;{0}&quot;</value>
     </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_Warning" xml:space="preserve">
+        <value>这个 MCP 服务器需要 {0}，但 Everywhere 没有找到它。</value>
+    </data>
+    <data name="ChatPluginPage_ResolveRuntimeDependencyButton_Content" xml:space="preserve">
+        <value>解决</value>
+    </data>
+    <data name="ChatPluginPage_WarningActionButton_Content" xml:space="preserve">
+        <value>解决</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_Toast_Content" xml:space="preserve">
+        <value>正在下载并安装 {0}...</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_SuccessToast_Title" xml:space="preserve">
+        <value>{0} 已准备就绪</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_FailedToast_Content" xml:space="preserve">
+        <value>无法安装 {0}。</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_StartFailure" xml:space="preserve">
+        <value>这个 MCP 服务器需要 {0}。请先安装它再启动服务器。</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginCommandNotFound_StartFailure" xml:space="preserve">
+        <value>找不到 MCP 命令 &quot;{0}&quot;。请安装它，或者修改命令路径。</value>
+    </data>
     <data name="ChatPluginPage_TabItem_Logs_Header" xml:space="preserve">
         <value>日志</value>
     </data>
@@ -2832,7 +2856,7 @@
         <value>当前 Shell 类型不受支持或未找到，请确保计算机上至少安装了 PowerShell、zsh 或者 bash。</value>
     </data>
     <data name="Assistant_ReasoningEffort_Description" xml:space="preserve">
-        <value>选择或者输入自定义推理强度。不同的模型支持的选项不同，详情请参考对应文档。留空表示不在请求中包含此参数。</value>
+        <value>选择自定义推理强度。不同的模型支持的选项不同，详情请参考对应文档。留空表示不在请求中包含此参数。</value>
     </data>
     <data name="Assistant_ThinkingType_Header" xml:space="preserve">
         <value>思考类型 (thinking.type)</value>

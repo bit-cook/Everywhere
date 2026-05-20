@@ -1553,6 +1553,30 @@ Rueda de desplazamiento o teclas numéricas para cambiar modos de selección</va
     <data name="ChatPluginManager_Common_FailedToStartMcpPlugin" xml:space="preserve">
         <value>Error al iniciar el plugin MCP &quot;{0}&quot;</value>
     </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_Warning" xml:space="preserve">
+        <value>This MCP server requires {0}, but Everywhere could not find it.</value>
+    </data>
+    <data name="ChatPluginPage_ResolveRuntimeDependencyButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="ChatPluginPage_WarningActionButton_Content" xml:space="preserve">
+        <value>Resolve</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_Toast_Content" xml:space="preserve">
+        <value>Downloading and installing {0}...</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_SuccessToast_Title" xml:space="preserve">
+        <value>{0} is ready</value>
+    </data>
+    <data name="RuntimeManager_InstallRuntime_FailedToast_Content" xml:space="preserve">
+        <value>Failed to install {0}.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginMissingRuntime_StartFailure" xml:space="preserve">
+        <value>This MCP server requires {0}. Install it before starting the server.</value>
+    </data>
+    <data name="ChatPluginManager_McpPluginCommandNotFound_StartFailure" xml:space="preserve">
+        <value>The MCP command &quot;{0}&quot; was not found. Install it or update the command path.</value>
+    </data>
     <data name="ChatPluginPage_TabItem_Logs_Header" xml:space="preserve">
         <value>Registros</value>
     </data>
@@ -2829,9 +2853,6 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     </data>
     <data name="BuiltInChatPlugin_Terminal_UnsupportedShell" xml:space="preserve">
         <value>El tipo de Shell actual no es compatible o no se encontró, asegúrese de que al menos PowerShell, zsh o bash estén instalados en la computadora.</value>
-    </data>
-    <data name="Assistant_ReasoningEffort_Description" xml:space="preserve">
-        <value>Selecciona o ingresa la intensidad de razonamiento personalizada. Las opciones varían según el modelo, consulta la documentación correspondiente para más detalles. Dejar en blanco significa que este parámetro no se incluirá en la solicitud.</value>
     </data>
     <data name="Assistant_ThinkingType_Header" xml:space="preserve">
         <value>Tipo de Pensamiento (thinking.type)</value>
