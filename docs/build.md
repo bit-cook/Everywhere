@@ -90,7 +90,7 @@ After the build completes, the output is located under the platform-specific pro
 For Windows:
 
 ```text
-src/Everywhere.Windows/bin/Debug/net10.0-windows10.0.20348.0/win-x64/
+src/Everywhere.Windows/bin/Debug/net10.0-windows10.0.19041.0/win-x64/
 ```
 
 Run `Everywhere.exe` from that directory to start the application.

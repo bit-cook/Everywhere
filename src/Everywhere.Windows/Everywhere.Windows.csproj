@@ -3,7 +3,7 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>Everywhere</AssemblyName>
     <SelfContained>true</SelfContained>
-    <TargetFramework>$(TargetFrameworkPrefix)-windows10.0.20348.0</TargetFramework>
+    <TargetFramework>$(TargetFrameworkPrefix)-windows10.0.19041.0</TargetFramework>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationIcon>..\..\img\Everywhere.ico</ApplicationIcon>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
