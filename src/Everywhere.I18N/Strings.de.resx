@@ -2568,9 +2568,6 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>Aktuell</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>Modell zur automatischen Benennung von Gesprächstiteln konfigurieren</value>
-    </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>Titelgenerierungsassistent</value>
     </data>

@@ -2569,9 +2569,6 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>Attuale</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>Configura il modello per la denominazione automatica dei titoli delle conversazioni</value>
-    </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>Assistente Generazione Titoli</value>
     </data>

@@ -2569,9 +2569,6 @@
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>Текущий</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>Настройте модель для автоматического именования заголовков диалогов</value>
-    </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>Помощник по генерации заголовков</value>
     </data>

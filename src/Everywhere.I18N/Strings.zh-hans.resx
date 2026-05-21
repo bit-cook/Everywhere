@@ -2571,7 +2571,7 @@
         <value>当前</value>
     </data>
     <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>配置用于对话标题自动命名的模型</value>
+        <value>配置用于对话标题自动命名的助手。</value>
     </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>标题生成助手</value>
@@ -2914,5 +2914,11 @@
     </data>
     <data name="HandledChatException_InvalidReasoningContent" xml:space="preserve">
         <value>模型的深度思考内容没有正确回传。如果你在同一个聊天中切换了模型，则很可能会导致此问题。</value>
+    </data>
+    <data name="SystemAssistantSettings_ImageUnderstanding_Desription" xml:space="preserve">
+        <value>图像理解助手</value>
+    </data>
+    <data name="SystemAssistantSettings_ImageUnderstanding_Header" xml:space="preserve">
+        <value>配置用于理解图像的助手，当主助手不支持图像输入时非常有用。请注意此助手必须支持图像输入</value>
     </data>
 </root>

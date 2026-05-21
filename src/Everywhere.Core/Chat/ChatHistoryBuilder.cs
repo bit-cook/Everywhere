@@ -292,7 +292,7 @@ public static class ChatHistoryBuilder
                 }
                 if (!supportedModalities.SupportsMimeType(file.MimeType))
                 {
-                    contents.Add(GetOmittedContent("file type is not supported, try process with tool if any"));
+                    contents.Add(GetOmittedContent("file modality is unsupported, try process with tool if any. e.g. `run_subagent`"));
                     break;
                 }
 

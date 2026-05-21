@@ -273,7 +273,7 @@ public class OfficialModelDefinitionTests
             OutputModalities = Modalities.Text,
             ContextLimit = 1000,
             OutputLimit = 100,
-            Specializations = ModelSpecializations.None,
+            Specializations = ModelSpecializations.Default,
             DeprecationDate = deprecationDate
         };
 
@@ -284,7 +284,7 @@ public class OfficialModelDefinitionTests
         bool supportsTemperature = true,
         int contextLimit = 1000,
         int outputLimit = 100,
-        ModelSpecializations specializations = ModelSpecializations.None,
+        ModelSpecializations specializations = ModelSpecializations.Default,
         DateOnly? deprecationDate = null) =>
         new()
         {

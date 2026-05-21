@@ -48,18 +48,18 @@ public sealed partial class OfficialAssistantConfigurator : AssistantConfigurato
             return _owner;
         }
 
-        if (ServiceLocator.Resolve<IOfficialModelProvider>().ModelDefinitions.Items.FirstOrDefault(m => m.Specializations.HasFlag(specialization)) is
-            { } modelDefinitionTemplate)
-        {
-            var systemAssistant = new SystemAssistant
-            {
-                ConfiguratorType = AssistantConfiguratorType.Official
-            };
-            systemAssistant.ApplyTemplate(modelDefinitionTemplate);
-            return systemAssistant;
-        }
+        ModelDefinitionTemplate? modelDefinitionTemplate = null;
+        ServiceLocator.Resolve<IOfficialModelProvider>().ModelDefinitions.Edit(list =>
+            modelDefinitionTemplate = list.FirstOrDefault(m => m.Specializations.HasFlag(specialization)));
 
         // Not found, fallback to selected owner
-        return _owner;
+        if (modelDefinitionTemplate is null) return _owner;
+
+        var systemAssistant = new SystemAssistant(specialization)
+        {
+            ConfiguratorType = AssistantConfiguratorType.Official
+        };
+        systemAssistant.ApplyTemplate(modelDefinitionTemplate);
+        return systemAssistant;
     }
 }

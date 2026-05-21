@@ -2569,9 +2569,6 @@
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>當前</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>配置用於對話標題自動命名的模型</value>
-    </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>標題生成助手</value>
     </data>

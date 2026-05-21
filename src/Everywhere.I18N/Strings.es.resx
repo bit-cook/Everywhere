@@ -2569,9 +2569,6 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>Actual</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>Configura el modelo para nombrar automáticamente los títulos de las conversaciones</value>
-    </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>Asistente de Generación de Títulos</value>
     </data>

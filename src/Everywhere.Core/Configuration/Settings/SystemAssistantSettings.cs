@@ -23,5 +23,12 @@ public sealed partial class SystemAssistantSettings : SettingsBase, ISettingsCat
         LocaleKey.SystemAssistantSettings_CommonDesription)]
     [SettingsItems(IsExpandableBindingPath = $"!{nameof(TitleGeneration)}.{nameof(SystemAssistant.AutoSelect)}")]
     [SettingsTemplatedItem]
-    public SystemAssistant TitleGeneration { get; } = new();
+    public SystemAssistant TitleGeneration { get; } = new(ModelSpecializations.TitleGeneration);
+
+    [DynamicResourceKey(
+        LocaleKey.SystemAssistantSettings_ImageUnderstanding_Header,
+        LocaleKey.SystemAssistantSettings_ImageUnderstanding_Desription)]
+    [SettingsItems(IsExpandableBindingPath = $"!{nameof(ImageUnderstanding)}.{nameof(SystemAssistant.AutoSelect)}")]
+    [SettingsTemplatedItem]
+    public SystemAssistant ImageUnderstanding { get; } = new(ModelSpecializations.ImageUnderstanding);
 }

@@ -2569,9 +2569,6 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>Actuel</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>Configurer le modèle pour nommer automatiquement les titres de conversation</value>
-    </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>Assistant de génération de titres</value>
     </data>

@@ -33,27 +33,6 @@ public static class Prompts
         </FunctionCallingInstructions>
         """;
 
-    public const string VisualTreePrompt =
-        """
-        For better understanding of the my environment, you are provided with a visual tree.
-        It is an XML representation of the my screen, which includes a part of visible elements and their properties.
-
-        Please analyze the visual tree first, thinking about the following, but DO NOT include in your reply:
-        1. Think about what software I am using
-        2. Guess my intentions
-        
-        After analyzing the visual tree, prepare a reply that addresses my mission after <mission-start> tag.
-        Note that the visual tree may not include all elements on the screen and may be truncated for brevity.
-        
-        ```xml
-        {VisualTree}
-        ```
-
-        Focused element id: {FocusedElementId}
-        
-        <mission-start>
-        """;
-
     // from: https://github.com/lobehub/lobe-chat/blob/main/src/chains/summaryTitle.ts#L4
     public const string TitleGeneratorSystemPrompt = "You are a conversation assistant named Everywhere.";
 
@@ -69,6 +48,19 @@ public static class Prompts
         </UserMessage>
         
         Output language: {SystemLanguage}
+        """;
+
+    public const string ImageUnderstandingSystemPrompt =
+        """
+        You are an assistant specialized in understanding and describing images.
+        You will analyze the image and provide a detailed response based on the user's instruction.
+        You can use the `read_file` tool with attachment=true to read the content of the image file if needed.
+        You should call tools in parallel if possible if there are multiple images or multiple steps needed to understand the image.
+        
+        You MUST tell the user and guide them to configure settings if you cannot read the image due to lack of `read_file` tool or file modality is unsupported:
+        - Make sure tool call is enabled on bottom of chat window
+        - Make sure `read_file` inside "File System" tool is enabled
+        - Make sure "Image Understanding" system assistant is multi-modality with image input at Settings - System Assistant
         """;
 
     public const string TestPrompt =

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 using Everywhere.Configuration;
 
 namespace Everywhere.AI;
@@ -11,8 +12,12 @@ namespace Everywhere.AI;
 [TypeConverter(typeof(FallbackEnumConverter))]
 public enum ModelSpecializations : uint
 {
-    None = 0x0,
+    Default = 0x0,
 
+    [JsonStringEnumMemberName("title-generation")]
     TitleGeneration = 0x1,
+    [JsonStringEnumMemberName("context-compression")]
     ContextCompression = 0x2,
+    [JsonStringEnumMemberName("image-understanding")]
+    ImageUnderstanding = 0x4,
 }

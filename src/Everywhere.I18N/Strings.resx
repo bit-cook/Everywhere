@@ -2570,7 +2570,7 @@ Use scroll wheel or number keys to switch selection mode</value>
         <value>Current</value>
     </data>
     <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>Configure the model used for automatically naming conversation titles</value>
+        <value />
     </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>Title Generation Assistant</value>
@@ -2913,5 +2913,11 @@ Release date: {2}</value>
     </data>
     <data name="HandledChatException_InvalidReasoningContent" xml:space="preserve">
         <value>The model's deep reasoning content did not return correctly. This issue may occur if you switched models within the same chat.</value>
+    </data>
+    <data name="SystemAssistantSettings_ImageUnderstanding_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="SystemAssistantSettings_ImageUnderstanding_Desription" xml:space="preserve">
+        <value />
     </data>
 </root>

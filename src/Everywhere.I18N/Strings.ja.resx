@@ -2569,9 +2569,6 @@
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>現在</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>対話タイトルの自動命名に使用するモデルを設定します</value>
-    </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>タイトル生成アシスタント</value>
     </data>

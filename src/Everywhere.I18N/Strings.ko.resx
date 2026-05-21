@@ -2569,9 +2569,6 @@
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>현재</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>대화 제목 자동 작성을 위한 모델 설정</value>
-    </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>제목 생성 도우미</value>
     </data>

@@ -54,10 +54,10 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
     [KernelFunction("run_subagent")]
     [Description(
         """
-        Launch a new agent to handle complex, multi-step tasks autonomously, which is good for complex tasks that require decision-making and planning.
+        Launch a new agent to handle complex tasks autonomously, which is good for complex tasks that require decision-making and planning.
         The agent can access tools as you can, except it CANNOT call run_subagent to avoid infinite recursion.
         After started, you will wait for the subagent to complete and return the final result as string.
-        Each agent invocation is stateless and isolated, so make sure to provide all necessary context and instructions for the subagent to perform its task effectively.
+        Each agent invocation is stateless and isolated, so make sure to provide all necessary context and instructions for the subagent.
         """)]
     [DynamicResourceKey(LocaleKey.BuiltInChatPlugin_Essential_RunSubagent_Header, LocaleKey.BuiltInChatPlugin_Essential_RunSubagent_Description)]
     private async Task<string> RunSubagentAsync(
@@ -65,9 +65,11 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         [FromKernelServices] Assistant assistant,
         [FromKernelServices] IChatPluginDisplaySink displaySink,
         [FromKernelServices] ChatContext chatContext,
-        [Description("A detailed description of the task for the agent to perform")] string prompt,
-        [Description("A concise title for the agent's task. Should in system language.")] string title,
-        CancellationToken cancellationToken)
+        [Description("A detailed description of the task for the agent to perform, inject into system prompt")] string prompt,
+        [Description("A concise title for the agent's task")] string title,
+        [Description("Optional, specifies the agent's area of expertise. Allowed values: default, image-understanding.")]
+        string? specialization = null,
+        CancellationToken cancellationToken = default)
     {
         displaySink.AppendDynamicResourceKey(
             new FormattedDynamicResourceKey(
@@ -84,10 +86,28 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         // Display the chat context in the UI
         displaySink.AppendChatContext(forkedChatContext);
 
+        var specializations = specialization?.ToLower() switch
+        {
+            // ReSharper disable StringLiteralTypo
+            "image-understanding" or "imageunderstanding" => ModelSpecializations.ImageUnderstanding,
+            _ => ModelSpecializations.Default
+        };
+        var specializedAssistant = specializations switch
+        {
+            ModelSpecializations.Default => assistant,
+            _ => assistant.Configurator.ResolveAssistant(specializations)
+        };
+        var systemPrompt = specializations switch
+        {
+            ModelSpecializations.ImageUnderstanding => Prompts.ImageUnderstandingSystemPrompt,
+            _ => Prompts.DefaultSystemPrompt
+        };
+
         await chatService.GenerateAsync(
             forkedChatContext,
-            assistant,
+            specializedAssistant,
             assistantChatMessage,
+            systemPromptOverride: systemPrompt,
             enableNotifications: false,
             cancellationToken: cancellationToken);
 
@@ -104,7 +124,7 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
     [KernelFunction("manage_todo_list")]
     [Description(
         "Manage a structured todo list to track progress and plan tasks. " +
-        "Use this tool VERY frequently to ensure task visibility and proper planning.")]
+        "Use this tool to ensure task visibility and proper planning when dealing with complex or multi-step tasks.")]
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Header,
         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Description)]

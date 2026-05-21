@@ -2568,9 +2568,6 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>Geçerli</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
-        <value>Diyalog başlıklarını otomatik adlandırmak için modeli yapılandırın</value>
-    </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
         <value>Başlık Oluşturma Asistanı</value>
     </data>

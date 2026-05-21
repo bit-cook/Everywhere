@@ -199,15 +199,16 @@ public sealed partial class OfficialModelProvider :
 
         private static ModelSpecializations ConvertSpecializations(IReadOnlyList<string>? specializationStrings)
         {
-            if (specializationStrings is null) return ModelSpecializations.None;
+            if (specializationStrings is null) return ModelSpecializations.Default;
 
             return specializationStrings.AsValueEnumerable().Aggregate(
-                ModelSpecializations.None,
+                ModelSpecializations.Default,
                 (current, specialization) => current | specialization.ToLower() switch
                 {
                     "title-generation" => ModelSpecializations.TitleGeneration,
                     "context-compression" => ModelSpecializations.ContextCompression,
-                    _ => ModelSpecializations.None
+                    "image-understanding" => ModelSpecializations.ImageUnderstanding,
+                    _ => ModelSpecializations.Default
                 });
         }
 

@@ -384,7 +384,7 @@ public sealed partial class ChatService : IChatService
         bool enableNotifications = true,
         CancellationToken cancellationToken = default)
     {
-        using var activity = StartChatActivity("chat", assistant);
+        using var activity = _activitySource.StartChatActivity("chat", assistant);
         activity?.SetTag("id", chatContext.Metadata.Id);
 
         KernelMixin? kernelMixin = null;
@@ -398,11 +398,12 @@ public sealed partial class ChatService : IChatService
             // Because the custom assistant maybe changed, we need to re-render the system prompt.
             // But we only do this once per generation, even if the system time may change during function calls.
             // This can save prompt tokens because they may be cached by LLM providers.
-            var promptRenderer = new AnonymousPromptRenderer(_chatContextManager.GetPromptVariables(chatContext));
-            var systemPrompt = systemPromptOverride ?? promptRenderer.RenderPrompt(
-                assistant is ISystemPromptProvider { SystemPrompt: { Length: > 0 } providedSystemPrompt } ?
+            var promptRenderer = new ScopedPromptRenderer(chatContext.GetPromptVariables());
+            var promptTemplate = systemPromptOverride ??
+                (assistant is ISystemPromptProvider { SystemPrompt: { Length: > 0 } providedSystemPrompt } ?
                     providedSystemPrompt :
                     Prompts.DefaultSystemPrompt);
+            var systemPrompt = promptRenderer.RenderSystemPrompt(promptTemplate);
 
             while (true)
             {
@@ -430,7 +431,7 @@ public sealed partial class ChatService : IChatService
                 {
                     // If the chat history only contains one user message and one assistant message,
                     // we can generate a title for the chat context.
-                    GenerateTitleAsync(
+                    GenerateTopicAsync(
                         assistant,
                         userMessage,
                         chatContext.Metadata,
@@ -475,7 +476,7 @@ public sealed partial class ChatService : IChatService
         }
         finally
         {
-            SetChatUsageTags(activity, assistantChatMessage.UsageDetails);
+            activity.SetChatUsageTags(assistantChatMessage.UsageDetails);
             RecordChatUsageMetrics(assistantChatMessage.UsageDetails, assistant.ModelId);
             _chatRequestsCounter.Add(1, GetModelTag(assistant.ModelId));
 
@@ -504,7 +505,7 @@ public sealed partial class ChatService : IChatService
         AssistantChatMessage assistantChatMessage,
         CancellationToken cancellationToken)
     {
-        using var activity = StartChatActivity("invoke_agent", kernelMixin);
+        using var activity = _activitySource.StartChatActivity("invoke_agent", kernelMixin);
         activity?.SetTag("gen_ai.messages.count", chatHistory.Count);
 
         AuthorRole? authorRole = null;
@@ -620,7 +621,7 @@ public sealed partial class ChatService : IChatService
 
             assistantChatMessage.UsageDetails.Accumulate(usage, generationSeconds); // Accumulate usage details.
 
-            SetChatUsageTags(activity, usage);
+            activity.SetChatUsageTags(usage);
             RecordChatUsageMetrics(usage, kernelMixin.ModelId);
 
             // Post to UI thread to ensure all pending text/reasoning Dispatcher.UIThread.Post
@@ -886,7 +887,7 @@ public sealed partial class ChatService : IChatService
         ChatPluginDisplayBlock? displayBlock,
         CancellationToken cancellationToken)
     {
-        using var activity = StartChatActivity("execute_tool", kernelMixin);
+        using var activity = _activitySource.StartChatActivity("execute_tool", kernelMixin);
         activity?.SetTag("gen_ai.tool.plugin", content.PluginName);
         activity?.SetTag("gen_ai.tool.name", content.FunctionName);
         activity?.SetTag("gen_ai.tool.input", content.Arguments?.ToString());
@@ -987,7 +988,7 @@ public sealed partial class ChatService : IChatService
         }
     }
 
-    private async Task GenerateTitleAsync(
+    private async Task GenerateTopicAsync(
         Assistant assistant,
         string userMessage,
         ChatContextMetadata metadata,
@@ -1002,9 +1003,7 @@ public sealed partial class ChatService : IChatService
         KernelMixin kernelMixin;
         try
         {
-            var systemAssistant = _settings.SystemAssistant.TitleGeneration.AutoSelect ?
-                assistant.Configurator.ResolveAssistant(ModelSpecializations.TitleGeneration) :
-                _settings.SystemAssistant.TitleGeneration;
+            var systemAssistant = _settings.SystemAssistant.TitleGeneration.Resolve(assistant);
             kernelMixin = _kernelMixinFactory.Create(systemAssistant);
         }
         catch (Exception ex)
@@ -1015,7 +1014,7 @@ public sealed partial class ChatService : IChatService
         }
 
         _chatTopicsCounter.Add(1, GetModelTag(kernelMixin.ModelId));
-        using var activity = StartChatActivity("invoke_agent", kernelMixin);
+        using var activity = _activitySource.StartChatActivity("generate_topic", kernelMixin);
         try
         {
             var language = _settings.Display.Language.ToEnglishName();
@@ -1030,12 +1029,13 @@ public sealed partial class ChatService : IChatService
                     Prompts.TitleGeneratorSystemPrompt),
                 new ChatMessageContent(
                     AuthorRole.User,
-                    AnonymousPromptRenderer.RenderPrompt(
+                    ScopedPromptRenderer.RenderPrompt(
                         Prompts.TitleGeneratorUserPrompt,
-                        new Dictionary<string, Func<string>>
+                        key => key switch
                         {
-                            { "UserMessage", () => userMessage.SafeSubstring(0, 2048) },
-                            { "SystemLanguage", () => language }
+                            "UserMessage" => userMessage.SafeSubstring(0, 2048),
+                            "SystemLanguage" => language,
+                            _ => null
                         })),
             };
             var usage = new ChatUsageDetails();
@@ -1056,7 +1056,7 @@ public sealed partial class ChatService : IChatService
                 }
             }
 
-            SetChatUsageTags(activity, usage);
+            activity.SetChatUsageTags(usage);
             RecordChatUsageMetrics(usage, kernelMixin.ModelId);
 
             ReadOnlySpan<char> punctuationChars = ['.', ',', '!', '?', '。', '，', '！', '？'];
@@ -1087,48 +1087,6 @@ public sealed partial class ChatService : IChatService
 
     #region Telemetry
 
-    /// <summary>
-    /// Starts a chat activity for telemetry.
-    /// </summary>
-    /// <param name="operationName"></param>
-    /// <param name="modelDefinition"></param>
-    /// <param name="displayName"></param>
-    /// <returns></returns>
-    private Activity? StartChatActivity(string operationName, IModelDefinition? modelDefinition, [CallerMemberName] string displayName = "")
-    {
-        IEnumerable<KeyValuePair<string, object?>> tags = modelDefinition is null ?
-            [
-                new KeyValuePair<string, object?>("gen_ai.operation.name", operationName)
-            ] :
-            [
-                new KeyValuePair<string, object?>("gen_ai.operation.name", operationName),
-                new KeyValuePair<string, object?>("gen_ai.request.model", modelDefinition.ModelId),
-                new KeyValuePair<string, object?>("gen_ai.request.supports_image", modelDefinition.InputModalities.SupportsImage),
-                new KeyValuePair<string, object?>("gen_ai.request.supports_reasoning", modelDefinition.SupportsReasoning),
-                new KeyValuePair<string, object?>("gen_ai.request.supports_tool", modelDefinition.SupportsToolCall),
-                new KeyValuePair<string, object?>("gen_ai.request.context_limit", modelDefinition.ContextLimit),
-            ];
-        return _activitySource.StartActivity(
-            $"gen_ai.{operationName}",
-            ActivityKind.Client,
-            null,
-            tags).With(x => x?.DisplayName = displayName);
-    }
-
-    /// <summary>
-    /// Sets chat usage tags to the activity.
-    /// </summary>
-    /// <param name="activity"></param>
-    /// <param name="usage"></param>
-    private static void SetChatUsageTags(Activity? activity, ChatUsageDetails usage)
-    {
-        activity?.SetTag("gen_ai.usage.input_tokens", usage.InputTokenCount);
-        activity?.SetTag("gen_ai.usage.cached_input_tokens", usage.CachedInputTokenCount);
-        activity?.SetTag("gen_ai.usage.output_tokens", usage.OutputTokenCount);
-        activity?.SetTag("gen_ai.usage.reasoning_tokens", usage.ReasoningTokenCount);
-        activity?.SetTag("gen_ai.usage.total_tokens", usage.TotalTokenCount);
-    }
-
     private void RecordChatUsageMetrics(ChatUsageDetails usageDetails, string? modelId)
     {
         var tag = GetModelTag(modelId);
@@ -1143,44 +1101,43 @@ public sealed partial class ChatService : IChatService
     #endregion
 
     // TODO: this is shit
-    private sealed partial class AnonymousPromptRenderer(IDictionary<string, Func<string>> promptVariables) : IPromptRenderer
+    private sealed partial class ScopedPromptRenderer(
+        IServiceProvider serviceProvider,
+        IDictionary<string, Func<string>> promptVariables
+    ) : IPromptRenderer
     {
-        public static string RenderPrompt(string prompt, IDictionary<string, Func<string>> variables)
+        public static string RenderPrompt(string prompt, Func<string, string?> resolver)
         {
             return PromptTemplateRegex().Replace(
                 prompt,
-                m => variables.TryGetValue(m.Groups[1].Value, out var getter) ? getter() : m.Value);
+                m => resolver(m.Groups[1].Value) ?? m.Value);
         }
 
-        public string RenderPrompt(string prompt) => RenderPrompt(prompt, promptVariables);
+        public string RenderSystemPrompt(string prompt)
+        {
+            return RenderPrompt(prompt, key => promptVariables.TryGetValue(key, out var getter) ? getter() : null);
+        }
 
         public string RenderStrategyUserPrompt(string strategyBody, string? userInput, PreprocessorResult? preprocessorResult)
         {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.Append(
-                RenderPrompt(
-                    strategyBody,
-                    promptVariables
-                        .AsValueEnumerable()
-                        .Concat(
-                        [
-                            new KeyValuePair<string, Func<string>>("Argument", () => userInput ?? string.Empty),
-                        ])
-                        .Concat(
-                            preprocessorResult?.Variables?.Select(static kv => new KeyValuePair<string, Func<string>>(kv.Key, () => kv.Value)) ?? []
-                        )
-                        .GroupBy(kvp => kvp.Key)
-                        .ToDictionary(g => g.Key, g => g.Last().Value)));
-
-            if (!userInput.IsNullOrEmpty())
+            var renderedStrategy = RenderPrompt(strategyBody, key =>
             {
-                stringBuilder
-                    .AppendLine()
-                    .AppendLine("<UserRequestStart>")
-                    .Append(userInput);
+                if (key == "Argument") return userInput ?? string.Empty;
+                if (preprocessorResult?.Variables?.TryGetValue(key, out var val) == true) return val;
+                if (promptVariables.TryGetValue(key, out var getter)) return getter();
+                return null;
+            });
+
+            if (string.IsNullOrEmpty(userInput))
+            {
+                return renderedStrategy;
             }
 
-            return stringBuilder.ToString();
+            return new StringBuilder(renderedStrategy)
+                .AppendLine()
+                .AppendLine("<UserRequestStart>")
+                .Append(userInput)
+                .ToString();
         }
 
         [GeneratedRegex(@"(?<!\{)\{(\w+)\}(?!\})")]

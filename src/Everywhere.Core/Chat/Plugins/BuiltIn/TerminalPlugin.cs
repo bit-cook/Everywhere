@@ -61,7 +61,6 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
         LocaleKey.BuiltInChatPlugin_Terminal_ExecuteScript_Description)]
     private async Task<string> ExecuteInTerminalAsync(
         [FromKernelServices] IChatPluginUserInterface userInterface,
-        [FromKernelServices] IChatContextManager chatContextManager,
         [FromKernelServices] ChatContext chatContext,
         [Description("A concise description for user, explaining what are you doing")] string description,
         [Description("Single or multi-line shell script")] string script,
@@ -110,7 +109,7 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
 
         userInterface.DisplaySink.AppendBlocks(detailBlock);
 
-        var workingDirectory = chatContextManager.EnsureWorkingDirectory(chatContext);
+        var workingDirectory = chatContext.EnsureWorkingDirectory();
 
         // Generate nonce for shell integration marker verification
         var nonce = Guid.NewGuid().ToString("N")[..16];
