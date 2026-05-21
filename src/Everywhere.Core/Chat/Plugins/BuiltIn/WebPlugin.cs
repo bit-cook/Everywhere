@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Cloud;
 using Everywhere.Common;
@@ -233,8 +234,8 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                     lock (resultBuilder)
                     {
                         resultBuilder.Append("# Content from ").AppendLine(url).AppendLine();
-                        resultBuilder.AppendLine(result).AppendLine();
-                        resultBuilder.AppendLine("------").AppendLine();
+                        TokenHelper.OmitTo(result, resultBuilder);
+                        resultBuilder.AppendLine().AppendLine("------").AppendLine();
                     }
                 }
                 catch (Exception ex)

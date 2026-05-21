@@ -1,4 +1,5 @@
-﻿using Everywhere.Interop;
+﻿using Everywhere.AI;
+using Everywhere.Interop;
 using ZLinq;
 
 namespace Everywhere.Chat;
@@ -362,11 +363,11 @@ partial class VisualContextBuilder
         };
 
         var contentTokenCount = 0;
-        if (description != null) contentTokenCount += TokenCounter.EstimateTokenCount(description) + attrOverhead;
+        if (description != null) contentTokenCount += TokenHelper.EstimateTokenCount(description) + attrOverhead;
         contentTokenCount += contentLines.Length switch
         {
-            > 0 and < 3 => contentLines.Sum(TokenCounter.EstimateTokenCount),
-            >= 3 => contentLines.Sum(line => TokenCounter.EstimateTokenCount(line) + lineOverhead) + blockOverhead,
+            > 0 and < 3 => contentLines.Sum(TokenHelper.EstimateTokenCount),
+            >= 3 => contentLines.Sum(line => TokenHelper.EstimateTokenCount(line) + lineOverhead) + blockOverhead,
             _ => 0
         };
 

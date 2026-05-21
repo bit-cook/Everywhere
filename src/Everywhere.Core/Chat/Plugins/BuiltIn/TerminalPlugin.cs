@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using DynamicData;
+using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Common;
 using Everywhere.Configuration;
@@ -173,7 +174,7 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
             }
         }
 
-        var result = executeResult.Output;
+        var result = TokenHelper.Omit(executeResult.Output, 8000, "[... OUTPUT OMITTED ...]").Trim();
 
         // Display exit code if non-zero
         if (executeResult.ExitCode is > 0)
@@ -181,7 +182,7 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
             _logger.LogInformation("Command exited with code {ExitCode}", executeResult.ExitCode);
         }
 
-        userInterface.DisplaySink.AppendCodeBlock(result.Trim(), "log");
+        userInterface.DisplaySink.AppendCodeBlock(result, "log");
         return result;
     }
 

@@ -1,4 +1,5 @@
-﻿using Everywhere.Interop;
+﻿using Everywhere.AI;
+using Everywhere.Interop;
 
 namespace Everywhere.Chat;
 
@@ -71,7 +72,7 @@ partial class VisualContextBuilder
     /// <returns></returns>
     private static string OmitIfNeeded(string text, int maxLength, out int omittedLength)
     {
-        var tokenCount = TokenCounter.EstimateTokenCount(text);
+        var tokenCount = TokenHelper.EstimateTokenCount(text);
         if (maxLength <= 0 || tokenCount <= maxLength)
         {
             omittedLength = 0;

@@ -189,9 +189,6 @@ internal sealed class RichExecuteStrategy(ILogger logger) : IExecuteStrategy
             logger.LogDebug("[Rich] Fallback to full buffer text, length={Length}", output.Length);
         }
 
-        // Defensive cleaning (strip any residual echo/prompt)
-        output = OutputCleaner.CleanOutput(output, script);
-
         return new ExecuteResult(output, exitCode);
     }
 

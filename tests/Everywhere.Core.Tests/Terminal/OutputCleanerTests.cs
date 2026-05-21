@@ -161,25 +161,8 @@ public class OutputCleanerTests
     [Test]
     public void CleanOutput_SimpleOutput_ReturnsTrimmed()
     {
-        var result = OutputCleaner.CleanOutput("  hello world  ", "echo hello");
+        var result = OutputCleaner.StripCommandEchoAndPrompt("  hello world  ", "echo hello");
         Assert.That(result, Is.EqualTo("hello world").Or.Contain("hello world"));
-    }
-
-    [Test]
-    public void CleanOutput_TruncatesLongOutput()
-    {
-        var longOutput = new string('x', 70_000);
-        var result = OutputCleaner.CleanOutput(longOutput, "test");
-        Assert.That(result.Length, Is.LessThanOrEqualTo(60_000));
-        Assert.That(result, Does.Contain("PREVIOUS OUTPUT TRUNCATED"));
-    }
-
-    [Test]
-    public void CleanOutput_NormalLengthOutput_NotTruncated()
-    {
-        var output = "short output";
-        var result = OutputCleaner.CleanOutput(output, "test");
-        Assert.That(result, Does.Not.Contain("TRUNCATED"));
     }
 
     #endregion

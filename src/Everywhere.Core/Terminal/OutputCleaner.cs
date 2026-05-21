@@ -10,28 +10,6 @@ namespace Everywhere.Terminal;
 /// </summary>
 internal static partial class OutputCleaner
 {
-    private const int MaxOutputLength = 60_000;
-
-    /// <summary>
-    /// Clean raw PTY output: strip command echo, trailing prompt, and truncate if needed.
-    /// Used by both Rich and None strategies as a final cleaning step.
-    /// </summary>
-    public static string CleanOutput(string rawOutput, string script)
-    {
-        // Strip script echo + trailing prompt
-        rawOutput = StripCommandEchoAndPrompt(rawOutput, script);
-
-        // Truncate if too long (keep tail)
-        if (rawOutput.Length > MaxOutputLength)
-        {
-            const string truncationMessage = "\n\n[... PREVIOUS OUTPUT TRUNCATED ...]\n\n";
-            var availableLength = MaxOutputLength - truncationMessage.Length;
-            rawOutput = truncationMessage + rawOutput[^availableLength..];
-        }
-
-        return rawOutput.Trim();
-    }
-
     /// <summary>
     /// Check if a line looks like a shell prompt, indicating the command has finished.
     /// Used by NoneExecuteStrategy for idle detection.
@@ -143,7 +121,7 @@ internal static partial class OutputCleaner
     /// <remarks>
     /// https://github.com/microsoft/vscode/blob/161a11c5/src/vs/workbench/contrib/terminalContrib/chatAgentTools/browser/executeStrategy/strategyHelpers.ts
     /// </remarks>
-    public static string StripCommandEchoAndPromptOnce(string output, string commandLine)
+    private static string StripCommandEchoAndPromptOnce(string output, string commandLine)
     {
         // Strip leading lines that are part of the command echo
         var echoResult = FindCommandEcho(output, commandLine, allowSuffixMatch: true);

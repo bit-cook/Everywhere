@@ -12,7 +12,7 @@
     <LiveMarkdownVersion>1.9.2</LiveMarkdownVersion>
     <SkiaSharpVersion>3.119.2</SkiaSharpVersion>
     <XamlBehaviorsVersion>11.3.9.5</XamlBehaviorsVersion>
-    <TikTokenVersion>3.1.5</TikTokenVersion>
+    <TikTokenVersion>2.0.0</TikTokenVersion>
   </PropertyGroup>
   <ItemGroup Label="Common">
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
@@ -61,13 +61,13 @@
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="$(MEAIVersion)" />
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="$(MEAIVersion)" />
     <PackageVersion Include="Microsoft.ML.OnnxRuntime" Version="1.22.0" />
+    <PackageVersion Include="Microsoft.ML.Tokenizers" Version="$(TikTokenVersion)" />
+    <PackageVersion Include="Microsoft.ML.Tokenizers.Data.O200kBase" Version="$(TikTokenVersion)" />
     <PackageVersion Include="Microsoft.SemanticKernel.Abstractions" Version="$(SemanticKernelVersion)" />
     <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="$(SemanticKernelVersion)" />
     <PackageVersion Include="ModelContextProtocol" Version="1.2.0" />
     <PackageVersion Include="OllamaSharp" Version="5.4.25" />
     <PackageVersion Include="PuppeteerSharp" Version="24.42.0" />
-    <PackageVersion Include="Tiktoken.Core" Version="$(TikTokenVersion)" />
-    <PackageVersion Include="Tiktoken.Encodings.o200k" Version="$(TikTokenVersion)" />
   </ItemGroup>
   <ItemGroup Label="Avalonia">
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Everywhere.Core.Tests" />
+    <InternalsVisibleTo Include="Everywhere.Terminal.TestApp" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,6 +44,8 @@
     <PackageReference Include="Microsoft.Extensions.Configuration"/>
     <PackageReference Include="Microsoft.Extensions.Http"/>
     <PackageReference Include="Microsoft.Extensions.Logging"/>
+    <PackageReference Include="Microsoft.ML.Tokenizers" />
+    <PackageReference Include="Microsoft.ML.Tokenizers.Data.O200kBase" />
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions"/>
     <PackageReference Include="Microsoft.SemanticKernel.Core"/>
     <PackageReference Include="ModelContextProtocol"/>
@@ -62,8 +65,6 @@
     <PackageReference Include="Sylinko.CSharpMath.Avalonia" />
     <PackageReference Include="System.Drawing.Common"/>
     <PackageReference Include="TextMateSharp.Grammars" />
-    <PackageReference Include="Tiktoken.Core" />
-    <PackageReference Include="Tiktoken.Encodings.o200k" />
   </ItemGroup>
 
   <ItemGroup>

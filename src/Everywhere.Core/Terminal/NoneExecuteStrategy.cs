@@ -23,7 +23,7 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
     {
         var rawOutput = await ExecuteWithRawOutputAsync(pty, script, shellType, timeout, cancellationToken);
         logger.LogDebug("[None] Raw output: {EscapeForLog}", OutputCleaner.EscapeForLog(rawOutput));
-        var output = OutputCleaner.CleanOutput(rawOutput, script);
+        var output = OutputCleaner.StripCommandEchoAndPrompt(rawOutput, script);
 
         logger.LogDebug("[None] Output length={Length}", output.Length);
         return new ExecuteResult(output, ExitCode: null);

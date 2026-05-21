@@ -30,7 +30,7 @@ public static class StringExtensions
         /// </summary>
         /// <param name="another"></param>
         /// <returns></returns>
-        public bool SafeEquals(string? another)
+        public bool TimingSafeEquals(string? another)
         {
             if (str is null) return another is null;
             var match = true;
