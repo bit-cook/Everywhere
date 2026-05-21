@@ -334,6 +334,7 @@ public sealed partial class ChatService : IChatService
         builder.Services.AddSingleton<IChatService>(this);
         builder.Services.AddSingleton(kernelMixin.ChatCompletionService);
         builder.Services.AddSingleton(_chatContextManager);
+        builder.Services.AddSingleton(_settings);
         builder.Services.AddSingleton(chatContext);
         builder.Services.AddSingleton(assistant);
         builder.Services.AddTransient<IChatPluginDisplaySink>(static x =>
@@ -606,9 +607,9 @@ public sealed partial class ChatService : IChatService
                 }
 
                 authorRole ??= streamingContent.Role;
-                functionCallContentBuilder.Append(streamingContent);
+                var hasFunctionCallUpdates = functionCallContentBuilder.Append(streamingContent);
 
-                if (callingToolsBusyMessage is null && functionCallContentBuilder.Count > 0)
+                if (callingToolsBusyMessage is null && hasFunctionCallUpdates)
                 {
                     callingToolsBusyMessage = chatContext.SetBusyMessage(new DynamicResourceKey(LocaleKey.ChatContext_BusyMessage_CallingTools));
                 }
@@ -1102,7 +1103,6 @@ public sealed partial class ChatService : IChatService
 
     // TODO: this is shit
     private sealed partial class ScopedPromptRenderer(
-        IServiceProvider serviceProvider,
         IDictionary<string, Func<string>> promptVariables
     ) : IPromptRenderer
     {
