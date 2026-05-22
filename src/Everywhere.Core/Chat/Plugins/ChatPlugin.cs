@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using System.Text.Json.Serialization;
@@ -20,11 +19,6 @@ namespace Everywhere.Chat.Plugins;
 [ObservableObject]
 public abstract partial class ChatPlugin : KernelPlugin, IDisposable
 {
-    protected ChatPlugin(string name) : base(name)
-    {
-        Warnings.CollectionChanged += HandleWarningsChanged;
-    }
-
     public abstract string Key { get; }
 
     [JsonIgnore]
@@ -55,14 +49,11 @@ public abstract partial class ChatPlugin : KernelPlugin, IDisposable
         ChatFunctionPermissions.ClipboardAccess |
         ChatFunctionPermissions.FileRead;
 
+    /// <summary>
+    /// Gets the list of warnings for this plugin to be displayed in the UI.
+    /// </summary>
     [JsonIgnore]
-    public ObservableCollection<ChatPluginWarning> Warnings { get; } = [];
-
-    [JsonIgnore]
-    public bool HasWarnings => Warnings.Count > 0;
-
-    [JsonIgnore]
-    public IDynamicResourceKey? FirstWarningMessageKey => Warnings.FirstOrDefault()?.MessageKey;
+    public ReadOnlyObservableCollection<ChatPluginWarning> Warnings { get; }
 
     /// <summary>
     /// Gets the list of functions provided by this plugin for Binding use in the UI.
@@ -74,35 +65,38 @@ public abstract partial class ChatPlugin : KernelPlugin, IDisposable
     /// </summary>
     public virtual IReadOnlyList<SettingsItem>? SettingsItems => null;
 
+    private readonly SourceCache<ChatPluginWarning, string> _warningsSource = new(x => x.Key);
+    private readonly IDisposable _warningsConnection;
+
+    protected ChatPlugin(string name) : base(name)
+    {
+        Warnings = _warningsSource.Connect()
+            .ObserveOnAvaloniaDispatcher()
+            .BindEx(out _warningsConnection);
+    }
+
     public abstract IReadOnlyList<ChatFunction> GetChatFunctions();
 
-    public abstract void Dispose();
+    public virtual void Dispose()
+    {
+        _warningsConnection.Dispose();
+        _warningsSource.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
     public void SetWarning(string key, IDynamicResourceKey? messageKey, ICommand? command = null)
     {
-        RemoveWarning(key);
         if (messageKey is not null)
         {
-            Warnings.Add(new ChatPluginWarning(key, messageKey, command));
+            _warningsSource.AddOrUpdate(new ChatPluginWarning(key, messageKey, command));
         }
-    }
-
-    public void RemoveWarning(string key)
-    {
-        for (var i = Warnings.Count - 1; i >= 0; i--)
+        else
         {
-            if (string.Equals(Warnings[i].Key, key, StringComparison.Ordinal))
-            {
-                Warnings.RemoveAt(i);
-            }
+            RemoveWarning(key);
         }
     }
 
-    private void HandleWarningsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        OnPropertyChanged(nameof(HasWarnings));
-        OnPropertyChanged(nameof(FirstWarningMessageKey));
-    }
+    public void RemoveWarning(string key) => _warningsSource.RemoveKey(key);
 }
 
 public sealed record ChatPluginWarning(string Key, IDynamicResourceKey MessageKey, ICommand? Command = null)
@@ -158,6 +152,8 @@ public abstract class ChatPlugin<TChatFunction> : ChatPlugin where TChatFunction
 
     public override void Dispose()
     {
+        base.Dispose();
+
         _functionsSource.Dispose();
         _functionsConnection.Dispose();
         GC.SuppressFinalize(this);

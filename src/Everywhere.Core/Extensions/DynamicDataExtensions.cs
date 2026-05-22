@@ -75,6 +75,38 @@ public static class DynamicDataExtensions
         }
     }
 
+    extension<TValue, TKey>(IObservable<IChangeSet<TValue, TKey>> source) where TValue : notnull where TKey : notnull
+    {
+        /// <summary>
+        /// A convenience method to revert the out parameter pattern of Bind method.
+        /// </summary>
+        /// <param name="disposable"></param>
+        /// <param name="resetThreshold"></param>
+        /// <returns></returns>
+        public ReadOnlyObservableCollection<TValue> BindEx(
+            out IDisposable disposable,
+            int resetThreshold = 25)
+        {
+            disposable = source.Bind(out var collection, resetThreshold).Subscribe();
+            return collection;
+        }
+
+        /// <summary>
+        /// A convenience method to add the subscription disposable to a collection.
+        /// </summary>
+        /// <param name="disposables"></param>
+        /// <param name="resetThreshold"></param>
+        /// <returns></returns>
+        public ReadOnlyObservableCollection<TValue> BindEx(
+            ICollection<IDisposable> disposables,
+            int resetThreshold = 25)
+        {
+            var subscription = source.Bind(out var collection, resetThreshold).Subscribe();
+            disposables.Add(subscription);
+            return collection;
+        }
+    }
+
     /// <summary>
     /// Leading and tailing throttle
     /// </summary>

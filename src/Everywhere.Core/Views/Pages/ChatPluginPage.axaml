@@ -51,11 +51,11 @@
             <LucideIcon
               Grid.Column="2"
               Foreground="{DynamicResource WarningColor}"
-              IsVisible="{Binding HasWarnings}"
+              IsVisible="{Binding !!Warnings.Count}"
               Kind="TriangleAlert"
               Size="{DynamicResource FontSizeL}"
               ToolTip.Placement="Top"
-              ToolTip.Tip="{Binding FirstWarningMessageKey^, FallbackValue={x:Null}}"/>
+              ToolTip.Tip="{Binding Warnings[0].MessageKey^}"/>
 
             <v:ConditionalContentControl
               Grid.Column="3"
@@ -239,7 +239,7 @@
             CommandParameter="{Binding SelectedMcpPlugin}"
             Content="{I18N {x:Static LocaleKey.ChatPluginPage_StartMcpPluginButton_Content}}"
             Foreground="{DynamicResource SuccessColor}"
-            IsVisible="{Binding !SelectedMcpPlugin.IsRunning, FallbackValue=false}"/>
+            IsVisible="{Binding !SelectedMcpPlugin?.IsRunning, TargetNullValue={x:False}}"/>
           <Button
             Classes="Secondary"
             shadui:ButtonAssist.Icon="{LucideIconContent Kind=Square}"
@@ -248,7 +248,7 @@
             CommandParameter="{Binding SelectedMcpPlugin}"
             Content="{I18N {x:Static LocaleKey.ChatPluginPage_StopMcpPluginButton_Content}}"
             Foreground="{DynamicResource WarningColor}"
-            IsVisible="{Binding SelectedMcpPlugin.IsRunning, FallbackValue=false}"/>
+            IsVisible="{Binding SelectedMcpPlugin?.IsRunning, TargetNullValue={x:False}}"/>
 
           <Button
             Classes="Secondary"
@@ -309,7 +309,7 @@
             Grid.Row="1" Grid.Column="0"
             Grid.ColumnSpan="2" Margin="0"
             HorizontalAlignment="Stretch"
-            IsVisible="{Binding HasWarnings}"
+            IsVisible="{Binding !!Warnings.Count}"
             ItemsSource="{Binding Warnings}">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>

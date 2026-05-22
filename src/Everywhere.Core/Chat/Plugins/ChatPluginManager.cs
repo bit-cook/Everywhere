@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
-using Avalonia.Media;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
@@ -736,7 +735,5 @@ public class ChatPluginManager : IChatPluginManager
         public override IEnumerator<KernelFunction> GetEnumerator() => _actualFunctions.Select(f => f.KernelFunction).GetEnumerator();
 
         public override IReadOnlyList<ChatFunction> GetChatFunctions() => _actualFunctions;
-
-        public override void Dispose() { }
     }
 }
