@@ -1049,11 +1049,12 @@ public sealed partial class ChatService : IChatService
             {
                 usage.Update(content);
 
-                if (content.Role != AuthorRole.Assistant) continue;
-
-                foreach (var item in content.Items.AsValueEnumerable().OfType<StreamingTextContent>())
+                if (content.Role == AuthorRole.Assistant)
                 {
-                    titleBuilder.Append(item);
+                    foreach (var item in content.Items.AsValueEnumerable().OfType<StreamingTextContent>())
+                    {
+                        titleBuilder.Append(item);
+                    }
                 }
             }
 
