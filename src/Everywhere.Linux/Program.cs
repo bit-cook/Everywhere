@@ -14,9 +14,7 @@ using Everywhere.Linux.Common;
 using Everywhere.Linux.Interop;
 using Everywhere.StrategyEngine;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Extensions.Logging;
 
 namespace Everywhere.Linux;
 
@@ -54,9 +52,7 @@ public static class Program
 
                 #region Basic
 
-                .AddLogging(builder => builder
-                    .AddSerilog(dispose: true)
-                    .AddFilter<SerilogLoggerProvider>("Microsoft.EntityFrameworkCore", LogLevel.Debug))
+                .AddApplicationLogging()
                 .AddWindowEventHelper()
                 .AddSingleton<IVisualElementContext, VisualElementContext>()
                 .AddSingleton<IShortcutListener, ShortcutListener>()

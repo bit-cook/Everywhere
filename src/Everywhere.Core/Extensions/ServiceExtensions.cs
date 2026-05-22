@@ -12,6 +12,9 @@ using Everywhere.Views.Pages;
 using Everywhere.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Extensions.Logging;
 
 namespace Everywhere.Extensions;
 
@@ -19,6 +22,14 @@ public static class ServiceExtensions
 {
     extension(IServiceCollection services)
     {
+        public IServiceCollection AddApplicationLogging() =>
+            services.AddLogging(builder => builder
+#if DEBUG
+                .SetMinimumLevel(LogLevel.Debug)
+#endif
+                .AddSerilog(dispose: true)
+                .AddFilter<SerilogLoggerProvider>("Microsoft.EntityFrameworkCore", LogLevel.Warning));
+
         public IServiceCollection AddAvaloniaBasicServices()
         {
             return services.AddDialogManagerAndToastManager();

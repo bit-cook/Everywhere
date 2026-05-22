@@ -13,9 +13,6 @@ using Everywhere.Mac.Common;
 using Everywhere.Mac.Interop;
 using Everywhere.StrategyEngine;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Serilog;
-using Serilog.Extensions.Logging;
 
 namespace Everywhere.Mac;
 
@@ -34,9 +31,7 @@ public static class Program
 
                 #region Basic
 
-                .AddLogging(builder => builder
-                    .AddSerilog(dispose: true)
-                    .AddFilter<SerilogLoggerProvider>("Microsoft.EntityFrameworkCore", LogLevel.Warning))
+                .AddApplicationLogging()
                 .AddSingleton<IVisualElementContext, VisualElementContext>()
                 .AddSingleton<IShortcutListener, CGEventShortcutListener>()
                 .AddSingleton<INativeHelper, NativeHelper>()

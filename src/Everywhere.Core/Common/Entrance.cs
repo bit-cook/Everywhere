@@ -217,6 +217,9 @@ public static class Entrance
     private static void InitializeLogger()
     {
         Log.Logger = new LoggerConfiguration()
+#if DEBUG
+            .MinimumLevel.Debug()
+#endif
             .Enrich.FromLogContext()
             .Enrich.With<ActivityEnricher>()
             .WriteTo.Console(

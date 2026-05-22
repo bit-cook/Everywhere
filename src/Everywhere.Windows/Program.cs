@@ -18,10 +18,8 @@ using Everywhere.Windows.Chat.Plugins;
 using Everywhere.Windows.Common;
 using Everywhere.Windows.Interop;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Serilog;
-using Serilog.Extensions.Logging;
 
 namespace Everywhere.Windows;
 
@@ -52,12 +50,7 @@ public static class Program
 
                 #region Basic
 
-                .AddLogging(builder => builder
-#if DEBUG
-                    .SetMinimumLevel(LogLevel.Trace)
-#endif
-                    .AddSerilog(dispose: true)
-                    .AddFilter<SerilogLoggerProvider>("Microsoft.EntityFrameworkCore", LogLevel.Warning))
+                .AddApplicationLogging()
                 .AddSingleton<IVisualElementContext, VisualElementContext>()
                 .AddSingleton<IShortcutListener, ShortcutListener>()
                 .AddSingleton<INativeHelper, NativeHelper>()
