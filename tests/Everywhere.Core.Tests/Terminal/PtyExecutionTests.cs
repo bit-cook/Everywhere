@@ -143,8 +143,8 @@ public class PtyExecutionTests
         return new PtyOptions
         {
             Name = "Everywhere-Test",
-            Cols = 1024,
-            Rows = 50,
+            Cols = TerminalDimensions.Default.Columns,
+            Rows = TerminalDimensions.Default.Rows,
             Cwd = cwd ?? Directory.GetCurrentDirectory(),
             App = shellPath,
             CommandLine = args,
@@ -175,8 +175,8 @@ public class PtyExecutionTests
         return new PtyOptions
         {
             Name = "Everywhere-Rich-Test",
-            Cols = 1024,
-            Rows = 50,
+            Cols = TerminalDimensions.Default.Columns,
+            Rows = TerminalDimensions.Default.Rows,
             Cwd = cwd ?? Directory.GetCurrentDirectory(),
             App = shellPath,
             CommandLine = shellArgs,
@@ -256,12 +256,13 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         var script = shellType == ShellType.PowerShell ? "Write-Host \"HELLO_PTY_TEST\"" : "echo \"HELLO_PTY_TEST\"";
 
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -284,6 +285,7 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         string script;
@@ -297,7 +299,7 @@ public class PtyExecutionTests
         }
 
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -323,6 +325,7 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         // Use a command that genuinely produces no output
@@ -331,7 +334,7 @@ public class PtyExecutionTests
         var script = shellType == ShellType.PowerShell ? "[void]0" : "true";
 
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -354,13 +357,14 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         // Use a unique marker to identify our output
         var script = shellType == ShellType.PowerShell ? "Write-Host \"SPECIAL_$HOME_TEST\"" : "echo \"SPECIAL_$HOME_TEST\"";
 
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -383,13 +387,14 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         var script = shellType == ShellType.PowerShell ? "Start-Sleep -Seconds 60" : "sleep 60";
 
         // Use a very short timeout
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             shellType,
             timeout: TimeSpan.FromSeconds(3),
@@ -415,12 +420,13 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         var script = "cat <<'EOF'\nHEREDOC_LINE_1\nHEREDOC_LINE_2\nEOF";
 
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -453,9 +459,10 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
-        var result = await strategy.ExecuteAsync(pty, script, shellType, TimeSpan.FromSeconds(20), CancellationToken.None);
+        var result = await strategy.ExecuteAsync(session, script, shellType, TimeSpan.FromSeconds(20), CancellationToken.None);
 
         _logger.LogInformation("[None {Scenario}] Output: {Output}", scenario, result.Output);
         AssertContainsExpectedOutput(result.Output, expectedOutput);
@@ -480,14 +487,15 @@ public class PtyExecutionTests
 
         var options = BuildShellIntegrationPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
-        var strategy = await IExecuteStrategy.DetectStrategyAsync(pty, shellType, _logger, CancellationToken.None);
+        var strategy = await IExecuteStrategy.DetectStrategyAsync(session, shellType, _logger, CancellationToken.None);
         Assert.That(
             strategy,
             Is.TypeOf<RichExecuteStrategy>(),
             $"Expected shell integration to be detected for {shellType}");
 
-        var result = await strategy.ExecuteAsync(pty, script, shellType, TimeSpan.FromSeconds(20), CancellationToken.None);
+        var result = await strategy.ExecuteAsync(session, script, shellType, TimeSpan.FromSeconds(20), CancellationToken.None);
 
         _logger.LogInformation("[Rich {Scenario}] Output: {Output}", scenario, result.Output);
         AssertContainsExpectedOutput(result.Output, expectedOutput);
@@ -501,7 +509,7 @@ public class PtyExecutionTests
     /// Create a mock IPtyConnection with a pre-built ReaderStream containing the given content.
     /// The WriterStream is a MemoryStream that captures written data.
     /// </summary>
-    private static (IPtyConnection pty, MemoryStream writerStream) CreateMockPty(byte[] readerContent)
+    private static (TerminalSession session, MemoryStream writerStream) CreateMockPty(byte[] readerContent)
     {
         var readerStream = new MemoryStream(readerContent);
         var writerStream = new MemoryStream();
@@ -509,7 +517,44 @@ public class PtyExecutionTests
         pty.ReaderStream.Returns(readerStream);
         pty.WriterStream.Returns(writerStream);
         pty.Pid.Returns(12345);
-        return (pty, writerStream);
+        return (new TerminalSession(pty, TerminalDimensions.Default), writerStream);
+    }
+
+    [Test]
+    public async Task DetectStrategy_ReusesSessionParserAndBuffer()
+    {
+        var (session, _) = CreateMockPty(BuildRichSequence("prompt ready"));
+        var parser = session.Parser;
+        var buffer = session.Buffer;
+
+        var strategy = await IExecuteStrategy.DetectStrategyAsync(
+            session,
+            ShellType.PowerShell,
+            _logger,
+            CancellationToken.None);
+
+        Assert.That(strategy, Is.TypeOf<RichExecuteStrategy>());
+        Assert.That(session.Parser, Is.SameAs(parser));
+        Assert.That(session.Buffer, Is.SameAs(buffer));
+        Assert.That(session.Parser.HasDetectedShellIntegration, Is.True);
+    }
+
+    [Test]
+    public async Task TerminalSession_WritesTerminalQueryResponses_UsingDimensions()
+    {
+        var readerStream = new MemoryStream();
+        var writerStream = new MemoryStream();
+        var pty = Substitute.For<IPtyConnection>();
+        pty.ReaderStream.Returns(readerStream);
+        pty.WriterStream.Returns(writerStream);
+        var session = new TerminalSession(pty, new TerminalDimensions(77, 33));
+
+        session.Feed("\e[18t\e[6n");
+        await session.FlushTerminalResponsesAsync(CancellationToken.None);
+
+        var written = Encoding.ASCII.GetString(writerStream.ToArray());
+        Assert.That(written, Does.Contain("\e[8;33;77t"));
+        Assert.That(written, Does.Contain("\e[1;1R"));
     }
 
     /// <summary>
@@ -546,11 +591,11 @@ public class PtyExecutionTests
     {
         var expectedOutput = "HELLO_RICH_TEST";
         var ptyData = BuildRichSequence(expectedOutput);
-        var (pty, _) = CreateMockPty(ptyData);
+        var (session, _) = CreateMockPty(ptyData);
 
         var strategy = new RichExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo test",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -570,11 +615,11 @@ public class PtyExecutionTests
     {
         var expectedOutput = "LINE_A\r\nLINE_B";
         var ptyData = BuildRichSequence(expectedOutput);
-        var (pty, _) = CreateMockPty(ptyData);
+        var (session, _) = CreateMockPty(ptyData);
 
         var strategy = new RichExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo LINE_A\necho LINE_B",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -611,10 +656,10 @@ public class PtyExecutionTests
         sb.Append("\e]633;D;0\a");
         sb.Append("\e]633;A\a");
 
-        var (pty, _) = CreateMockPty(Encoding.UTF8.GetBytes(sb.ToString()));
+        var (session, _) = CreateMockPty(Encoding.UTF8.GetBytes(sb.ToString()));
         var strategy = new RichExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "Write-Host 'FIRST'\nWrite-Host 'SECOND'\nWrite-Host 'THIRD'",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -641,10 +686,10 @@ public class PtyExecutionTests
         sb.Append("\e]633;D;0\a");
         sb.Append("\e]633;A\a");
 
-        var (pty, _) = CreateMockPty(Encoding.UTF8.GetBytes(sb.ToString()));
+        var (session, _) = CreateMockPty(Encoding.UTF8.GetBytes(sb.ToString()));
         var strategy = new RichExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo FIRST\necho SECOND",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -660,11 +705,11 @@ public class PtyExecutionTests
     public async Task RichStrategy_NonZeroExitCode()
     {
         var ptyData = BuildRichSequence("error output", exitCode: 42);
-        var (pty, _) = CreateMockPty(ptyData);
+        var (session, _) = CreateMockPty(ptyData);
 
         var strategy = new RichExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "exit 42",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -679,11 +724,11 @@ public class PtyExecutionTests
     public async Task RichStrategy_EmptyOutput()
     {
         var ptyData = BuildRichSequence("", exitCode: 0);
-        var (pty, _) = CreateMockPty(ptyData);
+        var (session, _) = CreateMockPty(ptyData);
 
         var strategy = new RichExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "true",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -697,14 +742,33 @@ public class PtyExecutionTests
     }
 
     [Test]
+    public async Task RichStrategy_FallbackOutput_UsesCommandStartBaseline()
+    {
+        var ptyData = Encoding.UTF8.GetBytes("\r\nWrite-Host 'RESULT'\r\nRESULT\r\nPS C:\\test> ");
+        var (session, _) = CreateMockPty(ptyData);
+        session.Feed("PS C:\\detect> ");
+
+        var strategy = new RichExecuteStrategy(_logger);
+        var result = await strategy.ExecuteAsync(
+            session,
+            script: "Write-Host 'RESULT'",
+            ShellType.PowerShell,
+            timeout: TimeSpan.FromSeconds(10),
+            cancellationToken: CancellationToken.None);
+
+        Assert.That(result.Output, Does.Contain("RESULT"));
+        Assert.That(result.Output, Does.Not.Contain("detect"));
+    }
+
+    [Test]
     public async Task RichStrategy_SendsCommandCorrectly_SingleLine()
     {
         var ptyData = BuildRichSequence("ok");
-        var (pty, writerStream) = CreateMockPty(ptyData);
+        var (session, writerStream) = CreateMockPty(ptyData);
 
         var strategy = new RichExecuteStrategy(_logger);
         await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo hello",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -724,11 +788,11 @@ public class PtyExecutionTests
     public async Task RichStrategy_SendsLogicalSingleLineNewlinesAsEnterKeys()
     {
         var ptyData = BuildRichSequence("ok");
-        var (pty, writerStream) = CreateMockPty(ptyData);
+        var (session, writerStream) = CreateMockPty(ptyData);
 
         var strategy = new RichExecuteStrategy(_logger);
         await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo a \\\necho b",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -745,11 +809,12 @@ public class PtyExecutionTests
     public async Task RichStrategy_SendsCommandCorrectly_MultiLine()
     {
         var ptyData = BuildRichSequence("ok");
-        var (pty, writerStream) = CreateMockPty(ptyData);
+        var (session, writerStream) = CreateMockPty(ptyData);
+        session.Parser.Feed("\e[?2004h");
 
         var strategy = new RichExecuteStrategy(_logger);
         await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo a\necho b",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -766,6 +831,28 @@ public class PtyExecutionTests
     }
 
     [Test]
+    public async Task RichStrategy_MultiLine_WithoutBracketedPasteMode_SendsLineByLine()
+    {
+        var ptyData = BuildRichSequence("ok");
+        var (session, writerStream) = CreateMockPty(ptyData);
+
+        var strategy = new RichExecuteStrategy(_logger);
+        await strategy.ExecuteAsync(
+            session,
+            script: "echo a\necho b",
+            ShellType.Unknown,
+            timeout: TimeSpan.FromSeconds(10),
+            cancellationToken: CancellationToken.None);
+
+        var written = Encoding.UTF8.GetString(writerStream.ToArray());
+        _logger.LogInformation("Written without bracketed paste: {Escaped}", OutputCleaner.EscapeForLog(written));
+
+        Assert.That(written, Is.EqualTo("echo a\recho b\r"));
+        Assert.That(written, Does.Not.Contain("\e[200~"));
+        Assert.That(written, Does.Not.Contain("\e[201~"));
+    }
+
+    [Test]
     public async Task RichStrategy_BracketedPaste_SuppressesExecution()
     {
         // Verify that \r inside bracketed paste does NOT trigger execution.
@@ -773,11 +860,12 @@ public class PtyExecutionTests
         // treats it as a single paste block, not individual commands.
         var script = "Write-Host 'LINE_A'\rWrite-Host 'LINE_B'";
         var ptyData = BuildRichSequence("LINE_A\r\nLINE_B");
-        var (pty, writerStream) = CreateMockPty(ptyData);
+        var (session, writerStream) = CreateMockPty(ptyData);
+        session.Parser.Feed("\e[?2004h");
 
         var strategy = new RichExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -803,8 +891,8 @@ public class PtyExecutionTests
     [Test]
     public async Task NoneStrategy_SendsLogicalSingleLineNewlinesAsEnterKeys()
     {
-        var (pty, writerStream) = CreateMockPty([]);
-        await NoneExecuteStrategy.SendCommandAsync(pty, "echo a \\\necho b", ShellType.Unknown, CancellationToken.None);
+        var (session, writerStream) = CreateMockPty([]);
+        await NoneExecuteStrategy.SendCommandAsync(session, "echo a \\\necho b", ShellType.Unknown, CancellationToken.None);
 
         var written = Encoding.UTF8.GetString(writerStream.ToArray());
         _logger.LogInformation("Written logical single-line to PTY: {Escaped}", OutputCleaner.EscapeForLog(written));
@@ -822,6 +910,7 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         string script;
@@ -835,7 +924,7 @@ public class PtyExecutionTests
         }
 
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             shellType,
             timeout: TimeSpan.FromSeconds(30),
@@ -867,13 +956,31 @@ public class PtyExecutionTests
         var pty = Substitute.For<IPtyConnection>();
         pty.ReaderStream.Returns(readerStream);
         pty.WriterStream.Returns(writerStream);
+        var session = new TerminalSession(pty, TerminalDimensions.Default);
 
-        var strategy = await IExecuteStrategy.DetectStrategyAsync(pty, ShellType.PowerShell, _logger, CancellationToken.None);
+        var strategy = await IExecuteStrategy.DetectStrategyAsync(session, ShellType.PowerShell, _logger, CancellationToken.None);
 
         Assert.That(
             strategy,
             Is.TypeOf<RichExecuteStrategy>(),
             "Should detect Shell Integration and return RichExecuteStrategy");
+    }
+
+    [Test]
+    public async Task DetectStrategy_WithBracketedPasteMode_PassesModeToRichStrategy()
+    {
+        var output = Encoding.UTF8.GetBytes("\e[?2004h" + Encoding.UTF8.GetString(BuildRichSequence("prompt ready")));
+        var readerStream = new MemoryStream(output);
+        var writerStream = new MemoryStream();
+        var pty = Substitute.For<IPtyConnection>();
+        pty.ReaderStream.Returns(readerStream);
+        pty.WriterStream.Returns(writerStream);
+        var session = new TerminalSession(pty, TerminalDimensions.Default);
+
+        var strategy = await IExecuteStrategy.DetectStrategyAsync(session, ShellType.PowerShell, _logger, CancellationToken.None);
+
+        Assert.That(strategy, Is.TypeOf<RichExecuteStrategy>());
+        Assert.That(session.Parser.IsBracketedPasteModeEnabled, Is.True);
     }
 
     [Test]
@@ -886,8 +993,9 @@ public class PtyExecutionTests
         var pty = Substitute.For<IPtyConnection>();
         pty.ReaderStream.Returns(readerStream);
         pty.WriterStream.Returns(writerStream);
+        var session = new TerminalSession(pty, TerminalDimensions.Default);
 
-        var strategy = await IExecuteStrategy.DetectStrategyAsync(pty, ShellType.Bash, _logger, CancellationToken.None);
+        var strategy = await IExecuteStrategy.DetectStrategyAsync(session, ShellType.Bash, _logger, CancellationToken.None);
 
         Assert.That(
             strategy,
@@ -914,10 +1022,11 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "Write-Host \"MATRIX_PS_TEST\"",
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -939,10 +1048,11 @@ public class PtyExecutionTests
         var (shellPath, shellType) = DetectPlatformShell();
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "Write-Host \"PS_LINE1\"\nWrite-Host \"PS_LINE2\"",
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -965,10 +1075,11 @@ public class PtyExecutionTests
         var (shellPath, shellType) = DetectPlatformShell();
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo \"MATRIX_BASH_TEST\"",
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -990,10 +1101,11 @@ public class PtyExecutionTests
         var (shellPath, shellType) = DetectPlatformShell();
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo \"BASH_L1\"\necho \"BASH_L2\"",
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -1018,10 +1130,11 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo \"MATRIX_ZSH_TEST\"",
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -1043,10 +1156,11 @@ public class PtyExecutionTests
         var (shellPath, shellType) = DetectPlatformShell();
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "echo \"ZSH_L1\"\necho \"ZSH_L2\"",
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -1076,10 +1190,10 @@ public class PtyExecutionTests
         sb.Append("\e]633;D;0\a");
         sb.Append("\e]633;A\a");
 
-        var (pty, _) = CreateMockPty(Encoding.UTF8.GetBytes(sb.ToString()));
+        var (session, _) = CreateMockPty(Encoding.UTF8.GetBytes(sb.ToString()));
         var strategy = new RichExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "seq 1 5",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -1135,10 +1249,10 @@ public class PtyExecutionTests
         sb.Append("\e]633;D;0\a");
         sb.Append("\e]633;A\a");
 
-        var (pty, _) = CreateMockPty(Encoding.UTF8.GetBytes(sb.ToString()));
+        var (session, _) = CreateMockPty(Encoding.UTF8.GetBytes(sb.ToString()));
         var strategy = new RichExecuteStrategy(_logger);
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: "Write-Host 'A'\nWrite-Host 'B'\nWrite-Host 'C'",
             ShellType.Unknown,
             timeout: TimeSpan.FromSeconds(10),
@@ -1171,6 +1285,7 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         string script;
@@ -1185,7 +1300,7 @@ public class PtyExecutionTests
         }
 
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             shellType,
             timeout: TimeSpan.FromSeconds(15),
@@ -1240,6 +1355,7 @@ public class PtyExecutionTests
 
         var options = BuildTestPtyOptions(shellPath, shellType);
         using var pty = await PtyProvider.SpawnAsync(options, CancellationToken.None);
+        var session = TerminalSession.FromPtyOptions(pty, options);
 
         var strategy = new NoneExecuteStrategy(_logger);
         string script;
@@ -1253,7 +1369,7 @@ public class PtyExecutionTests
         }
 
         var result = await strategy.ExecuteAsync(
-            pty,
+            session,
             script: script,
             shellType,
             timeout: TimeSpan.FromSeconds(20),

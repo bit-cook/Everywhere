@@ -324,6 +324,102 @@ public class VtParserTests
 
     #endregion
 
+    #region VtSequenceParser — Terminal Query Responses
+
+    [Test]
+    public void Feed_PrimaryDeviceAttributes_QueuesConservativeResponse()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var responses = new List<string>();
+        var parser = new VtSequenceParser(buffer, terminalResponseHandler: responses.Add);
+
+        parser.Feed("\e[c");
+
+        Assert.That(responses, Is.EqualTo(new[] { "\e[?1;0c" }));
+    }
+
+    [Test]
+    public void Feed_FragmentedPrimaryDeviceAttributes_QueuesResponse()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var responses = new List<string>();
+        var parser = new VtSequenceParser(buffer, terminalResponseHandler: responses.Add);
+
+        parser.Feed("\e[");
+        parser.Feed("c");
+
+        Assert.That(responses, Is.EqualTo(new[] { "\e[?1;0c" }));
+    }
+
+    [Test]
+    public void Feed_DeviceStatusReport_QueuesOkResponse()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var responses = new List<string>();
+        var parser = new VtSequenceParser(buffer, terminalResponseHandler: responses.Add);
+
+        parser.Feed("\e[5n");
+
+        Assert.That(responses, Is.EqualTo(new[] { "\e[0n" }));
+    }
+
+    [Test]
+    public void Feed_CursorPositionReport_UsesOneBasedCoordinates()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var responses = new List<string>();
+        var parser = new VtSequenceParser(buffer, terminalResponseHandler: responses.Add, dimensions: new TerminalDimensions(80, 24));
+
+        parser.Feed("abc\r\nx\e[6n");
+
+        Assert.That(responses, Is.EqualTo(new[] { "\e[2;2R" }));
+    }
+
+    [Test]
+    public void Feed_TextAreaSizeQuery_UsesConfiguredDimensions()
+    {
+        var buffer = new VirtualTerminalBuffer(120);
+        var responses = new List<string>();
+        var parser = new VtSequenceParser(buffer, terminalResponseHandler: responses.Add, dimensions: new TerminalDimensions(120, 50));
+
+        parser.Feed("\e[18t");
+
+        Assert.That(responses, Is.EqualTo(new[] { "\e[8;50;120t" }));
+    }
+
+    [Test]
+    public void Feed_PrivateModes_TracksTerminalInputModes()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var parser = new VtSequenceParser(buffer);
+
+        parser.Feed("\e[?1004;2004;9001h");
+
+        Assert.That(parser.IsFocusEventTrackingEnabled, Is.True);
+        Assert.That(parser.IsBracketedPasteModeEnabled, Is.True);
+        Assert.That(parser.IsWin32InputModeEnabled, Is.True);
+
+        parser.Feed("\e[?1004;2004;9001l");
+
+        Assert.That(parser.IsFocusEventTrackingEnabled, Is.False);
+        Assert.That(parser.IsBracketedPasteModeEnabled, Is.False);
+        Assert.That(parser.IsWin32InputModeEnabled, Is.False);
+    }
+
+    [Test]
+    public void Feed_SecondaryDeviceAttributes_QueuesConservativeResponse()
+    {
+        var buffer = new VirtualTerminalBuffer(80);
+        var responses = new List<string>();
+        var parser = new VtSequenceParser(buffer, terminalResponseHandler: responses.Add);
+
+        parser.Feed("\e[>c");
+
+        Assert.That(responses, Is.EqualTo(new[] { "\e[>0;0;0c" }));
+    }
+
+    #endregion
+
     #region VtSequenceParser — Shell Integration Markers
 
     [Test]

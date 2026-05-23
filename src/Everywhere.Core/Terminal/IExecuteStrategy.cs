@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Porta.Pty;
 
 namespace Everywhere.Terminal;
 
@@ -8,25 +7,25 @@ namespace Everywhere.Terminal;
 /// </summary>
 /// <param name="Output">The cleaned command output text.</param>
 /// <param name="ExitCode">The exit code of the command, if available.</param>
-internal readonly record struct ExecuteResult(string Output, int? ExitCode);
+public readonly record struct ExecuteResult(string Output, int? ExitCode);
 
 /// <summary>
 /// Strategy for executing commands in a PTY and capturing their output.
 /// Implementations differ based on whether Shell Integration is available.
 /// </summary>
-internal interface IExecuteStrategy
+public interface IExecuteStrategy
 {
     /// <summary>
     /// Execute a command in the PTY and return the cleaned output.
     /// </summary>
-    /// <param name="pty">The PTY connection to use.</param>
+    /// <param name="session">The terminal session to use.</param>
     /// <param name="script">The script to execute.</param>
     /// <param name="shellType"></param>
     /// <param name="timeout">Maximum time to wait for the command to complete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The execution result containing output and exit code.</returns>
     Task<ExecuteResult> ExecuteAsync(
-        IPtyConnection pty,
+        TerminalSession session,
         string script,
         ShellType shellType,
         TimeSpan timeout,
@@ -37,19 +36,14 @@ internal interface IExecuteStrategy
     /// and checking for OSC 633 markers. Returns the appropriate strategy.
     /// </summary>
     static async Task<IExecuteStrategy> DetectStrategyAsync(
-        IPtyConnection pty,
+        TerminalSession session,
         ShellType shellType,
         ILogger logger,
         CancellationToken cancellationToken = default)
     {
-        var readBuffer = new byte[4096];
-        var textDecoder = new PtyTextDecoder(readBuffer.Length);
-        var vtBuffer = new VirtualTerminalBuffer(1024);
-        var parser = new VtSequenceParser(vtBuffer);
-
         // Read initial output for a short period to detect shell integration markers
-        var absoluteTimeout = TimeSpan.FromSeconds(30);
-        var idleTimeout = TimeSpan.FromSeconds(10);
+        var absoluteTimeout = TimeSpan.FromSeconds(10);
+        var idleTimeout = TimeSpan.FromSeconds(3);
         var startTime = DateTimeOffset.UtcNow;
 
         logger.LogDebug(
@@ -76,7 +70,8 @@ internal interface IExecuteStrategy
             int bytesRead;
             try
             {
-                bytesRead = await pty.ReaderStream.ReadAsync(readBuffer, linkedReadCts.Token);
+                _ = session.BeginReadAsync(linkedReadCts.Token);
+                bytesRead = await session.CompleteReadAsync(cancellationToken);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && readTimeoutCts.IsCancellationRequested)
             {
@@ -98,12 +93,13 @@ internal interface IExecuteStrategy
 
             if (bytesRead == 0)
             {
-                var finalText = textDecoder.Flush();
-                parser.Feed(finalText);
-
-                if (parser.HasDetectedShellIntegration)
+                if (session.Parser.HasDetectedShellIntegration)
                 {
-                    logger.LogDebug("[Detect] Shell Integration detected for {ShellType}, using Rich strategy", shellType);
+                    logger.LogDebug(
+                        "[Detect] Shell Integration detected for {ShellType} in {Seconds}s, using Rich strategy",
+                        shellType,
+                        (DateTimeOffset.UtcNow - startTime).TotalSeconds);
+
                     return new RichExecuteStrategy(logger);
                 }
 
@@ -111,17 +107,22 @@ internal interface IExecuteStrategy
                 break;
             }
 
-            var text = textDecoder.Decode(readBuffer.AsSpan(0, bytesRead));
-            parser.Feed(text);
-
-            if (parser.HasDetectedShellIntegration)
+            if (session.Parser.HasDetectedShellIntegration)
             {
-                logger.LogDebug("[Detect] Shell Integration detected for {ShellType}, using Rich strategy", shellType);
+                logger.LogDebug(
+                    "[Detect] Shell Integration detected for {ShellType} in {Seconds}s, using Rich strategy",
+                    shellType,
+                    (DateTimeOffset.UtcNow - startTime).TotalSeconds);
+
                 return new RichExecuteStrategy(logger);
             }
         }
 
-        logger.LogInformation("[Detect] Falling back to None strategy for {ShellType}.", shellType);
+        logger.LogInformation(
+            "[Detect] Falling back to None strategy for {ShellType} in {Seconds}s.",
+            shellType,
+            (DateTimeOffset.UtcNow - startTime).TotalSeconds);
+
         return new NoneExecuteStrategy(logger);
     }
 }

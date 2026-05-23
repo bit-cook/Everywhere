@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Text;
 using System.Text.RegularExpressions;
 using DynamicData;
 using Everywhere.AI;
@@ -63,14 +64,14 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
         [FromKernelServices] IChatPluginUserInterface userInterface,
         [FromKernelServices] ChatContext chatContext,
         [Description("A concise description for user, explaining what are you doing")] string description,
-        [Description("Single or multi-line shell script")] string script,
+        [Description("Single or multi-line shell command")] string command,
         CancellationToken cancellationToken)
     {
         _logger.LogDebug("Executing shell script with description: {Description}", description);
 
-        if (string.IsNullOrWhiteSpace(script))
+        if (string.IsNullOrWhiteSpace(command))
         {
-            throw new ArgumentException("Script cannot be empty or whitespace.", nameof(script));
+            throw new ArgumentException("Script cannot be empty or whitespace.", nameof(command));
         }
 
         var (shellPath, shellType) = DetectShell();
@@ -107,17 +108,10 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
             }
         }
 
-        userInterface.DisplaySink.AppendBlocks(detailBlock);
-
-        var workingDirectory = chatContext.EnsureWorkingDirectory();
-
-        // Generate nonce for shell integration marker verification
-        var nonce = Guid.NewGuid().ToString("N")[..16];
-
-        // Build shell integration args and environment
+        var terminalDimensions = TerminalDimensions.Default;
         var shellArgs = ShellIntegrationScript.BuildShellArgs(shellType);
+        var nonce = Guid.NewGuid().ToString("N")[..16];
         var environment = ShellIntegrationScript.BuildEnvironmentVariables(shellType, nonce);
-
         if (EnvironmentVariableUtilities.GetLatestPathVariable() is { Length: > 0 } latestPath)
         {
             environment["PATH"] = latestPath;
@@ -126,9 +120,9 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
         var options = new PtyOptions
         {
             Name = "Everywhere-Terminal",
-            Cols = 1024,
-            Rows = 50,
-            Cwd = workingDirectory,
+            Cols = terminalDimensions.Columns,
+            Rows = terminalDimensions.Rows,
+            Cwd = chatContext.EnsureWorkingDirectory(),
             App = shellPath,
             CommandLine = shellArgs ?? [],
             VerbatimCommandLine = true,
@@ -155,13 +149,13 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
                 }
                 else
                 {
-                    strategy = await IExecuteStrategy.DetectStrategyAsync(pty, shellType, _logger, cancellationToken);
+                    strategy = await IExecuteStrategy.DetectStrategyAsync(session, shellType, _logger, cancellationToken);
                 }
 
                 // Execute the command using the chosen strategy
                 executeResult = await strategy.ExecuteAsync(
-                    pty,
-                    script,
+                    session,
+                    command,
                     shellType,
                     TimeSpan.FromSeconds(30),
                     cancellationToken);

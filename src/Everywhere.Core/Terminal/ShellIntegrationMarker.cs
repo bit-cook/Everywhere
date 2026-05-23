@@ -3,7 +3,7 @@ namespace Everywhere.Terminal;
 /// <summary>
 /// Types of Shell Integration markers (OSC 633 sequences).
 /// </summary>
-internal enum ShellIntegrationMarkerType
+public enum ShellIntegrationMarkerType
 {
     /// <summary>
     /// A — PromptStart: emitted at the beginning of the prompt function.
@@ -38,7 +38,7 @@ internal enum ShellIntegrationMarkerType
 /// <param name="ExitCode">Exit code (only for D markers).</param>
 /// <param name="CommandLine">Command text (only for E markers).</param>
 /// <param name="Line">The buffer line number where the marker was detected.</param>
-internal readonly record struct ShellIntegrationMarker(
+public readonly record struct ShellIntegrationMarker(
     ShellIntegrationMarkerType Type,
     int? ExitCode = null,
     string? CommandLine = null,

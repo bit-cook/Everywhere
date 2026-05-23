@@ -8,7 +8,7 @@ namespace Everywhere.Terminal;
 /// Extracted from TerminalPlugin to be shared between Rich and None execute strategies.
 /// Ported from VS Code's strategyHelpers.ts.
 /// </summary>
-internal static partial class OutputCleaner
+public static partial class OutputCleaner
 {
     /// <summary>
     /// Check if a line looks like a shell prompt, indicating the command has finished.

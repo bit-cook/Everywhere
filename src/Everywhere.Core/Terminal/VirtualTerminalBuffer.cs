@@ -7,9 +7,10 @@ namespace Everywhere.Terminal;
 /// Similar to xterm.js screen buffer but simplified for text extraction only (no styling).
 /// Height grows on demand to capture all output.
 /// </summary>
-internal sealed class VirtualTerminalBuffer(int cols)
+public sealed class VirtualTerminalBuffer(int cols)
 {
     private readonly List<char[]> _lines = [];
+    private int _cols = Math.Max(cols, 1);
     private int _scrollTop;
     private int _scrollBottom = -1; // -1 means "last line"
 
@@ -34,7 +35,28 @@ internal sealed class VirtualTerminalBuffer(int cols)
     /// <summary>
     /// The number of columns in the buffer.
     /// </summary>
-    public int Cols => cols;
+    public int Cols => _cols;
+
+    /// <summary>
+    /// Resize the terminal width while preserving visible content.
+    /// </summary>
+    public void Resize(int cols)
+    {
+        cols = Math.Max(cols, 1);
+        if (cols == _cols) return;
+
+        for (var i = 0; i < _lines.Count; i++)
+        {
+            var oldLine = _lines[i];
+            var newLine = new char[cols];
+            Array.Copy(oldLine, newLine, Math.Min(oldLine.Length, newLine.Length));
+            _lines[i] = newLine;
+        }
+
+        _cols = cols;
+        CursorX = Math.Clamp(CursorX, 0, _cols - 1);
+        _savedCursorX = Math.Clamp(_savedCursorX, 0, _cols - 1);
+    }
 
     /// <summary>
     /// The number of lines currently in the buffer.
@@ -48,7 +70,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
     {
         while (_lines.Count <= row)
         {
-            _lines.Add(new char[cols]); // initialized to '\0'
+            _lines.Add(new char[_cols]); // initialized to '\0'
         }
     }
 
@@ -60,7 +82,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
     {
         EnsureLine(CursorY);
 
-        if (CursorX >= cols)
+        if (CursorX >= _cols)
         {
             // Line wrap: move to next line
             CursorX = 0;
@@ -119,7 +141,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
     /// </summary>
     public void Tab()
     {
-        CursorX = Math.Min((CursorX / 8 + 1) * 8, cols - 1);
+        CursorX = Math.Min((CursorX / 8 + 1) * 8, _cols - 1);
     }
 
     #region Cursor Movement (CSI sequences)
@@ -148,7 +170,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
     /// </summary>
     public void CursorForward(int n = 1)
     {
-        CursorX = Math.Min(CursorX + n, cols - 1);
+        CursorX = Math.Min(CursorX + n, _cols - 1);
     }
 
     /// <summary>
@@ -182,7 +204,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
     /// </summary>
     public void CursorHorizontalAbsolute(int n = 1)
     {
-        CursorX = Math.Clamp(n - 1, 0, cols - 1);
+        CursorX = Math.Clamp(n - 1, 0, _cols - 1);
     }
 
     /// <summary>
@@ -192,7 +214,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
     {
         // CSI H is 1-based; convert to 0-based
         CursorY = Math.Clamp(row - 1, 0, int.MaxValue);
-        CursorX = Math.Clamp(col - 1, 0, cols - 1);
+        CursorX = Math.Clamp(col - 1, 0, _cols - 1);
         EnsureLine(CursorY);
     }
 
@@ -270,7 +292,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
         switch (mode)
         {
             case 0: // cursor to end
-                Array.Clear(line, CursorX, cols - CursorX);
+                Array.Clear(line, CursorX, _cols - CursorX);
                 break;
 
             case 1: // start to cursor
@@ -294,10 +316,10 @@ internal sealed class VirtualTerminalBuffer(int cols)
     {
         if (CursorY >= _lines.Count) return;
         var line = _lines[CursorY];
-        n = Math.Min(n, cols - CursorX);
+        n = Math.Min(n, _cols - CursorX);
 
         // Shift characters right
-        Array.Copy(line, CursorX, line, CursorX + n, cols - CursorX - n);
+        Array.Copy(line, CursorX, line, CursorX + n, _cols - CursorX - n);
         // Clear inserted area
         Array.Clear(line, CursorX, n);
     }
@@ -309,12 +331,12 @@ internal sealed class VirtualTerminalBuffer(int cols)
     {
         if (CursorY >= _lines.Count) return;
         var line = _lines[CursorY];
-        n = Math.Min(n, cols - CursorX);
+        n = Math.Min(n, _cols - CursorX);
 
         // Shift characters left
-        Array.Copy(line, CursorX + n, line, CursorX, cols - CursorX - n);
+        Array.Copy(line, CursorX + n, line, CursorX, _cols - CursorX - n);
         // Clear vacated area
-        Array.Clear(line, cols - n, n);
+        Array.Clear(line, _cols - n, n);
     }
 
     /// <summary>
@@ -330,7 +352,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
         {
             EnsureLine(i);
             EnsureLine(i - n);
-            Array.Copy(_lines[i - n], _lines[i], cols);
+            Array.Copy(_lines[i - n], _lines[i], _cols);
         }
 
         // Clear inserted lines
@@ -354,7 +376,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
         {
             EnsureLine(i);
             EnsureLine(i + n);
-            Array.Copy(_lines[i + n], _lines[i], cols);
+            Array.Copy(_lines[i + n], _lines[i], _cols);
         }
 
         // Clear vacated lines at bottom of scroll region
@@ -381,7 +403,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
         {
             EnsureLine(i);
             EnsureLine(i + n);
-            Array.Copy(_lines[i + n], _lines[i], cols);
+            Array.Copy(_lines[i + n], _lines[i], _cols);
         }
 
         // Clear new lines at bottom
@@ -404,7 +426,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
         {
             EnsureLine(i);
             EnsureLine(i - n);
-            Array.Copy(_lines[i - n], _lines[i], cols);
+            Array.Copy(_lines[i - n], _lines[i], _cols);
         }
 
         // Clear new lines at top
@@ -547,7 +569,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
     {
         if (row >= _lines.Count) return false;
         var line = _lines[row];
-        for (var x = 0; x < cols; x++)
+        for (var x = 0; x < _cols; x++)
         {
             if (line[x] != '\0' && line[x] != ' ') return true;
         }
@@ -563,7 +585,7 @@ internal sealed class VirtualTerminalBuffer(int cols)
         var line = _lines[row];
 
         // Find last non-null character
-        var end = cols - 1;
+        var end = _cols - 1;
         while (end >= 0 && (line[end] == '\0' || line[end] == ' '))
         {
             end--;

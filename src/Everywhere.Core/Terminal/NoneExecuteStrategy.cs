@@ -1,6 +1,5 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
-using Porta.Pty;
 
 namespace Everywhere.Terminal;
 
@@ -8,20 +7,20 @@ namespace Everywhere.Terminal;
 /// Execute strategy used when Shell Integration is NOT available.
 /// Falls back to idle detection + prompt heuristics + command echo stripping.
 /// Uses Task.WhenAny pattern instead of CancellationToken-based polling to avoid
-/// deadlocks when Phase 5 drains the read buffer before Phase 6 starts.
+/// deadlocks when an earlier phase has a pending read.
 /// </summary>
-internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
+public sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
 {
     private bool _isCapturingTranscript;
 
     public async Task<ExecuteResult> ExecuteAsync(
-        IPtyConnection pty,
+        TerminalSession session,
         string script,
         ShellType shellType,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
-        var rawOutput = await ExecuteWithRawOutputAsync(pty, script, shellType, timeout, cancellationToken);
+        var rawOutput = await ExecuteWithRawOutputAsync(session, script, shellType, timeout, cancellationToken);
         logger.LogDebug("[None] Raw output: {EscapeForLog}", OutputCleaner.EscapeForLog(rawOutput));
         var output = OutputCleaner.StripCommandEchoAndPrompt(rawOutput, script);
 
@@ -30,163 +29,147 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
     }
 
     private async ValueTask<string> ExecuteWithRawOutputAsync(
-        IPtyConnection pty,
+        TerminalSession session,
         string script,
         ShellType shellType,
         TimeSpan timeout,
         CancellationToken cancellationToken)
     {
-        var readBuffer = new byte[4096];
-        var textDecoder = new PtyTextDecoder(readBuffer.Length);
-        var vtBuffer = new VirtualTerminalBuffer(1024);
         var transcript = new StringBuilder();
-        var parser = new VtSequenceParser(
-            vtBuffer,
-            terminalTextHandler: value =>
+
+        void HandleText(char value)
+        {
+            if (_isCapturingTranscript)
             {
-                if (_isCapturingTranscript)
-                {
-                    transcript.Append(value);
-                }
-            });
+                transcript.Append(value);
+            }
+        }
 
-        // Shared read task holder — carries the pending ReadAsync across all phases
-        // so we never lose data that arrives between phases.
-        var readTaskHolder = new ReadTaskHolder();
-
-        // Wait for terminal to become idle (quiet 200ms = idle, max wait 5s)
-        logger.LogDebug("[None] Waiting for initial idle...");
-        await WaitForIdleAsync(
-            pty,
-            readBuffer,
-            parser,
-            TimeSpan.FromSeconds(5),
-            TimeSpan.FromMilliseconds(200),
-            readTaskHolder,
-            textDecoder,
-            cancellationToken);
-
-        logger.LogDebug("[None] Sending Ctrl+C to cancel residual input");
-        await pty.WriterStream.WriteAsync("\x03"u8.ToArray(), cancellationToken);
-        await pty.WriterStream.FlushAsync(cancellationToken);
-
-        // Brief wait for Ctrl+C echo to settle (quiet 100ms = idle, max wait 500ms)
-        await WaitForIdleAsync(
-            pty,
-            readBuffer,
-            parser,
-            TimeSpan.FromMilliseconds(500),
-            TimeSpan.FromMilliseconds(200),
-            readTaskHolder,
-            textDecoder,
-            cancellationToken);
-
-        // Drop startup prompt/control output so completion checks only see data
-        // produced after this command is sent.
-        vtBuffer.Reset();
-        parser.Reset();
-        transcript.Clear();
-
-        // Record the start position (cursor line before command)
-        var startLine = vtBuffer.CursorY;
-
-        logger.LogDebug("[None] Sending command (shellType={ShellType})", shellType);
-        _isCapturingTranscript = true;
-        await SendCommandAsync(pty, script, shellType, cancellationToken);
-
-        logger.LogDebug("[None] Waiting for command output to start from line {StartLine}", startLine);
-        await WaitForCommandOutputStartAsync(pty, readBuffer, parser, startLine, TimeSpan.FromSeconds(3), readTaskHolder, textDecoder, cancellationToken);
-
-        logger.LogDebug("[None] Waiting for idle with prompt heuristics");
-        var hasReceivedData = transcript.Length > 0;
-        var hasSeenCommandEcho = ContainsCommandEcho(transcript, script);
-        var consecutiveIdlePolls = 0;
-        const int pollIntervalMs = 150;
-        const int minIdlePolls = 4; // 4 × 150ms = 600ms idle
-        const int maxFallbackIdlePolls = 14; // ~2.1s — force exit if prompt regex never matches
-
-        using var timeoutCts = new CancellationTokenSource(timeout);
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-        var linkedToken = linkedCts.Token;
+        session.Parser.TerminalTextReceived += HandleText;
 
         try
         {
-            while (!linkedToken.IsCancellationRequested)
-            {
-                readTaskHolder.Task ??= pty.ReaderStream.ReadAsync(readBuffer, linkedToken).AsTask();
-                var completedTask = await Task.WhenAny(
-                    readTaskHolder.Task,
-                    Task.Delay(pollIntervalMs, linkedToken));
+            // Wait for terminal to become idle (quiet 200ms = idle, max wait 5s)
+            logger.LogDebug("[None] Waiting for initial idle...");
+            await WaitForIdleAsync(
+                session,
+                TimeSpan.FromSeconds(5),
+                TimeSpan.FromMilliseconds(200),
+                cancellationToken);
 
-                if (completedTask == readTaskHolder.Task)
-                {
-                    // Received new data
-                    var bytesRead = await readTaskHolder.Task;
-                    readTaskHolder.Task = null;
-                    if (bytesRead == 0)
-                    {
-                        parser.Feed(textDecoder.Flush());
-                        break;
-                    }
+            logger.LogDebug("[None] Sending Ctrl+C to cancel residual input");
+            await session.WriteInputAsync("\x03", cancellationToken);
 
-                    var text = textDecoder.Decode(readBuffer.AsSpan(0, bytesRead));
-                    parser.Feed(text);
+            // Brief wait for Ctrl+C echo to settle (quiet 200ms = idle, max wait 500ms)
+            await WaitForIdleAsync(
+                session,
+                TimeSpan.FromMilliseconds(500),
+                TimeSpan.FromMilliseconds(200),
+                cancellationToken);
 
-                    if (text.IndexOfAny('\n', '\r') >= 0)
-                    {
-                        logger.LogDebug("[PTY RAW] {EscapeForLog}", OutputCleaner.EscapeForLog(new string(text)));
-                    }
+            // Shared buffer is intentionally preserved. The command baseline prevents
+            // startup prompts and detection output from polluting fallback output.
+            transcript.Clear();
+            var startLine = session.Buffer.CursorY;
 
-                    consecutiveIdlePolls = 0;
-                    hasReceivedData = true;
-                    hasSeenCommandEcho |= ContainsCommandEcho(transcript, script);
+            logger.LogDebug("[None] Sending command (shellType={ShellType})", shellType);
+            _isCapturingTranscript = true;
+            await SendCommandAsync(session, script, shellType, cancellationToken);
 
-                    if (hasSeenCommandEcho && CheckForPrompt(vtBuffer))
-                    {
-                        logger.LogDebug("[None] Prompt detected after receiving data");
-                        break;
-                    }
-                }
-                else
-                {
-                    // Idle — no data within pollIntervalMs
-                    if (!hasReceivedData) continue;
+            logger.LogDebug("[None] Waiting for command output to start from line {StartLine}", startLine);
+            await WaitForCommandOutputStartAsync(
+                session,
+                startLine,
+                TimeSpan.FromSeconds(3),
+                cancellationToken);
 
-                    consecutiveIdlePolls++;
-                    if (consecutiveIdlePolls >= minIdlePolls)
-                    {
-                        if (hasSeenCommandEcho && CheckForPrompt(vtBuffer))
-                        {
-                            logger.LogDebug("[None] Idle detected with prompt");
-                            break;
-                        }
+            logger.LogDebug("[None] Waiting for idle with prompt heuristics");
+            var hasReceivedData = transcript.Length > 0;
+            var hasSeenCommandEcho = ContainsCommandEcho(transcript, script);
+            var consecutiveIdlePolls = 0;
+            const int pollIntervalMs = 150;
+            const int minIdlePolls = 4; // 4 x 150ms = 600ms idle
+            const int maxFallbackIdlePolls = 14; // ~2.1s - force exit if prompt regex never matches
 
-                        // Fallback: if terminal has been silent for ~2s without strict prompt match,
-                        // assume command is complete to prevent hanging.
-                        if (consecutiveIdlePolls >= maxFallbackIdlePolls)
-                        {
-                            logger.LogWarning("[None] Maximum idle threshold reached without strict prompt match. Assuming complete.");
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
-        {
-            logger.LogWarning("[None] timeout reached");
+            using var timeoutCts = new CancellationTokenSource(timeout);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+            var linkedToken = linkedCts.Token;
+
             try
             {
-                pty.Kill();
-            }
-            catch
-            {
-                // ignore
-            }
-        }
+                while (!linkedToken.IsCancellationRequested)
+                {
+                    var readTask = session.BeginReadAsync(linkedToken);
+                    var completedTask = await Task.WhenAny(
+                        readTask,
+                        Task.Delay(pollIntervalMs, linkedToken));
 
-        _isCapturingTranscript = false;
-        return transcript.Length > 0 ? NormalizeCapturedText(transcript.ToString()) : vtBuffer.GetText();
+                    if (completedTask == readTask)
+                    {
+                        // Received new data
+                        var bytesRead = await session.CompleteReadAsync(cancellationToken);
+                        if (bytesRead == 0)
+                        {
+                            break;
+                        }
+
+                        consecutiveIdlePolls = 0;
+                        hasReceivedData = true;
+                        hasSeenCommandEcho |= ContainsCommandEcho(transcript, script);
+
+                        if (hasSeenCommandEcho && CheckForPrompt(session.Buffer))
+                        {
+                            logger.LogDebug("[None] Prompt detected after receiving data");
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // Idle - no data within pollIntervalMs
+                        if (!hasReceivedData) continue;
+
+                        consecutiveIdlePolls++;
+                        if (consecutiveIdlePolls >= minIdlePolls)
+                        {
+                            if (hasSeenCommandEcho && CheckForPrompt(session.Buffer))
+                            {
+                                logger.LogDebug("[None] Idle detected with prompt");
+                                break;
+                            }
+
+                            // Fallback: if terminal has been silent for ~2s without strict prompt match,
+                            // assume command is complete to prevent hanging.
+                            if (consecutiveIdlePolls >= maxFallbackIdlePolls)
+                            {
+                                logger.LogWarning("[None] Maximum idle threshold reached without strict prompt match. Assuming complete.");
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
+            {
+                logger.LogWarning("[None] timeout reached");
+                try
+                {
+                    session.Pty.Kill();
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+
+            _isCapturingTranscript = false;
+            return transcript.Length > 0
+                ? NormalizeCapturedText(transcript.ToString())
+                : session.GetTextFromLine(startLine);
+        }
+        finally
+        {
+            session.Parser.TerminalTextReceived -= HandleText;
+        }
     }
 
     /// <summary>
@@ -204,11 +187,11 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
 
     /// <summary>
     /// Send command line by line for multi-line commands.
-    /// Does not use bracketed paste mode — each line is sent as a separate Enter keypress.
+    /// Does not use bracketed paste mode - each line is sent as a separate Enter keypress.
     /// This is safe without Shell Integration or PSReadLine.
     /// </summary>
     public async static Task SendCommandAsync(
-        IPtyConnection pty,
+        TerminalSession session,
         string script,
         ShellType shellType,
         CancellationToken cancellationToken)
@@ -223,9 +206,7 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
                 var trimmed = line.Trim();
                 if (trimmed.Length == 0) continue;
 
-                await pty.WriterStream.WriteAsync(Encoding.UTF8.GetBytes(trimmed), cancellationToken);
-                await pty.WriterStream.WriteAsync("\r"u8.ToArray(), cancellationToken);
-                await pty.WriterStream.FlushAsync(cancellationToken);
+                await session.WriteInputAsync($"{trimmed}\r", cancellationToken);
                 // Brief pause between lines to let the shell process each one
                 await Task.Delay(100, cancellationToken);
             }
@@ -235,11 +216,14 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
             var trimmed = script.Trim();
             if (trimmed.Length > 0)
             {
-                await pty.WriterStream.WriteAsync(Encoding.UTF8.GetBytes(trimmed), cancellationToken);
-                await pty.WriterStream.WriteAsync("\r"u8.ToArray(), cancellationToken);
-                await pty.WriterStream.FlushAsync(cancellationToken);
+                await session.WriteInputAsync($"{NormalizeCommandNewlines(trimmed)}\r", cancellationToken);
             }
         }
+    }
+
+    private static string NormalizeCommandNewlines(string script)
+    {
+        return script.Replace("\r\n", "\r").Replace("\n", "\r");
     }
 
     private static string NormalizeCapturedText(string text)
@@ -263,13 +247,9 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
     /// Uses Task.WhenAny to avoid CancellationToken-based exception overhead.
     /// </summary>
     private static async Task WaitForIdleAsync(
-        IPtyConnection pty,
-        byte[] readBuffer,
-        VtSequenceParser parser,
+        TerminalSession session,
         TimeSpan maxWait,
         TimeSpan quietPeriod,
-        ReadTaskHolder readTaskHolder,
-        PtyTextDecoder textDecoder,
         CancellationToken cancellationToken)
     {
         var quietMs = (int)quietPeriod.TotalMilliseconds;
@@ -281,27 +261,23 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
         {
             while (!linkedToken.IsCancellationRequested)
             {
-                readTaskHolder.Task ??= pty.ReaderStream.ReadAsync(readBuffer, linkedToken).AsTask();
+                var readTask = session.BeginReadAsync(linkedToken);
                 var quietDelayTask = Task.Delay(quietMs, linkedToken);
 
-                var completedTask = await Task.WhenAny(readTaskHolder.Task, quietDelayTask);
+                var completedTask = await Task.WhenAny(readTask, quietDelayTask);
 
-                if (completedTask == readTaskHolder.Task)
+                if (completedTask == readTask)
                 {
-                    // Received data — reset quiet period
-                    var bytesRead = await readTaskHolder.Task;
-                    readTaskHolder.Task = null;
+                    // Received data - reset quiet period
+                    var bytesRead = await session.CompleteReadAsync(cancellationToken);
                     if (bytesRead == 0)
                     {
-                        parser.Feed(textDecoder.Flush());
                         break;
                     }
-
-                    parser.Feed(textDecoder.Decode(readBuffer.AsSpan(0, bytesRead)));
                 }
                 else
                 {
-                    // No data arrived within quietPeriod — terminal is idle
+                    // No data arrived within quietPeriod - terminal is idle
                     break;
                 }
             }
@@ -314,16 +290,12 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
 
     /// <summary>
     /// Wait for command output to begin.
-    /// Stores the pending read task in the holder so it can carry over to the next phase.
+    /// Stores the pending read task in the session so it can carry over to the next phase.
     /// </summary>
     private static async Task WaitForCommandOutputStartAsync(
-        IPtyConnection pty,
-        byte[] readBuffer,
-        VtSequenceParser parser,
+        TerminalSession session,
         int startLine,
         TimeSpan timeout,
-        ReadTaskHolder readTaskHolder,
-        PtyTextDecoder textDecoder,
         CancellationToken cancellationToken)
     {
         using var timeoutCts = new CancellationTokenSource(timeout);
@@ -334,23 +306,20 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
         {
             while (!linkedToken.IsCancellationRequested)
             {
-                if (parser.Buffer.CursorY > startLine) return;
+                if (session.Buffer.CursorY > startLine) return;
 
-                readTaskHolder.Task ??= pty.ReaderStream.ReadAsync(readBuffer, linkedToken).AsTask();
+                var readTask = session.BeginReadAsync(linkedToken);
                 var pollDelayTask = Task.Delay(100, linkedToken);
 
-                var completedTask = await Task.WhenAny(readTaskHolder.Task, pollDelayTask);
-                if (completedTask == readTaskHolder.Task)
+                var completedTask = await Task.WhenAny(readTask, pollDelayTask);
+                if (completedTask == readTask)
                 {
-                    var bytesRead = await readTaskHolder.Task;
-                    readTaskHolder.Task = null;
+                    var bytesRead = await session.CompleteReadAsync(cancellationToken);
                     if (bytesRead == 0)
                     {
-                        parser.Feed(textDecoder.Flush());
                         break;
                     }
 
-                    parser.Feed(textDecoder.Decode(readBuffer.AsSpan(0, bytesRead)));
                     return;
                 }
             }
@@ -359,13 +328,5 @@ internal sealed class NoneExecuteStrategy(ILogger logger) : IExecuteStrategy
         {
             // Timeout or cancellation
         }
-    }
-
-    /// <summary>
-    /// Simple holder to pass a mutable Task reference between async methods.
-    /// </summary>
-    private sealed class ReadTaskHolder
-    {
-        public Task<int>? Task { get; set; }
     }
 }

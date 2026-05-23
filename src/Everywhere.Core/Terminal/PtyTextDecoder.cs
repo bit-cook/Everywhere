@@ -5,7 +5,7 @@ namespace Everywhere.Terminal;
 /// <summary>
 /// Incrementally decodes UTF-8 text from PTY byte chunks.
 /// </summary>
-internal sealed class PtyTextDecoder(int byteBufferSize)
+public sealed class PtyTextDecoder(int byteBufferSize)
 {
     private readonly Decoder _decoder = Encoding.UTF8.GetDecoder();
     private char[] _charBuffer = new char[Encoding.UTF8.GetMaxCharCount(byteBufferSize)];

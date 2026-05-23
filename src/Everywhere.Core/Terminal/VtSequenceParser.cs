@@ -2,9 +2,11 @@ using System.Text;
 
 namespace Everywhere.Terminal;
 
-internal delegate void ShellIntegrationMarkerHandler(in ShellIntegrationMarker marker);
+public delegate void ShellIntegrationMarkerHandler(in ShellIntegrationMarker marker);
 
-internal delegate void TerminalTextHandler(char value);
+public delegate void TerminalTextHandler(char value);
+
+public delegate void TerminalResponseHandler(string response);
 
 /// <summary>
 /// A minimal VT100/ECMA-48 sequence parser that drives a <see cref="VirtualTerminalBuffer"/>.
@@ -14,24 +16,51 @@ internal delegate void TerminalTextHandler(char value);
 /// This parser is intentionally minimal — it only handles sequences that affect text layout
 /// (cursor movement, erase, scroll, etc.). Color/style sequences are consumed but ignored.
 /// </summary>
-internal sealed class VtSequenceParser(
+public sealed class VtSequenceParser(
     VirtualTerminalBuffer buffer,
     ShellIntegrationMarkerHandler? shellIntegrationMarkerHandler = null,
-    TerminalTextHandler? terminalTextHandler = null
+    TerminalResponseHandler? terminalResponseHandler = null,
+    TerminalTextHandler? terminalTextHandler = null,
+    TerminalDimensions? dimensions = null
 )
 {
-    /// <summary>
-    /// The virtual terminal buffer driven by this parser.
-    /// </summary>
-    public VirtualTerminalBuffer Buffer { get; } = buffer;
+    public event ShellIntegrationMarkerHandler? ShellIntegrationMarkerReceived
+    {
+        add => _shellIntegrationMarkerHandler += value;
+        remove => _shellIntegrationMarkerHandler -= value;
+    }
 
-    // UTF-16 surrogate pair tracking
-    private char _highSurrogate;
+    public event TerminalResponseHandler? TerminalResponseRequested
+    {
+        add => _terminalResponseHandler += value;
+        remove => _terminalResponseHandler -= value;
+    }
+
+    public event TerminalTextHandler? TerminalTextReceived
+    {
+        add => _terminalTextHandler += value;
+        remove => _terminalTextHandler -= value;
+    }
 
     /// <summary>
     /// Whether any Shell Integration (OSC 633) markers have been detected.
     /// </summary>
     public bool HasDetectedShellIntegration { get; private set; }
+
+    /// <summary>
+    /// Whether the shell has requested focus in/out reports via DECSET ?1004.
+    /// </summary>
+    public bool IsFocusEventTrackingEnabled { get; private set; }
+
+    /// <summary>
+    /// Whether the shell has requested bracketed paste via DECSET ?2004.
+    /// </summary>
+    public bool IsBracketedPasteModeEnabled { get; private set; }
+
+    /// <summary>
+    /// Whether the shell has requested Windows Terminal's Win32 input mode via DECSET ?9001.
+    /// </summary>
+    public bool IsWin32InputModeEnabled { get; private set; }
 
     private enum State
     {
@@ -49,12 +78,24 @@ internal sealed class VtSequenceParser(
 
     // CSI parameter accumulation
     private readonly List<int> _csiParams = [];
+
     private int _currentParam = -1; // -1 means "no digits accumulated yet"
     private bool _csiPrivateParam; // '?' prefix
+    private char _csiPrefix; // '?', '>', '=' or '\0'
     private char _csiIntermediate; // intermediate character (e.g. '!' for DECSTR)
 
     // OSC string accumulation
     private readonly StringBuilder _oscBuffer = new(64);
+
+    // Current terminal dimensions for handling cursor position reports and bounds checking.
+    private TerminalDimensions _dimensions = dimensions ?? TerminalDimensions.Default;
+
+    // UTF-16 surrogate pair tracking
+    private char _highSurrogate;
+
+    private ShellIntegrationMarkerHandler? _shellIntegrationMarkerHandler = shellIntegrationMarkerHandler;
+    private TerminalResponseHandler? _terminalResponseHandler = terminalResponseHandler;
+    private TerminalTextHandler? _terminalTextHandler = terminalTextHandler;
 
     /// <summary>
     /// Feed a chunk of text (from PTY output) to the parser.
@@ -85,10 +126,10 @@ internal sealed class VtSequenceParser(
                 // Complete surrogate pair — write as two chars
                 if (_state == State.Ground)
                 {
-                    Buffer.WriteChar(_highSurrogate);
-                    terminalTextHandler?.Invoke(_highSurrogate);
-                    Buffer.WriteChar(c);
-                    terminalTextHandler?.Invoke(c);
+                    buffer.WriteChar(_highSurrogate);
+                    _terminalTextHandler?.Invoke(_highSurrogate);
+                    buffer.WriteChar(c);
+                    _terminalTextHandler?.Invoke(c);
                 }
                 _highSurrogate = '\0';
             }
@@ -102,8 +143,8 @@ internal sealed class VtSequenceParser(
         {
             if (_state == State.Ground)
             {
-                Buffer.WriteChar(_highSurrogate);
-                terminalTextHandler?.Invoke(_highSurrogate);
+                buffer.WriteChar(_highSurrogate);
+                _terminalTextHandler?.Invoke(_highSurrogate);
             }
             _highSurrogate = '\0';
         }
@@ -148,22 +189,22 @@ internal sealed class VtSequenceParser(
                 _state = State.Escape;
                 break;
             case '\r': // CR
-                Buffer.CarriageReturn();
-                terminalTextHandler?.Invoke(c);
+                buffer.CarriageReturn();
+                _terminalTextHandler?.Invoke(c);
                 break;
             case '\n': // LF
             case '\v': // VT
             case '\f': // FF
-                Buffer.LineFeed();
-                terminalTextHandler?.Invoke(c);
+                buffer.LineFeed();
+                _terminalTextHandler?.Invoke(c);
                 break;
             case '\b': // BS
-                Buffer.Backspace();
-                terminalTextHandler?.Invoke(c);
+                buffer.Backspace();
+                _terminalTextHandler?.Invoke(c);
                 break;
             case '\t': // HT
-                Buffer.Tab();
-                terminalTextHandler?.Invoke(c);
+                buffer.Tab();
+                _terminalTextHandler?.Invoke(c);
                 break;
             case '\a': // BEL — ignore
                 break;
@@ -172,8 +213,8 @@ internal sealed class VtSequenceParser(
             default:
                 if (c >= 0x20) // Printable character (including Unicode)
                 {
-                    Buffer.WriteChar(c);
-                    terminalTextHandler?.Invoke(c);
+                    buffer.WriteChar(c);
+                    _terminalTextHandler?.Invoke(c);
                 }
                 break;
         }
@@ -196,30 +237,30 @@ internal sealed class VtSequenceParser(
                 _state = State.CharsetSelect;
                 break;
             case '7': // DECSC — Save Cursor
-                Buffer.SaveCursor();
+                buffer.SaveCursor();
                 _state = State.Ground;
                 break;
             case '8': // DECRC — Restore Cursor
-                Buffer.RestoreCursor();
+                buffer.RestoreCursor();
                 _state = State.Ground;
                 break;
             case 'D': // IND — Index (move down, scroll if at bottom)
-                Buffer.LineFeed();
+                buffer.LineFeed();
                 _state = State.Ground;
                 break;
             case 'E': // NEL — Next Line
-                Buffer.CarriageReturn();
-                Buffer.LineFeed();
+                buffer.CarriageReturn();
+                buffer.LineFeed();
                 _state = State.Ground;
                 break;
             case 'M': // RI — Reverse Index (move up, scroll if at top)
-                if (Buffer.CursorY <= 0) Buffer.ScrollDown();
-                else Buffer.CursorUp();
+                if (buffer.CursorY <= 0) buffer.ScrollDown();
+                else buffer.CursorUp();
                 _state = State.Ground;
                 break;
             case 'c': // RIS — Full Reset
-                Buffer.EraseDisplay(2);
-                Buffer.CursorPosition();
+                buffer.EraseDisplay(2);
+                buffer.CursorPosition();
                 _state = State.Ground;
                 break;
             case '=': // DECKPAM — Application Keypad Mode
@@ -243,11 +284,13 @@ internal sealed class VtSequenceParser(
                 break;
             case '?':
                 _csiPrivateParam = true;
+                _csiPrefix = c;
                 _state = State.CsiParam;
                 break;
             case '>' or '=':
-                // Secondary DA or other — ignore
+                // Secondary DA or other prefixed CSI
                 _csiPrivateParam = true;
+                _csiPrefix = c;
                 _state = State.CsiParam;
                 break;
             default:
@@ -401,81 +444,89 @@ internal sealed class VtSequenceParser(
         switch (finalByte)
         {
             case 'A': // CUU — Cursor Up
-                Buffer.CursorUp(Math.Max(p0, 1));
+                buffer.CursorUp(Math.Max(p0, 1));
                 break;
             case 'B': // CUD — Cursor Down
-                Buffer.CursorDown(Math.Max(p0, 1));
+                buffer.CursorDown(Math.Max(p0, 1));
                 break;
             case 'C': // CUF — Cursor Forward
-                Buffer.CursorForward(Math.Max(p0, 1));
+                buffer.CursorForward(Math.Max(p0, 1));
                 break;
             case 'D': // CUB — Cursor Backward
-                Buffer.CursorBackward(Math.Max(p0, 1));
+                buffer.CursorBackward(Math.Max(p0, 1));
                 break;
             case 'E': // CNL — Cursor Next Line
-                Buffer.CursorNextLine(Math.Max(p0, 1));
+                buffer.CursorNextLine(Math.Max(p0, 1));
                 break;
             case 'F': // CPL — Cursor Previous Line
-                Buffer.CursorPreviousLine(Math.Max(p0, 1));
+                buffer.CursorPreviousLine(Math.Max(p0, 1));
                 break;
             case 'G': // CHA — Cursor Horizontal Absolute
-                Buffer.CursorHorizontalAbsolute(Math.Max(p0, 1));
+                buffer.CursorHorizontalAbsolute(Math.Max(p0, 1));
                 break;
             case 'H': // CUP — Cursor Position
             case 'f': // HVP — Horizontal Vertical Position
-                Buffer.CursorPosition(Math.Max(p0, 1), Math.Max(p1, 1));
+                buffer.CursorPosition(Math.Max(p0, 1), Math.Max(p1, 1));
                 break;
             case 'J': // ED — Erase in Display
-                Buffer.EraseDisplay(p0);
+                buffer.EraseDisplay(p0);
                 break;
             case 'K': // EL — Erase in Line
-                Buffer.EraseLine(p0);
+                buffer.EraseLine(p0);
                 break;
             case 'L': // IL — Insert Lines
-                Buffer.InsertLines(Math.Max(p0, 1));
+                buffer.InsertLines(Math.Max(p0, 1));
                 break;
             case 'M': // DL — Delete Lines
-                Buffer.DeleteLines(Math.Max(p0, 1));
+                buffer.DeleteLines(Math.Max(p0, 1));
                 break;
             case 'P': // DCH — Delete Characters
-                Buffer.DeleteChars(Math.Max(p0, 1));
+                buffer.DeleteChars(Math.Max(p0, 1));
                 break;
             case 'S': // SU — Scroll Up
-                Buffer.ScrollUp(Math.Max(p0, 1));
+                buffer.ScrollUp(Math.Max(p0, 1));
                 break;
             case 'T': // SD — Scroll Down
-                Buffer.ScrollDown(Math.Max(p0, 1));
+                buffer.ScrollDown(Math.Max(p0, 1));
                 break;
             case '@': // ICH — Insert Characters
-                Buffer.InsertChars(Math.Max(p0, 1));
+                buffer.InsertChars(Math.Max(p0, 1));
                 break;
             case 'r': // DECSTBM — Set Scrolling Region
-                Buffer.SetScrollRegion(Math.Max(p0, 1), p1 > 0 ? p1 : -1);
+                buffer.SetScrollRegion(Math.Max(p0, 1), p1 > 0 ? p1 : -1);
                 break;
             case 's': // SCP — Save Cursor Position
-                Buffer.SaveCursor();
+                buffer.SaveCursor();
                 break;
             case 'u': // RCP — Restore Cursor Position
-                Buffer.RestoreCursor();
+                buffer.RestoreCursor();
                 break;
             case 'd': // VPA — Vertical Position Absolute
-                Buffer.CursorPosition(Math.Max(p0, 1), Buffer.CursorX + 1);
+                buffer.CursorPosition(Math.Max(p0, 1), buffer.CursorX + 1);
                 break;
             case 'X': // ECH — Erase Characters
-                if (Buffer.CursorY < 0) break;
+                if (buffer.CursorY < 0) break;
                 var eraseCount = Math.Max(p0, 1);
-                for (var i = 0; i < eraseCount && Buffer.CursorX + i < 1024; i++)
+                for (var i = 0; i < eraseCount && buffer.CursorX + i < _dimensions.Columns; i++)
                 {
                     // Write space at cursor + i position
-                    var savedX = Buffer.CursorX;
-                    Buffer.CursorX += i;
-                    Buffer.WriteChar(' ');
-                    Buffer.CursorX = savedX;
+                    var savedX = buffer.CursorX;
+                    buffer.CursorX += i;
+                    buffer.WriteChar(' ');
+                    buffer.CursorX = savedX;
                 }
                 break;
             case 'm': // SGR — Select Graphic Rendition (colors/styles) — ignore
-            case 'n': // DSR — Device Status Report — ignore
-            case 'c': // DA — Device Attributes — ignore
+                break;
+            case 'n': // DSR — Device Status Report
+                InvokeDeviceStatusReport(p0);
+                break;
+            case 'c': // DA — Device Attributes
+                if (p0 == 0)
+                {
+                    _terminalResponseHandler?.Invoke("\e[?1;0c");
+                }
+                break;
             case 'q': // DECSCUSR — Set Cursor Style — ignore
             case 'x': // DECREQTPARM — ignore
             case 'g': // TBC — Tab Clear — ignore
@@ -485,14 +536,32 @@ internal sealed class VtSequenceParser(
             case 'z': // DECERA — ignore
             case '{': // DECSERA — ignore
             case 'p': // various — ignore
-            case 't': // Window manipulation — ignore
+            case 't': // Window manipulation
+                if (p0 == 18)
+                {
+                    _terminalResponseHandler?.Invoke($"\e[8;{_dimensions.Rows};{_dimensions.Columns}t");
+                }
                 break;
-            // Unknown CSI — ignore
         }
     }
 
     private void DispatchPrivateCsi(char finalByte)
     {
+        if (_csiPrefix == '>')
+        {
+            if (finalByte == 'c')
+            {
+                // Secondary Device Attributes. Keep the identity conservative.
+                _terminalResponseHandler?.Invoke("\e[>0;0;0c");
+            }
+            return;
+        }
+
+        if (_csiPrefix != '?')
+        {
+            return;
+        }
+
         // Private sequences (prefixed with '?')
         // Most are DECSET/DECRST for terminal modes
         var p0 = GetParam(0, 0);
@@ -501,22 +570,34 @@ internal sealed class VtSequenceParser(
         {
             case 'h': // DECSET — Set Mode
             case 'l': // DECRST — Reset Mode
-                // Common modes we might want to track:
-                // ?25: cursor visibility
-                // ?1049: alternate screen buffer
-                // ?2004: bracketed paste mode
-                // ?9001: Windows Terminal proprietary
-                // All ignored for text extraction
+            {
+                var enabled = finalByte == 'h';
+                if (_csiParams.Count == 0)
+                {
+                    SetPrivateMode(p0, enabled);
+                }
+                else
+                {
+                    foreach (var mode in _csiParams)
+                    {
+                        SetPrivateMode(mode, enabled);
+                    }
+                }
                 break;
+            }
             case 'J': // DECSED — Selective Erase in Display
-                Buffer.EraseDisplay(p0);
+                buffer.EraseDisplay(p0);
                 break;
             case 'K': // DECSEL — Selective Erase in Line
-                Buffer.EraseLine(p0);
+                buffer.EraseLine(p0);
                 break;
             case 'm': // SGR with private params — ignore (colors)
                 break;
-            case 'n': // DSR — Device Status Report — ignore
+            case 'n': // DSR — Device Status Report
+                if (p0 == 6)
+                {
+                    _terminalResponseHandler?.Invoke(BuildCursorPositionReport(isPrivate: true));
+                }
                 break;
             // Unknown private CSI — ignore
         }
@@ -555,26 +636,26 @@ internal sealed class VtSequenceParser(
         {
             case "A":
             {
-                shellIntegrationMarkerHandler?.Invoke(
+                _shellIntegrationMarkerHandler?.Invoke(
                     new ShellIntegrationMarker(
                         ShellIntegrationMarkerType.PromptStart,
-                        Line: Buffer.CursorY));
+                        Line: buffer.CursorY));
                 break;
             }
             case "B":
             {
-                shellIntegrationMarkerHandler?.Invoke(
+                _shellIntegrationMarkerHandler?.Invoke(
                     new ShellIntegrationMarker(
                         ShellIntegrationMarkerType.CommandReady,
-                        Line: Buffer.CursorY));
+                        Line: buffer.CursorY));
                 break;
             }
             case "C":
             {
-                shellIntegrationMarkerHandler?.Invoke(
+                _shellIntegrationMarkerHandler?.Invoke(
                     new ShellIntegrationMarker(
                         ShellIntegrationMarkerType.CommandExecuted,
-                        Line: Buffer.CursorY));
+                        Line: buffer.CursorY));
                 break;
             }
             case "D":
@@ -585,22 +666,22 @@ internal sealed class VtSequenceParser(
                 {
                     exitCode = code;
                 }
-                shellIntegrationMarkerHandler?.Invoke(
+                _shellIntegrationMarkerHandler?.Invoke(
                     new ShellIntegrationMarker(
                         ShellIntegrationMarkerType.CommandFinished,
                         ExitCode: exitCode,
-                        Line: Buffer.CursorY));
+                        Line: buffer.CursorY));
                 break;
             }
             case "E":
             {
                 // E has command text: 633;E;<command>[;<nonce>]
                 var cmdLine = parts.Length >= 3 ? parts[2] : null;
-                shellIntegrationMarkerHandler?.Invoke(
+                _shellIntegrationMarkerHandler?.Invoke(
                     new ShellIntegrationMarker(
                         ShellIntegrationMarkerType.CommandLine,
                         CommandLine: cmdLine,
-                        Line: Buffer.CursorY));
+                        Line: buffer.CursorY));
                 break;
             }
         }
@@ -629,11 +710,20 @@ internal sealed class VtSequenceParser(
         HasDetectedShellIntegration = false;
     }
 
+    /// <summary>
+    /// Update the visible terminal rows used for terminal query responses.
+    /// </summary>
+    public void Resize(TerminalDimensions dimensions)
+    {
+        _dimensions = dimensions;
+    }
+
     private void ResetCsi()
     {
         _csiParams.Clear();
         _currentParam = -1;
         _csiPrivateParam = false;
+        _csiPrefix = '\0';
         _csiIntermediate = '\0';
     }
 
@@ -648,7 +738,45 @@ internal sealed class VtSequenceParser(
             var val = _csiParams[index];
             return val > 0 ? val : defaultValue;
         }
+
         return defaultValue;
+    }
+
+    private void InvokeDeviceStatusReport(int request)
+    {
+        switch (request)
+        {
+            case 5:
+                // "OK" status report.
+                _terminalResponseHandler?.Invoke("\e[0n");
+                break;
+            case 6:
+                _terminalResponseHandler?.Invoke(BuildCursorPositionReport(isPrivate: false));
+                break;
+        }
+    }
+
+    private string BuildCursorPositionReport(bool isPrivate)
+    {
+        var row = Math.Clamp(buffer.CursorY + 1, 1, _dimensions.Rows);
+        var column = Math.Clamp(buffer.CursorX + 1, 1, _dimensions.Columns);
+        return isPrivate ? $"\e[?{row};{column}R" : $"\e[{row};{column}R";
+    }
+
+    private void SetPrivateMode(int mode, bool enabled)
+    {
+        switch (mode)
+        {
+            case 1004:
+                IsFocusEventTrackingEnabled = enabled;
+                break;
+            case 2004:
+                IsBracketedPasteModeEnabled = enabled;
+                break;
+            case 9001:
+                IsWin32InputModeEnabled = enabled;
+                break;
+        }
     }
 
     #endregion

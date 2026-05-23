@@ -3,7 +3,7 @@ namespace Everywhere.Terminal;
 /// <summary>
 /// Identifies the shell type detected for the current platform.
 /// </summary>
-internal enum ShellType
+public enum ShellType
 {
     /// <summary>
     /// Unsupported or unrecognized shell.

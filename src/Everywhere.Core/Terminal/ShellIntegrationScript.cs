@@ -8,7 +8,7 @@ namespace Everywhere.Terminal;
 /// Scripts are deployed via CopyToOutputDirectory to {AppContext.BaseDirectory}/Terminal/.
 /// Wrapper files (containing nonce) are generated at runtime to the application data directory.
 /// </summary>
-internal static class ShellIntegrationScript
+public static class ShellIntegrationScript
 {
     /// <summary>
     /// Directory where shell integration scripts are deployed (alongside the application).
