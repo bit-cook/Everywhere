@@ -27,7 +27,7 @@ public sealed partial class SystemAssistantSettings : SettingsBase, ISettingsCat
 
     [DynamicResourceKey(
         LocaleKey.SystemAssistantSettings_ImageUnderstanding_Header,
-        LocaleKey.SystemAssistantSettings_ImageUnderstanding_Desription)]
+        LocaleKey.SystemAssistantSettings_ImageUnderstanding_Description)]
     [SettingsItems(IsExpandableBindingPath = $"!{nameof(ImageUnderstanding)}.{nameof(SystemAssistant.AutoSelect)}")]
     [SettingsTemplatedItem]
     public SystemAssistant ImageUnderstanding { get; } = new(ModelSpecializations.ImageUnderstanding);
