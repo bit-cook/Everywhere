@@ -59,12 +59,46 @@ public static class SaveWindowPlacementAssist
     {
         if (args.NewValue is not string { Length: > 0 } key) return;
 
-        // immediately try to restore window placement
-        RestoreWindowPlacement(key, sender);
+        if (sender.IsInitialized)
+        {
+            RestoreWindowPlacement(key, sender);
 
-        // subscribe to window events
-        sender.PositionChanged += (_, _) => SaveWindowPlacement(key, sender);
-        sender.Resized += (_, _) => SaveWindowPlacement(key, sender);
+            sender.PositionChanged += HandleWindowPositionChanged;
+            sender.Resized += HandleWindowResized;
+            sender.Closed += HandleWindowClosed;
+        }
+        else
+        {
+            sender.Initialized += HandleWindowInitialized;
+        }
+
+        void HandleWindowInitialized(object? o, EventArgs e)
+        {
+            sender.Initialized -= HandleWindowInitialized;
+
+            RestoreWindowPlacement(key, sender);
+
+            sender.PositionChanged += HandleWindowPositionChanged;
+            sender.Resized += HandleWindowResized;
+            sender.Closed += HandleWindowClosed;
+        }
+
+        void HandleWindowPositionChanged(object? o, PixelPointEventArgs e)
+        {
+            SaveWindowPlacement(key, sender);
+        }
+
+        void HandleWindowResized(object? o, WindowResizedEventArgs e)
+        {
+            SaveWindowPlacement(key, sender);
+        }
+
+        void HandleWindowClosed(object? o, EventArgs e)
+        {
+            sender.Closed -= HandleWindowClosed;
+            sender.Resized -= HandleWindowResized;
+            sender.PositionChanged -= HandleWindowPositionChanged;
+        }
     }
 
     private static void RestoreWindowPlacement(string key, Window window)
