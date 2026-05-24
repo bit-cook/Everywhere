@@ -310,7 +310,7 @@ public sealed partial class OAuthCloudClient :
                 {
                     if (subscription.PeriodEnd is { } periodEnd && (periodEnd - DateTimeOffset.UtcNow).TotalDays > 7)
                     {
-                        if (subscription is { BonusCredits: < 10000, PlanCreditsUsageRatio: > 0.8d and < 0.99d })
+                        if (subscription is { BonusCredits: < 10000, RemainingPlanCreditsRatio: > 0.01d and < 0.2d })
                         {
                             AddNotification(
                                 new CloudClientNotification(
@@ -320,7 +320,7 @@ public sealed partial class OAuthCloudClient :
                                     true));
                         }
 
-                        if (subscription.FreeWebSearchUsageRatio is > 0.8d and < 0.99d)
+                        if (subscription.RemainingFreeWebSearchRatio is > 0.01d and < 0.2d)
                         {
                             AddNotification(
                                 new CloudClientNotification(
@@ -331,7 +331,7 @@ public sealed partial class OAuthCloudClient :
                         }
                     }
 
-                    if (subscription.FreeWebSearchUsageRatio >= 1.0d)
+                    if (subscription.RemainingFreeWebSearchRatio <= 0d)
                     {
                         AddNotification(
                             new CloudClientNotification(

@@ -2203,8 +2203,8 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Bonus Credits</value>
     </data>
-    <data name="UserProfilePresenter_UsedTextBlock_Text" xml:space="preserve">
-        <value>Used {0}</value>
+    <data name="UserProfilePresenter_RemainingTextBlock_Text" xml:space="preserve">
+        <value>Remaining {0}</value>
     </data>
     <data name="OAuthCloudClient_UnpaidNotification_Title" xml:space="preserve">
         <value>You have pending payments, please address them soon</value>

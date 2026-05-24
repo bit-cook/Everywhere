@@ -2202,9 +2202,6 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Bonuspunkte</value>
     </data>
-    <data name="UserProfilePresenter_UsedTextBlock_Text" xml:space="preserve">
-        <value>Verwendet {0}</value>
-    </data>
     <data name="OAuthCloudClient_UnpaidNotification_Title" xml:space="preserve">
         <value>Es gibt ausstehende Zahlungen, bitte schnellstmöglich erledigen</value>
     </data>

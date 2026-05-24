@@ -2203,9 +2203,6 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Punti Bonus</value>
     </data>
-    <data name="UserProfilePresenter_UsedTextBlock_Text" xml:space="preserve">
-        <value>Utilizzato {0}</value>
-    </data>
     <data name="OAuthCloudClient_UnpaidNotification_Title" xml:space="preserve">
         <value>Hai un pagamento in sospeso, per favore gestiscilo al più presto</value>
     </data>

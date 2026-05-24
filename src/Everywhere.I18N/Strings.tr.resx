@@ -2202,9 +2202,6 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="UserProfilePresenter_BonusCreditsTextBlock_Text" xml:space="preserve">
         <value>Bonus Puan Paketi</value>
     </data>
-    <data name="UserProfilePresenter_UsedTextBlock_Text" xml:space="preserve">
-        <value>Kullanılan {0}</value>
-    </data>
     <data name="OAuthCloudClient_UnpaidNotification_Title" xml:space="preserve">
         <value>Tamamlanmamış bir ödeme var, lütfen en kısa sürede halledin</value>
     </data>

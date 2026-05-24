@@ -78,8 +78,17 @@
                       CanDismiss="{Binding CanDismiss, Mode=OneTime}"
                       CanDismissByClicking="False"
                       Command="{Binding DismissCommand, Mode=OneTime}"
-                      Content="{Binding ContentKey^, FallbackValue={x:Null}}"
-                      Notification="{Binding Type, Converter={x:Static shadui:NotificationTypeToNotificationConverter.Shared}}"/>
+                      Notification="{Binding Type, Converter={x:Static shadui:NotificationTypeToNotificationConverter.Shared}}">
+                      <TextBlock>
+                        <Run Text="{Binding ContentKey^, FallbackValue={x:Null}}"/>
+                        <InlineUIContainer>
+                          <HyperlinkButton
+                            Content="{Binding Hyperlink?.Content, Mode=OneTime}"
+                            IsVisible="{Binding Hyperlink, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}"
+                            NavigateUri="{Binding Hyperlink?.Uri, Mode=OneTime}"/>
+                        </InlineUIContainer>
+                      </TextBlock>
+                    </shadui:Toast>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
@@ -94,11 +103,10 @@
                     Text="{Binding CloudClient?.UserProfile?.Name}"
                     TextTrimming="CharacterEllipsis"/>
                   <shadui:Badge
-                    Padding="4,2"
-                    VerticalAlignment="Center"
-                    Foreground="{DynamicResource BadgeForegroundColor}"
+                    Padding="4,2" VerticalAlignment="Center"
                     Background="{Binding CloudClient?.Subscription?.Plan, Converter={x:Static v:SubscriptionPlanToBrushValueConverter.Shared}, TargetNullValue={x:Null}}"
-                    Content="{Binding CloudClient?.Subscription?.Plan, TargetNullValue={x:Null}}"/>
+                    Content="{Binding CloudClient?.Subscription?.Plan, TargetNullValue={x:Null}}"
+                    Foreground="{DynamicResource BadgeForegroundColor}"/>
                 </StackPanel>
 
                 <TextBlock
@@ -124,9 +132,9 @@
                     <TextBlock
                       Classes="Caption Muted" Grid.Column="1">
                       <TextBlock.Text>
-                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_UsedTextBlock_Text}">
+                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_RemainingTextBlock_Text}">
                           <Binding
-                            Path="CloudClient?.Subscription?.PlanCreditsUsageRatio" StringFormat="{}{0:P0}"
+                            Path="CloudClient?.Subscription?.RemainingPlanCreditsRatio" StringFormat="{}{0:P0}"
                             TargetNullValue="0%"/>
                         </I18N>
                       </TextBlock.Text>
@@ -137,7 +145,7 @@
                       ToolTip.Placement="Top">
                       <ToolTip.Tip>
                         <TextBlock Grid.Column="1">
-                          <Run Text="{Binding CloudClient.Subscription.PlanCredits, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
+                          <Run Text="{Binding CloudClient.Subscription.RemainingPlanCredits, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
                           <Run Text="/"/>
                           <Run Text="{Binding CloudClient.Subscription.TotalPlanCredits, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
                         </TextBlock>
@@ -145,8 +153,8 @@
                     </LucideIcon>
                   </Grid>
                   <ProgressBar
-                    Maximum="{Binding CloudClient.Subscription.TotalPlanCredits, FallbackValue=1, TargetNullValue=1}"
-                    Value="{Binding CloudClient.Subscription.PlanCredits, FallbackValue=0, TargetNullValue=0}"/>
+                    Maximum="1"
+                    Value="{Binding CloudClient.Subscription.RemainingPlanCreditsRatio, FallbackValue=0, TargetNullValue=0}"/>
                 </StackPanel>
 
                 <StackPanel
@@ -171,9 +179,9 @@
                     <TextBlock
                       Classes="Caption Muted" Grid.Column="1">
                       <TextBlock.Text>
-                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_UsedTextBlock_Text}">
+                        <I18N Key="{x:Static LocaleKey.UserProfilePresenter_RemainingTextBlock_Text}">
                           <Binding
-                            Path="CloudClient?.Subscription?.FreeWebSearchUsageRatio" StringFormat="{}{0:P0}"
+                            Path="CloudClient?.Subscription?.RemainingFreeWebSearchRatio" StringFormat="{}{0:P0}"
                             TargetNullValue="0%"/>
                         </I18N>
                       </TextBlock.Text>
@@ -184,7 +192,7 @@
                       ToolTip.Placement="Top">
                       <ToolTip.Tip>
                         <TextBlock Grid.Column="1">
-                          <Run Text="{Binding CloudClient.Subscription.UsedFreeWebSearchCount, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
+                          <Run Text="{Binding CloudClient.Subscription.RemainingFreeWebSearchCount, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
                           <Run Text="/"/>
                           <Run Text="{Binding CloudClient.Subscription.TotalFreeWebSearchCount, StringFormat={}{0:N0}, FallbackValue=0, TargetNullValue=0}"/>
                         </TextBlock>
@@ -192,8 +200,8 @@
                     </LucideIcon>
                   </Grid>
                   <ProgressBar
-                    Maximum="{Binding CloudClient.Subscription.TotalFreeWebSearchCount, FallbackValue=1, TargetNullValue=1}"
-                    Value="{Binding CloudClient.Subscription.UsedFreeWebSearchCount, FallbackValue=0, TargetNullValue=0}"/>
+                    Maximum="1"
+                    Value="{Binding CloudClient.Subscription.RemainingFreeWebSearchRatio, FallbackValue=0, TargetNullValue=0}"/>
                 </StackPanel>
 
                 <Grid
