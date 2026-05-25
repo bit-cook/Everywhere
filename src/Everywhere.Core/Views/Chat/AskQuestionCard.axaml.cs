@@ -57,7 +57,7 @@ public partial class AskQuestionCard : Card
                 }
             }
 
-            if (question.AllowFreeformInput)
+            if (question.Options is null || question.AllowFreeformInput)
             {
                 OptionWrappers.Add(new FreeformOptionWrapper());
             }

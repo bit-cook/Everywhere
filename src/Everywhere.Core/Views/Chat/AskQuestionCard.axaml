@@ -43,50 +43,49 @@
                   BorderBrush="{DynamicResource BorderColor}"
                   BorderThickness="0,1">
                   <!--  Options ListBox  -->
-                  <ScrollViewer
-                    MaxHeight="320" HorizontalScrollBarVisibility="Disabled">
-                    <ListBox
-                      Background="Transparent" BorderThickness="0"
-                      ItemsSource="{Binding CurrentQuestion.OptionWrappers, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
-                      SelectionMode="{Binding CurrentQuestion.SelectionMode, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}">
-                      <ListBox.ItemContainerTheme>
-                        <ControlTheme
-                          x:DataType="v:AskQuestionCard+OptionWrapper"
-                          BasedOn="{StaticResource {x:Type ListBoxItem}}"
-                          TargetType="ListBoxItem">
-                          <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
-                          <Setter Property="Focusable" Value="False"/>
-                          <Setter Property="Padding" Value="6,4"/>
-                          <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                          <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        </ControlTheme>
-                      </ListBox.ItemContainerTheme>
+                  <ListBox
+                    MaxHeight="320" Background="Transparent"
+                    BorderThickness="0"
+                    ItemsSource="{Binding CurrentQuestion.OptionWrappers, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    SelectionMode="{Binding CurrentQuestion.SelectionMode, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}">
+                    <ListBox.ItemContainerTheme>
+                      <ControlTheme
+                        x:DataType="v:AskQuestionCard+OptionWrapper"
+                        BasedOn="{StaticResource {x:Type ListBoxItem}}"
+                        TargetType="ListBoxItem">
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                        <Setter Property="Focusable" Value="False"/>
+                        <Setter Property="Padding" Value="6,4"/>
+                        <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                      </ControlTheme>
+                    </ListBox.ItemContainerTheme>
 
-                      <ListBox.DataTemplates>
-                        <DataTemplate DataType="v:AskQuestionCard+NormalOptionWrapper">
-                          <TextBlock
-                            Text="{Binding Option.Content}"
-                            TextWrapping="Wrap"/>
-                        </DataTemplate>
+                    <ListBox.DataTemplates>
+                      <DataTemplate DataType="v:AskQuestionCard+NormalOptionWrapper">
+                        <TextBlock
+                          Text="{Binding Option.Content}"
+                          TextWrapping="Wrap"/>
+                      </DataTemplate>
 
-                        <DataTemplate DataType="v:AskQuestionCard+FreeformOptionWrapper">
-                          <TextBox
-                            Classes="Compact" HorizontalAlignment="Stretch"
-                            AcceptsReturn="True" MaxLines="3"
-                            Text="{Binding FreeformText}"
-                            TextWrapping="Wrap"
-                            Watermark="{I18N {x:Static LocaleKey.AskQuestionCard_FreeformTextBox_Watermark}}">
-                            <Interaction.Behaviors>
-                              <ClickEventTrigger
-                                ClickMode="Press" HandledEventsToo="True">
-                                <InvokeCommandAction Command="{Binding SelectCommand}"/>
-                              </ClickEventTrigger>
-                            </Interaction.Behaviors>
-                          </TextBox>
-                        </DataTemplate>
-                      </ListBox.DataTemplates>
-                    </ListBox>
-                  </ScrollViewer>
+                      <DataTemplate DataType="v:AskQuestionCard+FreeformOptionWrapper">
+                        <TextBox
+                          Classes="Compact" HorizontalAlignment="Stretch"
+                          AcceptsReturn="True" MaxLines="5"
+                          Text="{Binding FreeformText}"
+                          TextWrapping="Wrap"
+                          Watermark="{I18N {x:Static LocaleKey.AskQuestionCard_FreeformTextBox_Watermark}}">
+                          <Interaction.Behaviors>
+                            <ClickEventTrigger
+                              ClickMode="Press" HandledEventsToo="True">
+                              <InvokeCommandAction Command="{Binding SelectCommand}"/>
+                            </ClickEventTrigger>
+                          </Interaction.Behaviors>
+                        </TextBox>
+                      </DataTemplate>
+                    </ListBox.DataTemplates>
+                  </ListBox>
                 </Border>
 
                 <Grid

@@ -157,7 +157,7 @@ public partial class CustomAssistantPageViewModel : ReactiveViewModelBase, IReci
 
     public void Receive(SelectCustomAssistantMessage message)
     {
-        if (CustomAssistants.FirstOrDefault(assistant => assistant.Id == message.AssistantId) is { } assistant)
+        if (CustomAssistants.FirstOrDefault(a => a.Id == message.AssistantId) is { } assistant)
         {
             SelectedCustomAssistant = assistant;
             _settings.Model.SelectedCustomAssistant = assistant;

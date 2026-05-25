@@ -1,8 +1,10 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows.Input;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using Everywhere.Common;
 using Everywhere.I18N;
 
 namespace Everywhere.Cloud;
@@ -19,7 +21,8 @@ public sealed record CloudClientNotification(
     string Id,
     IDynamicResourceKey ContentKey,
     NotificationType Type,
-    bool CanDismiss
+    bool CanDismiss,
+    Hyperlink? Hyperlink = null
 )
 {
     public RelayCommand DismissCommand => field ??= new RelayCommand(Dismiss);
