@@ -210,9 +210,8 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
             }
         }
 
-        var distinctUrls = urls.DistinctBy(u => u.Trim()).ToList();
         var extractions = await Task.WhenAll(
-            distinctUrls.Select(async url =>
+            urls.DistinctBy(u => u.Trim()).Select(async url =>
             {
                 displaySink.AppendDynamicResourceKey(
                     new FormattedDynamicResourceKey(
@@ -231,7 +230,7 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                     }
 
                     var content = await _webBrowserHost.ExtractAsync(url, cancellationToken);
-                    return (url, content, error: null);
+                    return (url, content, error: (string?)null);
                 }
                 catch (Exception ex)
                 {
