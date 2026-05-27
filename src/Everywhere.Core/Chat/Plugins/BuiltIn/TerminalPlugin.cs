@@ -52,11 +52,11 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
 
     [KernelFunction("execute_in_terminal")]
 #if WINDOWS
-    [Description("Executes command in PowerShell and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display.")]
+    [Description("Executes command in PowerShell and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display. Use semicolons ; to chain commands on one line, NEVER use && even when asked explicitly")]
 #elif MACOS
-    [Description("Executes command in zsh and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display.")]
+    [Description("Executes command in zsh and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display. Prefer ; when chaining commands on one line")]
 #else
-    [Description("Executes command in bash and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display.")]
+    [Description("Executes command in bash and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display. Prefer ; when chaining commands on one line")]
 #endif
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_Terminal_ExecuteScript_Header,
