@@ -1,3 +1,36 @@
+## [v0.7.8](https://github.com/DearVa/Everywhere/releases/tag/v0.7.8) - 2026-05-27
+
+### ⚠️ Important Notice
+
+Due to refactoring of the `Execute In Terminal` tool, the new version may cause some unexpected issues. If you encounter any problems, please don't hesitate to report them to us. We will prioritize fixing critical issues as soon as possible.
+
+### ✨ Features & 🚀 Improvements
+
+- 🔥 Completely refactored the `Execute In Terminal` tool with PTY technology. This achieves comprehensive terminal integration and unified cross-platform behavior. As a result, the Windows installer size is reduced by ~80MB, and the execution stability is significantly improved, laying a solid foundation for features like real-time output display and upcoming command security reviews.
+- 🔥 Introduced runtime environment detection to the MCP Manager. If dependencies like `uv` or `Node.js` are missing, Everywhere will notice you with in-app downloading and configuration.
+- 🔥 Massively optimized the content truncation mechanism for all tool outputs, enforcing a hard limit of ~40K tokens per tool execution. This prevents "token bombs" from crashing the model context, especially when `Read File` or `Extract Web Content`.
+- 🔥 Added the "Continue and Retry" button: When an error interrupts the chat, you can now resume the conversation while preserving the partially generated message from the current turn, instead of starting a new branch.
+- 🔥 Added configuration options for `Default Subagent` and `Image Understanding Subagent`. This allows the primary assistant to delegate tasks to lightweight models to save costs, or to bridge the gap if your primary assistant lacks multimodal capabilities.
+- Added `GPT-5.5` to the preset mode and removed obsolete Gemini and Kimi models.
+- Added auto-download updates in background: When network conditions are ideal and a new version released after 1 day, Everywhere will download updates in the background with speed limits. Intrusive update notifications have been removed.
+- Added more advanced options for reasoning parameters (#361).
+- Added loading hints while the LLM is generating tool parameters, which is particularly helpful for tools requiring long, complex inputs.
+- Optimized window transition and navigation logic for a smoother UX.
+- Improved the visual styling and layout of the Chat History drawer.
+- Refined the login workflow and fetching logic for official models in Everywhere Cloud, ensuring a more stable connection experience. More user-friendly tooltips were also added.
+- Settings for `Temperature` and `Top-p` are now automatically hidden if the currently selected model does not support them.
+- Stabilized the logic for handling signatures during LLM calls to reduce unexpected validation errors, and added more detailed error messages to help diagnose signature-related failures.
+
+### 🐛 Bug Fixes
+
+- Fixed an issue where the `Web Search` toggle button remained visible in the chat input area even after tool-calling permissions were explicitly disabled.
+- Fixed an issue where API error messages were sometimes not displayed correctly in the UI when using the `OpenAI Responses` schema.
+- Fixed an issue where the input box for the `Ask User Question` tool would fail to wrap text under specific circumstances.
+- Fixed an issue where sub-agents could incorrectly invoke the `Ask User Question` tool, which previously caused the entire task execution flow to halt unexpectedly.
+- Fixed an issue in Light Mode where some code block syntax highlighting colors were difficult to read.
+- Fixed minor typos and text description errors in the UI (#373 - Thanks to @Fillip74).
+
+
 ## [v0.7.7](https://github.com/DearVa/Everywhere/releases/tag/v0.7.7) - 2026-05-10
 
 ### ✨ Features & 🚀 Improvements
