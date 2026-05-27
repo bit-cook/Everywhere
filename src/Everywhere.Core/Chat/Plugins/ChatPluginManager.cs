@@ -394,20 +394,13 @@ public class ChatPluginManager : IChatPluginManager
             return File.Exists(commandPath);
         }
 
-        foreach (var directory in GetStdioPathEntries(stdio))
-        {
-            if (!Directory.Exists(directory)) continue;
-
-            foreach (var candidate in GetExecutableCandidates(command))
-            {
-                if (File.Exists(Path.Combine(directory, candidate)))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return GetStdioPathEntries(stdio)
+            .AsValueEnumerable()
+            .Where(Directory.Exists)
+            .Any(directory =>
+                GetExecutableCandidates(command)
+                    .AsValueEnumerable()
+                    .Any(candidate => File.Exists(Path.Combine(directory, candidate))));
     }
 
     private IEnumerable<string> GetStdioPathEntries(StdioMcpTransportConfiguration stdio)

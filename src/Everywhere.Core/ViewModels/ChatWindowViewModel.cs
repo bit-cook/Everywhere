@@ -1,6 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Diagnostics.Metrics;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
@@ -14,11 +12,8 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
 using DynamicData.Binding;
-using Everywhere.AI;
-using Everywhere.AI.Configurator;
 using Everywhere.Chat;
 using Everywhere.Chat.Plugins;
-using Everywhere.Cloud;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
@@ -28,7 +23,6 @@ using Everywhere.StrategyEngine;
 using Everywhere.Utilities;
 using Everywhere.Views;
 using Microsoft.Extensions.Logging;
-using ShadUI;
 using ZLinq;
 
 namespace Everywhere.ViewModels;
@@ -75,7 +69,7 @@ public sealed partial class ChatWindowViewModel :
 
     public ReadOnlyObservableCollection<ChatPlugin> ChatPlugins { get; }
 
-    public ObservableCollection<ChatWindowNotification> ChatWarnings { get; } = [];
+    public ReadOnlyObservableCollection<DynamicNotification> Notifications => _notificationService.Notifications;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(EditCommand))]
@@ -116,7 +110,7 @@ public sealed partial class ChatWindowViewModel :
     private readonly IBlobStorage _blobStorage;
     private readonly IStrategyEngine _strategyEngine;
     private readonly IGreetings _greetings;
-    private readonly IOfficialModelProvider _officialModelProvider;
+    private readonly IChatWindowNotificationService _notificationService;
     private readonly ILogger<ChatWindowViewModel> _logger;
 
     private readonly DynamicResourceKey _defaultWatermarkKey = new(LocaleKey.ChatInputArea_Watermark);
@@ -127,14 +121,13 @@ public sealed partial class ChatWindowViewModel :
     private readonly Gauge<int> _activeChatWindowsGauge;
 
     private ChatInputAreaSnapshot? _snapshotBeforeEdit;
-    private CustomAssistant? _observedSelectedAssistant;
 
     public ChatWindowViewModel(
         Settings settings,
         PersistentState persistentState,
         IChatContextManager chatContextManager,
         IChatPluginManager chatPluginManager,
-        IOfficialModelProvider officialModelProvider,
+        IChatWindowNotificationService notificationService,
         ISoftwareUpdater softwareUpdater,
         IChatService chatService,
         IVisualElementContext visualElementContext,
@@ -153,7 +146,7 @@ public sealed partial class ChatWindowViewModel :
         _blobStorage = blobStorage;
         _strategyEngine = strategyEngine;
         _greetings = greetings;
-        _officialModelProvider = officialModelProvider;
+        _notificationService = notificationService;
         _logger = logger;
 
         _activeChatWindowsGauge = _meter.CreateGauge<int>("app.active_chat_windows");
@@ -197,25 +190,6 @@ public sealed partial class ChatWindowViewModel :
                 .ObserveOnAvaloniaDispatcher()
                 .Subscribe(HandleCurrentChatContextIsBusyChanged)
         );
-
-        Settings.Model.PropertyChanged += HandleModelSettingsPropertyChanged;
-        Settings.Model.CustomAssistants.CollectionChanged += HandleCustomAssistantsCollectionChanged;
-        _disposables.Add(
-            Disposable.Create(() =>
-            {
-                Settings.Model.PropertyChanged -= HandleModelSettingsPropertyChanged;
-                Settings.Model.CustomAssistants.CollectionChanged -= HandleCustomAssistantsCollectionChanged;
-                SetObservedSelectedAssistant(null);
-            }));
-
-        _disposables.Add(
-            _officialModelProvider.ModelDefinitions
-                .Connect()
-                .ToCollection()
-                .ObserveOnAvaloniaDispatcher()
-                .Subscribe(_ => UpdateOfficialModelWarnings()));
-        SetObservedSelectedAssistant(Settings.Model.SelectedCustomAssistant);
-        UpdateOfficialModelWarnings();
 
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
@@ -701,110 +675,6 @@ public sealed partial class ChatWindowViewModel :
     private static void OpenSettings()
     {
         WeakReferenceMessenger.Default.Send<ApplicationMessage>(new ShowWindowMessage(ShowWindowMessage.MainWindow, "SettingsPage"));
-    }
-
-    private void HandleModelSettingsPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is nameof(ModelSettings.SelectedCustomAssistant) or nameof(ModelSettings.SelectedCustomAssistantId))
-        {
-            SetObservedSelectedAssistant(Settings.Model.SelectedCustomAssistant);
-            UpdateOfficialModelWarnings();
-        }
-    }
-
-    private void HandleCustomAssistantsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        SetObservedSelectedAssistant(Settings.Model.SelectedCustomAssistant);
-        UpdateOfficialModelWarnings();
-    }
-
-    private void SetObservedSelectedAssistant(CustomAssistant? assistant)
-    {
-        if (ReferenceEquals(_observedSelectedAssistant, assistant)) return;
-
-        if (_observedSelectedAssistant is not null)
-        {
-            _observedSelectedAssistant.PropertyChanged -= HandleSelectedAssistantPropertyChanged;
-        }
-
-        _observedSelectedAssistant = assistant;
-        if (_observedSelectedAssistant is not null)
-        {
-            _observedSelectedAssistant.PropertyChanged += HandleSelectedAssistantPropertyChanged;
-        }
-    }
-
-    private void HandleSelectedAssistantPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is nameof(Assistant.ConfiguratorType)
-            or nameof(Assistant.ModelId)
-            or nameof(Assistant.DeprecationDate))
-        {
-            UpdateOfficialModelWarnings();
-        }
-    }
-
-    private void UpdateOfficialModelWarnings()
-    {
-        ChatWarnings.Clear();
-
-        var assistant = Settings.Model.SelectedCustomAssistant;
-        if (assistant is null || assistant.ConfiguratorType != AssistantConfiguratorType.Official) return;
-
-        var today = DateOnly.FromDateTime(DateTime.Now);
-        var availability = ModelAvailability.Evaluate(
-            assistant,
-            _officialModelProvider.ModelDefinitions.Items,
-            today);
-        if (!availability.ShouldShowChatNotification) return;
-
-        var dismissalKey = availability.CreateDismissalKey(assistant.Id, today);
-        if (PersistentState.DismissedOfficialModelWarningKeys?.Contains(dismissalKey) is true) return;
-
-        ChatWarnings.Add(
-            new ChatWindowNotification(
-                dismissalKey,
-                CreateOfficialModelWarningMessageKey(availability),
-                availability.Kind is ModelAvailabilityKind.Deprecated or ModelAvailabilityKind.Unavailable ?
-                    Notification.Error :
-                    Notification.Warning,
-                true,
-                new RelayCommand<ToastResult>(result => HandleOfficialModelWarningCommand(result, assistant.Id, dismissalKey))));
-    }
-
-    private static IDynamicResourceKey CreateOfficialModelWarningMessageKey(ModelAvailability availability)
-    {
-        var deprecationDate = new DirectResourceKey(availability.DeprecationDate?.ToString("D") ?? string.Empty);
-        return availability.Kind switch
-        {
-            ModelAvailabilityKind.Unavailable => new FormattedDynamicResourceKey(
-                LocaleKey.ChatWindow_ModelWarning_Unavailable),
-            ModelAvailabilityKind.Deprecated => new FormattedDynamicResourceKey(
-                LocaleKey.ChatWindow_ModelWarning_Deprecated,
-                deprecationDate),
-            ModelAvailabilityKind.DeprecatingSoon => new FormattedDynamicResourceKey(
-                LocaleKey.ChatWindow_ModelWarning_DeprecatingSoon,
-                deprecationDate),
-            _ => DirectResourceKey.Empty
-        };
-    }
-
-    private void HandleOfficialModelWarningCommand(ToastResult? result, Guid assistantId, string dismissalKey)
-    {
-        switch (result)
-        {
-            case ToastResult.ActionButtonClicked:
-                WeakReferenceMessenger.Default.Send<ApplicationMessage>(
-                    new ShowWindowMessage(ShowWindowMessage.MainWindow, "CustomAssistantPage"));
-                WeakReferenceMessenger.Default.Send(new SelectCustomAssistantMessage(assistantId));
-                break;
-            case ToastResult.Dismissed:
-                var dismissedKeys = PersistentState.DismissedOfficialModelWarningKeys?.ToHashSet(StringComparer.Ordinal) ?? [];
-                dismissedKeys.Add(dismissalKey);
-                PersistentState.DismissedOfficialModelWarningKeys = dismissedKeys.ToList();
-                UpdateOfficialModelWarnings();
-                break;
-        }
     }
 
     [RelayCommand]

@@ -1,8 +1,8 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:cloud="clr-namespace:Everywhere.Cloud;assembly=Everywhere.Abstractions" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
-  xmlns:system="clr-namespace:System;assembly=System.Runtime" xmlns:v="using:Everywhere.Views"
-  xmlns:vc="clr-namespace:Everywhere.ValueConverters">
+  xmlns:c="clr-namespace:Everywhere.Common;assembly=Everywhere.Abstractions" xmlns:cloud="clr-namespace:Everywhere.Cloud;assembly=Everywhere.Abstractions"
+  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:system="clr-namespace:System;assembly=System.Runtime"
+  xmlns:v="using:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters">
   <ControlTheme
     x:Key="{x:Type v:UserProfileCard}"
     TargetType="v:UserProfileCard">
@@ -71,7 +71,7 @@
                 </ItemsControl.ItemsPanel>
 
                 <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="cloud:CloudClientNotification">
+                  <DataTemplate x:DataType="c:DynamicNotification">
                     <shadui:Toast
                       MinWidth="0" Margin="0"
                       Padding="12,8" HorizontalAlignment="Stretch"
@@ -79,15 +79,7 @@
                       CanDismissByClicking="False"
                       Command="{Binding DismissCommand, Mode=OneTime}"
                       Notification="{Binding Type, Converter={x:Static shadui:NotificationTypeToNotificationConverter.Shared}}">
-                      <TextBlock>
-                        <Run Text="{Binding ContentKey^, FallbackValue={x:Null}}"/>
-                        <InlineUIContainer>
-                          <HyperlinkButton
-                            Content="{Binding Hyperlink?.Content, Mode=OneTime}"
-                            IsVisible="{Binding Hyperlink, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}"
-                            NavigateUri="{Binding Hyperlink?.Uri, Mode=OneTime}"/>
-                        </InlineUIContainer>
-                      </TextBlock>
+                      <TextBlock Text="{Binding ContentKey^, FallbackValue={x:Null}}"/>
                     </shadui:Toast>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

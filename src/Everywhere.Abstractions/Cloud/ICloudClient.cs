@@ -1,9 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Windows.Input;
-using Avalonia.Controls.Notifications;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using Everywhere.Common;
 using Everywhere.I18N;
 
@@ -16,24 +12,6 @@ public enum CloudClientLoginStatus
     AutoLoggingIn,
     LoginFailed
 }
-
-public sealed record CloudClientNotification(
-    string Id,
-    IDynamicResourceKey ContentKey,
-    NotificationType Type,
-    bool CanDismiss,
-    Hyperlink? Hyperlink = null
-)
-{
-    public RelayCommand DismissCommand => field ??= new RelayCommand(Dismiss);
-
-    private void Dismiss()
-    {
-        if (CanDismiss) WeakReferenceMessenger.Default.Send(new CloudClientNotificationDismissedMessage(this));
-    }
-}
-
-public sealed record CloudClientNotificationDismissedMessage(CloudClientNotification Notification);
 
 /// <summary>
 /// Interface for cloud client operations, handling authentication and user profile management.
@@ -66,7 +44,7 @@ public interface ICloudClient : INotifyPropertyChanged
     /// <summary>
     /// Gets a list of notifications
     /// </summary>
-    ReadOnlyObservableCollection<CloudClientNotification> Notifications { get; }
+    ReadOnlyObservableCollection<DynamicNotification> Notifications { get; }
 
     /// <summary>
     /// Initiates the OAuth 2.0 (PKCE) login flow.

@@ -7,9 +7,9 @@ using Microsoft.Extensions.Logging;
 namespace Everywhere.Configuration;
 
 /// <summary>
-/// A robust, high-performance key-value storage.
+/// A robust, high-performance key-value storage which persists data to disk in a binary format using MessagePack serialization.
 /// </summary>
-public sealed class KeyValueStorage : IKeyValueStorage, IAsyncInitializer, IDisposable
+public sealed class PersistentKeyValueStorage : IKeyValueStorage, IAsyncInitializer, IDisposable
 {
     public AsyncInitializerIndex Index => AsyncInitializerIndex.Settings;
 
@@ -19,7 +19,7 @@ public sealed class KeyValueStorage : IKeyValueStorage, IAsyncInitializer, IDisp
     private readonly string _primaryPath;
     private readonly string _tempPath;
 
-    private readonly ILogger<KeyValueStorage> _logger;
+    private readonly ILogger<PersistentKeyValueStorage> _logger;
     private readonly ConcurrentDictionary<string, byte[]> _store = new();
     private readonly DebounceExecutor<bool, ThreadingTimerImpl> _saveExecutor;
 
@@ -28,7 +28,7 @@ public sealed class KeyValueStorage : IKeyValueStorage, IAsyncInitializer, IDisp
     private volatile bool _isLoaded;
     private int _isDirty;
 
-    public KeyValueStorage(ILogger<KeyValueStorage> logger)
+    public PersistentKeyValueStorage(ILogger<PersistentKeyValueStorage> logger)
     {
         _logger = logger;
 

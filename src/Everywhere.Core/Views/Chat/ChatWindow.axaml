@@ -1,7 +1,9 @@
 ﻿<v:ReactiveShadWindow
   x:Class="Everywhere.Views.ChatWindow" xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:ai="clr-namespace:Everywhere.AI;assembly=Everywhere.Abstractions"
+  xmlns:c="clr-namespace:Everywhere.Common;assembly=Everywhere.Abstractions"
   xmlns:chat="clr-namespace:Everywhere.Chat" xmlns:in="clr-namespace:Everywhere.Interactions"
+  xmlns:notifications="clr-namespace:Avalonia.Controls.Notifications;assembly=Avalonia.Controls"
   xmlns:p="clr-namespace:Everywhere.Chat.Plugins" xmlns:se="clr-namespace:Everywhere.StrategyEngine"
   xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:sys="clr-namespace:System;assembly=System.Runtime"
   xmlns:v="clr-namespace:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters"
@@ -678,15 +680,10 @@
           </DockPanel>
 
           <ItemsControl
-            IsVisible="{Binding ChatWarnings.Count, Converter={x:Static vc:Int32Converters.IsNotZero}}"
-            ItemsSource="{Binding ChatWarnings}">
+            IsVisible="{Binding Notifications.Count, Converter={x:Static vc:Int32Converters.IsNotZero}}"
+            ItemsSource="{Binding Notifications}">
             <ItemsControl.Styles>
               <Style Selector="Border#Notification">
-                <Style Selector="^.Basic">
-                  <Style Selector="^ PathIcon#NotificationIcon">
-                    <Setter Property="IsVisible" Value="False"/>
-                  </Style>
-                </Style>
                 <Style Selector="^.Success">
                   <Setter Property="Background" Value="{DynamicResource SuccessColor20}"/>
                   <Style Selector="^ PathIcon#NotificationIcon">
@@ -725,16 +722,15 @@
             </ItemsControl.ItemsPanel>
 
             <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="chat:ChatWindowNotification">
+              <DataTemplate x:DataType="c:DynamicNotification">
                 <Border
                   x:Name="Notification" Padding="8,2"
                   BorderBrush="{DynamicResource BorderColor60}"
                   BorderThickness="0,1,0,0"
-                  Classes.Basic="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Basic}, Mode=OneTime}"
-                  Classes.Error="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Error}, Mode=OneTime}"
-                  Classes.Info="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Info}, Mode=OneTime}"
-                  Classes.Success="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Success}, Mode=OneTime}"
-                  Classes.Warning="{Binding Severity, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static shadui:Notification.Warning}, Mode=OneTime}">
+                  Classes.Error="{Binding Type, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static notifications:NotificationType.Error}, Mode=OneTime}"
+                  Classes.Info="{Binding Type, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static notifications:NotificationType.Information}, Mode=OneTime}"
+                  Classes.Success="{Binding Type, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static notifications:NotificationType.Success}, Mode=OneTime}"
+                  Classes.Warning="{Binding Type, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static notifications:NotificationType.Warning}, Mode=OneTime}">
                   <Grid
                     ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="2">
                     <PathIcon
@@ -745,23 +741,22 @@
                     <TextBlock
                       Classes="Caption" Grid.Column="1"
                       VerticalAlignment="Center"
-                      Text="{Binding MessageKey^, FallbackValue={x:Null}, Mode=OneTime}"
+                      Text="{Binding ContentKey^, FallbackValue={x:Null}, Mode=OneTime}"
                       TextWrapping="Wrap"/>
 
                     <Button
                       Classes="Ghost Compact Uniform" Grid.Column="2"
                       Padding="4,1" VerticalAlignment="Center"
-                      Command="{Binding Command, Mode=OneTime}"
-                      CommandParameter="{x:Static shadui:ToastResult.ActionButtonClicked}"
+                      Command="{Binding ActionCommand, Mode=OneTime}"
                       Content="{Binding ActionButtonContentKey^, FallbackValue={x:Null}, Mode=OneTime}"
                       CornerRadius="4"
-                      IsVisible="{Binding Command, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}"/>
+                      IsVisible="{Binding ActionCommand, Converter={x:Static ObjectConverters.IsNotNull}, Mode=OneTime}"/>
 
                     <Button
                       Classes="Ghost Compact Uniform" Grid.Column="3"
                       Padding="1" VerticalAlignment="Center"
-                      Command="{Binding Command, Mode=OneTime}"
-                      CommandParameter="{x:Static shadui:ToastResult.Dismissed}"
+                      Command="{Binding DismissCommand, Mode=OneTime}"
+                      CommandParameter="{Binding Mode=OneTime}"
                       IsVisible="{Binding CanDismiss, Mode=OneTime}">
                       <LucideIcon
                         Kind="X"

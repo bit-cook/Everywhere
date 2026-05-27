@@ -68,9 +68,9 @@ public static class SettingsExtensions
 #endif
         .AddTransient<OpenWebBrowserControl>()
         .AddTransient<DebugFeaturesControl>()
-        .AddSingleton<KeyValueStorage>()
-        .AddSingleton<IKeyValueStorage>(sp => sp.GetRequiredService<KeyValueStorage>())
-        .AddTransient<IAsyncInitializer>(sp => sp.GetRequiredService<KeyValueStorage>())
+        .AddSingleton<PersistentKeyValueStorage>()
+        .AddSingleton<IKeyValueStorage>(sp => sp.GetRequiredService<PersistentKeyValueStorage>())
+        .AddTransient<IAsyncInitializer>(sp => sp.GetRequiredService<PersistentKeyValueStorage>())
         .AddSingleton<PersistentState>()
         .AddTransient<IAsyncInitializer, SettingsInitializer>()
         .AddTransient<IAsyncInitializer, CustomAssistantInitializer>();
