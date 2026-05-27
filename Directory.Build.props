@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <LocalPackageOutputPath>$(MSBuildThisFileDirectory).packages</LocalPackageOutputPath>
+    <LocalPackageOutputPath>$(MSBuildThisFileDirectory)3rd/Porta.Pty/nuget</LocalPackageOutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
