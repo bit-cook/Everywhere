@@ -128,8 +128,6 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
         };
 
         var terminalRuns = new List<TerminalRun>();
-        var resultBuilder = new StringBuilder();
-
         using (var pty = await PtyProvider.SpawnAsync(options, cancellationToken))
         {
             var session = TerminalSession.FromPtyOptions(pty, options);
@@ -169,6 +167,8 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
                         displayBlock.Complete(run.ExitCode);
                     }
                 }
+
+                _logger.LogInformation("[PTY] After execute, IsBracketedPasteModeEnabled={IsEnabled}", session.Parser.IsBracketedPasteModeEnabled);
             }
             finally
             {
@@ -177,15 +177,17 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
             }
         }
 
-        var exitCode = terminalRuns.LastOrDefault()?.ExitCode;
-        var output = string.Join(
-            "\n",
-            terminalRuns
-                .Select(run => run.OutputText)
-                .Where(text => !string.IsNullOrEmpty(text)));
+        var outputs = terminalRuns.AsValueEnumerable().Select(run => run.OutputText.Trim()).ToList();
+        var budgets = TokenBudget.Allocate(
+            outputs.AsValueEnumerable().Select(TokenHelper.EstimateTokenCount).ToList().AsSpan(),
+            40000);
 
-        TokenHelper.OmitTo(output, resultBuilder, 8000, "[... OUTPUT OMITTED ...]");
-        resultBuilder.TrimEnd().AppendLine().Append("Exit code: ").Append(exitCode);
+        var resultBuilder = new StringBuilder();
+        for (var i = 0; i < terminalRuns.Count; i++)
+        {
+            TokenHelper.OmitTo(outputs[i], resultBuilder, budgets[i]);
+            resultBuilder.AppendLine().Append("Exit code: ").AppendLine(terminalRuns[i].ExitCode?.ToString() ?? "N/A").AppendLine();
+        }
 
         return resultBuilder.TrimEnd().ToString();
     }
