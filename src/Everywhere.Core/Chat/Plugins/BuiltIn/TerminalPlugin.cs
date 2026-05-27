@@ -45,17 +45,18 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
             new BuiltInChatFunction(
                 ExecuteInTerminalAsync,
                 ChatFunctionPermissions.ShellExecute,
+                isExperimental: true,
                 isAutoApproveAllowed: false,
                 onPermissionConsent: _ => true));
     }
 
     [KernelFunction("execute_in_terminal")]
 #if WINDOWS
-    [Description("Executes script in PowerShell and obtains its output. Each line is sent as a separate Enter keypress.")]
+    [Description("Executes command in PowerShell and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display.")]
 #elif MACOS
-    [Description("Executes script in zsh and obtains its output. Each line is sent as a separate Enter keypress.")]
+    [Description("Executes command in zsh and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display.")]
 #else
-    [Description("Executes script in bash and obtains its output. Each line is sent as a separate Enter keypress.")]
+    [Description("Executes command in bash and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display.")]
 #endif
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_Terminal_ExecuteScript_Header,
