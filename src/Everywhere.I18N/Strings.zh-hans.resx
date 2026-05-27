@@ -2570,11 +2570,11 @@
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>当前</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
+    <data name="SystemAssistantSettings_TitleGeneration_Desription" xml:space="preserve">
         <value>配置用于对话标题自动命名的助手。</value>
     </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
-        <value>标题生成助手</value>
+        <value>标题生成</value>
     </data>
     <data name="SystemAssistant_AutoSelectToggle_Content" xml:space="preserve">
         <value>自动选择</value>
@@ -2916,10 +2916,10 @@
         <value>模型的深度思考内容没有正确回传。如果你在同一个聊天中切换了模型，则很可能会导致此问题。</value>
     </data>
     <data name="SystemAssistantSettings_ImageUnderstanding_Header" xml:space="preserve">
-        <value>图像理解助手</value>
+        <value>图像理解子助手</value>
     </data>
     <data name="SystemAssistantSettings_ImageUnderstanding_Description" xml:space="preserve">
-        <value>配置用于理解图像的助手，当主助手不支持图像输入时非常有用。请注意此助手必须支持图像输入</value>
+        <value>供主助手按需调用的视觉专家。当主助手认为有必要时，会通过"指派新助手"工具将图片交由它分析。请确保所选模型具备视觉识别能力。</value>
     </data>
     <data name="TerminalView_SuccessToolTip_Tip" xml:space="preserve">
         <value>命令于 {0} 开始执行，{1} 秒后成功完成</value>
@@ -2929,5 +2929,11 @@
     </data>
     <data name="TerminalView_TerminalNoLongerAvailable" xml:space="preserve">
         <value>终端已不再可用</value>
+    </data>
+    <data name="SystemAssistantSettings_DefaultSubagent_Header" xml:space="preserve">
+        <value>默认子助手</value>
+    </data>
+    <data name="SystemAssistantSettings_DefaultSubagent_Description" xml:space="preserve">
+        <value>供主助手按需调用的默认助手。当主助手通过“指派新助手”工具委派常规任务时，默认由它在独立上下文中处理并返回结果。“自动选择”表示使用和主助手一样的子助手。</value>
     </data>
 </root>

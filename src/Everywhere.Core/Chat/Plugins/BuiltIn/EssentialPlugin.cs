@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Common;
+using Everywhere.Configuration;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -21,6 +22,7 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
     public override LucideIconKind? Icon => LucideIconKind.ToolCase;
     public override bool IsDefaultEnabled => true;
 
+    private readonly SystemAssistantSettings _systemAssistantSettings;
     private readonly ILogger<EssentialPlugin> _logger;
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -30,8 +32,9 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         Read
     }
 
-    public EssentialPlugin(ILogger<EssentialPlugin> logger) : base("essential")
+    public EssentialPlugin(Settings settings, ILogger<EssentialPlugin> logger) : base("essential")
     {
+        _systemAssistantSettings = settings.SystemAssistant;
         _logger = logger;
 
         _functionsSource.Edit(list =>
@@ -89,13 +92,13 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         var specializations = specialization?.ToLower() switch
         {
             // ReSharper disable StringLiteralTypo
-            "image-understanding" or "imageunderstanding" => ModelSpecializations.ImageUnderstanding,
+            "image-understanding" or "image_understanding" or "imageunderstanding" => ModelSpecializations.ImageUnderstanding,
             _ => ModelSpecializations.Default
         };
         var specializedAssistant = specializations switch
         {
-            ModelSpecializations.Default => assistant,
-            _ => assistant.Configurator.ResolveAssistant(specializations)
+            ModelSpecializations.ImageUnderstanding => _systemAssistantSettings.ImageUnderstanding.Resolve(assistant),
+            _ => _systemAssistantSettings.DefaultSubagent.Resolve(assistant)
         };
         var systemPrompt = specializations switch
         {

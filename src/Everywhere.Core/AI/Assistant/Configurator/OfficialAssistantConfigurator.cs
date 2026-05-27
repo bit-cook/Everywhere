@@ -42,7 +42,7 @@ public sealed partial class OfficialAssistantConfigurator : AssistantConfigurato
 
     public override Assistant ResolveAssistant(ModelSpecializations specialization)
     {
-        if (_owner.Specializations.HasFlag(specialization))
+        if (specialization == ModelSpecializations.Default || _owner.Specializations.HasFlag(specialization))
         {
             // If the current assistant already has the specialization, return it directly.
             return _owner;

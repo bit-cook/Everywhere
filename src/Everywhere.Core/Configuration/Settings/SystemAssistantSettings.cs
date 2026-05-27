@@ -20,10 +20,17 @@ public sealed partial class SystemAssistantSettings : SettingsBase, ISettingsCat
 
     [DynamicResourceKey(
         LocaleKey.SystemAssistantSettings_TitleGeneration_Header,
-        LocaleKey.SystemAssistantSettings_CommonDesription)]
+        LocaleKey.SystemAssistantSettings_TitleGeneration_Desription)]
     [SettingsItems(IsExpandableBindingPath = $"!{nameof(TitleGeneration)}.{nameof(SystemAssistant.AutoSelect)}")]
     [SettingsTemplatedItem]
     public SystemAssistant TitleGeneration { get; } = new(ModelSpecializations.TitleGeneration);
+
+    [DynamicResourceKey(
+        LocaleKey.SystemAssistantSettings_DefaultSubagent_Header,
+        LocaleKey.SystemAssistantSettings_DefaultSubagent_Description)]
+    [SettingsItems(IsExpandableBindingPath = $"!{nameof(DefaultSubagent)}.{nameof(SystemAssistant.AutoSelect)}")]
+    [SettingsTemplatedItem]
+    public SystemAssistant DefaultSubagent { get; } = new(ModelSpecializations.Default);
 
     [DynamicResourceKey(
         LocaleKey.SystemAssistantSettings_ImageUnderstanding_Header,

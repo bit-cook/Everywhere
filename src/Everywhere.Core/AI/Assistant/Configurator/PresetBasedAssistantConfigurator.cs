@@ -131,7 +131,7 @@ public sealed partial class PresetBasedAssistantConfigurator(Assistant owner) : 
 
     public override Assistant ResolveAssistant(ModelSpecializations specialization)
     {
-        if (owner.Specializations.HasFlag(specialization))
+        if (specialization == ModelSpecializations.Default || owner.Specializations.HasFlag(specialization))
         {
             // If the current assistant already has the specialization, return it directly.
             return owner;

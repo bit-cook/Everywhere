@@ -2569,11 +2569,11 @@ Use scroll wheel or number keys to switch selection mode</value>
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>Current</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
+    <data name="SystemAssistantSettings_TitleGeneration_Desription" xml:space="preserve">
         <value>Configure the assistant for automatically naming conversation titles.</value>
     </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
-        <value>Title Generation Assistant</value>
+        <value>Title Generation</value>
     </data>
     <data name="SystemAssistant_AutoSelectToggle_Content" xml:space="preserve">
         <value>Auto Select</value>
@@ -2915,10 +2915,10 @@ Release date: {2}</value>
         <value>The model's deep reasoning content did not return correctly. This issue may occur if you switched models within the same chat.</value>
     </data>
     <data name="SystemAssistantSettings_ImageUnderstanding_Header" xml:space="preserve">
-        <value>Image Understanding Assistant</value>
+        <value>Image Understanding Subagent</value>
     </data>
     <data name="SystemAssistantSettings_ImageUnderstanding_Description" xml:space="preserve">
-        <value>Configure the assistant for understanding images, useful when the main assistant does not support image input. Note that this assistant must support image input.</value>
+        <value />
     </data>
     <data name="TerminalView_SuccessToolTip_Tip" xml:space="preserve">
         <value>Command started at {0}, completed successfully after {1} seconds</value>
@@ -2928,5 +2928,11 @@ Release date: {2}</value>
     </data>
     <data name="TerminalView_TerminalNoLongerAvailable" xml:space="preserve">
         <value>Terminal No Longer Available</value>
+    </data>
+    <data name="SystemAssistantSettings_DefaultSubagent_Header" xml:space="preserve">
+        <value />
+    </data>
+    <data name="SystemAssistantSettings_DefaultSubagent_Description" xml:space="preserve">
+        <value />
     </data>
 </root>

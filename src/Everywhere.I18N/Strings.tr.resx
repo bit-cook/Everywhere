@@ -2568,11 +2568,11 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="ChangeLogView_CurrentBadge_Content" xml:space="preserve">
         <value>Geçerli</value>
     </data>
-    <data name="SystemAssistantSettings_CommonDesription" xml:space="preserve">
+    <data name="SystemAssistantSettings_TitleGeneration_Desription" xml:space="preserve">
         <value>Diyalog başlıklarını otomatik adlandırmak için asistanı yapılandırın.</value>
     </data>
     <data name="SystemAssistantSettings_TitleGeneration_Header" xml:space="preserve">
-        <value>Başlık Oluşturma Asistanı</value>
+        <value>Başlık Oluşturma</value>
     </data>
     <data name="SystemAssistant_AutoSelectToggle_Content" xml:space="preserve">
         <value>Otomatik Seçim</value>
@@ -2912,12 +2912,6 @@ Yayın tarihi: {2}</value>
     </data>
     <data name="HandledChatException_InvalidReasoningContent" xml:space="preserve">
         <value>Modelin derin düşünme içeriği doğru bir şekilde geri dönmedi. Aynı sohbet içinde model değiştirdiyseniz, bu soruna yol açmış olabilir.</value>
-    </data>
-    <data name="SystemAssistantSettings_ImageUnderstanding_Header" xml:space="preserve">
-        <value>Görüntü anlama asistanı</value>
-    </data>
-    <data name="SystemAssistantSettings_ImageUnderstanding_Description" xml:space="preserve">
-        <value>Ana asistanın görüntü girişi desteklemediği durumlarda görüntüleri anlamak için asistanı yapılandırın. Bu asistanın görüntü girişini desteklemesi gerektiğini unutmayın.</value>
     </data>
     <data name="TerminalView_SuccessToolTip_Tip" xml:space="preserve">
         <value>Komut {0} tarihinde başladı, {1} saniye sonra başarıyla tamamlandı</value>

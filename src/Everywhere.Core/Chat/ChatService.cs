@@ -334,7 +334,6 @@ public sealed partial class ChatService : IChatService
         builder.Services.AddSingleton<IChatService>(this);
         builder.Services.AddSingleton(kernelMixin.ChatCompletionService);
         builder.Services.AddSingleton(_chatContextManager);
-        builder.Services.AddSingleton(_settings);
         builder.Services.AddSingleton(chatContext);
         builder.Services.AddSingleton(assistant);
         builder.Services.AddTransient<IChatPluginDisplaySink>(static x =>
