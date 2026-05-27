@@ -30,6 +30,9 @@ Due to refactoring of the `Execute In Terminal` tool, the new version may cause 
 - Fixed an issue in Light Mode where some code block syntax highlighting colors were difficult to read.
 - Fixed minor typos and text description errors in the UI (#373 - Thanks to @Fillip74).
 
+**Full Changelog**: https://github.com/Sylinko/Everywhere/compare/v0.7.7...v0.7.8
+
+
 
 ## [v0.7.7](https://github.com/DearVa/Everywhere/releases/tag/v0.7.7) - 2026-05-10
 
