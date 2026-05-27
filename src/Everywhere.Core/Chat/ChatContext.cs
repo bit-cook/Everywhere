@@ -266,9 +266,10 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
             },
             VisualElements = VisualElements,
             IsPermissionGrantedRecords = IsPermissionGrantedRecords,
-            ToolRulesets = ToolRulesets.Copy(new ToolRulesets(1)
+            ToolRulesets = ToolRulesets.Copy(new ToolRulesets(2)
             {
-                { "builtin.essential.run_subagent", false } // Disallow run_subagent in sub-agents to prevent infinite recursion
+                { "builtin.essential.run_subagent", false }, // Disallow run_subagent in sub-agents to prevent infinite recursion
+                { "builtin.essential.ask_user_question", false } // Disallow ask_user_question in sub-agents to prevent user interaction in sub-agents
             })
         };
     }
