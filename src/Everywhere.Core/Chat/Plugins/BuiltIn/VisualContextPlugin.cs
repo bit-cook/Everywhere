@@ -6,6 +6,7 @@ using System.Security;
 using System.Text;
 using System.Text.Json.Serialization;
 using Avalonia.Input;
+using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Common;
 using Everywhere.Configuration;
@@ -75,14 +76,9 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
         [FromKernelServices] ChatContext chatContext,
         [FromKernelServices] IChatPluginDisplaySink displaySink)
     {
-        var screens = _visualElementContext.Screens.AsValueEnumerable().ToList();
-        displaySink.AppendDynamicResourceKey(
-            new FormattedDynamicResourceKey(
-                LocaleKey.BuiltInChatPlugin_ListWindows_ScreenCount,
-                new DirectResourceKey(screens.Count)));
-
+        var windowCount = 0;
         var xmlBuilder = new StringBuilder();
-        foreach (var screen in screens.AsValueEnumerable())
+        foreach (var screen in _visualElementContext.Screens.AsValueEnumerable())
         {
             var bounds = screen.BoundingRectangle;
             xmlBuilder.Append(" box=\"")
@@ -93,49 +89,63 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
 
             foreach (var window in screen.Children.AsValueEnumerable().Where(v => v.Type == VisualElementType.TopLevel))
             {
-                xmlBuilder.Append("  <TopLevel ");
-
-                if (window.Name is { Length: > 0 } name)
+                try
                 {
-                    xmlBuilder.Append(" name=\"").Append(SecurityElement.Escape(name)).Append('"');
-                }
+                    xmlBuilder.Append("  <TopLevel ");
 
-                bounds = window.BoundingRectangle;
-                xmlBuilder.Append(" box=\"")
-                    .Append(bounds.X).Append(',')
-                    .Append(bounds.Y).Append(',')
-                    .Append(bounds.Width).Append(',')
-                    .Append(bounds.Height).Append('"');
-
-                var processId = window.ProcessId;
-                if (processId > 0)
-                {
-                    xmlBuilder.Append(" pid=\"").Append(processId).Append('"');
-                    try
+                    if (window.Name is { Length: > 0 } name)
                     {
-                        using var process = Process.GetProcessById(processId);
-                        xmlBuilder.Append(" process=\"").Append(SecurityElement.Escape(process.ProcessName)).Append('"');
+                        xmlBuilder.Append(" name=\"").Append(SecurityElement.Escape(name)).Append('"');
                     }
-                    catch
+
+                    bounds = window.BoundingRectangle;
+                    xmlBuilder.Append(" box=\"")
+                        .Append(bounds.X).Append(',')
+                        .Append(bounds.Y).Append(',')
+                        .Append(bounds.Width).Append(',')
+                        .Append(bounds.Height).Append('"');
+
+                    var processId = window.ProcessId;
+                    if (processId > 0)
                     {
-                        // Ignore if process not found
+                        xmlBuilder.Append(" pid=\"").Append(processId).Append('"');
+                        try
+                        {
+                            using var process = Process.GetProcessById(processId);
+                            xmlBuilder.Append(" process=\"").Append(SecurityElement.Escape(process.ProcessName)).Append('"');
+                        }
+                        catch
+                        {
+                            // Ignore if process not found
+                        }
                     }
-                }
 
-                var windowHandle = window.NativeWindowHandle;
-                if (windowHandle > 0)
+                    var windowHandle = window.NativeWindowHandle;
+                    if (windowHandle > 0)
+                    {
+                        xmlBuilder.Append(" handle=\"0x").Append(windowHandle.ToString("X")).Append('"');
+                    }
+
+                    xmlBuilder.Append(" state=\"").Append(window.States.ToString()).Append('"');
+                    xmlBuilder.AppendLine("/>");
+
+                    windowCount++;
+                }
+                catch
                 {
-                    xmlBuilder.Append(" handle=\"0x").Append(windowHandle.ToString("X")).Append('"');
+                    // Ignore windows that cannot be accessed
                 }
-
-                xmlBuilder.Append(" state=\"").Append(window.States.ToString()).Append('"');
-                xmlBuilder.AppendLine("/>");
             }
 
             xmlBuilder.AppendLine("</Screen>");
         }
 
-        return xmlBuilder.TrimEnd().ToString();
+        displaySink.AppendDynamicResourceKey(
+            new FormattedDynamicResourceKey(
+                LocaleKey.BuiltInChatPlugin_ListWindows_WindowCount,
+                new DirectResourceKey(windowCount)));
+
+        return TokenHelper.Omit(xmlBuilder.TrimEnd().ToString(), 20000);
     }
 
     [KernelFunction("capture_visual_element")]

@@ -2692,7 +2692,7 @@
     <data name="BuiltInChatPlugin_Essential_ManageTodoList_Reset" xml:space="preserve">
         <value>{0}개의 할 일을 설정했습니다</value>
     </data>
-    <data name="BuiltInChatPlugin_ListWindows_ScreenCount" xml:space="preserve">
+    <data name="BuiltInChatPlugin_ListWindows_WindowCount" xml:space="preserve">
         <value>{0}개의 창을 찾았습니다</value>
     </data>
     <data name="BuiltInChatPlugin_VisualContext_GetVisualTree_Result" xml:space="preserve">

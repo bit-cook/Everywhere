@@ -3,12 +3,14 @@ using System.ComponentModel;
 using System.IO.Enumeration;
 using System.Text;
 using System.Text.RegularExpressions;
+using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Common;
 using Everywhere.Utilities;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using ZLinq;
 
 namespace Everywhere.Chat.Plugins.BuiltIn;
 
@@ -140,21 +142,33 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
             return "No files found.";
         }
 
-        displaySink.AppendFileReferences(fileReferences.ToArray());
+        displaySink.AppendFileReferences(fileReferences.ToList());
 
         var sb = new StringBuilder();
         sb.Append(totalResults).AppendLine(totalResults == 1 ? " total result" : " total results");
 
-        // TODO: Implement TextChunk and priority-based truncation logic from VS Code.
-        // VS Code uses <TextChunk priority="10"> for file paths and <TextChunk priority="20"> for total results and ellipsis.
+        const int totalBudget = 40000;
+        var remaining = totalBudget - TokenHelper.EstimateTokenCount(sb.ToString());
+        var included = 0;
+
         foreach (var result in results)
         {
-            sb.AppendLine(result);
+            remaining -= TokenHelper.OmitTo(result, sb, remaining, position: TokenHelper.OmitPosition.End) + 1;
+            sb.AppendLine();
+
+            included++;
+
+            if (remaining <= 0) break;
         }
 
-        if (totalResults > skip + results.Count)
+        var omittedByBudget = results.Count - included;
+        if (omittedByBudget > 0)
         {
-            sb.AppendLine("...");
+            sb.Append("... ").Append(omittedByBudget).AppendLine(" more result(s) omitted due to token budget");
+        }
+        else if (totalResults > skip + results.Count)
+        {
+            sb.Append("... ").Append(totalResults - skip - results.Count).AppendLine(" more result(s) omitted due to maxCount");
         }
 
         return sb.ToString();
@@ -207,9 +221,11 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
         [FromKernelServices] ChatContext chatContext,
         [Description("File or directory path to search")] string path,
         [Description("Text or regex pattern to search for within the file")] string pattern,
-        [Description("Whether the pattern is a regular expression. Set to false for literal text search")] bool isRegex = true,
+        [Description("Whether the pattern is a regular expression. Set to false for literal text search")]
+        bool isRegex = true,
         bool ignoreCase = true,
-        [Description("Regex pattern to include files to search. Effective when path is a folder")] string filePattern = ".*",
+        [Description("Regex pattern to include files to search. Effective when path is a folder")]
+        string filePattern = ".*",
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug(
@@ -335,7 +351,7 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
                     if (localResults.Count > 0)
                     {
                         fileReferences.Add(new ChatPluginFileReference(file.FullName, locations: locations));
-                        resultLines.Add(string.Join("\n", localResults));
+                        foreach (var match in localResults) resultLines.Add(match);
                     }
                 });
         }
@@ -346,12 +362,12 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
                 return "Search timed out after 20 seconds. Found 0 files with matches so far. Try a more specific search pattern or path.";
             }
 
-            displaySink.AppendFileReferences(fileReferences.ToArray());
-            var timeoutMessageBuilder = new StringBuilder();
-            timeoutMessageBuilder.Append("Search timed out after 20 seconds. Found ").Append(resultLines.Count)
-                .AppendLine(" files with matches so far. Try a more specific search pattern or path.");
-            foreach (var line in resultLines.Take(maxCollectedLines)) timeoutMessageBuilder.AppendLine(line);
-            return timeoutMessageBuilder.ToString();
+            displaySink.AppendFileReferences(fileReferences.ToList());
+            var msg = BuildMatchOutput(
+                resultLines,
+                fileReferences.Count,
+                "Search timed out after 20 seconds. Found {0} files with matches so far. Try a more specific search pattern or path.");
+            return msg;
         }
 
         if (resultLines.IsEmpty)
@@ -363,11 +379,8 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
                  """;
         }
 
-        displaySink.AppendFileReferences(fileReferences.ToArray());
-        var resultBuilder = new StringBuilder();
-        resultBuilder.Append("Found matches in ").Append(resultLines.Count).AppendLine(" file(s).");
-        foreach (var resultLine in resultLines.Take(maxCollectedLines)) resultBuilder.AppendLine(resultLine);
-        return resultBuilder.ToString();
+        displaySink.AppendFileReferences(fileReferences.ToList());
+        return BuildMatchOutput(resultLines, fileReferences.Count, "Found matches in {0} file(s).");
     }
 
     [KernelFunction("read_file")]
@@ -383,9 +396,11 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
         [FromKernelServices] IChatPluginDisplaySink displaySink,
         [FromKernelServices] ChatContext chatContext,
         string path,
-        [Description("Optional: the 1-based line number or bytes to start reading from. If not specified, reads from the beginning.")] int offset = 1,
+        [Description("Optional: the 1-based line number or bytes to start reading from. If not specified, reads from the beginning.")]
+        int offset = 1,
         [Description("Optional: the maximum number of lines/bytes to read.")] int limit = 2000,
-        [Description("Optional: whether to treat the file as an attachment. Keep this as false for most use cases.")] bool attachment = false,
+        [Description("Optional: whether to treat the file as an attachment. Keep this as false for most use cases.")]
+        bool attachment = false,
         CancellationToken cancellationToken = default)
     {
         _logger.LogDebug(
@@ -469,11 +484,19 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
         var linesRead = 0;
         var isEOF = false;
 
+        var hasLongLine = false;
         while (await reader.ReadLineAsync(cancellationToken) is { } line)
         {
             currentLine++;
 
             if (currentLine < startLine) continue;
+
+            var tokenCount = TokenHelper.EstimateTokenCount(line);
+            if (tokenCount > 10000)
+            {
+                line = TokenHelper.Omit(line, maxTokenCount: 10000, omitText: "[... LINE TRUNCATED ...]");
+                hasLongLine = true;
+            }
 
             contentBuilder.AppendLine(line);
             linesRead++;
@@ -523,6 +546,11 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
 
         resultBuilder.Append(contentBuilder);
 
+        if (hasLongLine)
+        {
+            resultBuilder.AppendLine("[One or more lines were truncated to 10,000 tokens each.]");
+        }
+
         if (truncated)
         {
             resultBuilder
@@ -531,7 +559,7 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
                 .AppendLine(". Use read_file with offset/limit parameters to view more.]");
         }
 
-        return resultBuilder.ToString();
+        return TokenHelper.Omit(resultBuilder.ToString(), maxTokenCount: 40000);
     }
 
     [KernelFunction("move_file")]
@@ -753,7 +781,8 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
     }
 
     [KernelFunction("replace_file_content")]
-    [Description("""
+    [Description(
+        """
         Replaces content in a single text file at the specified path. Binary files are not supported.
         - Supports both regex and literal text replacement (toggle `isRegex`).
         - When using regex, replacements can use substitution patterns (e.g., $1, $2).
@@ -768,7 +797,8 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
         string path,
         [Description("Text or regex patterns to search for within the file.")] IReadOnlyList<string> patterns,
         [Description("Replacement strings that match patterns.")] IReadOnlyList<string> replacements,
-        [Description("Whether the patterns are regular expressions. Set to false for literal text replacement.")] bool isRegex = true,
+        [Description("Whether the patterns are regular expressions. Set to false for literal text replacement.")]
+        bool isRegex = true,
         bool ignoreCase = false,
         CancellationToken cancellationToken = default)
     {
@@ -959,6 +989,45 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
             new FileNotFoundException("The specified path does not exist as a file or directory."),
             new DynamicResourceKey(LocaleKey.BuiltInChatPlugin_FileSystem_EnsureFileSystemInfo_PathNotExist_ErrorMessage),
             showDetails: false);
+    }
+
+    /// <summary>
+    /// Builds the output for search_file_content with per-match token budget allocation.
+    /// </summary>
+    private static string BuildMatchOutput(ConcurrentBag<string> resultLines, int fileCount, string headerFormat)
+    {
+        var allMatches = resultLines.ToList();
+        var desiredTokens = allMatches.AsValueEnumerable().Select(TokenHelper.EstimateTokenCount).ToList();
+        var allocations = TokenBudget.Allocate(desiredTokens.AsSpan(), 40000, minTokensPerItem: 100, maxTokensPerItem: 5000);
+
+        var sb = new StringBuilder();
+        sb.AppendFormat(headerFormat, fileCount).AppendLine();
+
+        var omitted = 0;
+        for (var i = 0; i < allMatches.Count; i++)
+        {
+            if (allocations[i] >= desiredTokens[i])
+            {
+                sb.AppendLine(allMatches[i]);
+            }
+            else if (allocations[i] > 0)
+            {
+                TokenHelper.OmitTo(
+                    allMatches[i],
+                    sb,
+                    allocations[i],
+                    position: TokenHelper.OmitPosition.Middle);
+                sb.AppendLine();
+            }
+            else
+            {
+                omitted++;
+            }
+        }
+
+        if (omitted > 0) sb.Append('(').Append(omitted).AppendLine(" match(es) omitted due to token budget)");
+
+        return sb.ToString();
     }
 
     /// <summary>

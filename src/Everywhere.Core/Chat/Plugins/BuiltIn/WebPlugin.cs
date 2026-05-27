@@ -210,9 +210,9 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
             }
         }
 
-        var resultBuilder = new StringBuilder();
-        await Task.WhenAll(
-            urls.DistinctBy(url => url.Trim()).Select(async url =>
+        var distinctUrls = urls.DistinctBy(u => u.Trim()).ToList();
+        var extractions = await Task.WhenAll(
+            distinctUrls.Select(async url =>
             {
                 displaySink.AppendDynamicResourceKey(
                     new FormattedDynamicResourceKey(
@@ -230,26 +230,50 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                             new ArgumentException("Invalid URL format. Only absolute http/https URLs are allowed."));
                     }
 
-                    var result = await _webBrowserHost.ExtractAsync(url, cancellationToken);
-                    lock (resultBuilder)
-                    {
-                        resultBuilder.Append("# Content from ").AppendLine(url).AppendLine();
-                        TokenHelper.OmitTo(result, resultBuilder);
-                        resultBuilder.AppendLine().AppendLine("------").AppendLine();
-                    }
+                    var content = await _webBrowserHost.ExtractAsync(url, cancellationToken);
+                    return (url, content, error: null);
                 }
                 catch (Exception ex)
                 {
                     ex = HandledFunctionInvokingException.Handle(ex);
                     _logger.LogError(ex, "Failed to extract content from URL: {Url}", url);
-                    lock (resultBuilder)
-                    {
-                        resultBuilder.AppendLine("# Failed to extract content from ").AppendLine(url).AppendLine();
-                        resultBuilder.AppendLine(ex.Message).AppendLine();
-                        resultBuilder.AppendLine("------").AppendLine();
-                    }
+                    return (url, content: (string?)null, error: ex.Message);
                 }
             }));
+
+        // Dynamic proportional token budget allocation per URL
+        const int totalBudget = 40000;
+        const int minPerUrl = 500;
+        var desiredTokens = extractions.AsValueEnumerable().Select(e => e.content != null ? TokenHelper.EstimateTokenCount(e.content) : 0).ToList();
+        var allocations = TokenBudget.Allocate(desiredTokens.AsSpan(), totalBudget, minTokensPerItem: minPerUrl);
+
+        // Build output with trimmed content
+        var resultBuilder = new StringBuilder();
+        for (var i = 0; i < extractions.Length; i++)
+        {
+            var (url, content, error) = extractions[i];
+
+            resultBuilder.Append("# Content from ").AppendLine(url).AppendLine();
+
+            if (error != null)
+            {
+                resultBuilder.AppendLine("# Failed to extract:").AppendLine(error);
+            }
+            else if (content != null)
+            {
+                if (allocations[i] < desiredTokens[i])
+                {
+                    TokenHelper.OmitTo(content, resultBuilder, allocations[i]);
+                }
+                else
+                {
+                    resultBuilder.Append(content);
+                }
+            }
+
+            resultBuilder.AppendLine().AppendLine("------").AppendLine();
+        }
+
         return resultBuilder.ToString();
     }
 

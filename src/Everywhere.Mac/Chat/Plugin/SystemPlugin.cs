@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json.Serialization;
+using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
@@ -222,7 +223,10 @@ public sealed class SystemPlugin : BuiltInChatPlugin
                 throw new ArgumentException($"Unknown action: {action}");
         }
 
-        return await RunAppleScriptAsync(script, cancellationToken);
+        var remindersResult = await RunAppleScriptAsync(script, cancellationToken);
+        return action == SystemAction.List
+            ? TokenHelper.Omit(remindersResult, maxTokenCount: 40000)
+            : remindersResult;
     }
 
     [KernelFunction("manage_calendar")]
@@ -411,7 +415,10 @@ public sealed class SystemPlugin : BuiltInChatPlugin
                 throw new ArgumentException($"Unknown action: {action}");
         }
 
-        return await RunAppleScriptAsync(script, cancellationToken);
+        var calendarResult = await RunAppleScriptAsync(script, cancellationToken);
+        return action == SystemAction.List
+            ? TokenHelper.Omit(calendarResult, maxTokenCount: 40000)
+            : calendarResult;
     }
 
     [KernelFunction("send_email")]
@@ -600,7 +607,10 @@ public sealed class SystemPlugin : BuiltInChatPlugin
                 throw new ArgumentException($"Unknown action: {action}");
         }
 
-        return await RunAppleScriptAsync(script, cancellationToken);
+        var notesResult = await RunAppleScriptAsync(script, cancellationToken);
+        return action == SystemAction.List
+            ? TokenHelper.Omit(notesResult, maxTokenCount: 40000)
+            : notesResult;
     }
 
     [KernelFunction("open_url")]
@@ -667,7 +677,8 @@ public sealed class SystemPlugin : BuiltInChatPlugin
 
         displaySink.AppendBlocks(detailBlock);
 
-        return await RunRawAppleScriptAsync(script, cancellationToken);
+        var rawResult = await RunRawAppleScriptAsync(script, cancellationToken);
+        return TokenHelper.Omit(rawResult, maxTokenCount: 40000);
     }
 
     private static async Task<string> RunAppleScriptAsync(FormattableString script, CancellationToken cancellationToken)

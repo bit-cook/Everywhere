@@ -1,7 +1,9 @@
 ﻿using System.ComponentModel;
+using System.Text;
 using DynamicData;
 using EverythingNet.Core;
 using EverythingNet.Interfaces;
+using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
@@ -132,15 +134,44 @@ public sealed class EverythingPlugin : BuiltInChatPlugin
                 () =>
                 {
                     using var everything = new Everything();
-                    var results = everything
+                    var records = everything
                         .SendSearch(searchPattern, default)
                         .Take(Math.Min(maxResults, 1000))
-                        .Select(CreateFileRecord);
+                        .Select(CreateFileRecord)
+                        .ToList();
+
                     displaySink.AppendDynamicResourceKey(
                         new FormattedDynamicResourceKey(
                             LocaleKey.Windows_BuiltInChatPlugin_Everything_SearchFiles_DetailMessage,
                             new DirectResourceKey(everything.Count.ToString())));
-                    return new FileRecords(results, everything.Count).ToString();
+
+                    if (records.Count == 0) return "No results found.";
+
+                    // Iterative OmitTo: consume remaining budget per record, stop when exhausted.
+                    // File records are similarly-sized so proportional QoS allocation is unnecessary.
+                    var sb = new StringBuilder();
+                    sb.Append("Count: ").Append(everything.Count).AppendLine();
+                    sb.AppendLine(FileRecord.Header).AppendLine("----");
+
+                    const int totalBudget = 40000;
+                    var remaining = totalBudget - TokenHelper.EstimateTokenCount(sb.ToString());
+                    var included = 0;
+
+                    foreach (var record in records)
+                    {
+                        remaining -= TokenHelper.OmitTo(record.ToString(), sb, remaining, position: TokenHelper.OmitPosition.End) + 1;
+                        sb.AppendLine();
+
+                        included++;
+
+                        if (remaining <= 0) break;
+                    }
+
+                    var omitted = records.Count - included;
+                    if (omitted > 0)
+                        sb.Append("... ").Append(omitted).AppendLine(" more result(s) (omitted due to token budget)");
+
+                    return sb.ToString();
                 },
                 cancellationToken)
             .WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
