@@ -28,8 +28,11 @@ public sealed class TerminalSession
     public byte[] ReadBuffer { get; } = new byte[ReadBufferSize];
 
     private const int ReadBufferSize = 4096;
+    private static readonly TimeSpan BracketedPasteProbeIdlePeriod = TimeSpan.FromMilliseconds(150);
+    private static readonly TimeSpan BracketedPasteProbeTimeout = TimeSpan.FromSeconds(3);
 
     private Task<int>? _pendingReadTask;
+    private bool? _isBracketedPasteInputSupported;
 
     public TerminalSession(IPtyConnection pty, TerminalDimensions dimensions)
     {
@@ -120,6 +123,30 @@ public sealed class TerminalSession
         await WriteInputAsync(text.Replace("\r\n", "\r").Replace('\n', '\r'), cancellationToken);
     }
 
+    public async Task<bool> IsBracketedPasteInputSupportedAsync(ShellType shellType, CancellationToken cancellationToken = default)
+    {
+        if (Parser.IsBracketedPasteModeEnabled)
+        {
+            _isBracketedPasteInputSupported = true;
+            return true;
+        }
+
+        if (_isBracketedPasteInputSupported is { } cached)
+        {
+            return cached;
+        }
+
+        if (shellType is not (ShellType.PowerShell or ShellType.Bash or ShellType.Zsh))
+        {
+            _isBracketedPasteInputSupported = false;
+            return false;
+        }
+
+        var supported = await ProbeBracketedPasteInputAsync(shellType, cancellationToken);
+        _isBracketedPasteInputSupported = supported;
+        return supported;
+    }
+
     public async ValueTask ResizeAsync(TerminalDimensions dimensions, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -134,9 +161,7 @@ public sealed class TerminalSession
         await FlushTerminalResponsesAsync(cancellationToken);
     }
 
-    private async ValueTask<TerminalReadOutcome> CompleteReadAsync(
-        Task<int> readTask,
-        CancellationToken cancellationToken)
+    private async ValueTask<TerminalReadOutcome> CompleteReadAsync(Task<int> readTask, CancellationToken cancellationToken)
     {
         try
         {
@@ -159,5 +184,76 @@ public sealed class TerminalSession
                 _pendingReadTask = null;
             }
         }
+    }
+
+    private async Task<bool> ProbeBracketedPasteInputAsync(ShellType shellType, CancellationToken cancellationToken)
+    {
+        var commandFinishedCount = 0;
+        var commandReadyAfterFinishCount = 0;
+
+        void HandleMarker(in ShellIntegrationMarker marker)
+        {
+            switch (marker.Type)
+            {
+                case ShellIntegrationMarkerType.CommandFinished:
+                    commandFinishedCount++;
+                    break;
+                case ShellIntegrationMarkerType.CommandReady when commandFinishedCount > 0:
+                    commandReadyAfterFinishCount++;
+                    break;
+            }
+        }
+
+        var probe = BuildBracketedPasteProbe(shellType);
+
+        Parser.ShellIntegrationMarkerReceived += HandleMarker;
+        try
+        {
+            await WriteInputAsync("\e[200~", cancellationToken);
+            await WriteInputAsync(probe, cancellationToken);
+            await WriteInputAsync("\e[201~\r", cancellationToken);
+
+            using var timeoutCts = new CancellationTokenSource(BracketedPasteProbeTimeout);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+            var linkedToken = linkedCts.Token;
+
+            try
+            {
+                while (!linkedToken.IsCancellationRequested)
+                {
+                    var outcome = await ReadOrIdleAsync(BracketedPasteProbeIdlePeriod, linkedToken);
+                    if (outcome == TerminalReadOutcome.EndOfStream)
+                    {
+                        break;
+                    }
+
+                    if (outcome == TerminalReadOutcome.Idle && commandFinishedCount > 0)
+                    {
+                        break;
+                    }
+                }
+            }
+            catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                return false;
+            }
+
+            return commandFinishedCount == 1 && commandReadyAfterFinishCount >= 1;
+        }
+        finally
+        {
+            Parser.ShellIntegrationMarkerReceived -= HandleMarker;
+        }
+    }
+
+    private static string BuildBracketedPasteProbe(ShellType shellType)
+    {
+        var nonce = Guid.NewGuid().ToString("N")[..8];
+        return shellType switch
+        {
+            ShellType.PowerShell => $"[void]\"__EVERYWHERE_BP_PROBE_{nonce}_A\"\n[void]\"__EVERYWHERE_BP_PROBE_{nonce}_B\"",
+            ShellType.Bash or ShellType.Zsh => $": __EVERYWHERE_BP_PROBE_{nonce}_A\n: __EVERYWHERE_BP_PROBE_{nonce}_B",
+            _ => throw new ArgumentOutOfRangeException(nameof(shellType), shellType, null)
+        };
     }
 }

@@ -46,6 +46,9 @@ public sealed class RichExecuteStrategy(ILogger logger) : ExecuteStrategy
 
         public async Task ExecuteAsync()
         {
+            var isMultiline = OutputCleaner.IsMultilineCommand(script, shellType);
+            var isBracketedPasteSupported = await session.IsBracketedPasteInputSupportedAsync(shellType, cancellationToken);
+
             session.Parser.ShellIntegrationMarkerReceived += HandleMarker;
 
             try
@@ -57,6 +60,8 @@ public sealed class RichExecuteStrategy(ILogger logger) : ExecuteStrategy
                     session,
                     script,
                     shellType,
+                    isMultiline,
+                    isBracketedPasteSupported,
                     logger,
                     cancellationToken);
 
@@ -298,22 +303,23 @@ public sealed class RichExecuteStrategy(ILogger logger) : ExecuteStrategy
 
         /// <summary>
         /// Send command using bracketed paste mode for multi-line commands when the
-        /// terminal has enabled it dynamically.
+        /// shell has proven that bracketed paste input is consumed atomically.
         /// </summary>
         private async static Task SendCommandAsync(
             TerminalSession session,
             string script,
             ShellType shellType,
+            bool isMultiline,
+            bool useBracketedPaste,
             ILogger logger,
             CancellationToken cancellationToken)
         {
-            var isMultiline = OutputCleaner.IsMultilineCommand(script, shellType);
             if (isMultiline)
             {
-                if (!session.Parser.IsBracketedPasteModeEnabled)
+                if (!useBracketedPaste)
                 {
                     logger.LogWarning(
-                        "[Rich] Bracketed paste mode is disabled in parser state; sending multi-line command as Enter-separated lines (shellType={ShellType})",
+                        "[Rich] Atomic bracketed paste input is not supported; sending multi-line command as Enter-separated lines (shellType={ShellType})",
                         shellType);
 
                     await SendLineByLineAsync(session, script, cancellationToken);
@@ -326,8 +332,7 @@ public sealed class RichExecuteStrategy(ILogger logger) : ExecuteStrategy
                     session.Dimensions);
 
                 var normalizedScript = script.Replace("\r\n", "\n").Replace("\r", "\n");
-                await session.WritePasteAsync(normalizedScript, cancellationToken);
-                await session.WriteInputAsync("\r", cancellationToken);
+                await session.WriteInputAsync($"\e[200~{normalizedScript}\e[201~\r", cancellationToken);
             }
             else
             {

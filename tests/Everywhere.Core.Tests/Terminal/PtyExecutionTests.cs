@@ -595,12 +595,17 @@ public class PtyExecutionTests
 
     private static TerminalSession CreateMockPty(Stream readerStream)
     {
+        return CreateMockPtyWithWriter(readerStream).session;
+    }
+
+    private static (TerminalSession session, MemoryStream writerStream) CreateMockPtyWithWriter(Stream readerStream)
+    {
         var writerStream = new MemoryStream();
         var pty = Substitute.For<IPtyConnection>();
         pty.ReaderStream.Returns(readerStream);
         pty.WriterStream.Returns(writerStream);
         pty.Pid.Returns(12345);
-        return new TerminalSession(pty, TerminalDimensions.Default);
+        return (new TerminalSession(pty, TerminalDimensions.Default), writerStream);
     }
 
     private static async Task<TerminalRun> ExecuteSingleRunAsync(
@@ -720,6 +725,40 @@ public class PtyExecutionTests
         sb.Append("\e]633;A\a");
 
         return Encoding.UTF8.GetBytes(sb.ToString());
+    }
+
+    private static byte[] BuildBracketedPasteProbeSequence(bool supported)
+    {
+        var sb = new StringBuilder();
+        AppendProbeRun("probe A");
+        if (!supported)
+        {
+            AppendProbeRun("probe B");
+        }
+
+        return Encoding.UTF8.GetBytes(sb.ToString());
+
+        void AppendProbeRun(string commandLine)
+        {
+            sb.Append($"\e]633;E;{commandLine}\a");
+            sb.Append("\e]633;C\a");
+            sb.Append("\e]633;D;0\a");
+            sb.Append("\e]633;A\a");
+            sb.Append("\e]633;B\a");
+        }
+    }
+
+    private static int CountOccurrences(string text, string value)
+    {
+        var count = 0;
+        var index = 0;
+        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
+        {
+            count++;
+            index += value.Length;
+        }
+
+        return count;
     }
 
     [Test]
@@ -1114,6 +1153,56 @@ public class PtyExecutionTests
         Assert.That(written, Is.EqualTo("echo a\recho b\r"));
         Assert.That(written, Does.Not.Contain("\e[200~"));
         Assert.That(written, Does.Not.Contain("\e[201~"));
+    }
+
+    [Test]
+    public async Task RichStrategy_MultiLine_PowerShellWithoutMode_WhenProbeSucceeds_UsesBracketedPaste()
+    {
+        await using var readerStream = new DelayedReadStream(
+            (TimeSpan.Zero, BuildBracketedPasteProbeSequence(supported: true)),
+            (TimeSpan.FromMilliseconds(300), BuildRichSequence("ok")));
+        var (session, writerStream) = CreateMockPtyWithWriter(readerStream);
+
+        var strategy = new RichExecuteStrategy(_logger);
+        await DrainExecuteAsync(
+            strategy,
+            session,
+            script: "Write-Host \"A\"\nWrite-Host \"B\"",
+            ShellType.PowerShell,
+            timeout: TimeSpan.FromSeconds(10),
+            cancellationToken: CancellationToken.None);
+
+        var written = Encoding.UTF8.GetString(writerStream.ToArray());
+        _logger.LogInformation("Written after successful bracketed paste probe: {Escaped}", OutputCleaner.EscapeForLog(written));
+
+        Assert.That(CountOccurrences(written, "\e[200~"), Is.EqualTo(2), "Probe and command should both use bracketed paste");
+        Assert.That(written, Does.Contain("\e[200~Write-Host \"A\"\nWrite-Host \"B\"\e[201~\r"));
+        Assert.That(written, Does.Not.Contain("Write-Host \"A\"\rWrite-Host \"B\"\r"));
+    }
+
+    [Test]
+    public async Task RichStrategy_MultiLine_PowerShellWithoutMode_WhenProbeFails_SendsLineByLine()
+    {
+        await using var readerStream = new DelayedReadStream(
+            (TimeSpan.Zero, BuildBracketedPasteProbeSequence(supported: false)),
+            (TimeSpan.FromMilliseconds(300), BuildRichSequence("ok")));
+        var (session, writerStream) = CreateMockPtyWithWriter(readerStream);
+
+        var strategy = new RichExecuteStrategy(_logger);
+        await DrainExecuteAsync(
+            strategy,
+            session,
+            script: "Write-Host \"A\"\nWrite-Host \"B\"",
+            ShellType.PowerShell,
+            timeout: TimeSpan.FromSeconds(10),
+            cancellationToken: CancellationToken.None);
+
+        var written = Encoding.UTF8.GetString(writerStream.ToArray());
+        _logger.LogInformation("Written after failed bracketed paste probe: {Escaped}", OutputCleaner.EscapeForLog(written));
+
+        Assert.That(CountOccurrences(written, "\e[200~"), Is.EqualTo(1), "Only the probe should use bracketed paste");
+        Assert.That(written, Does.Contain("Write-Host \"A\"\rWrite-Host \"B\"\r"));
+        Assert.That(written, Does.Not.Contain("\e[200~Write-Host \"A\"\nWrite-Host \"B\"\e[201~\r"));
     }
 
     [Test]
