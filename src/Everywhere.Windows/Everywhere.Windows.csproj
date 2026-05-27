@@ -86,7 +86,6 @@
     <TrimmerRootAssembly Include="ShadUI"/>
     <TrimmerRootAssembly Include="SharpGen.Runtime"/>
     <TrimmerRootAssembly Include="SharpGen.Runtime.COM"/>
-    <TrimmerRootAssembly Include="System.Management"/>
     <TrimmerRootAssembly Include="Vortice.Direct2D1"/>
     <TrimmerRootAssembly Include="Vortice.Direct3D11"/>
     <TrimmerRootAssembly Include="Vortice.DirectComposition"/>
