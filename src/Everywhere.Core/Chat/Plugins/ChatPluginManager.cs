@@ -1,11 +1,11 @@
 using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
+using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins.Mcp;
 using Everywhere.Collections;
@@ -27,9 +27,9 @@ public class ChatPluginManager : IChatPluginManager
 {
     private const string McpRuntimeWarningKey = "mcp.runtime";
 
-    public ReadOnlyObservableCollection<BuiltInChatPlugin> BuiltInPlugins { get; }
+    public IReadOnlyBindableList<BuiltInChatPlugin> BuiltInPlugins { get; }
 
-    public ReadOnlyObservableCollection<McpChatPlugin> McpPlugins { get; }
+    public IReadOnlyBindableList<McpChatPlugin> McpPlugins { get; }
 
     private readonly IServiceProvider _serviceProvider;
     private readonly Settings _settings;
@@ -40,6 +40,8 @@ public class ChatPluginManager : IChatPluginManager
     private readonly CompositeDisposable _disposables = new(3);
     private readonly SourceList<BuiltInChatPlugin> _builtInPluginsSource = new();
     private readonly SourceList<McpChatPlugin> _mcpPluginsSource = new();
+    private readonly ObjectObserver _builtInPluginsObserver;
+    private readonly ObjectObserver _mcpPluginsObserver;
 
     public ChatPluginManager(
         IServiceProvider serviceProvider,
@@ -108,8 +110,8 @@ public class ChatPluginManager : IChatPluginManager
             .Transform(m => new McpChatPluginEntity(m), transformOnRefresh: true)
             .BindEx(_disposables);
 
-        new ObjectObserver((in e) => HandleChatPluginChanged(BuiltInPlugins, e)).Observe(BuiltInPlugins);
-        new ObjectObserver((in e) => HandleChatPluginChanged(McpPlugins, e)).Observe(McpPlugins);
+        _builtInPluginsObserver = new ObjectObserver((in e) => HandleChatPluginChanged(BuiltInPlugins, e)).Observe(BuiltInPlugins);
+        _mcpPluginsObserver = new ObjectObserver((in e) => HandleChatPluginChanged(McpPlugins, e)).Observe(McpPlugins);
         RefreshMcpRuntimeWarnings();
 
         void InitializeMcpPlugins()
@@ -182,7 +184,10 @@ public class ChatPluginManager : IChatPluginManager
                     functionIndex >= 0 &&
                     functionIndex < plugin.Functions.Count:
                 {
-                    var function = plugin.Functions[functionIndex];
+                    var observedFunction = plugin.Functions[functionIndex];
+                    var function = plugin.GetChatFunctions()
+                        .AsValueEnumerable()
+                        .FirstOrDefault(f => ReferenceEquals(f, observedFunction)) ?? observedFunction;
                     key = $"{plugin.Key}.{function.KernelFunction.Name}";
                     break;
                 }
@@ -462,8 +467,9 @@ public class ChatPluginManager : IChatPluginManager
     private static string NormalizeCommand(string command) => command.Trim().Trim('"');
 
     public async Task<IChatPluginScope> CreateScopeAsync(
+        Assistant assistant,
+        ChatContext chatContext,
         ToolRulesets? toolRulesets,
-        IChatBusyStateIndicator? busyIndicator,
         CancellationToken cancellationToken)
     {
         // Ensure that functions in the scope do not have the same name.
@@ -483,8 +489,7 @@ public class ChatPluginManager : IChatPluginManager
 
                 if (plugin is McpChatPlugin mcpChatPlugin)
                 {
-                    startingMcpMessageDisplay ??=
-                        busyIndicator?.SetBusyMessage(new DynamicResourceKey(LocaleKey.ChatContext_BusyMessage_StartingMcp));
+                    startingMcpMessageDisplay ??= chatContext.SetBusyMessage(new DynamicResourceKey(LocaleKey.ChatContext_BusyMessage_StartingMcp));
 
                     try
                     {
@@ -504,7 +509,13 @@ public class ChatPluginManager : IChatPluginManager
                     }
                 }
 
-                var actualFunctions = plugin.GetChatFunctions()
+                var functionContext = new ChatPluginFunctionContext(
+                    assistant,
+                    chatContext,
+                    toolRulesets,
+                    _serviceProvider,
+                    cancellationToken);
+                var actualFunctions = (await plugin.GetAvailableFunctionsAsync(functionContext))
                     .AsValueEnumerable()
                     .Where(function =>
                     {
@@ -567,6 +578,8 @@ public class ChatPluginManager : IChatPluginManager
     public void Dispose()
     {
         _runtimeManager.StatusChanged -= HandleRuntimeManagerStatusChanged;
+        _builtInPluginsObserver.Dispose();
+        _mcpPluginsObserver.Dispose();
 
         foreach (var mcpClient in _managedClients.Values)
         {
@@ -680,7 +693,7 @@ public class ChatPluginManager : IChatPluginManager
         public override LucideIconKind? Icon => _originalChatPlugin.Icon;
         public override string? BeautifulIcon => _originalChatPlugin.BeautifulIcon;
         public override int FunctionCount => _actualFunctions.Count;
-        public override ReadOnlyObservableCollection<ChatFunction> Functions => throw new NotSupportedException();
+        public override IReadOnlyBindableList<ChatFunction> Functions => throw new NotSupportedException();
 
         private readonly ChatPlugin _originalChatPlugin;
         private readonly List<ChatFunction> _actualFunctions;
@@ -691,7 +704,6 @@ public class ChatPluginManager : IChatPluginManager
             IReadOnlyList<ChatFunction> actualFunctions) : base(originalChatPlugin.Name)
         {
             _originalChatPlugin = originalChatPlugin;
-            AllowedPermissions = originalChatPlugin.AllowedPermissions.ActualValue;
             _actualFunctions = actualFunctions
                 .Select(EnsureUniqueFunctionName)
                 .ToList();

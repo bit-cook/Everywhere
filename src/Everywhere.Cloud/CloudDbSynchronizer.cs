@@ -1,4 +1,5 @@
 ﻿using System.Net.Sockets;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData.Binding;
@@ -13,13 +14,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Everywhere.Cloud;
 
-public partial class CloudChatDbSynchronizer(
+public sealed partial class CloudChatDbSynchronizer(
     IDbContextFactory<ChatDbContext> dbFactory,
     IHttpClientFactory httpClientFactory,
     ICloudClient cloudClient,
     PersistentState persistentState,
     ILogger<CloudChatDbSynchronizer> logger
-) : ObservableObject, IChatDbSynchronizer, IAsyncInitializer
+) : ObservableObject, IChatDbSynchronizer, IAsyncInitializer, IDisposable
 {
     public AsyncInitializerIndex Index => AsyncInitializerIndex.Network + 1; // after persistentState initialization
 
@@ -27,6 +28,7 @@ public partial class CloudChatDbSynchronizer(
     public partial bool IsCloudSyncing { get; private set; }
 
     private readonly SemaphoreSlim _syncLock = new(1, 1);
+    private readonly CompositeDisposable _disposables = new();
     private const int PushBytesLimit = 5 * 1024 * 1024; // 5 MB
 
     // Adaptive delay state
@@ -55,9 +57,16 @@ public partial class CloudChatDbSynchronizer(
             .DistinctUntilChanged()
             .Select(isReady => Observable.FromAsync(cancellationToken => isReady ? StartSyncAsync(cancellationToken) : Task.CompletedTask))
             .Switch() // Only allow one active synchronization task at a time, cancel previous if new value comes in
-            .Subscribe();
+            .Subscribe()
+            .AddTo(_disposables);
 
         return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _disposables.Dispose();
+        _syncLock.Dispose();
     }
 
     private Task StartSyncAsync(CancellationToken cancellationToken) => Task.Run(

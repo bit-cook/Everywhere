@@ -152,8 +152,8 @@ public unsafe sealed class ShortcutListener : IShortcutListener, IDisposable
                 list.Clear();
             }
 
-            DisposeCollector.DisposeToDefault(ref _keyboardHookSubscription);
-            DisposeCollector.DisposeToDefault(ref _mouseHookSubscription);
+            DisposeHelper.DisposeToDefault(ref _keyboardHookSubscription);
+            DisposeHelper.DisposeToDefault(ref _mouseHookSubscription);
         }
     }
 
@@ -305,7 +305,7 @@ public unsafe sealed class ShortcutListener : IShortcutListener, IDisposable
 
             if (_keyboardRegistrations.Count == 0)
             {
-                DisposeCollector.DisposeToDefault(ref _keyboardHookSubscription);
+                DisposeHelper.DisposeToDefault(ref _keyboardHookSubscription);
             }
         }
     }

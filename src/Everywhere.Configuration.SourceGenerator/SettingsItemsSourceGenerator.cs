@@ -257,33 +257,9 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
                         $"DynamicResourceKey($\"SettingsSelectionItem_{metadata.Symbol.ContainingType.Name}_{metadata.Name}_{{k}}\")" :
                         "DirectResourceKey(k)";
 
-                    // If the type is INotifyPropertyChanged and IEnumerable<T>, use ToObservableChangeSet
-                    if (itemSourceType.AllInterfaces.Any(i =>
-                            i.OriginalDefinition.ToDisplayString() == "System.Collections.Generic.IEnumerable<T>") &&
-                        itemSourceType.AllInterfaces.Any(ii => ii.ToDisplayString() == "System.ComponentModel.INotifyPropertyChanged"))
-                    {
-                        converterBuilder.AppendLine("global::DynamicData.ObservableListEx.Bind(");
-                        using (converterBuilder.Indent())
-                        {
-                            converterBuilder.AppendLine("global::DynamicData.ObservableListEx.Transform(");
-                            using (converterBuilder.Indent())
-                            {
-                                converterBuilder.AppendLine("global::DynamicData.Binding.ObservableCollectionEx.ToObservableChangeSet(x),");
-                                converterBuilder.Append(
-                                    "k => new global::Everywhere.Configuration.SettingsSelectionItem.Item(new global::Everywhere.I18N.");
-                                converterBuilder.Append(transformExpr).Append(", ");
-                                converterBuilder.AppendLine("k, contentTemplate)), ");
-                            }
-                            converterBuilder.AppendLine("out var result).Subscribe();");
-                        }
-                        converterBuilder.AppendLine("return result;");
-                    }
-                    else
-                    {
-                        converterBuilder.Append("return x.Select(k => new global::Everywhere.Configuration.SettingsSelectionItem.Item(new global::Everywhere.I18N.");
-                        converterBuilder.Append(transformExpr);
-                        converterBuilder.AppendLine(", k, contentTemplate)).ToList();");
-                    }
+                    converterBuilder.Append("return x.Select(k => new global::Everywhere.Configuration.SettingsSelectionItem.Item(new global::Everywhere.I18N.");
+                    converterBuilder.Append(transformExpr);
+                    converterBuilder.AppendLine(", k, contentTemplate)).ToList();");
                 }
 
                 EmitBinding(

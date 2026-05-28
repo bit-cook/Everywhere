@@ -28,7 +28,7 @@ public class ScanVisualElementParticle : VisualElementParticle
 
     public override void Recycle()
     {
-        DisposeCollector.DisposeToDefault(ref _windowMaskRef);
+        DisposeHelper.DisposeToDefault(ref _windowMaskRef);
     }
 
     public override bool Update(double deltaTimeMs)

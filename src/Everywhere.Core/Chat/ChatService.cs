@@ -352,8 +352,9 @@ public sealed partial class ChatService : IChatService
                 .Union(chatContext.ToolRulesets);
 
             var chatPluginScope = await _chatPluginManager.CreateScopeAsync(
-                toolRulesets,
+                assistant,
                 chatContext,
+                toolRulesets,
                 cancellationToken);
             builder.Services.AddSingleton(chatPluginScope);
             activity?.SetTag("plugins.count", chatPluginScope.Plugins.Count);

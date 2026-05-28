@@ -1,9 +1,11 @@
 ﻿using System.Net;
+using System.Reactive.Disposables;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
 using Everywhere.AI;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Extensions;
@@ -20,7 +22,7 @@ public sealed partial class OfficialModelProvider :
     IRecipient<SubscriptionInformationUpdatedMessage>,
     IDisposable
 {
-    public ISourceList<ModelDefinitionTemplate> ModelDefinitions { get; } = new SourceList<ModelDefinitionTemplate>();
+    public IReadOnlyBindableList<ModelDefinitionTemplate> ModelDefinitions { get; }
 
     [ObservableProperty]
     public partial bool IsBusy { get; private set; }
@@ -28,6 +30,8 @@ public sealed partial class OfficialModelProvider :
     private readonly PersistentState _persistentState;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OfficialModelProvider> _logger;
+    private readonly SourceList<ModelDefinitionTemplate> _modelDefinitionsSource = new();
+    private readonly CompositeDisposable _disposables = new();
 
     private readonly SemaphoreSlim _refreshLock = new(1, 1);
     private DateTimeOffset _nextFetchCooldownTime = DateTimeOffset.MinValue;
@@ -38,9 +42,12 @@ public sealed partial class OfficialModelProvider :
         _httpClientFactory = httpClientFactory;
         _logger = logger;
 
+        ModelDefinitions = _modelDefinitionsSource.Connect().BindEx(_disposables);
+        _disposables.Add(_modelDefinitionsSource);
+
         if (persistentState.OfficialModelDefinitionTemplate is not null)
         {
-            ModelDefinitions.AddRange(persistentState.OfficialModelDefinitionTemplate);
+            _modelDefinitionsSource.AddRange(persistentState.OfficialModelDefinitionTemplate);
         }
 
         WeakReferenceMessenger.Default.RegisterAll(this);
@@ -79,14 +86,14 @@ public sealed partial class OfficialModelProvider :
 
             var cloudModelDefinitions = payload.EnsureData();
             var result = cloudModelDefinitions.AsValueEnumerable().Select(m => m.ToModelDefinitionTemplate()).ToList();
-            ModelDefinitions.Reset(result);
+            _modelDefinitionsSource.Reset(result);
             _persistentState.OfficialModelDefinitionTemplate = result;
 
             _nextFetchCooldownTime = DateTimeOffset.Now.AddSeconds(10);
         }
         catch (UserNotLoginException)
         {
-            ModelDefinitions.Clear();
+            _modelDefinitionsSource.Clear();
             _nextFetchCooldownTime = DateTimeOffset.Now;
         }
         catch (OperationCanceledException)
@@ -133,7 +140,7 @@ public sealed partial class OfficialModelProvider :
 
     public void Dispose()
     {
-        ModelDefinitions.Dispose();
+        _disposables.Dispose();
         _refreshLock.Dispose();
         WeakReferenceMessenger.Default.UnregisterAll(this);
     }

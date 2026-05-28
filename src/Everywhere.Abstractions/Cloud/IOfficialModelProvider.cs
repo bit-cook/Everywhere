@@ -1,5 +1,5 @@
-﻿using DynamicData;
-using Everywhere.AI;
+﻿using Everywhere.AI;
+using Everywhere.Collections;
 using Everywhere.Common;
 
 namespace Everywhere.Cloud;
@@ -13,7 +13,7 @@ public interface IOfficialModelProvider
     /// This should be an observable collection that notifies subscribers when the list of model definitions changes.
     /// This should refresh before & after get is called.
     /// </summary>
-    ISourceList<ModelDefinitionTemplate> ModelDefinitions { get; }
+    IReadOnlyBindableList<ModelDefinitionTemplate> ModelDefinitions { get; }
 
     /// <summary>
     /// Indicates whether the provider is currently fetching or refreshing the model definitions.

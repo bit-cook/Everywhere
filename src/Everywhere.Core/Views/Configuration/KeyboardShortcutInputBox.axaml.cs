@@ -77,7 +77,7 @@ public class KeyboardShortcutInputBox : TemplatedControl
     {
         base.OnApplyTemplate(e);
 
-        DisposeCollector.DisposeToDefault(ref _clearButtonClickedSubscription);
+        DisposeHelper.DisposeToDefault(ref _clearButtonClickedSubscription);
         _clearButtonClickedSubscription =
             e.NameScope.Find<Button>(ClearButtonPartName)?.AddDisposableHandler(Button.ClickEvent, HandleClearButtonClicked);
     }
@@ -172,7 +172,7 @@ public class KeyboardShortcutInputBox : TemplatedControl
 
         _shortcutScope?.PressingShortcutChanged -= HandleShortcutScopePressingShortcutChanged;
         _shortcutScope?.ShortcutFinished -= HandleShortcutScopeShortcutFinished;
-        DisposeCollector.DisposeToDefault(ref _shortcutScope);
+        DisposeHelper.DisposeToDefault(ref _shortcutScope);
     }
 
     private void HandleShortcutScopePressingShortcutChanged(IKeyboardShortcutScope _, KeyboardShortcut hotkey) =>
@@ -190,6 +190,6 @@ public class KeyboardShortcutInputBox : TemplatedControl
             TopLevel.GetTopLevel(this)?.Focus();
         });
 
-        DisposeCollector.DisposeToDefault(ref _shortcutScope);
+        DisposeHelper.DisposeToDefault(ref _shortcutScope);
     }
 }

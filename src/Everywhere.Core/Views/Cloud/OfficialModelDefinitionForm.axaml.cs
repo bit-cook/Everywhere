@@ -1,11 +1,11 @@
-using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using Avalonia.Controls.Primitives;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
-using DynamicData;
 using Everywhere.AI;
 using Everywhere.Cloud;
+using Everywhere.Collections;
 using Everywhere.Common;
-using Everywhere.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using ShadUI;
 
@@ -22,12 +22,12 @@ public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvide
         public override string ToString() => Model.ToString();
     }
 
-    public static readonly DirectProperty<OfficialModelDefinitionForm, ObservableCollection<ItemWrapper>> ItemsSourceProperty =
-        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, ObservableCollection<ItemWrapper>>(
+    public static readonly DirectProperty<OfficialModelDefinitionForm, IReadOnlyBindableList<ItemWrapper>> ItemsSourceProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, IReadOnlyBindableList<ItemWrapper>>(
             nameof(ItemsSource),
             o => o.ItemsSource);
 
-    public ObservableCollection<ItemWrapper> ItemsSource { get; } = [];
+    public IReadOnlyBindableList<ItemWrapper> ItemsSource => _itemsSource;
 
     public static readonly DirectProperty<OfficialModelDefinitionForm, ModelDefinitionTemplate?> SelectedItemProperty =
         AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, ModelDefinitionTemplate?>(
@@ -86,29 +86,27 @@ public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvide
 
     public IOfficialModelProvider OfficialModelProvider { get; } = serviceProvider.GetRequiredService<IOfficialModelProvider>();
 
-    private IDisposable? _modelDefinitionsSubscription;
     private ModelDefinitionTemplate? _selectedItem;
     private ItemWrapper? _selectedItemWrapper;
     private string? _selectedModelId = assistant.ModelId;
     private ModelDefinitionTemplate? _selectedSnapshot;
     private bool _isSynchronizingItems;
 
+    private readonly BindableList<ItemWrapper> _itemsSource = [];
+
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
 
-        _modelDefinitionsSubscription = OfficialModelProvider.ModelDefinitions
-            .Connect()
-            .ToCollection()
-            .ObserveOnAvaloniaDispatcher()
-            .Subscribe(ReconcileProxyList);
+        OfficialModelProvider.ModelDefinitions.CollectionChanged += HandleModelDefinitionsChanged;
+        ReconcileProxyList(OfficialModelProvider.ModelDefinitions);
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
 
-        DisposeCollector.DisposeToDefault(ref _modelDefinitionsSubscription);
+        OfficialModelProvider.ModelDefinitions.CollectionChanged -= HandleModelDefinitionsChanged;
     }
 
     private void ReconcileProxyList(IReadOnlyCollection<ModelDefinitionTemplate> cloudItems)
@@ -137,43 +135,48 @@ public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvide
         var desiredSelectedModel = items.FirstOrDefault(x => x.ModelId == targetModelId);
         if (desiredSelectedModel is not null)
         {
-            var desiredSelectedItemWrapper = ItemsSource.FirstOrDefault(x => ReferenceEquals(x.Model, desiredSelectedModel)) ??
+            var desiredSelectedItemWrapper = _itemsSource.FirstOrDefault(x => ReferenceEquals(x.Model, desiredSelectedModel)) ??
                 new ItemWrapper(desiredSelectedModel);
-            if (!ItemsSource.Contains(desiredSelectedItemWrapper))
+            if (!_itemsSource.Contains(desiredSelectedItemWrapper))
             {
-                var desiredIndex = items.IndexOf(desiredSelectedModel);
-                ItemsSource.Insert(Math.Min(desiredIndex, ItemsSource.Count), desiredSelectedItemWrapper);
+                var desiredIndex = 0;
+                for (; desiredIndex < items.Count; desiredIndex++)
+                {
+                    if (ReferenceEquals(items[desiredIndex], desiredSelectedModel)) break;
+                }
+
+                _itemsSource.Insert(Math.Min(desiredIndex, _itemsSource.Count), desiredSelectedItemWrapper);
             }
 
             SetSelectedItemWrapper(desiredSelectedItemWrapper, forceUpdate: true);
         }
 
-        for (var i = ItemsSource.Count - 1; i >= 0; i--)
+        for (var i = _itemsSource.Count - 1; i >= 0; i--)
         {
-            var item = ItemsSource[i];
+            var item = _itemsSource[i];
             if (items.Any(model => ReferenceEquals(model, item.Model))) continue;
 
-            ItemsSource.RemoveAt(i);
+            _itemsSource.RemoveAt(i);
         }
 
         for (var desiredIndex = 0; desiredIndex < items.Count; desiredIndex++)
         {
             var model = items[desiredIndex];
-            var itemWrapper = ItemsSource.FirstOrDefault(x => ReferenceEquals(x.Model, model));
+            var itemWrapper = _itemsSource.FirstOrDefault(x => ReferenceEquals(x.Model, model));
             if (itemWrapper is null)
             {
-                ItemsSource.Insert(desiredIndex, new ItemWrapper(model));
+                _itemsSource.Insert(desiredIndex, new ItemWrapper(model));
                 continue;
             }
 
-            var currentIndex = ItemsSource.IndexOf(itemWrapper);
+            var currentIndex = _itemsSource.IndexOf(itemWrapper);
             if (currentIndex != desiredIndex)
             {
-                ItemsSource.Move(currentIndex, desiredIndex);
+                _itemsSource.Move(currentIndex, desiredIndex);
             }
         }
 
-        SetSelectedItemWrapper(ItemsSource.FirstOrDefault(x => x.ModelId == targetModelId), forceUpdate: true);
+        SetSelectedItemWrapper(_itemsSource.FirstOrDefault(x => x.ModelId == targetModelId), forceUpdate: true);
     }
 
     private void SetSelectedItemWrapper(ItemWrapper? value, bool forceUpdate = false)
@@ -196,7 +199,7 @@ public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvide
     {
         if (_isSynchronizingItems && value is null && !forceUpdate) return;
 
-        var itemWrapper = ItemsSource.FirstOrDefault(x => x.ModelId == value);
+        var itemWrapper = _itemsSource.FirstOrDefault(x => x.ModelId == value);
         if (itemWrapper is not null)
         {
             SetSelectedItemWrapper(itemWrapper, forceUpdate);
@@ -229,7 +232,12 @@ public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvide
             assistant.ApplyTemplate(model);
         }
 
-        UpdateSelectedModelUnavailable(OfficialModelProvider.ModelDefinitions.Items);
+        UpdateSelectedModelUnavailable(OfficialModelProvider.ModelDefinitions);
+    }
+
+    private void HandleModelDefinitionsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        Dispatcher.UIThread.PostOnDemand(() => ReconcileProxyList(OfficialModelProvider.ModelDefinitions));
     }
 
     private void UpdateSelectedModelUnavailable(IReadOnlyCollection<ModelDefinitionTemplate> cloudItems)

@@ -136,7 +136,7 @@ public class I18NExtension : MarkupExtension
 
         public IDisposable Subscribe(IObserver<object?> observer)
         {
-            DisposeCollector.DisposeToDefault(ref _selfSubscription);
+            DisposeHelper.DisposeToDefault(ref _selfSubscription);
             _selfSubscription = _bindingInstance?.Source.Subscribe(this); // Subscribe to the binding so that we can get updates.
 
             return _bindingInstance?.Source.Subscribe(observer) ?? Disposable.Empty;

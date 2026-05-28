@@ -76,7 +76,7 @@ public sealed class TerminalView : TemplatedControl
     {
         base.OnApplyTemplate(e);
 
-        DisposeCollector.DisposeToDefault(ref _outputBridge);
+        DisposeHelper.DisposeToDefault(ref _outputBridge);
         _outputCodeBlock = e.NameScope.Find<CodeBlock>(OutputCodeBlockPartName);
 
         StartOutputBridge();
@@ -93,7 +93,7 @@ public sealed class TerminalView : TemplatedControl
     {
         base.OnDetachedFromVisualTree(e);
 
-        DisposeCollector.DisposeToDefault(ref _outputBridge);
+        DisposeHelper.DisposeToDefault(ref _outputBridge);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -102,7 +102,7 @@ public sealed class TerminalView : TemplatedControl
 
         if (change.Property == DisplayBlockProperty)
         {
-            DisposeCollector.DisposeToDefault(ref _outputBridge);
+            DisposeHelper.DisposeToDefault(ref _outputBridge);
             _outputCodeBlock?.Inlines.Clear();
             StartOutputBridge();
         }

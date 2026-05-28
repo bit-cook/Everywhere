@@ -1,9 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DynamicData;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Interop;
 using Everywhere.Terminal;
@@ -49,7 +48,7 @@ public sealed partial class ChatPluginContainerDisplayBlock : ChatPluginDisplayB
     /// WARNING that this collection is not strongly synchronized, but it is observed on the UI dispatcher.
     /// </summary>
     [IgnoreMember]
-    public ReadOnlyObservableCollection<ChatPluginDisplayBlock> Children { get; }
+    public IReadOnlyBindableList<ChatPluginDisplayBlock> Children { get; }
 
     [IgnoreMember]
     public IChatPluginDisplaySink DisplaySink => _displaySink;

@@ -1,5 +1,4 @@
-﻿using System.Collections.ObjectModel;
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using Avalonia.Controls;
@@ -7,8 +6,9 @@ using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Platform;
-using DynamicData;
+using Everywhere.Collections;
 using Everywhere.Common;
+using Everywhere.Utilities;
 using FuzzySharp;
 using Lucide.Avalonia;
 using MessagePack;
@@ -31,19 +31,19 @@ public sealed class IconEditor : TemplatedControl
         set => SetValue(IconProperty, value);
     }
 
-    public static readonly DirectProperty<IconEditor, ReadOnlyObservableCollection<LucideIconKind>> LucideItemsSourceProperty =
-        AvaloniaProperty.RegisterDirect<IconEditor, ReadOnlyObservableCollection<LucideIconKind>>(
+    public static readonly DirectProperty<IconEditor, IReadOnlyBindableList<LucideIconKind>> LucideItemsSourceProperty =
+        AvaloniaProperty.RegisterDirect<IconEditor, IReadOnlyBindableList<LucideIconKind>>(
             nameof(LucideItemsSource),
             o => o.LucideItemsSource);
 
-    public ReadOnlyObservableCollection<LucideIconKind> LucideItemsSource { get; }
+    public IReadOnlyBindableList<LucideIconKind> LucideItemsSource { get; }
 
-    public static readonly DirectProperty<IconEditor, ReadOnlyObservableCollection<string>> EmojiItemsSourceProperty =
-        AvaloniaProperty.RegisterDirect<IconEditor, ReadOnlyObservableCollection<string>>(
+    public static readonly DirectProperty<IconEditor, IReadOnlyBindableList<string>> EmojiItemsSourceProperty =
+        AvaloniaProperty.RegisterDirect<IconEditor, IReadOnlyBindableList<string>>(
             nameof(EmojiItemsSource),
             o => o.EmojiItemsSource);
 
-    public ReadOnlyObservableCollection<string> EmojiItemsSource { get; }
+    public IReadOnlyBindableList<string> EmojiItemsSource { get; }
 
     public static readonly StyledProperty<string?> QueryTextProperty = AvaloniaProperty.Register<IconEditor, string?>(nameof(QueryText));
 
@@ -59,26 +59,32 @@ public sealed class IconEditor : TemplatedControl
             .Select(x => (Kind: x, Name: x.ToString()))
             .ToList();
 
-    private readonly SourceList<LucideIconKind> _lucideItemsSourceList = new();
-    private readonly SourceList<string> _emojiItemsSourceList = new();
-    private readonly CompositeDisposable _disposables = new(1);
+    private readonly BindableList<LucideIconKind> _lucideItemsSource = [];
+    private readonly BindableList<string> _emojiItemsSource = [];
 
+    private CompositeDisposable? _subscriptions;
     private IDisposable? _iconTypeTabControlSelectionChangedSubscription;
     private TabControl? _iconTypeTabControl;
 
     public IconEditor()
     {
-        LucideItemsSource = _lucideItemsSourceList
-            .Connect()
-            .ObserveOnAvaloniaDispatcher()
-            .BindEx(_disposables);
-        EmojiItemsSource = _emojiItemsSourceList
-            .Connect()
-            .ObserveOnAvaloniaDispatcher()
-            .BindEx(_disposables);
+        LucideItemsSource = _lucideItemsSource;
+        EmojiItemsSource = _emojiItemsSource;
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs args)
+    {
+        base.OnAttachedToVisualTree(args);
+
+        if (_subscriptions is not null) return;
+
+        var subscriptions = new CompositeDisposable();
+        _subscriptions = subscriptions;
 
         EmojiSearchEngine.Shared.LoadDictionariesAsync(LocaleManager.CurrentLocale).ContinueWith(_ =>
         {
+            if (_subscriptions != subscriptions) return;
+
             this.GetObservable(QueryTextProperty)
                 .Select(q => q ?? string.Empty)
                 .DistinctUntilChanged()
@@ -88,36 +94,51 @@ public sealed class IconEditor : TemplatedControl
                 .ObserveOnAvaloniaDispatcher()
                 .Subscribe(results =>
                 {
-                    _lucideItemsSourceList.Edit(list =>
+                    _lucideItemsSource.Clear();
+                    if (Icon?.Kind is { } kind)
                     {
-                        list.Clear();
-                        if (Icon?.Kind is { } kind)
+                        _lucideItemsSource.Add(kind);
+                        foreach (var lucide in results.Lucide.Where(k => k != kind))
                         {
-                            list.Add(kind); // Put selected item first
-                            list.AddRange(results.Lucide.Where(k => k != kind));
+                            _lucideItemsSource.Add(lucide);
                         }
-                        else
+                    }
+                    else
+                    {
+                        foreach (var lucide in results.Lucide)
                         {
-                            list.AddRange(results.Lucide);
+                            _lucideItemsSource.Add(lucide);
                         }
-                    });
+                    }
 
-                    _emojiItemsSourceList.Edit(list =>
+                    _emojiItemsSource.Clear();
+                    if (Icon?.Text is { } text)
                     {
-                        list.Clear();
-                        if (Icon?.Text is { } text)
+                        _emojiItemsSource.Add(text);
+                        foreach (var emoji in results.Emoji.Where(e => !e.Equals(text, StringComparison.OrdinalIgnoreCase)))
                         {
-                            list.Add(text); // Put selected item first
-                            list.AddRange(results.Emoji.Where(e => !e.Equals(text, StringComparison.OrdinalIgnoreCase)));
+                            _emojiItemsSource.Add(emoji);
                         }
-                        else
+                    }
+                    else
+                    {
+                        foreach (var emoji in results.Emoji)
                         {
-                            list.AddRange(results.Emoji);
+                            _emojiItemsSource.Add(emoji);
                         }
-                    });
+                    }
                 })
-                .DisposeWith(_disposables);
+                .DisposeWith(subscriptions);
         }).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        DisposeHelper.DisposeToDefault(ref _subscriptions);
+        DisposeHelper.DisposeToDefault(ref _iconTypeTabControlSelectionChangedSubscription);
+        _iconTypeTabControl = null;
+
+        base.OnDetachedFromVisualTree(e);
     }
 
     private async Task<(IEnumerable<LucideIconKind> Lucide, IEnumerable<string> Emoji)> PerformSearchAsync(

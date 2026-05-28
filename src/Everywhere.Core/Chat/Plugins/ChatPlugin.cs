@@ -1,11 +1,11 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Linq;
 using System.Text.Json.Serialization;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using Everywhere.Chat.Permissions;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Utilities;
@@ -40,25 +40,15 @@ public abstract partial class ChatPlugin : KernelPlugin, IDisposable
     public partial bool IsEnabled { get; set; }
 
     /// <summary>
-    /// Gets or sets the allowed permissions for the plugin.
-    /// </summary>
-    [ObservableProperty]
-    public partial Customizable<ChatFunctionPermissions> AllowedPermissions { get; set; } =
-        ChatFunctionPermissions.ScreenAccess |
-        ChatFunctionPermissions.NetworkAccess |
-        ChatFunctionPermissions.ClipboardAccess |
-        ChatFunctionPermissions.FileRead;
-
-    /// <summary>
     /// Gets the list of warnings for this plugin to be displayed in the UI.
     /// </summary>
     [JsonIgnore]
-    public ReadOnlyObservableCollection<ChatPluginWarning> Warnings { get; }
+    public IReadOnlyBindableList<ChatPluginWarning> Warnings { get; }
 
     /// <summary>
     /// Gets the list of functions provided by this plugin for Binding use in the UI.
     /// </summary>
-    public abstract ReadOnlyObservableCollection<ChatFunction> Functions { get; }
+    public abstract IReadOnlyBindableList<ChatFunction> Functions { get; }
 
     /// <summary>
     /// Gets the SettingsItems for this chat function.
@@ -75,7 +65,14 @@ public abstract partial class ChatPlugin : KernelPlugin, IDisposable
             .BindEx(out _warningsConnection);
     }
 
+    /// <summary>
+    /// Gets the list of functions provided by this plugin.
+    /// </summary>
+    /// <returns></returns>
     public abstract IReadOnlyList<ChatFunction> GetChatFunctions();
+
+    public virtual ValueTask<IReadOnlyList<ChatFunction>> GetAvailableFunctionsAsync(ChatPluginFunctionContext context) =>
+        ValueTask.FromResult(GetChatFunctions());
 
     public virtual void Dispose()
     {
@@ -107,7 +104,7 @@ public sealed record ChatPluginWarning(string Key, IDynamicResourceKey MessageKe
 
 public abstract class ChatPlugin<TChatFunction> : ChatPlugin where TChatFunction : ChatFunction
 {
-    public override ReadOnlyObservableCollection<ChatFunction> Functions { get; }
+    public override IReadOnlyBindableList<ChatFunction> Functions { get; }
 
     public override int FunctionCount
     {
@@ -248,7 +245,7 @@ public sealed partial class McpChatPlugin : ChatPlugin<McpChatFunction>, ILogger
     /// Gets the log entries of this plugin.
     /// </summary>
     [ObjectObserverIgnore]
-    public ReadOnlyObservableCollection<LogEntry> LogEntries { get; }
+    public IReadOnlyBindableList<LogEntry> LogEntries { get; }
 
     private const int MaxLogEntries = 1000;
     private const int PurgeThreshold = 200;

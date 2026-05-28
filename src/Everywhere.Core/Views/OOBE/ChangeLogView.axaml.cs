@@ -4,7 +4,7 @@ namespace Everywhere.Views;
 
 public sealed partial class ChangeLogView : ReactiveUserControl<ChangeLogViewModel>
 {
-    public ChangeLogView()
+    public ChangeLogView(IServiceProvider serviceProvider) : base(serviceProvider)
     {
         InitializeComponent();
     }

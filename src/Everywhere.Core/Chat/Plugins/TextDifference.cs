@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
+using Everywhere.Collections;
 using Everywhere.Common;
 using MessagePack;
 using ZLinq;
@@ -129,7 +129,7 @@ public sealed partial class TextDifference : ObservableObject, IDisposable
     /// A read-only, thread-safe collection of changes for UI binding.
     /// </summary>
     [IgnoreMember]
-    public ReadOnlyObservableCollection<TextChange> Changes { get; }
+    public IReadOnlyBindableList<TextChange> Changes { get; }
 
     /// <summary>
     /// For serialization purposes only.

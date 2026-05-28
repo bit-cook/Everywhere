@@ -1,10 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using System.Reactive.Disposables;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
@@ -17,11 +16,11 @@ using ZLinq;
 
 namespace Everywhere.ViewModels;
 
-public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<MainViewNavigateMessage>, IDisposable
+public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<MainViewNavigateMessage>
 {
     [ObservableProperty] public partial NavigationBarItem? SelectedItem { get; set; }
 
-    public ReadOnlyObservableCollection<NavigationBarItem> Items { get; }
+    public IReadOnlyBindableList<NavigationBarItem> Items { get; }
 
     /// <summary>
     /// Use public property for MVVM binding
@@ -29,8 +28,6 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<Ma
     public PersistentState PersistentState { get; }
 
     private readonly SourceList<NavigationBarItem> _itemsSource = new();
-    private readonly CompositeDisposable _disposables = new(2);
-
     private readonly IServiceProvider _serviceProvider;
     private readonly Settings _settings;
 
@@ -48,10 +45,21 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<Ma
         Items = _itemsSource
             .Connect()
             .ObserveOnAvaloniaDispatcher()
-            .BindEx(_disposables);
+            .BindEx(LifetimeDisposables);
+        LifetimeDisposables.Add(_itemsSource);
         InitializeNavigationBarItems();
 
         WeakReferenceMessenger.Default.Register(this);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            WeakReferenceMessenger.Default.UnregisterAll(this);
+        }
+
+        base.Dispose(disposing);
     }
 
     protected internal override async Task ViewLoaded(CancellationToken cancellationToken)
@@ -242,8 +250,4 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<Ma
         else NavigateTo(message.Route);
     }
 
-    public void Dispose()
-    {
-        _disposables.Dispose();
-    }
 }

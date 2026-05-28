@@ -54,7 +54,7 @@ public sealed class BuiltInChatFunction : ChatFunction
 {
     public override IDynamicResourceKey HeaderKey { get; }
 
-    public override IDynamicResourceKey DescriptionKey => _descriptionKey ?? base.DescriptionKey;
+    public override IDynamicResourceKey DescriptionKey => field ?? base.DescriptionKey;
 
     public override ChatFunctionPermissions Permissions { get; }
 
@@ -69,7 +69,6 @@ public sealed class BuiltInChatFunction : ChatFunction
     /// </summary>
     public Func<FunctionCallContent, bool?>? OnPermissionConsent { get; }
 
-    private readonly DynamicResourceKey? _descriptionKey;
     private readonly IFriendlyFunctionCallContentRenderer? _renderer;
 
     public BuiltInChatFunction(
@@ -80,16 +79,27 @@ public sealed class BuiltInChatFunction : ChatFunction
         bool isExperimental = false,
         bool isEnabled = true,
         bool isVisible = true,
-        Func<FunctionCallContent, bool?>? onPermissionConsent = null)
+        Func<FunctionCallContent, bool?>? onPermissionConsent = null,
+        string? functionName = null,
+        string? description = null,
+        IDynamicResourceKey? headerKey = null,
+        IDynamicResourceKey? descriptionKey = null)
     {
-        if (method.Method.GetCustomAttributes<DynamicResourceKeyAttribute>(false).FirstOrDefault() is
-            { HeaderKey: { Length: > 0 } headerKey } attribute)
+        if (headerKey is not null)
         {
-            HeaderKey = new DynamicResourceKey(headerKey);
+            HeaderKey = headerKey;
+        }
+        else if (method.Method.GetCustomAttributes<DynamicResourceKeyAttribute>(false).FirstOrDefault() is { HeaderKey.Length: > 0 } attribute)
+        {
+            HeaderKey = new DynamicResourceKey(attribute.HeaderKey);
             if (!attribute.DescriptionKey.IsNullOrWhiteSpace())
             {
-                _descriptionKey = new DynamicResourceKey(attribute.DescriptionKey);
+                DescriptionKey = new DynamicResourceKey(attribute.DescriptionKey);
             }
+        }
+        else if (!functionName.IsNullOrWhiteSpace())
+        {
+            HeaderKey = new DirectResourceKey(functionName);
         }
         else if (method.Method.GetCustomAttributes<KernelFunctionAttribute>(false).FirstOrDefault() is { Name: { Length: > 0 } name })
         {
@@ -100,7 +110,20 @@ public sealed class BuiltInChatFunction : ChatFunction
             HeaderKey = new DirectResourceKey(method.Method.Name);
         }
 
-        KernelFunction = KernelFunctionFactory.CreateFromMethod(method);
+        if (descriptionKey is not null)
+        {
+            DescriptionKey = descriptionKey;
+        }
+
+        KernelFunction = functionName.IsNullOrWhiteSpace() && description is null
+            ? KernelFunctionFactory.CreateFromMethod(method)
+            : KernelFunctionFactory.CreateFromMethod(
+                method,
+                new KernelFunctionFromMethodOptions
+                {
+                    FunctionName = functionName,
+                    Description = description
+                });
         Permissions = permissions;
         Icon = icon;
         IsAutoApproveAllowed = isAutoApproveAllowed;

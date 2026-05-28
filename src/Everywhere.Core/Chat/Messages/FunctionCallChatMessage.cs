@@ -1,9 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using System.Reactive.Disposables;
+﻿using System.Reactive.Disposables;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
 using Everywhere.Chat.Plugins;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Lucide.Avalonia;
 using MessagePack;
@@ -88,7 +88,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
     /// to the full details of the function calls and results they are meant to represent.
     /// </remarks>
     [IgnoreMember]
-    public ReadOnlyObservableCollection<ChatPluginDisplayBlock> DisplayBlocks { get; }
+    public IReadOnlyBindableList<ChatPluginDisplayBlock> DisplayBlocks { get; }
 
     /// <summary>
     /// The display sink that holds the display blocks for this function call message.

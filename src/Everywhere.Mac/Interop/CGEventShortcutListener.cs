@@ -186,7 +186,7 @@ public sealed class CGEventShortcutListener : IShortcutListener, IDisposable
 
     public void Dispose()
     {
-        DisposeCollector.DisposeToDefault(ref _currentCaptureScope);
+        DisposeHelper.DisposeToDefault(ref _currentCaptureScope);
         CGEventListener.Default.EventReceived -= HandleEvent;
         _keyboardRegistrations.Clear();
     }

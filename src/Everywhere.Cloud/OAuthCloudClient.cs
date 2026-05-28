@@ -1,5 +1,4 @@
 ﻿using System.Buffers.Text;
-using System.Collections.ObjectModel;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -11,6 +10,7 @@ using System.Web;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Extensions;
@@ -54,7 +54,7 @@ public sealed partial class OAuthCloudClient :
     [ObservableProperty]
     public partial IDynamicResourceKey? LastLoginErrorKey { get; private set; }
 
-    public ReadOnlyObservableCollection<DynamicNotification> Notifications => _notificationManager.Notifications;
+    public IReadOnlyBindableList<DynamicNotification> Notifications => _notificationManager.Notifications;
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<OAuthCloudClient> _logger;

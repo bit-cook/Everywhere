@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.I18N;
 
@@ -44,7 +45,7 @@ public interface ICloudClient : INotifyPropertyChanged
     /// <summary>
     /// Gets a list of notifications
     /// </summary>
-    ReadOnlyObservableCollection<DynamicNotification> Notifications { get; }
+    IReadOnlyBindableList<DynamicNotification> Notifications { get; }
 
     /// <summary>
     /// Initiates the OAuth 2.0 (PKCE) login flow.

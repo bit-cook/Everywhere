@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
+using Everywhere.Collections;
 using Everywhere.Common;
 using MessagePack;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -113,7 +113,7 @@ public sealed partial class AssistantChatMessage :
     /// Each span represents a part of the message content and function calls.
     /// </summary>
     [IgnoreMember]
-    public ReadOnlyObservableCollection<AssistantChatMessageSpan> Spans { get; }
+    public IReadOnlyBindableList<AssistantChatMessageSpan> Spans { get; }
 
     [Key(9)]
     [ObservableProperty]
@@ -160,7 +160,7 @@ public sealed partial class AssistantChatMessage :
     public override string ToString()
     {
         var builder = new StringBuilder();
-        foreach (var span in Items.AsValueEnumerable().OfType<AssistantChatMessageTextSpan>().Where(s => s.ContentMarkdownBuilder.Length > 0))
+        foreach (var span in _spansSource.Items.AsValueEnumerable().OfType<AssistantChatMessageTextSpan>().Where(s => s.ContentMarkdownBuilder.Length > 0))
         {
             builder.AppendLine(span.ContentMarkdownBuilder.ToString());
         }
@@ -176,8 +176,13 @@ public sealed partial class AssistantChatMessage :
 
     #region ISourceList<AssistantChatMessageSpan> Implementation
 
+    [IgnoreMember]
     public int Count => _spansSource.Count;
+
+    [IgnoreMember]
     public IObservable<int> CountChanged => _spansSource.CountChanged;
+
+    [IgnoreMember]
     public IReadOnlyList<AssistantChatMessageSpan> Items => _spansSource.Items;
 
     public IObservable<IChangeSet<AssistantChatMessageSpan>> Connect(Func<AssistantChatMessageSpan, bool>? predicate = null)
@@ -196,5 +201,4 @@ public sealed partial class AssistantChatMessage :
     }
 
     #endregion
-
 }

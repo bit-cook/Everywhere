@@ -88,7 +88,7 @@ public sealed partial class SoftwareUpdater(
 
         void Stop()
         {
-            DisposeCollector.DisposeToDefault(ref _timer);
+            DisposeHelper.DisposeToDefault(ref _timer);
         }
 #endif
     }

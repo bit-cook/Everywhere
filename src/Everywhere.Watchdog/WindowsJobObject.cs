@@ -37,7 +37,7 @@ internal sealed class WindowsJobObject : IDisposable
         if (!PInvoke.SetInformationJobObject(_handle, JOBOBJECTINFOCLASS.JobObjectExtendedLimitInformation, infoSpan))
         {
             var error = Marshal.GetLastPInvokeError();
-            DisposeCollector.DisposeToDefault(ref _handle);
+            DisposeHelper.DisposeToDefault(ref _handle);
             throw new Win32Exception(error);
         }
     }
@@ -78,7 +78,7 @@ internal sealed class WindowsJobObject : IDisposable
         if (_disposed) return;
         _disposed = true;
 
-        DisposeCollector.DisposeToDefault(ref _handle);
+        DisposeHelper.DisposeToDefault(ref _handle);
     }
 }
 

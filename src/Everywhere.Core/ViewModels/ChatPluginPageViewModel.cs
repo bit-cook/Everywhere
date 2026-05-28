@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.Text.Json;
+﻿using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Everywhere.Chat.Plugins;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Views;
@@ -25,19 +25,19 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
             OnPropertyChanged(nameof(SelectedBuiltInPlugin));
             OnPropertyChanged(nameof(SelectedMcpPlugin));
 
-            ContentTabItems.Clear();
+            _contentTabItems.Clear();
             if (value is null) return;
 
-            ContentTabItems.Add(new FunctionsTabItem(value));
+            _contentTabItems.Add(new FunctionsTabItem(value));
 
             if (value.SettingsItems is { Count: > 0 } settingsItems)
             {
-                ContentTabItems.Add(new SettingsTabItem(settingsItems));
+                _contentTabItems.Add(new SettingsTabItem(settingsItems));
             }
 
             if (value is McpChatPlugin mcpPlugin)
             {
-                ContentTabItems.Add(new LogsTabItem(mcpPlugin.LogEntries));
+                _contentTabItems.Add(new LogsTabItem(mcpPlugin.LogEntries));
             }
         }
     }
@@ -72,7 +72,9 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
         }
     }
 
-    public ObservableCollection<IContentTabItem> ContentTabItems { get; } = [];
+    public IReadOnlyBindableList<IContentTabItem> ContentTabItems => _contentTabItems;
+
+    private readonly BindableList<IContentTabItem> _contentTabItems = [];
 
     [RelayCommand]
     private async Task AddMcpPluginAsync(CancellationToken cancellationToken)
@@ -88,10 +90,9 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
         if (result != DialogResult.Primary) return;
         if (form.Configuration.HasErrors) return;
 
-        McpChatPlugin newPlugin;
         try
         {
-            SelectedPlugin = newPlugin = manager.CreateMcpPlugin(form.Configuration);
+            SelectedPlugin = manager.CreateMcpPlugin(form.Configuration);
         }
         catch (Exception e)
         {
@@ -375,7 +376,7 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
     }
 
     [RelayCommand]
-    private async Task CopyLogsAsync(ReadOnlyObservableCollection<McpChatPlugin.LogEntry>? logEntries)
+    private async Task CopyLogsAsync(IReadOnlyBindableList<McpChatPlugin.LogEntry>? logEntries)
     {
         if (logEntries is not { Count: > 0 }) return;
 
@@ -418,11 +419,11 @@ public partial class ChatPluginPageViewModel(IChatPluginManager manager) : BusyV
         public ChatPlugin Plugin { get; } = plugin;
     }
 
-    public partial class LogsTabItem(ReadOnlyObservableCollection<McpChatPlugin.LogEntry> logEntries) : ObservableObject, IContentTabItem
+    public partial class LogsTabItem(IReadOnlyBindableList<McpChatPlugin.LogEntry> logEntries) : ObservableObject, IContentTabItem
     {
         public IDynamicResourceKey Header => new DynamicResourceKey(LocaleKey.ChatPluginPage_TabItem_Logs_Header);
 
-        public ReadOnlyObservableCollection<McpChatPlugin.LogEntry> LogEntries { get; } = logEntries;
+        public IReadOnlyBindableList<McpChatPlugin.LogEntry> LogEntries { get; } = logEntries;
 
         [ObservableProperty]
         public partial bool ShowTimestamp { get; set; }

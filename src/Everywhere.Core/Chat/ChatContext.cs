@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reactive.Disposables;
@@ -7,6 +6,7 @@ using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using DynamicData;
+using Everywhere.Collections;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
 using Everywhere.Common;
@@ -23,7 +23,7 @@ namespace Everywhere.Chat;
 /// The current branch is derived by following each node's <see cref="ChatMessageNode.ChoiceIndex"/>.
 /// </summary>
 [MessagePackObject(AllowPrivate = true)]
-public sealed partial class ChatContext : ObservableObject, IObservableList<ChatMessageNode>, IChatBusyStateIndicator
+public sealed partial class ChatContext : ObservableObject, IObservableList<ChatMessageNode>
 {
     /// <summary>
     /// Keeps a strong reference to busy chat contexts to prevent them from being garbage collected.
@@ -38,7 +38,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// Items in the current branch, excluding the root system prompt node. Used for UI bindings.
     /// </summary>
     [IgnoreMember]
-    public ReadOnlyObservableCollection<ChatMessageNode> DisplayItems { get; }
+    public IReadOnlyBindableList<ChatMessageNode> DisplayItems { get; }
 
     /// <summary>
     /// Messages in the current branch.
@@ -97,7 +97,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     #region UserInterface
 
     [IgnoreMember]
-    public ReadOnlyObservableCollection<ChatPluginUserInterfaceItem> ChatPluginUserInterfaceItems { get; }
+    public IReadOnlyBindableList<ChatPluginUserInterfaceItem> ChatPluginUserInterfaceItems { get; }
 
     [IgnoreMember]
     [ObservableProperty]
@@ -182,7 +182,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     public ChatContext()
     {
         Metadata = new ChatContextMetadata(Guid.CreateVersion7(), DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, null);
-        _rootNode = new ChatMessageNode(Guid.CreateVersion7().SetVersion(0), RootChatMessage.Shared);
+        _rootNode = new ChatMessageNode(Guid.CreateVersion7().SetVersion(0), new RootChatMessage());
         _rootNode.PropertyChanged += HandleNodePropertyChanged;
         _branchNodesSourceList.Add(_rootNode);
 
@@ -410,9 +410,11 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         foreach (var node in _messageNodeMap.Values)
         {
             node.PropertyChanged -= HandleNodePropertyChanged;
+            node.Dispose();
         }
 
         _rootNode.PropertyChanged -= HandleNodePropertyChanged;
+        _rootNode.Dispose();
         _chatPluginUserInterfaceItemsSubscription.Dispose();
         _displayItemsSubscription.Dispose();
         _metadataSyncSubscription.Dispose();

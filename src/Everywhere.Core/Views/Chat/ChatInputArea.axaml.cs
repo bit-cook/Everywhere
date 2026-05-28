@@ -268,11 +268,11 @@ public sealed partial class ChatInputArea : TemplatedControl
     {
         base.OnApplyTemplate(e);
 
-        DisposeCollector.DisposeToDefault(ref _sendButtonClickSubscription);
-        DisposeCollector.DisposeToDefault(ref _textPresenterSizeChangedSubscription);
-        DisposeCollector.DisposeToDefault(ref _chatAttachmentItemsControlPointerMovedSubscription);
-        DisposeCollector.DisposeToDefault(ref _chatAttachmentItemsControlPointerExitedSubscription);
-        DisposeCollector.DisposeToDefault(ref _assistantSelectionMenuItemPointerWheelChangedSubscription);
+        DisposeHelper.DisposeToDefault(ref _sendButtonClickSubscription);
+        DisposeHelper.DisposeToDefault(ref _textPresenterSizeChangedSubscription);
+        DisposeHelper.DisposeToDefault(ref _chatAttachmentItemsControlPointerMovedSubscription);
+        DisposeHelper.DisposeToDefault(ref _chatAttachmentItemsControlPointerExitedSubscription);
+        DisposeHelper.DisposeToDefault(ref _assistantSelectionMenuItemPointerWheelChangedSubscription);
 
         _chatTextEditor = e.NameScope.Find<ChatTextEditor>("PART_ChatTextEditor").NotNull();
 

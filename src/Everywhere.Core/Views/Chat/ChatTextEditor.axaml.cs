@@ -103,7 +103,7 @@ public class ChatTextEditor : TemplatedControl
     {
         base.OnApplyTemplate(e);
 
-        DisposeCollector.DisposeToDefault(ref _textChangedSubscription);
+        DisposeHelper.DisposeToDefault(ref _textChangedSubscription);
 
         if (_textEditor != null)
         {

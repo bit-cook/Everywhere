@@ -69,10 +69,11 @@ public partial class ChatWindow :
     private bool _canCloseWindow;
 
     public ChatWindow(
+        IServiceProvider serviceProvider,
         IWindowHelper windowHelper,
         INativeHelper nativeHelper,
         Settings settings,
-        PersistentState persistentState)
+        PersistentState persistentState) : base(serviceProvider)
     {
         _windowHelper = windowHelper;
         _nativeHelper = nativeHelper;

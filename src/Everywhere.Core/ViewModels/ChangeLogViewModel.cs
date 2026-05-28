@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.Json;
@@ -9,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using DynamicData.Binding;
+using Everywhere.Collections;
 using Everywhere.Common;
 using LiveMarkdown.Avalonia;
 using Microsoft.Extensions.Logging;
@@ -47,7 +47,7 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
 
     public ISoftwareUpdater SoftwareUpdater { get; }
 
-    public ReadOnlyObservableCollection<ReleaseInfo> ReleaseInfos { get; }
+    public IReadOnlyBindableList<ReleaseInfo> ReleaseInfos { get; }
 
     [ObservableProperty]
     public partial ReleaseInfo? SelectedReleaseInfo { get; set; }
@@ -70,8 +70,10 @@ public sealed partial class ChangeLogViewModel : BusyViewModelBase
                     .Descending(r => r.PublishedDate)
                     .ThenByDescending(r => Version.TryParse(r.Tag?.TrimStart('v'), out var v) ? v : new Version(0, 0))
             )
-            .Subscribe();
-        ReleaseInfos = releaseInfos;
+            .Subscribe()
+            .AddTo(LifetimeDisposables);
+        ReleaseInfos = releaseInfos.ToReadOnlyBindableList();
+        LifetimeDisposables.Add(_releaseInfosSource);
     }
 
     protected internal override Task ViewLoaded(CancellationToken cancellationToken) => ExecuteBusyTaskAsync(

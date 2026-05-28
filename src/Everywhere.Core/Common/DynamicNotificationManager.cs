@@ -1,9 +1,9 @@
-﻿using System.Collections.ObjectModel;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.Input;
-using DynamicData;
+using Everywhere.Collections;
 using Everywhere.Configuration;
+using ObservableCollections;
 
 namespace Everywhere.Common;
 
@@ -18,19 +18,22 @@ public readonly record struct DynamicNotificationDescriptor(
 
 public sealed class DynamicNotificationManager : IDisposable
 {
-    public ReadOnlyObservableCollection<DynamicNotification> Notifications { get; }
+    public IReadOnlyBindableList<DynamicNotification> Notifications { get; }
 
     private readonly IKeyValueStorage _keyValueStorage;
     private readonly string? _scope;
-    private readonly SourceCache<DynamicNotification, string> _notificationsSourceList = new(n => n.Id);
-    private readonly IDisposable _notificationsSourceSubscription;
+    private readonly ObservableCollections.ObservableDictionary<string, DynamicNotification> _notificationsSource = new();
+    private readonly IDisposable _notificationsViewDisposable;
 
     public DynamicNotificationManager(IKeyValueStorage keyValueStorage, string? scope = null)
     {
         _keyValueStorage = keyValueStorage;
         _scope = scope;
-        _notificationsSourceSubscription = _notificationsSourceList.Connect().ObserveOnAvaloniaDispatcher().Bind(out var notifications).Subscribe();
-        Notifications = notifications;
+
+        Notifications = _notificationsSource
+            .CreateView(kv => kv.Value)
+            .ToNotifyCollectionChanged(SynchronizationContextCollectionEventDispatcher.Current)
+            .ToReadOnlyBindableList(out _notificationsViewDisposable);
     }
 
     /// <summary>
@@ -58,7 +61,7 @@ public sealed class DynamicNotificationManager : IDisposable
         var key = CreateStorageKey(dynamicNotification.Id, _scope);
         if (dynamicNotification is { CanDismiss: true, ForceShow: false } && _keyValueStorage.Contains(key)) return;
 
-        _notificationsSourceList.AddOrUpdate(CreateNotification(key, dynamicNotification));
+        _notificationsSource[key] = CreateNotification(key, dynamicNotification);
     }
 
     /// <summary>
@@ -68,25 +71,22 @@ public sealed class DynamicNotificationManager : IDisposable
     /// </summary>
     public void Clear()
     {
-        _notificationsSourceList.Clear();
+        _notificationsSource.Clear();
     }
 
     public void Reset(params IEnumerable<DynamicNotificationDescriptor> notifications)
     {
-        _notificationsSourceList.Edit(updater =>
+        _notificationsSource.Clear();
+        foreach (var notification in notifications)
         {
-            updater.Clear();
-            foreach (var notification in notifications)
-            {
-                ArgumentException.ThrowIfNullOrWhiteSpace(notification.Id);
-                ArgumentNullException.ThrowIfNull(notification.ContentKey);
+            ArgumentException.ThrowIfNullOrWhiteSpace(notification.Id);
+            ArgumentNullException.ThrowIfNull(notification.ContentKey);
 
-                var key = CreateStorageKey(notification.Id, _scope);
-                if (notification is { CanDismiss: true, ForceShow: false } && _keyValueStorage.Contains(key)) continue;
+            var key = CreateStorageKey(notification.Id, _scope);
+            if (notification is { CanDismiss: true, ForceShow: false } && _keyValueStorage.Contains(key)) continue;
 
-                updater.AddOrUpdate(CreateNotification(key, notification));
-            }
-        });
+            _notificationsSource[key] = CreateNotification(key, notification);
+        }
     }
 
     internal static string CreateStorageKey(string id, string? scope) =>
@@ -106,13 +106,12 @@ public sealed class DynamicNotificationManager : IDisposable
         {
             // Mark the notification as dismissed in the storage to prevent it from showing again in the future.
             _keyValueStorage.Set(notification.Id, true);
-            _notificationsSourceList.Remove(notification.Id);
+            _notificationsSource.Remove(notification.Id);
         }
     }
 
     public void Dispose()
     {
-        _notificationsSourceList.Dispose();
-        _notificationsSourceSubscription.Dispose();
+        _notificationsViewDisposable.Dispose();
     }
 }

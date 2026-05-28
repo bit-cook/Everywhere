@@ -65,7 +65,7 @@ public sealed partial class WebBrowserHost : IWebBrowserHost
 
                         if (that._browser is null) return;
                         await that._browser.CloseAsync();
-                        DisposeCollector.DisposeToDefault(ref that._browser);
+                        DisposeHelper.DisposeToDefault(ref that._browser);
 
                         if (that._browserProcess is { HasExited: false })
                         {

@@ -1,6 +1,7 @@
-using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
+using System.Collections.Specialized;
 using Avalonia.Controls.Notifications;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -9,6 +10,7 @@ using DynamicData.Binding;
 using Everywhere.AI;
 using Everywhere.AI.Configurator;
 using Everywhere.Cloud;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Messages;
@@ -19,12 +21,12 @@ public sealed class ChatWindowNotificationService : IChatWindowNotificationServi
 {
     private const string NotificationScope = "ChatWindow.OfficialModel";
 
-    public ReadOnlyObservableCollection<DynamicNotification> Notifications => _notificationManager.Notifications;
+    public IReadOnlyBindableList<DynamicNotification> Notifications => _notificationManager.Notifications;
 
     private readonly Settings _settings;
     private readonly IOfficialModelProvider _officialModelProvider;
     private readonly DynamicNotificationManager _notificationManager;
-    private readonly CompositeDisposable _disposables = new();
+    private readonly CompositeDisposable _disposables = new(2);
 
     public ChatWindowNotificationService(
         Settings settings,
@@ -33,8 +35,7 @@ public sealed class ChatWindowNotificationService : IChatWindowNotificationServi
     {
         _settings = settings;
         _officialModelProvider = officialModelProvider;
-        _notificationManager = new DynamicNotificationManager(keyValueStorage, NotificationScope);
-        _disposables.Add(_notificationManager);
+        _notificationManager = new DynamicNotificationManager(keyValueStorage, NotificationScope).DisposeWith(_disposables);
 
         var selectedAssistantChanges = _settings.Model
             .WhenValueChanged(static x => x.SelectedCustomAssistant)
@@ -48,13 +49,15 @@ public sealed class ChatWindowNotificationService : IChatWindowNotificationServi
             .ToCollection()
             .Select(static _ => 0);
 
-        var officialModelDefinitionChanges = _officialModelProvider.ModelDefinitions
-            .Connect()
-            .ToCollection()
+        var officialModelDefinitionChanges = Observable
+            .FromEventPattern<NotifyCollectionChangedEventHandler, NotifyCollectionChangedEventArgs>(
+                h => _officialModelProvider.ModelDefinitions.CollectionChanged += h,
+                h => _officialModelProvider.ModelDefinitions.CollectionChanged -= h)
             .Select(static _ => 0);
 
         Observable
             .Merge(selectedAssistantChanges, assistantChanges, officialModelDefinitionChanges)
+            .StartWith(0)
             .ObserveOnAvaloniaDispatcher()
             .Subscribe(_ => UpdateOfficialModelNotifications())
             .AddTo(_disposables);
@@ -72,7 +75,7 @@ public sealed class ChatWindowNotificationService : IChatWindowNotificationServi
         var today = DateOnly.FromDateTime(DateTime.Now);
         var availability = ModelAvailability.Evaluate(
             assistant,
-            _officialModelProvider.ModelDefinitions.Items,
+            _officialModelProvider.ModelDefinitions,
             today);
         if (!availability.ShouldShowChatNotification)
         {

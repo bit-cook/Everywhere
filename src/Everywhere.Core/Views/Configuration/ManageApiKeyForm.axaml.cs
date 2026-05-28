@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using DynamicData.Binding;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using ShadUI;
@@ -77,7 +78,7 @@ public sealed partial class ManageApiKeyForm : TemplatedControl, IDisposable
         }
     }
 
-    public ReadOnlyObservableCollection<DataGridApiKeyModel> ItemsSource { get; }
+    public IReadOnlyBindableList<DataGridApiKeyModel> ItemsSource { get; }
 
     public static readonly DirectProperty<ManageApiKeyForm, bool?> IsApiKeysCheckedProperty =
         AvaloniaProperty.RegisterDirect<ManageApiKeyForm, bool?>(

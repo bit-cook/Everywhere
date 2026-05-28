@@ -1,5 +1,7 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
+using Everywhere.AI;
+using Everywhere.Chat;
+using Everywhere.Collections;
 using Everywhere.Common;
 
 namespace Everywhere.Chat.Plugins;
@@ -12,12 +14,12 @@ public interface IChatPluginManager
     /// <summary>
     /// Gets the list of built-in chat plugins for Binding use in the UI.
     /// </summary>
-    ReadOnlyObservableCollection<BuiltInChatPlugin> BuiltInPlugins { get; }
+    IReadOnlyBindableList<BuiltInChatPlugin> BuiltInPlugins { get; }
 
     /// <summary>
     /// Gets the list of MCP chat plugins for Binding use in the UI.
     /// </summary>
-    ReadOnlyObservableCollection<McpChatPlugin> McpPlugins { get; }
+    IReadOnlyBindableList<McpChatPlugin> McpPlugins { get; }
 
     /// <summary>
     /// Creates a new MCP plugin based on the provided configuration.
@@ -71,8 +73,9 @@ public interface IChatPluginManager
     /// </summary>
     /// <returns></returns>
     Task<IChatPluginScope> CreateScopeAsync(
+        Assistant assistant,
+        ChatContext chatContext,
         ToolRulesets? toolRulesets,
-        IChatBusyStateIndicator? busyIndicator,
         CancellationToken cancellationToken);
 }
 

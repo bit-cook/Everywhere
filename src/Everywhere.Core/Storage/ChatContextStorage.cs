@@ -233,7 +233,7 @@ public sealed class ChatContextStorage(
             throw new InvalidOperationException("Root node is missing or invalid.");
 
         // Use shared root message instance for memory savings
-        var rootNode = new ChatMessageNode(rootRow.Id, RootChatMessage.Shared);
+        var rootNode = new ChatMessageNode(rootRow.Id, new RootChatMessage());
 
         // Build node instances
         var nodesById = new Dictionary<Guid, ChatMessageNode>();

@@ -48,9 +48,9 @@ public sealed partial class OfficialAssistantConfigurator : AssistantConfigurato
             return _owner;
         }
 
-        ModelDefinitionTemplate? modelDefinitionTemplate = null;
-        ServiceLocator.Resolve<IOfficialModelProvider>().ModelDefinitions.Edit(list =>
-            modelDefinitionTemplate = list.FirstOrDefault(m => m.Specializations.HasFlag(specialization)));
+        var modelDefinitionTemplate = ServiceLocator.Resolve<IOfficialModelProvider>()
+            .ModelDefinitions
+            .FirstOrDefault(m => m.Specializations.HasFlag(specialization));
 
         // Not found, fallback to selected owner
         if (modelDefinitionTemplate is null) return _owner;

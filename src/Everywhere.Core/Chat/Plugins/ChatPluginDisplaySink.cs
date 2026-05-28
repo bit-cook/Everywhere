@@ -24,6 +24,11 @@ public sealed class ChatPluginDisplaySink : IReadOnlyList<ChatPluginDisplayBlock
         _itemsSource.Add(block);
     }
 
+    public void Add(ChatPluginDisplayBlock block)
+    {
+        _itemsSource.Add(block);
+    }
+
     public void AppendBlocks(IEnumerable<ChatPluginDisplayBlock> blocks)
     {
         _itemsSource.AddRange(blocks);

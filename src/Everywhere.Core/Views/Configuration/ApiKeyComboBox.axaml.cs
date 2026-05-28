@@ -1,12 +1,11 @@
 ﻿using System.Collections.ObjectModel;
-using System.Reactive.Disposables;
+using System.Collections.Specialized;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using CommunityToolkit.Mvvm.Input;
-using DynamicData;
-using DynamicData.Binding;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using ShadUI;
@@ -14,7 +13,7 @@ using ShadUI;
 namespace Everywhere.Views;
 
 [TemplatePart(Name = "PART_ComboBox", Type = typeof(ComboBox), IsRequired = true)]
-public sealed partial class ApiKeyComboBox : TemplatedControl, IDisposable
+public sealed partial class ApiKeyComboBox : TemplatedControl
 {
     /// <summary>
     /// Defines the <see cref="SelectedId"/> property.
@@ -46,10 +45,10 @@ public sealed partial class ApiKeyComboBox : TemplatedControl, IDisposable
         set => SetValue(DefaultNameProperty, value);
     }
 
-    public ReadOnlyObservableCollection<ApiKey> ItemsSource { get; }
+    public IReadOnlyBindableList<ApiKey> ItemsSource { get; }
 
     private readonly ObservableCollection<ApiKey> _itemsSource;
-    private readonly IDisposable _subscription;
+    private readonly BindableList<ApiKey> _items = [];
 
     private ComboBox? _comboBox;
 
@@ -57,14 +56,8 @@ public sealed partial class ApiKeyComboBox : TemplatedControl, IDisposable
     {
         _itemsSource = itemsSource;
 
-        var head = new SourceList<ApiKey>();
-        head.Add(ApiKey.Empty);
-
-        ItemsSource = head.Connect()
-            .Or(_itemsSource.ToObservableChangeSet())
-            .BindEx(out var bindSub);
-
-        _subscription = new CompositeDisposable(bindSub, head);
+        ItemsSource = _items;
+        RebuildItemsSource();
     }
 
     [RelayCommand]
@@ -88,7 +81,7 @@ public sealed partial class ApiKeyComboBox : TemplatedControl, IDisposable
     [RelayCommand]
     private async Task ManageApiKeyAsync(CancellationToken cancellationToken)
     {
-        var form = new ManageApiKeyForm(_itemsSource, DefaultName);
+        using var form = new ManageApiKeyForm(_itemsSource, DefaultName);
         await ServiceLocator.Resolve<DialogManager>()
             .CreateDialog(form, LocaleResolver.ApiKeyComboBox_ManageApiKey)
             .WithPrimaryButton(LocaleResolver.Common_OK)
@@ -102,6 +95,19 @@ public sealed partial class ApiKeyComboBox : TemplatedControl, IDisposable
         _comboBox = e.NameScope.Find<ComboBox>("PART_ComboBox");
     }
 
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _itemsSource.CollectionChanged += HandleSourceCollectionChanged;
+        RebuildItemsSource();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        _itemsSource.CollectionChanged -= HandleSourceCollectionChanged;
+        base.OnDetachedFromVisualTree(e);
+    }
+
     protected override void UpdateDataValidation(
         AvaloniaProperty property,
         BindingValueType state,
@@ -113,8 +119,18 @@ public sealed partial class ApiKeyComboBox : TemplatedControl, IDisposable
         }
     }
 
-    public void Dispose()
+    private void HandleSourceCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        _subscription.Dispose();
+        RebuildItemsSource();
+    }
+
+    private void RebuildItemsSource()
+    {
+        _items.Clear();
+        _items.Add(ApiKey.Empty);
+        foreach (var apiKey in _itemsSource)
+        {
+            _items.Add(apiKey);
+        }
     }
 }

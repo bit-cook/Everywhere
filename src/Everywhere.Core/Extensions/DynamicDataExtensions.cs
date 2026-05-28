@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
-using System.Reactive.Concurrency;
+﻿using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using DynamicData;
+using Everywhere.Collections;
 
 namespace Everywhere.Extensions;
 
@@ -51,12 +51,12 @@ public static class DynamicDataExtensions
         /// <param name="disposable"></param>
         /// <param name="resetThreshold"></param>
         /// <returns></returns>
-        public ReadOnlyObservableCollection<T> BindEx(
+        public IReadOnlyBindableList<T> BindEx(
             out IDisposable disposable,
             int resetThreshold = 25)
         {
             disposable = source.Bind(out var collection, resetThreshold).Subscribe();
-            return collection;
+            return collection.ToReadOnlyBindableList();
         }
 
         /// <summary>
@@ -65,13 +65,13 @@ public static class DynamicDataExtensions
         /// <param name="disposables"></param>
         /// <param name="resetThreshold"></param>
         /// <returns></returns>
-        public ReadOnlyObservableCollection<T> BindEx(
+        public IReadOnlyBindableList<T> BindEx(
             ICollection<IDisposable> disposables,
             int resetThreshold = 25)
         {
             var subscription = source.Bind(out var collection, resetThreshold).Subscribe();
             disposables.Add(subscription);
-            return collection;
+            return collection.ToReadOnlyBindableList();
         }
     }
 
@@ -83,12 +83,12 @@ public static class DynamicDataExtensions
         /// <param name="disposable"></param>
         /// <param name="resetThreshold"></param>
         /// <returns></returns>
-        public ReadOnlyObservableCollection<TValue> BindEx(
+        public IReadOnlyBindableList<TValue> BindEx(
             out IDisposable disposable,
             int resetThreshold = 25)
         {
             disposable = source.Bind(out var collection, resetThreshold).Subscribe();
-            return collection;
+            return collection.ToReadOnlyBindableList();
         }
 
         /// <summary>
@@ -97,13 +97,13 @@ public static class DynamicDataExtensions
         /// <param name="disposables"></param>
         /// <param name="resetThreshold"></param>
         /// <returns></returns>
-        public ReadOnlyObservableCollection<TValue> BindEx(
+        public IReadOnlyBindableList<TValue> BindEx(
             ICollection<IDisposable> disposables,
             int resetThreshold = 25)
         {
             var subscription = source.Bind(out var collection, resetThreshold).Subscribe();
             disposables.Add(subscription);
-            return collection;
+            return collection.ToReadOnlyBindableList();
         }
     }
 

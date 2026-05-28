@@ -1,17 +1,18 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Disposables;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
+using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Common;
 using Everywhere.Interop;
-using Everywhere.Utilities;
 using Everywhere.Views;
 using ShadUI;
 
 namespace Everywhere.ViewModels;
 
-public abstract class ReactiveViewModelBase : ObservableValidator
+public abstract class ReactiveViewModelBase : ObservableValidator, IDisposable
 {
     [field: AllowNull, MaybeNull]
     protected DialogManager DialogManager
@@ -35,8 +36,6 @@ public abstract class ReactiveViewModelBase : ObservableValidator
 
     protected static ILauncher Launcher => BetterBclLauncher.Shared;
 
-    private TopLevel? _topLevel;
-
     protected AnonymousExceptionHandler DialogExceptionHandler => new((exception, message, _, _) =>
         DialogManager.CreateDialog(
             exception.GetFriendlyMessage().ToString() ?? LocaleResolver.Common_Unknown,
@@ -47,6 +46,12 @@ public abstract class ReactiveViewModelBase : ObservableValidator
             .WithContent(exception.GetFriendlyMessage())
             .DismissOnClick()
             .ShowError());
+
+    protected CompositeDisposable LifetimeDisposables { get; } = new();
+
+    private bool _isLoaded;
+    private bool _isDisposed;
+    private TopLevel? _topLevel;
 
     /// <summary>
     /// Invoked when the view's <see cref="Control.Loaded"/> event is raised.
@@ -69,43 +74,80 @@ public abstract class ReactiveViewModelBase : ObservableValidator
         handler.HandleException(e, $"Lifetime Exception: [{stage}]");
     }
 
-    public void Bind(Control target)
+    public void Bind(Control target, bool disposeOnUnloaded = false)
     {
         target.DataContext = this;
 
-        var cancellationTokenSource = new ReusableCancellationTokenSource();
-        target.Loaded += async (_, _) =>
+        var cancellationSource = new CancellationTokenSource();
+
+        async void LoadedHandler(object? sender, RoutedEventArgs args)
         {
             try
             {
+                if (_isDisposed || _isLoaded) return;
+
+                _isLoaded = true;
                 _topLevel = TopLevel.GetTopLevel(target);
+
                 if (_topLevel is IReactiveHost reactiveHost)
                 {
                     DialogManager = reactiveHost.DialogHost.Manager;
                     ToastHost = reactiveHost.ToastHost;
                 }
 
-                await ViewLoaded(cancellationTokenSource.Token);
+                await ViewLoaded(cancellationSource.Token);
             }
             catch (Exception e)
             {
                 HandleLifetimeException(nameof(ViewLoaded), e);
             }
-        };
+        }
 
-        target.Unloaded += async (_, _) =>
+        async void UnloadedHandler(object? sender, RoutedEventArgs args)
         {
-            _topLevel = null;
-            cancellationTokenSource.Cancel();
-
             try
             {
-                await ViewUnloaded();
+                if (!_isLoaded) return;
+
+                _isLoaded = false;
+                await cancellationSource.CancelAsync();
+
+                try
+                {
+                    await ViewUnloaded();
+                }
+                finally
+                {
+                    _topLevel = null;
+                }
+
+                if (disposeOnUnloaded)
+                {
+                    Dispose();
+                }
             }
             catch (Exception e)
             {
                 HandleLifetimeException(nameof(ViewUnloaded), e);
             }
-        };
+        }
+
+        target.Loaded += LoadedHandler;
+        target.Unloaded += UnloadedHandler;
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposing || _isDisposed)
+            return;
+
+        _isDisposed = true;
+        LifetimeDisposables.Dispose();
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Disposables;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using Everywhere.Collections;
@@ -42,7 +43,7 @@ public class ObjectObserver(ObjectObserverChangedEventHandler handler) : IDispos
         GetPropertyInfos(type).AsValueEnumerable().FirstOrDefault(p => p.Name == propertyName);
 
     private readonly ObjectObserverChangedEventHandler _handler = handler;
-    private readonly DisposeCollector<Observation> _observations = new();
+    private readonly CompositeDisposable _observations = new();
 
     ~ObjectObserver()
     {

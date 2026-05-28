@@ -1,8 +1,8 @@
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Everywhere.Interop;
-using Everywhere.Utilities;
 using ImageIO;
 
 namespace Everywhere.Mac.Interop;
@@ -26,7 +26,7 @@ partial class VisualElementContext
         private readonly TaskCompletionSource<Bitmap?> _pickingPromise = new();
         private Bitmap? _resultBitmap;
 
-        private readonly DisposeCollector _disposables = new();
+        private readonly CompositeDisposable _disposables = new();
 
         // Free Mode State
         private bool _isDragging;

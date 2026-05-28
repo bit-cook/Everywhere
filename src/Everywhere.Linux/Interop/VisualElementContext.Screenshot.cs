@@ -1,8 +1,8 @@
+using System.Reactive.Disposables;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Everywhere.Interop;
-using Everywhere.Utilities;
 
 namespace Everywhere.Linux.Interop;
 
@@ -26,7 +26,7 @@ public partial class VisualElementContext
         private readonly VisualElementContext _context;
         private Bitmap? _resultBitmap;
 
-        private readonly DisposeCollector _disposables = new();
+        private readonly CompositeDisposable _disposables = new();
         private IVisualElement? _selectedElement;
 
         // Free Mode State

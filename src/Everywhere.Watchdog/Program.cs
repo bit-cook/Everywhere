@@ -104,7 +104,7 @@ public static class Program
                             catch (Exception ex)
                             {
                                 Console.Error.WriteLine($"Failed to assign process {process.Id} to Job Object: {ex.Message}");
-                                DisposeCollector.DisposeToDefault(ref windowsJobObject);
+                                DisposeHelper.DisposeToDefault(ref windowsJobObject);
                             }
 
                             return new MonitoredProcess(process, windowsJobObject);

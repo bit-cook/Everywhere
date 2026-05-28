@@ -211,7 +211,7 @@ public partial class VisualElementContext
 
         protected override void OnClosing(WindowClosingEventArgs e)
         {
-            DisposeCollector.DisposeToDefault(ref _keyboardHookSubscription);
+            DisposeHelper.DisposeToDefault(ref _keyboardHookSubscription);
             base.OnClosing(e);
         }
 

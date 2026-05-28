@@ -1,9 +1,9 @@
+using System.Reactive.Disposables;
 using Windows.Win32;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Everywhere.Interop;
-using Everywhere.Utilities;
 using Point = System.Drawing.Point;
 
 namespace Everywhere.Windows.Interop;
@@ -25,7 +25,7 @@ public partial class VisualElementContext
         }
 
         private readonly TaskCompletionSource<Bitmap?> _pickingPromise = new();
-        private readonly DisposeCollector _disposables = new();
+        private readonly CompositeDisposable _disposables = new();
 
         private Bitmap? _resultBitmap;
 

@@ -1,7 +1,5 @@
-using System.Collections.ObjectModel;
 using System.Diagnostics.Metrics;
 using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -14,6 +12,7 @@ using DynamicData;
 using DynamicData.Binding;
 using Everywhere.Chat;
 using Everywhere.Chat.Plugins;
+using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Interop;
@@ -30,8 +29,7 @@ namespace Everywhere.ViewModels;
 public sealed partial class ChatWindowViewModel :
     ReactiveViewModelBase,
     IRecipient<ActivateChatSessionMessage>,
-    IObserver<TextSelectionData>,
-    IDisposable
+    IObserver<TextSelectionData>
 {
     public Settings Settings { get; }
 
@@ -65,11 +63,11 @@ public sealed partial class ChatWindowViewModel :
     /// </summary>
     public bool IsPickingFiles { get; set; }
 
-    public ReadOnlyObservableCollection<ChatAttachment> ChatAttachments { get; }
+    public IReadOnlyBindableList<ChatAttachment> ChatAttachments { get; }
 
-    public ReadOnlyObservableCollection<ChatPlugin> ChatPlugins { get; }
+    public IReadOnlyBindableList<ChatPlugin> ChatPlugins { get; }
 
-    public ReadOnlyObservableCollection<DynamicNotification> Notifications => _notificationService.Notifications;
+    public IReadOnlyBindableList<DynamicNotification> Notifications => _notificationService.Notifications;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(EditCommand))]
@@ -114,7 +112,6 @@ public sealed partial class ChatWindowViewModel :
     private readonly ILogger<ChatWindowViewModel> _logger;
 
     private readonly DynamicResourceKey _defaultWatermarkKey = new(LocaleKey.ChatInputArea_Watermark);
-    private readonly CompositeDisposable _disposables = new(2);
     private readonly SourceList<ChatAttachment> _chatAttachmentsSource = new();
 
     private readonly Meter _meter = new(typeof(ChatWindowViewModel).FullName.NotNull(), App.Version);
@@ -153,23 +150,23 @@ public sealed partial class ChatWindowViewModel :
 
         // Initialize chat plugins from both built-in and MCP
         ChatPlugins = chatPluginManager.BuiltInPlugins
-            .ToObservableChangeSet()
+            .ToObservableChangeSet<IReadOnlyBindableList<BuiltInChatPlugin>, BuiltInChatPlugin>()
             .Transform(ChatPlugin (x) => x, transformOnRefresh: true)
             .Or(
                 chatPluginManager.McpPlugins
-                    .ToObservableChangeSet()
+                    .ToObservableChangeSet<IReadOnlyBindableList<McpChatPlugin>, McpChatPlugin>()
                     .Transform(ChatPlugin (x) => x, transformOnRefresh: true))
-            .BindEx(_disposables);
+            .BindEx(LifetimeDisposables);
 
         // Initialize chat attachments
         ChatAttachments = _chatAttachmentsSource
             .Connect()
             .ObserveOnAvaloniaDispatcher()
-            .BindEx(_disposables);
-        _disposables.Add(_chatAttachmentsSource);
+            .BindEx(LifetimeDisposables);
+        LifetimeDisposables.Add(_chatAttachmentsSource);
 
         // Initialize strategy commands
-        _disposables.Add(
+        LifetimeDisposables.Add(
             _chatAttachmentsSource
                 .Connect()
                 .ToCollection()
@@ -183,7 +180,7 @@ public sealed partial class ChatWindowViewModel :
         ChatInputAreaText = PersistentState.ChatInputAreaText;
         ChatInputAreaWatermarkKey = _defaultWatermarkKey;
 
-        _disposables.Add(
+        LifetimeDisposables.Add(
             ChatContextManager.WhenValueChanged(x => x.Current)
                 .Select(context => context is null ? Observable.Return(false) : context.WhenValueChanged(x => x.IsBusy))
                 .Switch()
@@ -194,9 +191,14 @@ public sealed partial class ChatWindowViewModel :
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
-    public void Dispose()
+    protected override void Dispose(bool disposing)
     {
-        _disposables.Dispose();
+        if (disposing)
+        {
+            WeakReferenceMessenger.Default.UnregisterAll(this);
+        }
+
+        base.Dispose(disposing);
     }
 
     public void Receive(ActivateChatSessionMessage message)

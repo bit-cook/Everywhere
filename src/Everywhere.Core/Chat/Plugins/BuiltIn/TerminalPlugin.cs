@@ -50,14 +50,46 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
                 onPermissionConsent: _ => true));
     }
 
+    public override ValueTask<IReadOnlyList<ChatFunction>> GetAvailableFunctionsAsync(ChatPluginFunctionContext context)
+    {
+        var configuredFunction = _functionsSource.Items[0];
+        var (shellPath, shellType) = DetectShell();
+        if (shellType == ShellType.Unknown)
+        {
+            return new ValueTask<IReadOnlyList<ChatFunction>>([]);
+        }
+
+        var description =
+            $"Executes command in {shellType switch {
+                ShellType.PowerShell when shellPath.Contains("pwsh", StringComparison.OrdinalIgnoreCase) => "pwsh",
+                ShellType.PowerShell => "Windows PowerShell",
+                _ => shellType.ToString()
+            }} and obtains its output. The execution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display. {shellType switch {
+            ShellType.PowerShell => "Use semicolons ; to chain commands on one line, NEVER use && even when asked explicitly",
+            _ => "Prefer ; when chaining commands on one line"
+        }}";
+
+        var runtimeFunction = new BuiltInChatFunction(
+            ExecuteInTerminalAsync,
+            configuredFunction.Permissions,
+            icon: configuredFunction.Icon,
+            isAutoApproveAllowed: configuredFunction.IsAutoApproveAllowed,
+            isExperimental: configuredFunction.IsExperimental,
+            isEnabled: configuredFunction.IsEnabled,
+            isVisible: configuredFunction.IsVisible,
+            onPermissionConsent: configuredFunction.OnPermissionConsent,
+            functionName: "execute_in_terminal",
+            description: description,
+            headerKey: configuredFunction.HeaderKey,
+            descriptionKey: configuredFunction.DescriptionKey)
+        {
+            AutoApprove = configuredFunction.AutoApprove
+        };
+
+        return ValueTask.FromResult<IReadOnlyList<ChatFunction>>([runtimeFunction]);
+    }
+
     [KernelFunction("execute_in_terminal")]
-#if WINDOWS
-    [Description("Executes command in PowerShell and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display. Use semicolons ; to chain commands on one line, NEVER use && even when asked explicitly")]
-#elif MACOS
-    [Description("Executes command in zsh and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display. Prefer ; when chaining commands on one line")]
-#else
-    [Description("Executes command in bash and obtains its output. The excution is hosted by PTY which is presented to user as an interactive terminal, allowing real-time output display. Prefer ; when chaining commands on one line")]
-#endif
     [DynamicResourceKey(
         LocaleKey.BuiltInChatPlugin_Terminal_ExecuteScript_Header,
         LocaleKey.BuiltInChatPlugin_Terminal_ExecuteScript_Description)]

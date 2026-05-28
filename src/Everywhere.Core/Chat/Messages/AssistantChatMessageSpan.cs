@@ -1,8 +1,8 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData;
+using Everywhere.Collections;
 using Everywhere.Common;
 using LiveMarkdown.Avalonia;
 using MessagePack;
@@ -95,7 +95,7 @@ public sealed partial class AssistantChatMessageFunctionCallSpan :
 {
     [IgnoreMember]
     [JsonIgnore]
-    public ReadOnlyObservableCollection<FunctionCallChatMessage> FunctionCalls { get; }
+    public IReadOnlyBindableList<FunctionCallChatMessage> FunctionCalls { get; }
 
     [IgnoreMember]
     [JsonIgnore]
@@ -150,8 +150,13 @@ public sealed partial class AssistantChatMessageFunctionCallSpan :
 
     #region ISourceList<FunctionCallChatMessage> Implementation
 
+    [IgnoreMember]
     public int Count => _functionCallsSource.Count;
+
+    [IgnoreMember]
     public IObservable<int> CountChanged => _functionCallsSource.CountChanged;
+
+    [IgnoreMember]
     public IReadOnlyList<FunctionCallChatMessage> Items => _functionCallsSource.Items;
 
     public IObservable<IChangeSet<FunctionCallChatMessage>> Connect(Func<FunctionCallChatMessage, bool>? predicate = null)
