@@ -12,7 +12,7 @@
     <LiveMarkdownVersion>1.9.2</LiveMarkdownVersion>
     <SkiaSharpVersion>3.119.2</SkiaSharpVersion>
     <XamlBehaviorsVersion>11.3.9.5</XamlBehaviorsVersion>
-    <TikTokenVersion>2.0.0</TikTokenVersion>
+    <TikTokenVersion>6.0.0</TikTokenVersion>
   </PropertyGroup>
   <ItemGroup Label="Common">
     <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
