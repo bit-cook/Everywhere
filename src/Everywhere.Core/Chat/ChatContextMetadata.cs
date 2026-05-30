@@ -43,7 +43,7 @@ public partial class ChatContextMetadata(Guid id, DateTimeOffset dateCreated, Da
         get;
         set
         {
-            if (SetProperty(ref field, value.SafeSubstring(0, 20))) OnPropertyChanged(nameof(ActualTopic));
+            if (SetProperty(ref field, value.SafeSubstring(0, 100))) OnPropertyChanged(nameof(ActualTopic));
         }
     } = topic;
 

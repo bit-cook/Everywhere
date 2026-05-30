@@ -1062,7 +1062,7 @@ public sealed partial class ChatService : IChatService
             RecordChatUsageMetrics(usage, kernelMixin.ModelId);
 
             ReadOnlySpan<char> punctuationChars = ['.', ',', '!', '?', '。', '，', '！', '？'];
-            titleBuilder.Length = Math.Min(50, titleBuilder.Length); // Limit the title length to 50 characters to avoid excessively long titles.
+            titleBuilder.Length = Math.Min(100, titleBuilder.Length); // Limit the title length to 100 characters to avoid excessively long titles.
             for (var i = titleBuilder.Length - 1; i >= 0; i--)
             {
                 if (char.IsWhiteSpace(titleBuilder[i]) || punctuationChars.Contains(titleBuilder[i])) continue;
