@@ -45,7 +45,7 @@ public sealed partial class BoChaConnector(string apiKey, HttpClient httpClient,
         public string? Message { get; init; }
 
         [JsonPropertyName("data")]
-        public ResponseData? Data { get; init; }
+        public Data? Data { get; init; }
 
         public IEnumerable<TextSearchResult> ToResults() => Data?.WebPages?.Value?.Select(x => new TextSearchResult(x.Summary ?? x.Snippet)
         {
@@ -54,7 +54,7 @@ public sealed partial class BoChaConnector(string apiKey, HttpClient httpClient,
         }) ?? [];
     }
 
-    public sealed class ResponseData
+    public sealed class Data
     {
         [JsonPropertyName("webPages")]
         public WebPages? WebPages { get; set; }

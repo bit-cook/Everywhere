@@ -31,9 +31,9 @@ public sealed partial class SearxngConnector(HttpClient httpClient, Uri uri)
     public sealed class Response : IWebSearchResponse
     {
         [JsonPropertyName("results")]
-        public IReadOnlyList<SearchResult>? Data { get; init; }
+        public IReadOnlyList<Result>? Results { get; init; }
 
-        public IEnumerable<TextSearchResult> ToResults() => Data?.Select(x => new TextSearchResult(x.Content)
+        public IEnumerable<TextSearchResult> ToResults() => Results?.Select(x => new TextSearchResult(x.Content)
         {
             Name = x.PublishedDate1?.ToString("G") ?? x.PublishedDate2?.ToString("G") switch
             {
@@ -44,7 +44,7 @@ public sealed partial class SearxngConnector(HttpClient httpClient, Uri uri)
         }) ?? [];
     }
 
-    public sealed class SearchResult
+    public sealed class Result
     {
         /// <summary>
         ///     The title of the search result.

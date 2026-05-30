@@ -35,10 +35,10 @@ public sealed partial class BraveConnector(string apiKey, HttpClient httpClient,
     public sealed class Response : IWebSearchResponse
     {
         [JsonPropertyName("error")]
-        public ErrorResult? Error { get; init; }
+        public Error? Error { get; init; }
 
         [JsonPropertyName("web")]
-        public WebResult? Web { get; init; }
+        public Web? Web { get; init; }
 
         public IEnumerable<TextSearchResult> ToResults()
         {
@@ -56,7 +56,7 @@ public sealed partial class BraveConnector(string apiKey, HttpClient httpClient,
         }
     }
 
-    public sealed class ErrorResult
+    public sealed class Error
     {
         /// <summary>
         ///     A unique identifier for this particular occurrence of the problem.
@@ -83,7 +83,7 @@ public sealed partial class BraveConnector(string apiKey, HttpClient httpClient,
         public string? Detail { get; init; } = string.Empty;
     }
 
-    public sealed class WebResult
+    public sealed class Web
     {
         [JsonPropertyName("results")]
         public IReadOnlyList<WebSearchResult>? SearchResults { get; init; }

@@ -41,7 +41,7 @@ public sealed partial class GoogleConnector(string apiKey, string searchEngineId
     public sealed class Response : IWebSearchResponse
     {
         [JsonPropertyName("items")]
-        public IReadOnlyList<SearchItem>? Items { get; set; }
+        public IReadOnlyList<Item>? Items { get; set; }
 
         [JsonPropertyName("searchInformation")]
         public SearchInformation? SearchInformation { get; set; }
@@ -53,7 +53,7 @@ public sealed partial class GoogleConnector(string apiKey, string searchEngineId
         }) ?? [];
     }
 
-    public sealed class SearchItem
+    public sealed class Item
     {
         [JsonPropertyName("title")]
         public string? Title { get; set; }

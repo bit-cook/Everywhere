@@ -2936,4 +2936,7 @@
     <data name="SystemAssistantSettings_DefaultSubagent_Description" xml:space="preserve">
         <value>供主助手按需调用的默认助手。当主助手通过“指派新助手”工具委派常规任务时，默认由它在独立上下文中处理并返回结果。“自动选择”表示使用和主助手一样的子助手。</value>
     </data>
+    <data name="WebSearchEngineProvider_ApiKey_Header_Optional" xml:space="preserve">
+        <value>API 密钥 (选填)</value>
+    </data>
 </root>

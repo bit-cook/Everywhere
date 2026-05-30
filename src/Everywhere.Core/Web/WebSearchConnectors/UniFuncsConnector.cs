@@ -41,7 +41,7 @@ public sealed partial class UniFuncsConnector(string apiKey, HttpClient httpClie
         public string? Message { get; init; }
 
         [JsonPropertyName("data")]
-        public SearchResult? Data { get; init; }
+        public Data? Data { get; init; }
 
         public IEnumerable<TextSearchResult> ToResults()
         {
@@ -58,7 +58,7 @@ public sealed partial class UniFuncsConnector(string apiKey, HttpClient httpClie
         }
     }
 
-    public sealed class SearchResult
+    public sealed class Data
     {
         [JsonPropertyName("webPages")]
         public IReadOnlyList<WebPage>? WebPages { get; init; }

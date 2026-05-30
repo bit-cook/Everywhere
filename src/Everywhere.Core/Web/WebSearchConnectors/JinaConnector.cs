@@ -44,7 +44,7 @@ public sealed partial class JinaConnector(string apiKey, HttpClient httpClient, 
         public string? Message { get; init; }
 
         [JsonPropertyName("data")]
-        public IReadOnlyList<SearchResult>? Data { get; init; }
+        public IReadOnlyList<Item>? Data { get; init; }
 
         public IEnumerable<TextSearchResult> ToResults() => Data?.Select(x => new TextSearchResult(x.Description)
         {
@@ -53,7 +53,7 @@ public sealed partial class JinaConnector(string apiKey, HttpClient httpClient, 
         }) ?? [];
     }
 
-    public sealed class SearchResult
+    public sealed class Item
     {
         /// <summary>
         ///     The title of the search result.

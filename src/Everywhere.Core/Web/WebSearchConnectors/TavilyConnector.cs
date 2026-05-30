@@ -35,10 +35,10 @@ public sealed partial class TavilyConnector(string apiKey, HttpClient httpClient
     public sealed class Response : IWebSearchResponse
     {
         [JsonPropertyName("detail")]
-        public ErrorResult? Detail { get; init; }
+        public ErrorDetail? Detail { get; init; }
 
         [JsonPropertyName("results")]
-        public IReadOnlyList<WebSearchResult>? SearchResults { get; init; }
+        public IReadOnlyList<Result>? Results { get; init; }
 
         public IEnumerable<TextSearchResult> ToResults()
         {
@@ -47,7 +47,7 @@ public sealed partial class TavilyConnector(string apiKey, HttpClient httpClient
                 throw new InvalidDataException($"Tavily Web Search API returned an empty result. Error: {Detail?.Error}");
             }
 
-            return SearchResults?.Select(x => new TextSearchResult(x.Content ?? "")
+            return Results?.Select(x => new TextSearchResult(x.Content ?? "")
             {
                 Name = x.Title,
                 Link = x.Url,
@@ -55,13 +55,13 @@ public sealed partial class TavilyConnector(string apiKey, HttpClient httpClient
         }
     }
 
-    public sealed class ErrorResult
+    public sealed class ErrorDetail
     {
         [JsonPropertyName("error")]
         public required string Error { get; init; }
     }
 
-    public sealed class WebSearchResult
+    public sealed class Result
     {
         /// <summary>
         ///     The title of the search result.

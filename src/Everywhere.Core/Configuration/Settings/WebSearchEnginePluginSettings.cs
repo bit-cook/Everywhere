@@ -14,13 +14,14 @@ namespace Everywhere.Configuration;
 public enum WebSearchEngineProviderId
 {
     Official,
-    Google,
-    Tavily,
-    Brave,
+    AnySearch,
     Bocha,
+    Brave,
+    Google,
     Jina,
+    SearXNG,
+    Tavily,
     UniFuncs,
-    SearXNG
 }
 
 public interface IWebSearchEngineProvider
@@ -239,6 +240,55 @@ public sealed partial class ApiKeyWebSearchEngineProvider(
 }
 
 [GeneratedSettingsItems]
+public sealed partial class OptionalApiKeyWebSearchEngineProvider(
+    WebSearchEngineProviderId id,
+    IDynamicResourceKey headerKey,
+    string iconUrl,
+    string? docsUrl,
+    ObservableCollection<ApiKey> apiKeys
+) : ThirdPartyWebSearchEngineProvider
+{
+    [JsonIgnore]
+    [SettingsItemIgnore]
+    public override WebSearchEngineProviderId Id { get; } = id;
+
+    [JsonIgnore]
+    [SettingsItemIgnore]
+    public override IDynamicResourceKey HeaderKey { get; } = headerKey;
+
+    [JsonIgnore]
+    [SettingsItemIgnore]
+    public override string IconUrl { get; } = iconUrl;
+
+    [JsonIgnore]
+    [SettingsItemIgnore]
+    public override string? DocsUrl { get; } = docsUrl;
+
+    [DynamicResourceKey(
+        LocaleKey.WebSearchEngineProvider_EndPoint_Header,
+        LocaleKey.WebSearchEngineProvider_EndPoint_Description)]
+    public required Customizable<string> EndPoint { get; init; }
+
+    [ObservableProperty]
+    [SettingsItemIgnore]
+    public partial Guid ApiKey { get; set; }
+
+    [JsonIgnore]
+    [DynamicResourceKey(
+        LocaleKey.WebSearchEngineProvider_ApiKey_Header_Optional,
+        LocaleKey.WebSearchEngineProvider_ApiKey_Description)]
+    public SettingsControl<ApiKeyComboBox> ApiKeyControl => new(
+        new ApiKeyComboBox(apiKeys)
+        {
+            [!ApiKeyComboBox.SelectedIdProperty] = new Binding(nameof(ApiKey))
+            {
+                Source = this,
+                Mode = BindingMode.TwoWay
+            },
+        });
+}
+
+[GeneratedSettingsItems]
 public sealed partial class SearXNGWebSearchEngineProvider : ThirdPartyWebSearchEngineProvider
 {
     [JsonIgnore]
@@ -299,29 +349,15 @@ public sealed partial class WebSearchEngineSettings : ObservableObject
                 WebSearchEngineProviderId.Official,
                 new OfficialWebSearchEngineProvider()),
             new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
-                WebSearchEngineProviderId.Google,
-                new GoogleWebSearchEngineProvider(ApiKeys)),
-            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
-                WebSearchEngineProviderId.Tavily,
-                new ApiKeyWebSearchEngineProvider(
-                    WebSearchEngineProviderId.Tavily,
-                    new DirectResourceKey("Tavily"),
-                    "avares://Everywhere.Core/Assets/Icons/tavily-color.svg",
-                    "https://tavily.com",
+                WebSearchEngineProviderId.AnySearch,
+                new OptionalApiKeyWebSearchEngineProvider(
+                    WebSearchEngineProviderId.AnySearch,
+                    new DirectResourceKey("AnySearch"),
+                    "avares://Everywhere.Core/Assets/Icons/anysearch-color.png",
+                    "https://www.anysearch.com",
                     ApiKeys)
                 {
-                    EndPoint = new Customizable<string>("https://api.tavily.com/search", isDefaultValueReadonly: true)
-                }),
-            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
-                WebSearchEngineProviderId.Brave,
-                new ApiKeyWebSearchEngineProvider(
-                    WebSearchEngineProviderId.Brave,
-                    new DirectResourceKey("Brave"),
-                    "avares://Everywhere.Core/Assets/Icons/brave-color.png",
-                    "https://brave.com/search/api",
-                    ApiKeys)
-                {
-                    EndPoint = new Customizable<string>("https://api.search.brave.com/res/v1/web/search", isDefaultValueReadonly: true)
+                    EndPoint = new Customizable<string>("https://api.anysearch.com/v1/search", isDefaultValueReadonly: true)
                 }),
             new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.Bocha,
@@ -335,6 +371,20 @@ public sealed partial class WebSearchEngineSettings : ObservableObject
                     EndPoint = new Customizable<string>("https://api.bocha.cn/v1/web-search", isDefaultValueReadonly: true)
                 }),
             new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
+                WebSearchEngineProviderId.Brave,
+                new ApiKeyWebSearchEngineProvider(
+                    WebSearchEngineProviderId.Brave,
+                    new DirectResourceKey("Brave"),
+                    "avares://Everywhere.Core/Assets/Icons/brave-color.png",
+                    "https://brave.com/search/api",
+                    ApiKeys)
+                {
+                    EndPoint = new Customizable<string>("https://api.search.brave.com/res/v1/web/search", isDefaultValueReadonly: true)
+                }),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
+                WebSearchEngineProviderId.Google,
+                new GoogleWebSearchEngineProvider(ApiKeys)),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.Jina,
                 new ApiKeyWebSearchEngineProvider(
                     WebSearchEngineProviderId.Jina,
@@ -344,6 +394,20 @@ public sealed partial class WebSearchEngineSettings : ObservableObject
                     ApiKeys)
                 {
                     EndPoint = new Customizable<string>("https://s.jina.ai", isDefaultValueReadonly: true)
+                }),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
+                WebSearchEngineProviderId.SearXNG,
+                new SearXNGWebSearchEngineProvider()),
+            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
+                WebSearchEngineProviderId.Tavily,
+                new ApiKeyWebSearchEngineProvider(
+                    WebSearchEngineProviderId.Tavily,
+                    new DirectResourceKey("Tavily"),
+                    "avares://Everywhere.Core/Assets/Icons/tavily-color.svg",
+                    "https://tavily.com",
+                    ApiKeys)
+                {
+                    EndPoint = new Customizable<string>("https://api.tavily.com/search", isDefaultValueReadonly: true)
                 }),
             new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
                 WebSearchEngineProviderId.UniFuncs,
@@ -356,9 +420,6 @@ public sealed partial class WebSearchEngineSettings : ObservableObject
                 {
                     EndPoint = new Customizable<string>("https://api.unifuncs.com/api/web-search/search", isDefaultValueReadonly: true)
                 }),
-            new KeyValuePair<WebSearchEngineProviderId, IWebSearchEngineProvider>(
-                WebSearchEngineProviderId.SearXNG,
-                new SearXNGWebSearchEngineProvider()),
         ]);
     }
 }

@@ -78,6 +78,16 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
             OfficialWebSearchEngineProvider official => new OfficialConnector(
                 _httpClientFactory.CreateClient(nameof(ICloudClient)),
                 official.Settings),
+            OptionalApiKeyWebSearchEngineProvider { Id: WebSearchEngineProviderId.AnySearch } anySearch =>
+                new AnySearchConnector(
+                    apiKey: anySearch.ApiKey != Guid.Empty ? EnsureApiKey(anySearch.ApiKey) : null,
+                    _httpClientFactory.CreateClient(),
+                    EnsureUri(anySearch.EndPoint)),
+            // ReSharper disable once IdentifierTypo
+            ApiKeyWebSearchEngineProvider { Id: WebSearchEngineProviderId.Bocha } bocha =>
+                new BoChaConnector(EnsureApiKey(bocha.ApiKey), _httpClientFactory.CreateClient(), EnsureUri(bocha.EndPoint)),
+            ApiKeyWebSearchEngineProvider { Id: WebSearchEngineProviderId.Brave } brave =>
+                new BraveConnector(EnsureApiKey(brave.ApiKey), _httpClientFactory.CreateClient(), EnsureUri(brave.EndPoint)),
             GoogleWebSearchEngineProvider google => new GoogleConnector(
                 EnsureApiKey(google.ApiKey),
                 google.SearchEngineId ??
@@ -87,18 +97,13 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                     showDetails: false),
                 _httpClientFactory.CreateClient(),
                 EnsureUri(google.EndPoint)),
+            ApiKeyWebSearchEngineProvider { Id: WebSearchEngineProviderId.Jina } jina =>
+                new JinaConnector(EnsureApiKey(jina.ApiKey), _httpClientFactory.CreateClient(), EnsureUri(jina.EndPoint)),
             // ReSharper disable once InconsistentNaming
             SearXNGWebSearchEngineProvider searXNG =>
                 new SearxngConnector(_httpClientFactory.CreateClient(), EnsureUri(searXNG.EndPoint)),
             ApiKeyWebSearchEngineProvider { Id: WebSearchEngineProviderId.Tavily } tavily =>
                 new TavilyConnector(EnsureApiKey(tavily.ApiKey), _httpClientFactory.CreateClient(), EnsureUri(tavily.EndPoint)),
-            ApiKeyWebSearchEngineProvider { Id: WebSearchEngineProviderId.Brave } brave =>
-                new BraveConnector(EnsureApiKey(brave.ApiKey), _httpClientFactory.CreateClient(), EnsureUri(brave.EndPoint)),
-            // ReSharper disable once IdentifierTypo
-            ApiKeyWebSearchEngineProvider { Id: WebSearchEngineProviderId.Bocha } bocha =>
-                new BoChaConnector(EnsureApiKey(bocha.ApiKey), _httpClientFactory.CreateClient(), EnsureUri(bocha.EndPoint)),
-            ApiKeyWebSearchEngineProvider { Id: WebSearchEngineProviderId.Jina } jina =>
-                new JinaConnector(EnsureApiKey(jina.ApiKey), _httpClientFactory.CreateClient(), EnsureUri(jina.EndPoint)),
             // ReSharper disable once IdentifierTypo
             ApiKeyWebSearchEngineProvider { Id: WebSearchEngineProviderId.UniFuncs } uniFuncs =>
                 new UniFuncsConnector(EnsureApiKey(uniFuncs.ApiKey), _httpClientFactory.CreateClient(), EnsureUri(uniFuncs.EndPoint)),
@@ -230,12 +235,14 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                     }
 
                     var content = await _webBrowserHost.ExtractAsync(url, cancellationToken);
+                    // ReSharper disable once RedundantCast
                     return (url, content, error: (string?)null);
                 }
                 catch (Exception ex)
                 {
                     ex = HandledFunctionInvokingException.Handle(ex);
                     _logger.LogError(ex, "Failed to extract content from URL: {Url}", url);
+                    // ReSharper disable once RedundantCast
                     return (url, content: (string?)null, error: ex.Message);
                 }
             }));
