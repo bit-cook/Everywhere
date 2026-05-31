@@ -472,8 +472,8 @@ public class ChatPluginManager : IChatPluginManager
         ToolRulesets? toolRulesets,
         CancellationToken cancellationToken)
     {
-        // Ensure that functions in the scope do not have the same name.
-        var functionNameDeduplicator = new HashSet<string>();
+        var pluginNameDeduplicator = new NumberedDeduplicator();
+        var functionNameDeduplicator = new NumberedDeduplicator();
         var resultPlugins = new List<ChatPluginSnapshot>();
         IDisposable? startingMcpMessageDisplay = null;
 
@@ -525,7 +525,7 @@ public class ChatPluginManager : IChatPluginManager
                     .ToList();
                 if (actualFunctions.Count > 0 || plugin is McpChatPlugin)
                 {
-                    resultPlugins.Add(new ChatPluginSnapshot(plugin, functionNameDeduplicator, actualFunctions));
+                    resultPlugins.Add(new ChatPluginSnapshot(plugin, pluginNameDeduplicator, functionNameDeduplicator, actualFunctions));
                 }
             }
 
@@ -700,27 +700,21 @@ public class ChatPluginManager : IChatPluginManager
 
         public ChatPluginSnapshot(
             ChatPlugin originalChatPlugin,
-            HashSet<string> functionNameDeduplicator,
-            IReadOnlyList<ChatFunction> actualFunctions) : base(originalChatPlugin.Name)
+            NumberedDeduplicator pluginNameDeduplicator,
+            NumberedDeduplicator functionNameDeduplicator,
+            IReadOnlyList<ChatFunction> actualFunctions
+        ) : base(pluginNameDeduplicator.Deduplicate(originalChatPlugin.Name))
         {
             _originalChatPlugin = originalChatPlugin;
             _actualFunctions = actualFunctions
+                .AsValueEnumerable()
                 .Select(EnsureUniqueFunctionName)
                 .ToList();
 
             ChatFunction EnsureUniqueFunctionName(ChatFunction function)
             {
                 var metadata = function.KernelFunction.Metadata;
-                if (functionNameDeduplicator.Add(metadata.Name)) return function;
-
-                var postfix = 1;
-                string newName;
-                do
-                {
-                    newName = $"{metadata.Name}_{postfix++}";
-                }
-                while (!functionNameDeduplicator.Add(newName));
-                metadata.Name = newName;
+                metadata.Name = functionNameDeduplicator.Deduplicate(metadata.Name);
                 return function;
             }
         }
