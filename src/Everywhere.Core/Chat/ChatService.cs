@@ -566,7 +566,7 @@ public sealed partial class ChatService : IChatService
                             HandleTextMessage(textContent.Text);
                             break;
                         }
-                        case StreamingReasoningContent reasoningContent:
+                        case StreamingReasoningContent { Text.Length: > 0 } reasoningContent:
                         {
                             HandleReasoningMessage(reasoningContent.Text);
                             break;
