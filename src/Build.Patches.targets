@@ -72,30 +72,6 @@
   </Target>
 
   <!--
-    Replace patched DLLs in the publish file list for app bundle creation (macOS/iOS).
-    On macOS, the SDK reuses the publish pipeline during 'dotnet build' to populate the .app bundle.
-    @(ResolvedFileToPublish) is populated from @(_ResolvedCopyLocalBuildAssets) (NuGet originals)
-    independently of our @(ReferenceCopyLocalPaths) modifications, so we must replace by filename
-    AFTER ComputeResolvedFilesToPublishList but BEFORE ILLink, ensuring the trimmer processes
-    patched code and produces a single linked/ output without NETSDK1152 conflicts.
-  -->
-  <Target Name="_PatchResolvedFilesToPublish"
-          AfterTargets="ComputeResolvedFilesToPublishList"
-          BeforeTargets="ILLink;_ComputeResolvedFilesToPublishTypes"
-          Condition="'@(_AddedReferences)' != ''">
-
-    <Everywhere.BuildTask.Patcher.ReplaceItemsByFileNameTask OriginalItems="@(ResolvedFileToPublish)" ReplacementItems="@(_AddedReferences)">
-      <Output TaskParameter="ItemsToRemove" ItemName="_PublishItemsToRemove" />
-      <Output TaskParameter="ItemsToAdd" ItemName="_PublishItemsToAdd" />
-    </Everywhere.BuildTask.Patcher.ReplaceItemsByFileNameTask>
-
-    <ItemGroup>
-      <ResolvedFileToPublish Remove="@(_PublishItemsToRemove)" />
-      <ResolvedFileToPublish Include="@(_PublishItemsToAdd)" />
-    </ItemGroup>
-  </Target>
-
-  <!--
     Replace patched DLLs in the publish file list for app bundle creation (macOS/iOS) and ILLink.
     We must patch BOTH ResolvedFileToPublish and RuntimeCopyLocalItems BEFORE _ComputeAssembliesToPostprocessOnPublish.
     This ensures the SDK's internal JoinItems matches the paths correctly and assigns PostprocessAssembly="true",

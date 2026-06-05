@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Mono.Cecil;
 using MonoMod;
 using Task = Microsoft.Build.Utilities.Task;
 
@@ -98,30 +97,42 @@ public partial class WeaveAssembliesTask : Task
                         continue;
                     }
 
-                    using var modder = new MonoModder();
-                    modder.InputPath = inputDllPath;
-                    modder.OutputPath = outputDllPath;
-
-                    foreach (var dir in depDirs)
+                    if (!File.Exists(patchDllPath))
                     {
-                        modder.DependencyDirs.Add(dir);
+                        Log.LogError($"Patch DLL not found: {patchDllPath}");
+                        continue;
                     }
 
-                    modder.Read();
-                    modder.MapDependencies();
+                    var taskAssemblyPath = typeof(WeaveAssembliesTask).Assembly.Location;
+                    if (IsOutputUpToDate(outputDllPath, inputDllPath, patchDllPath, taskAssemblyPath))
+                    {
+                        Log.LogMessage(MessageImportance.High, $"[Patcher] Up-to-date: {outputDllPath}");
+                    }
+                    else
+                    {
+                        using var modder = new MonoModder();
+                        modder.InputPath = inputDllPath;
+                        modder.OutputPath = outputDllPath;
 
-                    modder.ReadMod(patchDllPath);
-                    modder.MapDependencies();
+                        foreach (var dir in depDirs)
+                        {
+                            modder.DependencyDirs.Add(dir);
+                        }
 
-                    modder.AutoPatch();
-                    modder.Write();
+                        modder.Read();
+                        modder.MapDependencies();
 
-                    Log.LogMessage(MessageImportance.High, $"[Patcher] Wrote patched DLL: {outputDllPath}");
+                        modder.ReadMod(patchDllPath);
+                        modder.MapDependencies();
 
-                    removed.Add(reference);
-                    var newItem = new TaskItem(outputDllPath);
-                    reference.CopyMetadataTo(newItem); // Keep original metadata
-                    added.Add(newItem);
+                        modder.AutoPatch();
+                        modder.Write();
+
+                        Log.LogMessage(MessageImportance.High, $"[Patcher] Wrote patched DLL: {outputDllPath}");
+                    }
+
+                    removed.Add(CloneItem(reference));
+                    added.Add(CloneItem(reference, outputDllPath));
                 }
             }
 
@@ -135,6 +146,37 @@ public partial class WeaveAssembliesTask : Task
             Log.LogErrorFromException(ex, showStackTrace: true);
             return false;
         }
+    }
+
+    private static TaskItem CloneItem(ITaskItem item, string? itemSpec = null)
+    {
+        var clone = new TaskItem(itemSpec ?? item.ItemSpec);
+        item.CopyMetadataTo(clone);
+        return clone;
+    }
+
+    private static bool IsOutputUpToDate(string outputPath, params string[] inputPaths)
+    {
+        if (!File.Exists(outputPath))
+        {
+            return false;
+        }
+
+        var outputTime = File.GetLastWriteTimeUtc(outputPath);
+        foreach (var inputPath in inputPaths)
+        {
+            if (string.IsNullOrWhiteSpace(inputPath))
+            {
+                continue;
+            }
+
+            if (!File.Exists(inputPath) || File.GetLastWriteTimeUtc(inputPath) > outputTime)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -175,33 +217,6 @@ public partial class WeaveAssembliesTask : Task
 
         var libDir = string.Concat(dir.AsSpan(0, idx), $"{sep}lib{sep}", dir.AsSpan(idx + refSeg.Length));
         return Directory.Exists(libDir) ? libDir : null;
-    }
-
-    /// <summary>
-    /// Mono.Cecil doesn't guarantee alignment of FieldRVA data when writing assemblies.
-    /// This causes runtime failures when the data is accessed via
-    /// <c>RuntimeHelpers.CreateSpan&lt;T&gt;()</c>, which requires the data address to be
-    /// aligned to <c>sizeof(T)</c>. Fix: pad each field's <see cref="FieldDefinition.InitialValue"/>
-    /// to a multiple of 8 bytes so that successive fields stay aligned within the data section.
-    /// The runtime reads based on the field type's ClassSize, so the trailing padding bytes
-    /// are never accessed.
-    /// </summary>
-    private static void EnsureFieldRvaAlignment(ModuleDefinition module)
-    {
-        const int alignment = 8;
-        foreach (var type in module.Types)
-        {
-            foreach (var field in type.Fields)
-            {
-                if (field.InitialValue is not { Length: > 0 }) continue;
-                var remainder = field.InitialValue.Length % alignment;
-                if (remainder == 0) continue;
-                var padding = alignment - remainder;
-                var padded = new byte[field.InitialValue.Length + padding];
-                Buffer.BlockCopy(field.InitialValue, 0, padded, 0, field.InitialValue.Length);
-                field.InitialValue = padded;
-            }
-        }
     }
 
     // Regex to match NuGet package paths containing a ref/ segment:
