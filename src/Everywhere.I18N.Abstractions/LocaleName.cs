@@ -14,6 +14,7 @@ public enum LocaleName
     It,
     Ja,
     Ko,
+    PtBr,
     Ru,
     ZhHant,
     ZhHantHk,
@@ -40,43 +41,49 @@ public class LocaleNameTypeConverter : TypeConverter
 
 public static class LocaleNameExtensions
 {
-    public static string ToNativeName(this LocaleName localeName)
+    extension(LocaleName localeName)
     {
-        return localeName switch
+        public string ToNativeName()
         {
-            LocaleName.En => "English",
-            LocaleName.ZhHans => "中文（简体）",
-            LocaleName.De => "Deutsch",
-            LocaleName.Es => "español",
-            LocaleName.Fr => "français",
-            LocaleName.It => "italiano",
-            LocaleName.Ja => "日本語",
-            LocaleName.Ko => "한국어",
-            LocaleName.Ru => "русский",
-            LocaleName.ZhHant => "中文（繁體）",
-            LocaleName.ZhHantHk => "中文（香港）",
-            LocaleName.Tr => "Türkçe",
-            _ => "English",
-        };
+            return localeName switch
+            {
+                LocaleName.En => "English",
+                LocaleName.ZhHans => "中文（简体）",
+                LocaleName.De => "Deutsch",
+                LocaleName.Es => "español",
+                LocaleName.Fr => "français",
+                LocaleName.It => "italiano",
+                LocaleName.Ja => "日本語",
+                LocaleName.Ko => "한국어",
+                LocaleName.PtBr => "português (Brasil)",
+                LocaleName.Ru => "русский",
+                LocaleName.ZhHant => "中文（繁體）",
+                LocaleName.ZhHantHk => "中文（香港）",
+                LocaleName.Tr => "Türkçe",
+                _ => "English",
+            };
+        }
+
+        public string ToEnglishName()
+        {
+            return localeName switch
+            {
+                LocaleName.En => "English",
+                LocaleName.ZhHans => "Chinese (Simplified)",
+                LocaleName.De => "German",
+                LocaleName.Es => "Spanish",
+                LocaleName.Fr => "French",
+                LocaleName.It => "Italian",
+                LocaleName.Ja => "Japanese",
+                LocaleName.Ko => "Korean",
+                LocaleName.PtBr => "Portuguese (Brazil)",
+                LocaleName.Ru => "Russian",
+                LocaleName.ZhHant => "Chinese (Traditional)",
+                LocaleName.ZhHantHk => "Chinese (Traditional, Hong Kong SAR)",
+                LocaleName.Tr => "Turkish",
+                _ => "English",
+            };
+        }
     }
 
-    public static string ToEnglishName(this LocaleName localeName)
-    {
-        return localeName switch
-        {
-            LocaleName.En => "English",
-            LocaleName.ZhHans => "Chinese (Simplified)",
-            LocaleName.De => "German",
-            LocaleName.Es => "Spanish",
-            LocaleName.Fr => "French",
-            LocaleName.It => "Italian",
-            LocaleName.Ja => "Japanese",
-            LocaleName.Ko => "Korean",
-            LocaleName.Ru => "Russian",
-            LocaleName.ZhHant => "Chinese (Traditional)",
-            LocaleName.ZhHantHk => "Chinese (Traditional, Hong Kong SAR)",
-            LocaleName.Tr => "Turkish",
-            _ => "English",
-        };
-    }
 }

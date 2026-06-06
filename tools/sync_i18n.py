@@ -38,6 +38,7 @@ Key features:
 # Resources that should not be translated (e.g., language names)
 # Uses regex patterns for flexible matching.
 NO_TRANSLATE_PATTERNS = [
+    r'LocaleName_.*',
     r'SettingsSelectionItem_Common_Language_.*'
 ]
 
@@ -227,7 +228,7 @@ Translation Guidelines:
         base_filename = os.path.basename(base_resx_path)
         localized_files = [f for f in all_files if f.startswith('Strings.') and f.endswith('.resx') and f != base_filename]
 
-        for filename in localized_files:
+        for filename in sorted(localized_files, key=str.casefold):
             file_path = os.path.join(i18n_path, filename)
             lang_comment = self._get_language_comment(file_path)
             lang_name = lang_comment

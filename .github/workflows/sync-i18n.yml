@@ -8,6 +8,7 @@ on:
     paths:
       - 'src/**/I18N/Strings.resx'
       - 'src/**/I18N/Strings.zh-hans.resx'
+      - 'tools/sync_i18n.py'
 
 jobs:
   sync-and-pr:

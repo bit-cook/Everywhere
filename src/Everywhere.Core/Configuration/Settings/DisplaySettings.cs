@@ -31,7 +31,7 @@ public sealed partial class DisplaySettings : SettingsBase, ISettingsCategory
     /// Warn that this may be "default", which stands for en-US.
     /// </remarks>
     /// <example>
-    /// default, zh-hans, ru, de, ja, it, fr, es, ko, zh-hant, zh-hant-hk
+    /// default, zh-hans, ru, de, ja, it, fr, es, ko, pt-br, zh-hant, zh-hant-hk
     /// </example>
     [DynamicResourceKey(
         LocaleKey.DisplaySettings_Language_Header,
