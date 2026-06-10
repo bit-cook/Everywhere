@@ -94,17 +94,8 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>設置快捷鍵以隨時調出聊天視窗。</value>
     </data>
-    <data name="Assistant_Temperature_Header" xml:space="preserve">
-        <value>temperature（“創意活躍度”）</value>
-    </data>
-    <data name="Assistant_Temperature_Description" xml:space="preserve">
-        <value>通常情況下，數值越高，回答越具創造力和想像力，數值越低則越趨嚴謹。部分模型數值超過 1.0 可能導致輸出亂碼。通常建議不要同時更改 top_p。如果遇到錯誤，請嘗試還原預設值。</value>
-    </data>
     <data name="Assistant_TopP_Header" xml:space="preserve">
-        <value>top_p（“思維開放度”）</value>
-    </data>
-    <data name="Assistant_TopP_Description" xml:space="preserve">
-        <value>用於控制模型輸出文本的多樣性。通常情況下，數值越高，模型會接受更多潛在回答，數值越低則更傾向於最可能的回答。通常建議不要同時更改 temperature。如果遇到錯誤，請嘗試還原預設值。</value>
+        <value>top_p</value>
     </data>
     <data name="WebSearchEnginePluginSettings_SelectedProvider_Description" xml:space="preserve">
         <value>選擇網頁搜尋引擎的服務提供者。</value>
@@ -2773,10 +2764,10 @@
     <data name="OpenAIOptions_ThinkingType_Description" xml:space="preserve">
         <value>可選的 OpenAI 兼容非標準開關，例如 enabled 或 disabled。默認請留空。</value>
     </data>
-    <data name="OpenAIOptions_ReasoningEffortLevel_Header" xml:space="preserve">
+    <data name="OpenAIOptions_ReasoningEffort_Header" xml:space="preserve">
         <value>推理強度 (reasoning_effort)</value>
     </data>
-    <data name="OpenAIOptions_ReasoningEffortLevel_Description" xml:space="preserve">
+    <data name="OpenAIOptions_ReasoningEffort_Description" xml:space="preserve">
         <value>推理模型的可選強度級別。支持值取決於模型，默認請留空。</value>
     </data>
     <data name="OpenAIResponsesOptions_ReasoningEffort_Header" xml:space="preserve">
@@ -2868,5 +2859,17 @@
     </data>
     <data name="CodeBlock_ToggleTextWrap_Tip" xml:space="preserve">
         <value>切換文本換行</value>
+    </data>
+    <data name="Assistant_Temperature_Header" xml:space="preserve">
+        <value>temperature</value>
+    </data>
+    <data name="Assistant_PresencePenalty_Header" xml:space="preserve">
+        <value>presence_penalty</value>
+    </data>
+    <data name="Assistant_FrequencyPenalty_Header" xml:space="preserve">
+        <value>frequency_penalty</value>
+    </data>
+    <data name="Assistant_TopK_Header" xml:space="preserve">
+        <value>top_k</value>
     </data>
 </root>

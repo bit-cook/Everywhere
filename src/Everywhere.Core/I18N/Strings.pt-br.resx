@@ -94,17 +94,8 @@
     <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
         <value>Defina um atalho para abrir a janela de chat a qualquer momento.</value>
     </data>
-    <data name="Assistant_Temperature_Header" xml:space="preserve">
-        <value>Temperatura (“Criatividade”)</value>
-    </data>
-    <data name="Assistant_Temperature_Description" xml:space="preserve">
-        <value>Em geral, quanto maior o valor, mais criativas e imaginativas são as respostas; quanto menor, mais rigorosas. Valores acima de 1.0 em alguns modelos podem causar saídas ilegíveis. Normalmente, não é recomendado alterar top_p ao mesmo tempo. Se ocorrer um erro, tente restaurar os valores padrão.</value>
-    </data>
     <data name="Assistant_TopP_Header" xml:space="preserve">
-        <value>Top_p (“Abertura Mental”)</value>
-    </data>
-    <data name="Assistant_TopP_Description" xml:space="preserve">
-        <value>Controla a diversidade do texto de saída do modelo. Geralmente, quanto maior o valor, mais respostas potenciais o modelo aceitará; quanto menor, mais inclinado estará a respostas mais prováveis. Normalmente, não é recomendado alterar a temperatura ao mesmo tempo. Se ocorrer um erro, tente restaurar os valores padrão.</value>
+        <value>top_p</value>
     </data>
     <data name="WebSearchEnginePluginSettings_SelectedProvider_Description" xml:space="preserve">
         <value>Escolha o provedor de serviços para o mecanismo de busca na web.</value>
@@ -2774,10 +2765,10 @@ Data de lançamento: {2}</value>
     <data name="OpenAIOptions_ThinkingType_Description" xml:space="preserve">
         <value>Alternativas compatíveis com OpenAI, como habilitado ou desabilitado. Deixe em branco por padrão.</value>
     </data>
-    <data name="OpenAIOptions_ReasoningEffortLevel_Header" xml:space="preserve">
+    <data name="OpenAIOptions_ReasoningEffort_Header" xml:space="preserve">
         <value>Nível de Esforço de Raciocínio</value>
     </data>
-    <data name="OpenAIOptions_ReasoningEffortLevel_Description" xml:space="preserve">
+    <data name="OpenAIOptions_ReasoningEffort_Description" xml:space="preserve">
         <value>Nível opcional de intensidade do modelo de raciocínio. Os valores suportados dependem do modelo, deixe em branco por padrão.</value>
     </data>
     <data name="OpenAIResponsesOptions_ReasoningEffort_Header" xml:space="preserve">
@@ -2869,5 +2860,17 @@ Data de lançamento: {2}</value>
     </data>
     <data name="CodeBlock_ToggleTextWrap_Tip" xml:space="preserve">
         <value>Alternar quebra de texto</value>
+    </data>
+    <data name="Assistant_Temperature_Header" xml:space="preserve">
+        <value>temperature</value>
+    </data>
+    <data name="Assistant_PresencePenalty_Header" xml:space="preserve">
+        <value>presence_penalty</value>
+    </data>
+    <data name="Assistant_FrequencyPenalty_Header" xml:space="preserve">
+        <value>frequency_penalty</value>
+    </data>
+    <data name="Assistant_TopK_Header" xml:space="preserve">
+        <value>top_k</value>
     </data>
 </root>

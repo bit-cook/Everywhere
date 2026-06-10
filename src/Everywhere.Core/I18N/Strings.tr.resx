@@ -95,16 +95,10 @@
         <value>Sohbet penceresini istediğiniz zaman çağırmak için bir kısayol ayarlayın.</value>
     </data>
     <data name="Assistant_Temperature_Header" xml:space="preserve">
-        <value>sıcaklık (“yaratıcılık seviyesi”)</value>
-    </data>
-    <data name="Assistant_Temperature_Description" xml:space="preserve">
-        <value>Genellikle, değer ne kadar yüksekse, yanıtlar o kadar yaratıcı ve hayal gücü dolu olur; değer ne kadar düşükse, o kadar katı olur. Bazı modellerde değer 1.0'ı aşarsa, çıktıda bozulmalar olabilir. Genellikle top_p'yi aynı anda değiştirmemeniz önerilir. Hata alırsanız, lütfen varsayılan değerlere geri dönmeyi deneyin.</value>
+        <value>temperature</value>
     </data>
     <data name="Assistant_TopP_Header" xml:space="preserve">
-        <value>top_p (“düşünce açıklığı”)</value>
-    </data>
-    <data name="Assistant_TopP_Description" xml:space="preserve">
-        <value>Modelin çıktısının çeşitliliğini kontrol etmek için kullanılır. Genellikle, değer ne kadar yüksekse, model daha fazla olası yanıt kabul eder; değer ne kadar düşükse, en olası yanıtı tercih eder. Genellikle sıcaklığı aynı anda değiştirmemeniz önerilir. Hata alırsanız, lütfen varsayılan değerlere geri dönmeyi deneyin.</value>
+        <value>top_p</value>
     </data>
     <data name="WebSearchEnginePluginSettings_SelectedProvider_Description" xml:space="preserve">
         <value>Web arama motorları için servis sağlayıcısını seçin.</value>
@@ -2772,10 +2766,10 @@ Yayın tarihi: {2}</value>
     <data name="OpenAIOptions_ThinkingType_Description" xml:space="preserve">
         <value>OpenAI uyumlu isteğe bağlı standart dışı anahtarlar, örneğin enabled veya disabled. Varsayılan olarak boş bırakın.</value>
     </data>
-    <data name="OpenAIOptions_ReasoningEffortLevel_Header" xml:space="preserve">
+    <data name="OpenAIOptions_ReasoningEffort_Header" xml:space="preserve">
         <value>Çıkarım Gücü (reasoning_effort)</value>
     </data>
-    <data name="OpenAIOptions_ReasoningEffortLevel_Description" xml:space="preserve">
+    <data name="OpenAIOptions_ReasoningEffort_Description" xml:space="preserve">
         <value>Çıkarım modelinin isteğe bağlı güç seviyesi. Desteklenen değerler modele bağlıdır, varsayılan olarak boş bırakın.</value>
     </data>
     <data name="OpenAIResponsesOptions_ReasoningEffort_Header" xml:space="preserve">
@@ -2867,5 +2861,14 @@ Yayın tarihi: {2}</value>
     </data>
     <data name="CodeBlock_ToggleTextWrap_Tip" xml:space="preserve">
         <value>Metin satır sonunu değiştir</value>
+    </data>
+    <data name="Assistant_PresencePenalty_Header" xml:space="preserve">
+        <value>presence_penalty</value>
+    </data>
+    <data name="Assistant_FrequencyPenalty_Header" xml:space="preserve">
+        <value>frequency_penalty</value>
+    </data>
+    <data name="Assistant_TopK_Header" xml:space="preserve">
+        <value>top_k</value>
     </data>
 </root>
