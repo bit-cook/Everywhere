@@ -532,8 +532,8 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>Das Modell unterstützt das Nachdenken vor der Antwort. Wenn das Modell dies nicht unterstützt, kann das Aktivieren dieser Option zu Fehlern im Gespräch führen. Beachten Sie, dass diese Option nur beeinflusst, wie Everywhere die Modellantworten verarbeitet, nicht ob das Modell tatsächlich das Nachdenken aktiviert. Für Modelle, die das Nachdenken dynamisch ein- und ausschalten können, aktivieren Sie diese Option und nehmen Sie weitere Anpassungen unter der Option „Nachdenken aktivieren“ unten vor.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Tiefes Denken</value>
+    <data name="OfficialAssistant_IsQuotaLimitFree_Header" xml:space="preserve">
+        <value/>
     </data>
     <data name="Assistant_SupportsImage_Header" xml:space="preserve">
         <value>Bildeingabe-Unterstützung</value>

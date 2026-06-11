@@ -533,8 +533,8 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>Il modello supporta il pensiero prima di rispondere. Se il modello non supporta questa funzione, attivare questa opzione potrebbe causare errori durante la conversazione. Nota che questa opzione influisce solo su come Everywhere gestisce le risposte del modello e non controlla se il modello è realmente in grado di pensare. Per i modelli che possono attivare o disattivare il pensiero dinamicamente, attiva questa opzione e poi regola ulteriormente l'opzione 'Abilita Pensiero' qui sotto.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Pensiero Profondo</value>
+    <data name="OfficialAssistant_IsQuotaLimitFree_Header" xml:space="preserve">
+        <value/>
     </data>
     <data name="Assistant_SupportsImage_Header" xml:space="preserve">
         <value>Supporto Input Immagine</value>

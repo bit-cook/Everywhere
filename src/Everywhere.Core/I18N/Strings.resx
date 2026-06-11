@@ -533,8 +533,8 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>The model supports reasoning before responding. Enabling this option may cause errors in conversations if the model does not support it. Note that this option only affects how Everywhere handles model responses and does not control whether the model actually enables reasoning. For models that can dynamically toggle reasoning, enable this option and then adjust the 'Enable Reasoning' option below.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Deep Thinking</value>
+    <data name="OfficialAssistant_IsQuotaLimitFree_Header" xml:space="preserve">
+        <value>Quota Limit Free</value>
     </data>
     <data name="Assistant_SupportsImage_Header" xml:space="preserve">
         <value>Image Input Support</value>
@@ -3036,5 +3036,8 @@ Release date: {2}</value>
     </data>
     <data name="SkillPage_UpdateStatusFailedToast_Title" xml:space="preserve">
         <value>Unable to update skill status.</value>
+    </data>
+    <data name="OfficialAssistant_IsQuotaLimitFree_ToolTip" xml:space="preserve">
+        <value />
     </data>
 </root>

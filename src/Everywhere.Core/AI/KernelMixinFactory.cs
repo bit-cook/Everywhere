@@ -148,9 +148,14 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
                     exception);
             }
 
-            if (ParseOfficialErrorCode(error.Code) is { } errorMessage)
+            if (ParseOfficialErrorCode(error.Code) is { } errorMessageKey)
             {
-                return new HandledException(exception, errorMessage);
+                return new HandledException(
+                    exception,
+                    error.Message.IsNullOrWhiteSpace() ?
+                        errorMessageKey :
+                        new AggregateDynamicResourceKey([errorMessageKey, new DirectResourceKey(error.Code)], "\n"),
+                    showDetails: false);
             }
 
             return exception;

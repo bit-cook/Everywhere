@@ -533,8 +533,8 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>Модель поддерживает предварительное обдумывание перед ответом. Если модель не поддерживает эту функцию, включение этой опции может привести к ошибкам в диалоге. Обратите внимание, что эта опция влияет только на то, как Everywhere обрабатывает ответы модели, и не может контролировать, действительно ли обдумывание включено. Для моделей, которые могут динамически переключать обдумывание, включите эту опцию и затем настройте параметр «Включить обдумывание» ниже.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Глубокое Мышление</value>
+    <data name="OfficialAssistant_IsQuotaLimitFree_Header" xml:space="preserve">
+        <value/>
     </data>
     <data name="Assistant_SupportsImage_Header" xml:space="preserve">
         <value>Поддержка Ввода Изображения</value>

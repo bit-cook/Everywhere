@@ -533,8 +533,8 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>モデルは先に考えてから回答することをサポートします。このオプションを有効にすると、モデルがサポートしていない場合に対話中にエラーが発生する可能性があります。このオプションはEverywhereがモデルの応答を処理する方法にのみ影響し、モデルが実際に思考を有効にするかどうかを制御するものではありません。動的に思考を切り替えられるモデルの場合は、このオプションを有効にした後、下の「思考を有効にする」オプションでさらに調整してください。</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>深い思考</value>
+    <data name="OfficialAssistant_IsQuotaLimitFree_Header" xml:space="preserve">
+        <value/>
     </data>
     <data name="Assistant_SupportsImage_Header" xml:space="preserve">
         <value>画像入力サポート</value>

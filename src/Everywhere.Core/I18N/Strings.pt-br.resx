@@ -533,8 +533,8 @@
     <data name="CustomAssistant_SupportsReasoning_Description" xml:space="preserve">
         <value>O modelo suporta pensar antes de responder. Se o modelo não suportar, ativar esta opção pode causar erros durante a conversa. Note que esta opção apenas afetará como o Everywhere lida com as respostas do modelo, não controla se o modelo realmente ativará o raciocínio. Para modelos que podem alternar dinamicamente o raciocínio, ative esta opção e faça ajustes adicionais na opção 'Ativar Raciocínio' abaixo.</value>
     </data>
-    <data name="CustomAssistant_SupportsReasoning_Header" xml:space="preserve">
-        <value>Raciocínio Profundo</value>
+    <data name="OfficialAssistant_IsQuotaLimitFree_Header" xml:space="preserve">
+        <value/>
     </data>
     <data name="Assistant_SupportsImage_Header" xml:space="preserve">
         <value>Suporte a Entrada de Imagem</value>
