@@ -175,6 +175,16 @@ partial class PresetBasedAssistantConfigurator
             [
                 new ModelDefinitionTemplate
                 {
+                    ModelId = "claude-fable-5",
+                    Name = "Claude Fable 5",
+                    SupportsToolCall = true,
+                    InputModalities = Modalities.Text | Modalities.Image | Modalities.Pdf,
+                    OutputModalities = Modalities.Text,
+                    ContextLimit = 1_000_000,
+                    OutputLimit = 128_000
+                },
+                new ModelDefinitionTemplate
+                {
                     ModelId = "claude-opus-4-8",
                     Name = "Claude Opus 4.8",
                     SupportsToolCall = true,

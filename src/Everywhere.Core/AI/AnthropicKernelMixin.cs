@@ -163,7 +163,7 @@ public sealed partial class AnthropicKernelMixin : KernelMixin
             return major > 4 || major == 4 && minor >= 6;
         }
 
-        [GeneratedRegex(@"claude-(?:(?:opus|sonnet|haiku)-)?(?<major>\d+)(?:[.-](?<minor>\d)(?=$|[@\-:.]))?(?:-(?:opus|sonnet|haiku))?", RegexOptions.IgnoreCase)]
+        [GeneratedRegex(@"claude-(?:(?:fable|opus|sonnet|haiku)-)?(?<major>\d+)(?:[.-](?<minor>\d)(?=$|[@\-:.]))?(?:-(?:fable|opus|sonnet|haiku))?", RegexOptions.IgnoreCase)]
         private static partial Regex ClaudeVersionRegex();
     }
 }
