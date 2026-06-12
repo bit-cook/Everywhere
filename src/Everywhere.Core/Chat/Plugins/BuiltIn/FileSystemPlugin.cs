@@ -935,6 +935,11 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
             }
         }
 
+        if (replacedContent == fileContent)
+        {
+            return "No content was replaced.";
+        }
+
         var difference = new TextDifference(path);
         TextDifferenceBuilder.BuildLineDiff(difference, fileContent, replacedContent);
 

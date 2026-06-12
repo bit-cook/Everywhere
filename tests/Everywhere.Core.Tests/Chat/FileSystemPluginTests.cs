@@ -1,5 +1,10 @@
+using Everywhere.Chat;
 using Everywhere.Chat.Plugins.BuiltIn;
+using Everywhere.Chat.Plugins;
 using Everywhere.Core.I18N;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using System.Reflection;
 
 namespace Everywhere.Core.Tests.Chat;
 
@@ -96,5 +101,71 @@ public class FileSystemPluginTests
                 FileSystemPlugin.GetWriteConsentDescriptionKey(append: false, fileExists: true),
                 Is.EqualTo(LocaleKey.BuiltInChatPlugin_FileSystem_WriteToFile_OverwriteConsent_Description));
         });
+    }
+
+    [Test]
+    public async Task ReplaceFileContentAsync_NoActualReplacement_ReturnsNoOpWithoutAppendingDifference()
+    {
+        var filePath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".txt");
+        await File.WriteAllTextAsync(filePath, "hello world");
+
+        try
+        {
+            var displaySink = new ChatPluginDisplaySink();
+            var chatContext = new ChatContext();
+            var plugin = new FileSystemPlugin(Substitute.For<ILogger<FileSystemPlugin>>());
+
+            var result = await InvokeReplaceFileContentAsync(
+                plugin,
+                displaySink,
+                chatContext,
+                filePath,
+                ["missing"],
+                ["replacement"],
+                isRegex: false,
+                ignoreCase: false);
+            var fileContent = await File.ReadAllTextAsync(filePath);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo("No content was replaced."));
+                Assert.That(fileContent, Is.EqualTo("hello world"));
+                Assert.That(displaySink.OfType<ChatPluginFileDifferenceDisplayBlock>(), Is.Empty);
+            });
+        }
+        finally
+        {
+            if (File.Exists(filePath)) File.Delete(filePath);
+        }
+    }
+
+    private static Task<string> InvokeReplaceFileContentAsync(
+        FileSystemPlugin plugin,
+        IChatPluginDisplaySink displaySink,
+        ChatContext chatContext,
+        string path,
+        IReadOnlyList<string> patterns,
+        IReadOnlyList<string> replacements,
+        bool isRegex,
+        bool ignoreCase)
+    {
+        var method = typeof(FileSystemPlugin).GetMethod(
+            "ReplaceFileContentAsync",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+
+        Assert.That(method, Is.Not.Null);
+
+        return (Task<string>)method!.Invoke(
+            plugin,
+            [
+                displaySink,
+                chatContext,
+                path,
+                patterns,
+                replacements,
+                isRegex,
+                ignoreCase,
+                CancellationToken.None
+            ])!;
     }
 }
