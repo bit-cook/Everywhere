@@ -969,6 +969,33 @@ public class PtyExecutionTests
     }
 
     [Test]
+    public async Task RichStrategy_CommandLine_PreservesEmoji()
+    {
+        var sb = new StringBuilder();
+        sb.Append("\e]633;A\a");
+        sb.Append("\e]633;B\a");
+        sb.Append("\r\n");
+        sb.Append("\e]633;E;echo \"🚀\"\a");
+        sb.Append("\e]633;C\a");
+        sb.Append("🚀\r\n");
+        sb.Append("\e]633;D;0\a");
+        sb.Append("\e]633;A\a");
+
+        var (session, _) = CreateMockPty(Encoding.UTF8.GetBytes(sb.ToString()));
+        var strategy = new RichExecuteStrategy(_logger);
+        var result = await ExecuteSingleRunAsync(
+            strategy,
+            session,
+            script: "echo \"🚀\"",
+            ShellType.Unknown,
+            timeout: TimeSpan.FromSeconds(10),
+            cancellationToken: CancellationToken.None);
+
+        Assert.That(result.CommandLine, Is.EqualTo("echo \"🚀\""));
+        Assert.That(result.OutputText.Replace("\r\n", "\n"), Is.EqualTo("🚀"));
+    }
+
+    [Test]
     public async Task RichStrategy_ClearDisplay_ClearsActiveRunOutput()
     {
         var sb = new StringBuilder();

@@ -14,6 +14,10 @@ if ($ExecutionContext.SessionState.LanguageMode -ne "FullLanguage") {
 	return;
 }
 
+$EverywhereUtf8NoBomEncoding = [System.Text.UTF8Encoding]::new($false)
+[Console]::OutputEncoding = $EverywhereUtf8NoBomEncoding
+$OutputEncoding = $EverywhereUtf8NoBomEncoding
+
 # Disable all history providers to prevent them from interfering with our history tracking
 Get-PSReadlineOption | ForEach-Object {
     if ($_.HistorySaveStyle -ne "SaveNothing") {
