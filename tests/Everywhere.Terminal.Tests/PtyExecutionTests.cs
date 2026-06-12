@@ -1026,6 +1026,7 @@ public class PtyExecutionTests
                     "\e]633;D;0\a" +
                     "\e]633;A\a\e]633;B\a")));
         var session = CreateMockPty(readerStream);
+        session.Parser.Feed("\e[?2004h");
 
         var strategy = new RichExecuteStrategy(_logger);
         var result = await ExecuteSingleRunAsync(
@@ -1048,6 +1049,7 @@ public class PtyExecutionTests
     {
         var ptyData = "\r\nWrite-Host 'RESULT'\r\nRESULT\r\nPS C:\\test> "u8.ToArray();
         var (session, _) = CreateMockPty(ptyData);
+        session.Parser.Feed("\e[?2004h");
         session.Parser.Feed("PS C:\\detect> ");
 
         var strategy = new RichExecuteStrategy(_logger);
