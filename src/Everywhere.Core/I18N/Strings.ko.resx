@@ -1165,6 +1165,24 @@
     <data name="BuiltInChatPlugin_FileSystem_DeleteFiles_DeletionConsent_Header" xml:space="preserve">
         <value>{0}개의 파일 또는 폴더가 삭제됩니다</value>
     </data>
+    <data name="BuiltInChatPlugin_FileSystem_MoveFile_MoveConsent_Header" xml:space="preserve">
+        <value>Allow file move?</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_CreateDirectory_CreateConsent_Header" xml:space="preserve">
+        <value>Allow directory creation?</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_WriteConsent_Header" xml:space="preserve">
+        <value>Allow file write?</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_CreateConsent_Description" xml:space="preserve">
+        <value>Create this file.</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_AppendConsent_Description" xml:space="preserve">
+        <value>Append to this file.</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_OverwriteConsent_Description" xml:space="preserve">
+        <value>Overwrite this file.</value>
+    </data>
     <data name="BuiltInChatPlugin_FileSystem_DeleteFiles_SystemFile_DeletionConsent_Header" xml:space="preserve">
         <value>시스템 파일 또는 디렉토리가 삭제됩니다</value>
     </data>

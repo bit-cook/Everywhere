@@ -1165,6 +1165,24 @@
     <data name="BuiltInChatPlugin_FileSystem_DeleteFiles_DeletionConsent_Header" xml:space="preserve">
         <value>{0} 個檔案或資料夾將被刪除</value>
     </data>
+    <data name="BuiltInChatPlugin_FileSystem_MoveFile_MoveConsent_Header" xml:space="preserve">
+        <value>允許移動檔案？</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_CreateDirectory_CreateConsent_Header" xml:space="preserve">
+        <value>允許建立目錄？</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_WriteConsent_Header" xml:space="preserve">
+        <value>允許寫入檔案？</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_CreateConsent_Description" xml:space="preserve">
+        <value>建立此檔案。</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_AppendConsent_Description" xml:space="preserve">
+        <value>附加至此檔案。</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_OverwriteConsent_Description" xml:space="preserve">
+        <value>覆寫此檔案。</value>
+    </data>
     <data name="BuiltInChatPlugin_FileSystem_DeleteFiles_SystemFile_DeletionConsent_Header" xml:space="preserve">
         <value>系統檔案或目錄將被刪除</value>
     </data>

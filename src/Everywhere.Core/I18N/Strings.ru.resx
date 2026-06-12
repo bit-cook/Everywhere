@@ -1165,6 +1165,24 @@
     <data name="BuiltInChatPlugin_FileSystem_DeleteFiles_DeletionConsent_Header" xml:space="preserve">
         <value>Будет удалено {0} файлов или папок</value>
     </data>
+    <data name="BuiltInChatPlugin_FileSystem_MoveFile_MoveConsent_Header" xml:space="preserve">
+        <value>Allow file move?</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_CreateDirectory_CreateConsent_Header" xml:space="preserve">
+        <value>Allow directory creation?</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_WriteConsent_Header" xml:space="preserve">
+        <value>Allow file write?</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_CreateConsent_Description" xml:space="preserve">
+        <value>Create this file.</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_AppendConsent_Description" xml:space="preserve">
+        <value>Append to this file.</value>
+    </data>
+    <data name="BuiltInChatPlugin_FileSystem_WriteToFile_OverwriteConsent_Description" xml:space="preserve">
+        <value>Overwrite this file.</value>
+    </data>
     <data name="BuiltInChatPlugin_FileSystem_DeleteFiles_SystemFile_DeletionConsent_Header" xml:space="preserve">
         <value>Системный файл или директория будет удалена</value>
     </data>
