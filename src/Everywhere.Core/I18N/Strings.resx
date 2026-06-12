@@ -873,11 +873,11 @@ My intelligence is powered by large language models, and I need your help to con
     <data name="KernelMixinFactory_OfficialError_RateLimitLlm24h" xml:space="preserve">
         <value>The daily model request limit has been reached. Please try again later.</value>
     </data>
-    <data name="KernelMixinFactory_OfficialError_RateLimitExpensiveModel5h" xml:space="preserve">
-        <value>The limited-use model request limit for the 5-hour window has been reached. Please try again later or switch models.</value>
+    <data name="KernelMixinFactory_OfficialError_5HourQuotaLimitExceeded" xml:space="preserve">
+        <value />
     </data>
-    <data name="KernelMixinFactory_OfficialError_RateLimitExpensiveModel7d" xml:space="preserve">
-        <value>The limited-use model request limit for the 7-day window has been reached. Please try again later or switch models.</value>
+    <data name="KernelMixinFactory_OfficialError_7DayQuotaLimitExceeded" xml:space="preserve">
+        <value />
     </data>
     <data name="ChatWindowViewModel_QuickActions_Solve" xml:space="preserve">
         <value>Solve</value>

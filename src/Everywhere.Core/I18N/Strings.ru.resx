@@ -873,12 +873,6 @@
     <data name="KernelMixinFactory_OfficialError_RateLimitLlm24h" xml:space="preserve">
         <value>Достигнут лимит запросов к модели за день. Пожалуйста, попробуйте позже.</value>
     </data>
-    <data name="KernelMixinFactory_OfficialError_RateLimitExpensiveModel5h" xml:space="preserve">
-        <value>Достигнут лимит запросов к ресурсоемкой модели за 5-часовой период. Пожалуйста, попробуйте позже или переключитесь на другую модель.</value>
-    </data>
-    <data name="KernelMixinFactory_OfficialError_RateLimitExpensiveModel7d" xml:space="preserve">
-        <value>Достигнут лимит запросов к ресурсоемкой модели за 7-дневный период. Пожалуйста, попробуйте позже или переключитесь на другую модель.</value>
-    </data>
     <data name="ChatWindowViewModel_QuickActions_Solve" xml:space="preserve">
         <value>Решить</value>
     </data>

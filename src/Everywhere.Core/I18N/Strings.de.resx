@@ -872,12 +872,6 @@ Meine Intelligenz wird von einem großen Sprachmodell bereitgestellt, und ich be
     <data name="KernelMixinFactory_OfficialError_RateLimitLlm24h" xml:space="preserve">
         <value>Das tägliche Anfrage-Limit für Modellanfragen wurde erreicht. Bitte versuchen Sie es später erneut.</value>
     </data>
-    <data name="KernelMixinFactory_OfficialError_RateLimitExpensiveModel5h" xml:space="preserve">
-        <value>Das Anfrage-Limit für ressourcenintensive Modellanfragen im 5-Stunden-Fenster wurde erreicht. Bitte versuchen Sie es später erneut oder wechseln Sie das Modell.</value>
-    </data>
-    <data name="KernelMixinFactory_OfficialError_RateLimitExpensiveModel7d" xml:space="preserve">
-        <value>Das Anfrage-Limit für ressourcenintensive Modellanfragen im 7-Tage-Fenster wurde erreicht. Bitte versuchen Sie es später erneut oder wechseln Sie das Modell.</value>
-    </data>
     <data name="ChatWindowViewModel_QuickActions_Solve" xml:space="preserve">
         <value>Lösen</value>
     </data>

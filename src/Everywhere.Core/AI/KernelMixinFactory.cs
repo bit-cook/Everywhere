@@ -203,9 +203,9 @@ public sealed class KernelMixinFactory(IHttpClientFactory httpClientFactory, ILo
         "rate_limit_llm_24h" =>
             new DynamicResourceKey(LocaleKey.KernelMixinFactory_OfficialError_RateLimitLlm24h),
         "rate_limit_expensive_model_5h" =>
-            new DynamicResourceKey(LocaleKey.KernelMixinFactory_OfficialError_RateLimitExpensiveModel5h),
+            new DynamicResourceKey(LocaleKey.KernelMixinFactory_OfficialError_5HourQuotaLimitExceeded),
         "rate_limit_expensive_model_7d" =>
-            new DynamicResourceKey(LocaleKey.KernelMixinFactory_OfficialError_RateLimitExpensiveModel7d),
+            new DynamicResourceKey(LocaleKey.KernelMixinFactory_OfficialError_7DayQuotaLimitExceeded),
 
         _ => null
     };

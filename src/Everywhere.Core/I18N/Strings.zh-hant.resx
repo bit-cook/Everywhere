@@ -873,12 +873,6 @@
     <data name="KernelMixinFactory_OfficialError_RateLimitLlm24h" xml:space="preserve">
         <value>已達到每日模型請求限制。請稍後重試。</value>
     </data>
-    <data name="KernelMixinFactory_OfficialError_RateLimitExpensiveModel5h" xml:space="preserve">
-        <value>已達到 5 小時窗口內的高消耗模型請求限制。請稍後重試或切換模型。</value>
-    </data>
-    <data name="KernelMixinFactory_OfficialError_RateLimitExpensiveModel7d" xml:space="preserve">
-        <value>已達到 7 天窗口內的高消耗模型請求限制。請稍後重試或切換模型。</value>
-    </data>
     <data name="ChatWindowViewModel_QuickActions_Solve" xml:space="preserve">
         <value>解決</value>
     </data>
