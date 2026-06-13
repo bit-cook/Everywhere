@@ -91,9 +91,6 @@
     <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>Finestra Chat</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
-        <value>Imposta una scorciatoia per richiamare la finestra di chat in qualsiasi momento.</value>
-    </data>
     <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>temperature</value>
     </data>
@@ -2197,14 +2194,8 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="ShortcutSettings_PickVisualElement_Header" xml:space="preserve">
         <value>Seleziona Elemento Visivo</value>
     </data>
-    <data name="ShortcutSettings_PickVisualElement_Desription" xml:space="preserve">
-        <value>Imposta una scorciatoia da tastiera per selezionare un elemento visivo in qualsiasi momento, aprendo poi la finestra di chat.</value>
-    </data>
     <data name="ShortcutSettings_TakeScreenshot_Header" xml:space="preserve">
         <value>Cattura Schermata</value>
-    </data>
-    <data name="ShortcutSettings_TakeScreenshot_Desription" xml:space="preserve">
-        <value>Imposta una scorciatoia da tastiera per catturare uno screenshot in qualsiasi momento, aprendo poi la finestra di chat.</value>
     </data>
     <data name="Strategy_BuiltIn_Browser_Name" xml:space="preserve">
         <value>Assistente Browser</value>

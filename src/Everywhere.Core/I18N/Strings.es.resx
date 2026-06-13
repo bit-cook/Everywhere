@@ -91,9 +91,6 @@
     <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>Ventana de Chat</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
-        <value>Establece un atajo para invocar la ventana de chat en cualquier momento.</value>
-    </data>
     <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>temperature</value>
     </data>
@@ -2197,14 +2194,8 @@ Rueda o teclas numéricas para cambiar el modo de selección</value>
     <data name="ShortcutSettings_PickVisualElement_Header" xml:space="preserve">
         <value>Seleccionar Elemento Visual</value>
     </data>
-    <data name="ShortcutSettings_PickVisualElement_Desription" xml:space="preserve">
-        <value>Configura un atajo para seleccionar un elemento visual en cualquier momento, luego se abrirá la ventana de chat.</value>
-    </data>
     <data name="ShortcutSettings_TakeScreenshot_Header" xml:space="preserve">
         <value>Capturar Captura de Pantalla</value>
-    </data>
-    <data name="ShortcutSettings_TakeScreenshot_Desription" xml:space="preserve">
-        <value>Configura un atajo para capturar una captura de pantalla en cualquier momento, luego se abrirá la ventana de chat.</value>
     </data>
     <data name="Strategy_BuiltIn_Browser_Name" xml:space="preserve">
         <value>Asistente de Navegador</value>

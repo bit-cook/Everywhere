@@ -91,9 +91,6 @@
     <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>聊天視窗</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
-        <value>設置快捷鍵以隨時調出聊天視窗。</value>
-    </data>
     <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>temperature</value>
     </data>
@@ -2197,14 +2194,8 @@
     <data name="ShortcutSettings_PickVisualElement_Header" xml:space="preserve">
         <value>選擇視覺元素</value>
     </data>
-    <data name="ShortcutSettings_PickVisualElement_Desription" xml:space="preserve">
-        <value>設置一個快捷鍵，隨時按下即可選擇視覺元素，之後會喚起聊天窗口。</value>
-    </data>
     <data name="ShortcutSettings_TakeScreenshot_Header" xml:space="preserve">
         <value>捕獲螢幕截圖</value>
-    </data>
-    <data name="ShortcutSettings_TakeScreenshot_Desription" xml:space="preserve">
-        <value>設置一個快捷鍵，隨時按下即可捕獲螢幕截圖，之後會喚起聊天窗口。</value>
     </data>
     <data name="Strategy_BuiltIn_Browser_Name" xml:space="preserve">
         <value>瀏覽器助手</value>

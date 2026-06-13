@@ -91,9 +91,6 @@
     <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>チャットウィンドウ</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
-        <value>いつでもチャットウィンドウを呼び出すためのショートカットを設定します。</value>
-    </data>
     <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>temperature</value>
     </data>
@@ -2197,14 +2194,8 @@
     <data name="ShortcutSettings_PickVisualElement_Header" xml:space="preserve">
         <value>ビジュアル要素を選択</value>
     </data>
-    <data name="ShortcutSettings_PickVisualElement_Desription" xml:space="preserve">
-        <value>任意のタイミングで視覚要素を選択するためのショートカットキーを設定し、その後チャットウィンドウを呼び出します。</value>
-    </data>
     <data name="ShortcutSettings_TakeScreenshot_Header" xml:space="preserve">
         <value>スクリーンショットをキャプチャ</value>
-    </data>
-    <data name="ShortcutSettings_TakeScreenshot_Desription" xml:space="preserve">
-        <value>任意のタイミングでスクリーンショットをキャプチャするためのショートカットキーを設定し、その後チャットウィンドウを呼び出します。</value>
     </data>
     <data name="Strategy_BuiltIn_Browser_Name" xml:space="preserve">
         <value>ブラウザアシスタント</value>

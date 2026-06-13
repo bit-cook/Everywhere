@@ -91,9 +91,6 @@
     <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>Fenêtre de discussion</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
-        <value>Définissez un raccourci pour invoquer la fenêtre de chat à tout moment.</value>
-    </data>
     <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>temperature</value>
     </data>
@@ -2197,14 +2194,8 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="ShortcutSettings_PickVisualElement_Header" xml:space="preserve">
         <value>Sélectionner un Élément Visuel</value>
     </data>
-    <data name="ShortcutSettings_PickVisualElement_Desription" xml:space="preserve">
-        <value>Définissez un raccourci pour sélectionner un élément visuel à tout moment, ce qui ouvrira ensuite la fenêtre de chat.</value>
-    </data>
     <data name="ShortcutSettings_TakeScreenshot_Header" xml:space="preserve">
         <value>Capturer une Capture d'Écran</value>
-    </data>
-    <data name="ShortcutSettings_TakeScreenshot_Desription" xml:space="preserve">
-        <value>Définissez un raccourci pour capturer une capture d'écran à tout moment, ce qui ouvrira ensuite la fenêtre de chat.</value>
     </data>
     <data name="Strategy_BuiltIn_Browser_Name" xml:space="preserve">
         <value>Assistant Navigateur</value>

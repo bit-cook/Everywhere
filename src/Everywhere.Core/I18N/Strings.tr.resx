@@ -91,9 +91,6 @@
     <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>Sohbet Penceresi</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
-        <value>Sohbet penceresini istediğiniz zaman çağırmak için bir kısayol ayarlayın.</value>
-    </data>
     <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>temperature</value>
     </data>
@@ -2196,14 +2193,8 @@ Seçim modunu değiştirmek için kaydırıcı veya rakam tuşlarını kullanın
     <data name="ShortcutSettings_PickVisualElement_Header" xml:space="preserve">
         <value>Görsel Elemanı Seç</value>
     </data>
-    <data name="ShortcutSettings_PickVisualElement_Desription" xml:space="preserve">
-        <value>Herhangi bir zamanda basarak görsel elemanı seçmek için bir kısayol ayarlayın, ardından sohbet penceresi açılacaktır.</value>
-    </data>
     <data name="ShortcutSettings_TakeScreenshot_Header" xml:space="preserve">
         <value>Ekran Görüntüsü Al</value>
-    </data>
-    <data name="ShortcutSettings_TakeScreenshot_Desription" xml:space="preserve">
-        <value>Herhangi bir zamanda basarak ekran görüntüsü almak için bir kısayol ayarlayın, ardından sohbet penceresi açılacaktır.</value>
     </data>
     <data name="Strategy_BuiltIn_Browser_Name" xml:space="preserve">
         <value>Tarayıcı Asistanı</value>

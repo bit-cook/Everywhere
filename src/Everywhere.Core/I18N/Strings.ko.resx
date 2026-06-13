@@ -91,9 +91,6 @@
     <data name="ShortcutSettings_ChatWindow_Header" xml:space="preserve">
         <value>채팅 창</value>
     </data>
-    <data name="ShortcutSettings_ChatWindow_Desription" xml:space="preserve">
-        <value>언제든지 채팅 창을 호출할 수 있는 단축키를 설정합니다.</value>
-    </data>
     <data name="Assistant_Temperature_Header" xml:space="preserve">
         <value>temperature</value>
     </data>
@@ -2197,14 +2194,8 @@
     <data name="ShortcutSettings_PickVisualElement_Header" xml:space="preserve">
         <value>시각 요소 선택</value>
     </data>
-    <data name="ShortcutSettings_PickVisualElement_Desription" xml:space="preserve">
-        <value>언제든지 눌러 시각 요소를 선택하고, 이후 채팅 창을 호출하는 단축키를 설정합니다.</value>
-    </data>
     <data name="ShortcutSettings_TakeScreenshot_Header" xml:space="preserve">
         <value>스크린샷 캡처</value>
-    </data>
-    <data name="ShortcutSettings_TakeScreenshot_Desription" xml:space="preserve">
-        <value>언제든지 눌러 스크린샷을 캡처하고, 이후 채팅 창을 호출하는 단축키를 설정합니다.</value>
     </data>
     <data name="Strategy_BuiltIn_Browser_Name" xml:space="preserve">
         <value>브라우저 도우미</value>
