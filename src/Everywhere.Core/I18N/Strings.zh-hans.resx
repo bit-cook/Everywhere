@@ -3089,4 +3089,7 @@
     <data name="CompositeKeyboardShortcut_IsEnabled_Header" xml:space="preserve">
         <value>启用</value>
     </data>
+    <data name="CompositeKeyboardShortcutInputBox_SetAlternativeKeyToggleButton_ToolTip_Tip" xml:space="preserve">
+        <value>设置替代按键</value>
+    </data>
 </root>

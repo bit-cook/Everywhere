@@ -3088,4 +3088,7 @@ Release date: {2}</value>
     <data name="CompositeKeyboardShortcut_IsEnabled_Header" xml:space="preserve">
         <value>Enable</value>
     </data>
+    <data name="CompositeKeyboardShortcutInputBox_SetAlternativeKeyToggleButton_ToolTip_Tip" xml:space="preserve">
+        <value />
+    </data>
 </root>

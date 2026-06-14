@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using Avalonia.Input;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Everywhere.Interop;
 
 namespace Everywhere.Configuration;
@@ -33,25 +31,6 @@ public sealed partial class CompositeKeyboardShortcut : ObservableObject
     [SettingsItem(Group = "_")]
     [SettingsTemplatedItem]
     public partial KeyboardShortcut Alternative { get; set; }
-
-    /// <summary>
-    /// Set by IConfiguration.Bind, so this can be converted from KeyboardShortcut
-    /// </summary>
-    [JsonIgnore]
-    [Obsolete("This property is designed for forward compatibility and should not be used directly. Use Main property instead.", true)]
-    public Key Key
-    {
-        get => default;
-        set => Main = Main with { Key = value };
-    }
-
-    [JsonIgnore]
-    [Obsolete("This property is designed for forward compatibility and should not be used directly. Use Main property instead.", true)]
-    public KeyModifiers Modifiers
-    {
-        get => default;
-        set => Main = Main with { Modifiers = value };
-    }
 
     public static implicit operator CompositeKeyboardShortcut(KeyboardShortcut shortcut) => new() { Main = shortcut };
 }

@@ -86,13 +86,13 @@ public sealed class ChatWindowInitializer(
 
                     break;
                 }
-                case nameof(CompositeKeyboardShortcut.Main):
+                case nameof(CompositeKeyboardShortcut.Main) when shortcut.IsEnabled:
                 {
                     // ReSharper disable once AccessToModifiedClosure
                     register(shortcut.Main, ref mainSubscription);
                     break;
                 }
-                case nameof(CompositeKeyboardShortcut.Alternative):
+                case nameof(CompositeKeyboardShortcut.Alternative) when shortcut.IsEnabled:
                 {
                     // ReSharper disable once AccessToModifiedClosure
                     register(shortcut.Alternative, ref alternativeSubscription);

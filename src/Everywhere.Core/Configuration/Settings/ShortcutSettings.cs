@@ -22,21 +22,18 @@ public sealed partial class ShortcutSettings : SettingsBase, ISettingsCategory
     [DynamicResourceKey(
         LocaleKey.ShortcutSettings_ChatWindow_Header,
         LocaleKey.ShortcutSettings_ChatWindow_Desription)]
-    [SettingsItems]
-    [SettingsItem(Classes = ["Ghost", "NoInteractive"])]
+    [SettingsTemplatedItem]
     public CompositeKeyboardShortcut ChatWindow { get; set; } = new KeyboardShortcut(Key.E, KeyModifiers.Control | KeyModifiers.Shift);
 
     [DynamicResourceKey(
         LocaleKey.ShortcutSettings_PickVisualElement_Header,
         LocaleKey.ShortcutSettings_PickVisualElement_Desription)]
-    [SettingsItems]
-    [SettingsItem(Classes = ["Ghost", "NoInteractive"])]
+    [SettingsTemplatedItem]
     public CompositeKeyboardShortcut PickVisualElement { get; } = new();
 
     [DynamicResourceKey(
         LocaleKey.ShortcutSettings_TakeScreenshot_Header,
         LocaleKey.ShortcutSettings_TakeScreenshot_Desription)]
-    [SettingsItems]
-    [SettingsItem(Classes = ["Ghost", "NoInteractive"])]
+    [SettingsTemplatedItem]
     public CompositeKeyboardShortcut TakeScreenshot { get; } = new();
 }
