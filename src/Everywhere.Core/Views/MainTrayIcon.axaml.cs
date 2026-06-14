@@ -41,19 +41,20 @@ public sealed partial class MainTrayIcon : TrayIcon
 
     private void InitializeMenuItems()
     {
-        Menu = new NativeMenu
-        {
+        Menu =
+        [
             new NativeMenuItem
             {
                 [!NativeMenuItem.HeaderProperty] = new DynamicResourceKey(LocaleKey.MainTrayIcon_Menu_OpenChatWindow).ToBinding(),
                 Command = ShowChatWindowCommand
             },
+
             new NativeMenuItem
             {
                 [!NativeMenuItem.HeaderProperty] = new DynamicResourceKey(LocaleKey.MainTrayIcon_Menu_OpenMainWindow).ToBinding(),
                 Command = ShowMainWindowCommand
-            }
-        };
+            },
+        ];
 
 #if DEBUG
         Menu.Items.Add(new NativeMenuItem
@@ -83,8 +84,6 @@ public sealed partial class MainTrayIcon : TrayIcon
             [!NativeMenuItem.HeaderProperty] = new DynamicResourceKey(LocaleKey.MainTrayIcon_Menu_Exit).ToBinding(),
             Command = ExitCommand
         });
-
-        Clicked += HandleTrayIconClicked;
     }
 
     private void HandleTrayIconClicked(object? sender, EventArgs e)
