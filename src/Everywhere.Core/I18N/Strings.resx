@@ -3091,4 +3091,7 @@ Release date: {2}</value>
     <data name="CompositeKeyboardShortcutInputBox_SetAlternativeKeyToggleButton_ToolTip_Tip" xml:space="preserve">
         <value>Set Alternative Key</value>
     </data>
+    <data name="ChatMessageControl_ChatStatisticsTextBlock_ToolTip_Tip" xml:space="preserve">
+        <value />
+    </data>
 </root>
