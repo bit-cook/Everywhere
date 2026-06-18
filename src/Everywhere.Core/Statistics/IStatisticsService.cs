@@ -25,17 +25,4 @@ public interface IStatisticsService
         int months,
         StatisticsDeviceScope deviceScope = StatisticsDeviceScope.AllDevices,
         CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets provider-reported token usage for a half-open time range.
-    /// </summary>
-    Task<StatisticsTokenSummary> GetTokenSummaryAsync(
-        StatisticsRange range,
-        StatisticsDeviceScope deviceScope = StatisticsDeviceScope.AllDevices,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets current capability availability from plugin and skill managers.
-    /// </summary>
-    StatisticsCapabilitySummary GetCapabilitySummary();
 }

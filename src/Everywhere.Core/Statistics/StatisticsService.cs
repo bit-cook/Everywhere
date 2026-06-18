@@ -1,6 +1,4 @@
-using Everywhere.Chat.Plugins;
 using Everywhere.Configuration;
-using Everywhere.Skills;
 using Everywhere.Statistics.Database;
 using Microsoft.EntityFrameworkCore;
 using ZLinq;
@@ -10,12 +8,7 @@ namespace Everywhere.Statistics;
 /// <summary>
 /// Queries aggregated local statistics for the home dashboard.
 /// </summary>
-public sealed class StatisticsService(
-    IDbContextFactory<StatisticsDbContext> dbFactory,
-    IChatPluginManager chatPluginManager,
-    ISkillManager skillManager,
-    Settings settings
-) : IStatisticsService
+public sealed class StatisticsService(IDbContextFactory<StatisticsDbContext> dbFactory) : IStatisticsService
 {
     /// <inheritdoc />
     public async Task<StatisticsOverview> GetOverviewAsync(
@@ -34,7 +27,7 @@ public sealed class StatisticsService(
             .Where(x => x.CreatedAt >= range.Start && x.CreatedAt < range.End);
         var turnCount = await turnsQuery.LongCountAsync(cancellationToken);
 
-        var tokenSummary = await GetTokenSummaryAsync(range, deviceScope, cancellationToken);
+        var tokenSummary = await GetTokenSummaryAsync(db, range, deviceId, cancellationToken);
 
         var visualQuery = ApplyDeviceScope(db.VisualContextEvents.AsNoTracking(), deviceId)
             .Where(x => x.CreatedAt >= range.Start && x.CreatedAt < range.End);
@@ -129,14 +122,12 @@ public sealed class StatisticsService(
             .ToList();
     }
 
-    /// <inheritdoc />
-    public async Task<StatisticsTokenSummary> GetTokenSummaryAsync(
+    private static async Task<StatisticsTokenSummary> GetTokenSummaryAsync(
+        StatisticsDbContext db,
         StatisticsRange range,
-        StatisticsDeviceScope deviceScope = StatisticsDeviceScope.AllDevices,
+        int? deviceId,
         CancellationToken cancellationToken = default)
     {
-        await using var db = await dbFactory.CreateDbContextAsync(cancellationToken);
-        var deviceId = await ResolveDeviceIdAsync(db, deviceScope, cancellationToken);
         var query = ApplyDeviceScope(db.ModelInvocationEvents.AsNoTracking(), deviceId)
             .Where(x => x.StartedAt >= range.Start && x.StartedAt < range.End);
 
@@ -148,41 +139,11 @@ public sealed class StatisticsService(
             await query.SumAsync(x => x.TotalTokenCount, cancellationToken));
     }
 
-    /// <inheritdoc />
-    public StatisticsCapabilitySummary GetCapabilitySummary()
-    {
-        var mcpTotal = chatPluginManager.McpPlugins.Count;
-        var mcpEnabled = chatPluginManager.McpPlugins.AsValueEnumerable().Count(x => x.IsEnabled);
-
-        var builtInFunctions = chatPluginManager.BuiltInPlugins
-            .AsValueEnumerable()
-            .SelectMany(x => x.GetChatFunctions())
-            .Where(x => x.IsVisible)
-            .ToList();
-        var builtInTotal = builtInFunctions.Count;
-        var builtInEnabled = builtInFunctions.Count(x => x.IsEnabled);
-
-        var skills = skillManager.SourceGroups
-            .AsValueEnumerable()
-            .SelectMany(x => x.Skills)
-            .Where(x => x.IsValid)
-            .ToList();
-        var skillTotal = skills.Count;
-        var skillEnabled = skills.Count(x => x.IsEnabled);
-
-        return new StatisticsCapabilitySummary(
-            new StatisticsCapabilityGroup(settings.Model.CustomAssistants.Count, settings.Model.CustomAssistants.Count),
-            new StatisticsCapabilityGroup(mcpEnabled, mcpTotal),
-            new StatisticsCapabilityGroup(builtInEnabled, builtInTotal),
-            new StatisticsCapabilityGroup(skillEnabled, skillTotal));
-    }
-
     private static DateOnly ToLocalDate(DateTimeOffset value) => DateOnly.FromDateTime(value.ToLocalTime().Date);
 
     private static IQueryable<T> ApplyDeviceScope<T>(IQueryable<T> query, int? deviceId) where T : class
     {
         if (deviceId is null) return query;
-
         return query.Where(x => EF.Property<int>(x, "DeviceId") == deviceId);
     }
 

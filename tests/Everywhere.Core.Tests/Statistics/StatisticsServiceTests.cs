@@ -1,11 +1,7 @@
-using Everywhere.AI;
 using Everywhere.Configuration;
-using Everywhere.Chat.Plugins;
-using Everywhere.Skills;
 using Everywhere.Statistics;
 using Everywhere.Statistics.Database;
 using Microsoft.EntityFrameworkCore;
-using NSubstitute;
 
 namespace Everywhere.Core.Tests.Statistics;
 
@@ -41,8 +37,8 @@ public sealed class StatisticsServiceTests
                 CreateModel(currentDevice.Id, currentChatId, excludedInstant, input: 999, cached: 999, output: 999, reasoning: 999, total: 999),
                 CreateModel(otherDevice.Id, Guid.CreateVersion7(), includedInstant, input: 7, cached: 1, output: 3, reasoning: 0, total: 10));
             db.VisualContextEvents.AddRange(
-                CreateVisual(currentDevice.Id, currentChatId, includedInstant, elements: 5, screenshots: 1, images: 2, bytes: 1000),
-                CreateVisual(otherDevice.Id, Guid.CreateVersion7(), includedInstant, elements: 8, screenshots: 0, images: 0, bytes: 2000));
+                CreateVisual(currentDevice.Id, currentChatId, includedInstant, elements: 5, screenshots: 1, images: 2),
+                CreateVisual(otherDevice.Id, Guid.CreateVersion7(), includedInstant, elements: 8, screenshots: 0, images: 0));
             db.ToolInvocationEvents.AddRange(
                 CreateTool(currentDevice.Id, currentChatId, includedInstant, "mcp.demo"),
                 CreateTool(currentDevice.Id, currentChatId, includedInstant.AddMinutes(2), "builtin.files"),
@@ -109,8 +105,7 @@ public sealed class StatisticsServiceTests
                 localTodayAtNoon.ToUniversalTime(),
                 elements: 0,
                 screenshots: 0,
-                images: 0,
-                bytes: 0));
+                images: 0));
             await db.SaveChangesAsync();
         }
 
@@ -132,21 +127,6 @@ public sealed class StatisticsServiceTests
     }
 
     [Test]
-    public void GetCapabilitySummary_IncludesAssistants()
-    {
-        using var database = StatisticsTestDatabase.Create();
-        var settings = new Settings();
-        settings.Model.CustomAssistants.Add(new CustomAssistant { Name = "Research" });
-        settings.Model.CustomAssistants.Add(new CustomAssistant { Name = "Coding" });
-
-        var service = CreateService(database, settings);
-        var summary = service.GetCapabilitySummary();
-
-        Assert.That(summary.Assistants.TotalCount, Is.EqualTo(2));
-        Assert.That(summary.Assistants.EnabledCount, Is.EqualTo(2));
-    }
-
-    [Test]
     public async Task StatisticsDatabase_EnforcesOneTopicPerDeviceAndChat()
     {
         using var database = StatisticsTestDatabase.Create();
@@ -165,12 +145,7 @@ public sealed class StatisticsServiceTests
             "The unique index prevents double-counting a topic on the same device.");
     }
 
-    private static StatisticsService CreateService(StatisticsTestDatabase database, Settings? settings = null) =>
-        new(
-            database.Factory,
-            Substitute.For<IChatPluginManager>(),
-            Substitute.For<ISkillManager>(),
-            settings ?? new Settings());
+    private static StatisticsService CreateService(StatisticsTestDatabase database) => new(database.Factory);
 
     private static async Task<DeviceEntity> AddDeviceAsync(StatisticsDbContext db, string deviceGuid)
     {
@@ -245,8 +220,7 @@ public sealed class StatisticsServiceTests
         DateTimeOffset createdAt,
         int elements,
         int screenshots,
-        int images,
-        long bytes) =>
+        int images) =>
         new()
         {
             Id = Guid.CreateVersion7(),
