@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Reactive.Disposables;
 using System.Text;
 using CommunityToolkit.Mvvm.Messaging;
-using DynamicData;
 using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Chat.Plugins;
@@ -11,8 +11,8 @@ using Everywhere.Configuration;
 using Everywhere.Interop;
 using Everywhere.Messages;
 using Everywhere.Skills;
-using Everywhere.Storage;
 using Everywhere.Statistics;
+using Everywhere.Storage;
 using Everywhere.StrategyEngine;
 using Everywhere.Utilities;
 using Everywhere.Views;
@@ -204,6 +204,15 @@ public sealed partial class ChatService : IChatService
                 using var turnScope = BeginStatisticsTurn(turnEventId);
 
                 await GenerateAsync(chatContext, customAssistant, assistantChatMessage, cancellationToken: cancellationToken);
+
+                static ChatMessageNode? FindPreviousUserNode(ChatContext chatContext, ChatMessageNode node)
+                {
+                    return chatContext.Read(list =>
+                    {
+                        var index = list.IndexOf(node);
+                        return index <= 0 ? null : list.AsValueEnumerable().Take(index).LastOrDefault(x => x.Message is UserChatMessage);
+                    });
+                }
             },
             _logger.ToExceptionHandler());
     }
@@ -216,11 +225,13 @@ public sealed partial class ChatService : IChatService
         }
 
         var chatContext = node.Context;
-        var branchNodes = chatContext.Items;
-        if (branchNodes.Count == 0 || branchNodes.IndexOf(node) != branchNodes.Count - 1)
+        chatContext.Read(list =>
         {
-            throw new InvalidOperationException("Only last assistant message can be continued.");
-        }
+            if (list.Count == 0 || list.IndexOf(node) != list.Count - 1)
+            {
+                throw new InvalidOperationException("Only last assistant message can be continued.");
+            }
+        });
 
         var customAssistant = _settings.Model.SelectedCustomAssistant;
 
@@ -386,7 +397,7 @@ public sealed partial class ChatService : IChatService
 
         if (kernelMixin.SupportsToolCall && _persistentState.IsToolCallEnabled)
         {
-            var userMessage = chatContext.Items.AsValueEnumerable().Select(n => n.Message).OfType<UserChatMessage>().LastOrDefault();
+            var userMessage = chatContext.Read(list => list.AsValueEnumerable().Select(n => n.Message).OfType<UserChatMessage>().LastOrDefault());
             var strategyToolRulesets = userMessage?.As<UserStrategyChatMessage>()?.Strategy.ToolRulesets;
             var toolRulesets = new ToolRulesets(1) { { "builtin.web.web_search", _persistentState.IsWebSearchEnabled } }
                 .Union(strategyToolRulesets)
@@ -1276,14 +1287,6 @@ public sealed partial class ChatService : IChatService
 
     private static ChatMessageNode? FindMessageNode(ChatContext chatContext, ChatMessage message) =>
         chatContext.GetAllNodes().FirstOrDefault(x => ReferenceEquals(x.Message, message));
-
-    private static ChatMessageNode? FindPreviousUserNode(ChatContext chatContext, ChatMessageNode node)
-    {
-        var index = chatContext.Items.IndexOf(node);
-        if (index <= 0) return null;
-
-        return chatContext.Items.Take(index).LastOrDefault(x => x.Message is UserChatMessage);
-    }
 
     #region Telemetry
 
