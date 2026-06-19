@@ -79,6 +79,7 @@
                       CanDismiss="{Binding CanDismiss, Mode=OneTime}"
                       CanDismissByClicking="False"
                       Command="{Binding DismissCommand, Mode=OneTime}"
+                      DismissCommandParameter="{Binding Mode=OneTime}"
                       Notification="{Binding Type, Converter={x:Static shadui:NotificationTypeToNotificationConverter.Shared}}">
                       <TextBlock Text="{Binding ContentKey^, FallbackValue={x:Null}}"/>
                     </shadui:Toast>

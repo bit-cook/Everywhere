@@ -177,6 +177,7 @@
                 CanDismissByClicking="False"
                 Content="{Binding ContentKey^}"
                 DismissCommand="{Binding DismissCommand, Mode=OneTime}"
+                DismissCommandParameter="{Binding Mode=OneTime}"
                 Notification="{Binding Type, Converter={x:Static shadui:NotificationTypeToNotificationConverter.Shared}}"/>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
