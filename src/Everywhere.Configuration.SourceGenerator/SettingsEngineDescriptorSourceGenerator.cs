@@ -205,6 +205,8 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
             elementType = dictionaryValueType;
         }
 
+        var canWrite = CanWriteFromGeneratedCode(property);
+        var canInitialize = CanInitializeFromGeneratedCode(property);
         INamedTypeSymbol? childType = null;
         if (kind == "Object")
         {
@@ -213,13 +215,14 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
             {
                 childType = namedType;
             }
-            else if (!CanWriteFromGeneratedCode(property))
+            else if (!canWrite && !canInitialize)
             {
                 return null;
             }
         }
 
-        if (!CanWriteFromGeneratedCode(property) &&
+        if (!canWrite &&
+            !canInitialize &&
             childType is null &&
             kind is not ("List" or "Dictionary"))
         {
@@ -231,7 +234,8 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
             property.Name,
             jsonName,
             propertyType,
-            CanWriteFromGeneratedCode(property),
+            canWrite,
+            canInitialize,
             kind,
             elementType,
             dictionaryKeyType,
@@ -325,16 +329,15 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
 
     private static void EmitCreateMethod(StringBuilder sb, TypeModel model)
     {
+        var descriptorClassName = GetDescriptorClassName(model);
+
         sb.Append("    private ")
             .Append(EngineGlobalPrefix)
             .Append(".ISettingsDescriptor ")
             .Append(model.CreateMethodName)
             .AppendLine("()");
         sb.AppendLine("    {");
-        sb.Append("        return new ")
-            .Append(EngineGlobalPrefix)
-            .AppendLine(".SettingsObjectDescriptor(");
-        sb.Append("            typeof(").Append(FormatType(model.Type)).AppendLine("),");
+        sb.Append("        return new ").Append(descriptorClassName).AppendLine("(");
         sb.Append("            new ")
             .Append(EngineGlobalPrefix)
             .AppendLine(".ISettingsPropertyDescriptor[]");
@@ -345,15 +348,18 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
             EmitPropertyDescriptor(sb, property);
         }
 
-        sb.AppendLine("            },");
-        sb.Append("            ")
-            .Append(ConfigurationGlobalPrefix)
-            .Append(".SettingsUnknownMemberHandling.")
-            .Append(model.UnknownMemberHandling)
-            .AppendLine(",");
-        sb.Append("            ").Append(ToBoolLiteral(model.IsSerializedSubtree)).AppendLine(",");
-        sb.Append("            ").Append(GetInstanceFactoryExpression(model)).AppendLine(");");
+        sb.AppendLine("            });");
         sb.AppendLine("    }");
+
+        if (model.ConstructorKind != ConstructorKind.None &&
+            model.Properties.Any(static property => property.CanInitialize))
+        {
+            sb.AppendLine();
+            EmitCreateInstanceMethod(sb, model);
+        }
+
+        sb.AppendLine();
+        EmitDescriptorClass(sb, model);
     }
 
     private static void EmitPropertyDescriptor(StringBuilder sb, PropertyModel property)
@@ -377,6 +383,7 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         sb.Append("                    \"").Append(EscapeStringForCode(property.JsonName)).AppendLine("\",");
         sb.Append("                    typeof(").Append(propertyType).AppendLine("),");
         sb.Append("                    ").Append(ToBoolLiteral(property.CanWrite)).AppendLine(",");
+        sb.Append("                    ").Append(ToBoolLiteral(property.CanInitialize)).AppendLine(",");
         sb.Append("                    ")
             .Append(EngineGlobalPrefix)
             .Append(".SettingsPropertyKind.")
@@ -407,23 +414,211 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         return GetEnumArgumentName(jsonIgnore.GetNamedArgument("Condition")) == "Never";
     }
 
-    private static string GetInstanceFactoryExpression(TypeModel model) =>
+    private static void EmitDescriptorClass(StringBuilder sb, TypeModel model)
+    {
+        sb.Append("    private sealed class ").Append(GetDescriptorClassName(model)).Append(" : ")
+            .Append(EngineGlobalPrefix)
+            .AppendLine(".SettingsObjectDescriptor");
+        sb.AppendLine("    {");
+        sb.Append("        public ").Append(GetDescriptorClassName(model)).AppendLine("(");
+        sb.Append("            global::System.Collections.Generic.IReadOnlyList<")
+            .Append(EngineGlobalPrefix)
+            .AppendLine(".ISettingsPropertyDescriptor> properties)");
+        sb.AppendLine("            : base(");
+        sb.Append("                typeof(").Append(FormatType(model.Type)).AppendLine("),");
+        sb.AppendLine("                properties,");
+        sb.Append("                ")
+            .Append(ConfigurationGlobalPrefix)
+            .Append(".SettingsUnknownMemberHandling.")
+            .Append(model.UnknownMemberHandling)
+            .AppendLine(",");
+        sb.Append("                ").Append(ToBoolLiteral(model.IsSerializedSubtree)).AppendLine(")");
+        sb.AppendLine("        {");
+        sb.AppendLine("        }");
+
+        if (model.ConstructorKind == ConstructorKind.Default)
+        {
+            sb.AppendLine();
+            EmitTryCreateInstanceOverride(sb, model);
+        }
+
+        sb.AppendLine("    }");
+    }
+
+    private static void EmitTryCreateInstanceOverride(StringBuilder sb, TypeModel model)
+    {
+        sb.AppendLine("        public override bool TryCreateInstance(");
+        sb.AppendLine("            global::System.Collections.Generic.IReadOnlyDictionary<string, object?>? initialValues,");
+        sb.AppendLine("            out object? instance)");
+        sb.AppendLine("        {");
+        sb.AppendLine("            try");
+        sb.AppendLine("            {");
+
+        if (model.Properties.Any(static property => property.CanInitialize))
+        {
+            sb.Append("                instance = ").Append(GetCreateInstanceMethodName(model)).AppendLine("(initialValues);");
+            sb.AppendLine("                return instance is not null;");
+        }
+        else
+        {
+            sb.Append("                instance = new ").Append(FormatType(model.Type)).AppendLine("();");
+            sb.AppendLine("                return true;");
+        }
+
+        sb.AppendLine("            }");
+        sb.AppendLine("            catch");
+        sb.AppendLine("            {");
+        sb.AppendLine("                instance = null;");
+        sb.AppendLine("                return false;");
+        sb.AppendLine("            }");
+        sb.AppendLine("        }");
+    }
+
+    private static void EmitCreateInstanceMethod(StringBuilder sb, TypeModel model)
+    {
+        var properties = model.Properties
+            .Where(static property => property.CanInitialize)
+            .ToImmutableArray();
+
+        sb.Append("    private static object? ")
+            .Append(GetCreateInstanceMethodName(model))
+            .AppendLine("(");
+        sb.AppendLine("        global::System.Collections.Generic.IReadOnlyDictionary<string, object?>? initialValues)");
+        sb.AppendLine("    {");
+
+        if (properties.Length == 1)
+        {
+            EmitSingleInitializerCreateInstanceMethodBody(sb, model, properties[0]);
+            sb.AppendLine("    }");
+            return;
+        }
+
+        for (var i = 0; i < properties.Length; i++)
+        {
+            sb.Append("        object? initValue_").Append(i.ToString(CultureInfo.InvariantCulture)).AppendLine(" = null;");
+        }
+
+        sb.AppendLine("        // Object initializers need compile-time member assignments; the mask selects");
+        sb.AppendLine("        // the exact initializer shape for the JSON properties that were present.");
+        sb.AppendLine("        var initializeMask = 0;");
+
+        for (var i = 0; i < properties.Length; i++)
+        {
+            var property = properties[i];
+            var mask = 1 << i;
+            sb.Append("        if (initialValues?.TryGetValue(\"")
+                .Append(EscapeStringForCode(property.JsonName))
+                .Append("\", out initValue_")
+                .Append(i.ToString(CultureInfo.InvariantCulture))
+                .AppendLine(") is true)");
+            sb.AppendLine("        {");
+            sb.Append("            initializeMask |= ").Append(mask.ToString(CultureInfo.InvariantCulture)).AppendLine(";");
+            sb.AppendLine("        }");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("        return initializeMask switch");
+        sb.AppendLine("        {");
+
+        var combinationCount = 1 << properties.Length;
+        for (var mask = 0; mask < combinationCount; mask++)
+        {
+            sb.Append("            ").Append(mask.ToString(CultureInfo.InvariantCulture)).Append(" => ");
+            EmitCreateInstanceExpression(sb, model, properties, mask);
+            sb.AppendLine(",");
+        }
+
+        sb.Append("            _ => ").Append(GetConstructorExpression(model)).AppendLine(",");
+        sb.AppendLine("        };");
+        sb.AppendLine("    }");
+    }
+
+    private static void EmitSingleInitializerCreateInstanceMethodBody(
+        StringBuilder sb,
+        TypeModel model,
+        PropertyModel property)
+    {
+        sb.Append("        if (initialValues?.TryGetValue(\"")
+            .Append(EscapeStringForCode(property.JsonName))
+            .AppendLine("\", out var initValue) is true)");
+        sb.AppendLine("        {");
+        sb.Append("            return ")
+            .Append(GetConstructorExpression(model))
+            .AppendLine();
+        sb.AppendLine("            {");
+        sb.Append("                ")
+            .Append(property.ClrName)
+            .Append(" = CastPropertyValue<")
+            .Append(FormatValueType(property.PropertyType))
+            .AppendLine(">(initValue),");
+        sb.AppendLine("            };");
+        sb.AppendLine("        }");
+        sb.AppendLine();
+        sb.Append("        return ").Append(GetConstructorExpression(model)).AppendLine(";");
+    }
+
+    private static void EmitCreateInstanceExpression(
+        StringBuilder sb,
+        TypeModel model,
+        ImmutableArray<PropertyModel> properties,
+        int mask)
+    {
+        sb.Append(GetConstructorExpression(model));
+
+        if (mask == 0)
+        {
+            return;
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("            {");
+
+        for (var i = 0; i < properties.Length; i++)
+        {
+            if ((mask & (1 << i)) == 0)
+            {
+                continue;
+            }
+
+            var property = properties[i];
+            sb.Append("                ")
+                .Append(property.ClrName)
+                .Append(" = CastPropertyValue<")
+                .Append(FormatValueType(property.PropertyType))
+                .Append(">(initValue_")
+                .Append(i.ToString(CultureInfo.InvariantCulture))
+                .AppendLine("),");
+        }
+
+        sb.Append("            }");
+    }
+
+    private static string GetConstructorExpression(TypeModel model) =>
         model.ConstructorKind switch
         {
-            "Default" => $"static _ => new {FormatType(model.Type)}()",
-            "ServiceProvider" => $"static serviceProvider => new {FormatType(model.Type)}(serviceProvider)",
+            ConstructorKind.Default => $"new {FormatType(model.Type)}()",
             _ => "null"
         };
+
+    private static string GetCreateInstanceMethodName(TypeModel model) =>
+        model.CreateMethodName + "_Instance";
+
+    private static string GetDescriptorClassName(TypeModel model) =>
+        model.CreateMethodName + "_Descriptor";
 
     private static bool CanWriteFromGeneratedCode(IPropertySymbol property) =>
         property.SetMethod is { IsStatic: false, IsInitOnly: false } setMethod &&
         IsAccessibleFromGeneratedCode(setMethod.DeclaredAccessibility);
 
-    private static string GetConstructorKind(INamedTypeSymbol type)
+    private static bool CanInitializeFromGeneratedCode(IPropertySymbol property) =>
+        property.SetMethod is { IsStatic: false, IsInitOnly: true } setMethod &&
+        IsAccessibleFromGeneratedCode(setMethod.DeclaredAccessibility);
+
+    private static ConstructorKind GetConstructorKind(INamedTypeSymbol type)
     {
         if (type.IsAbstract)
         {
-            return "None";
+            return ConstructorKind.None;
         }
 
         foreach (var constructor in type.InstanceConstructors)
@@ -435,17 +630,11 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
 
             if (constructor.Parameters.Length == 0)
             {
-                return "Default";
-            }
-
-            if (constructor.Parameters.Length == 1 &&
-                constructor.Parameters[0].Type.ToDisplayString() == "System.IServiceProvider")
-            {
-                return "ServiceProvider";
+                return ConstructorKind.Default;
             }
         }
 
-        return "None";
+        return ConstructorKind.None;
     }
 
     private static bool IsAccessibleFromGeneratedCode(Accessibility accessibility) =>
@@ -688,10 +877,16 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
 
     private static string ToBoolLiteral(bool value) => value ? "true" : "false";
 
+    private enum ConstructorKind
+    {
+        None,
+        Default
+    }
+
     private sealed record TypeModel(
         INamedTypeSymbol Type,
         string CreateMethodName,
-        string ConstructorKind,
+        ConstructorKind ConstructorKind,
         string UnknownMemberHandling,
         bool IsSerializedSubtree,
         ImmutableArray<PropertyModel> Properties
@@ -703,6 +898,7 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         string JsonName,
         ITypeSymbol PropertyType,
         bool CanWrite,
+        bool CanInitialize,
         string Kind,
         ITypeSymbol? ElementType,
         ITypeSymbol? DictionaryKeyType,

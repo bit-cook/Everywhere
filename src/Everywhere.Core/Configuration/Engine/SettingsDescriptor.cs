@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
 using ZLinq;
 
 namespace Everywhere.Configuration.Engine;
@@ -41,7 +40,7 @@ public interface ISettingsDescriptor
     /// reflection fallback may still use reflection here, but the binder does
     /// not need to know which strategy produced the instance.
     /// </remarks>
-    bool TryCreateInstance(IServiceProvider serviceProvider, out object? instance);
+    bool TryCreateInstance(IReadOnlyDictionary<string, object?>? initialValues, out object? instance);
 
     /// <summary>
     /// Finds a property by CLR property name or JSON property name.
@@ -160,6 +159,16 @@ public interface ISettingsPropertyDescriptor
     bool CanWrite { get; }
 
     /// <summary>
+    /// Gets whether the property can be assigned during new object creation.
+    /// </summary>
+    /// <remarks>
+    /// This mirrors Microsoft Binder's <c>SetOnInit</c> concept. Init-only
+    /// properties are not ordinary patch setters, but SettingsEngine may bind
+    /// them while creating a new runtime object during startup load.
+    /// </remarks>
+    bool CanInitialize { get; }
+
+    /// <summary>
     /// Gets the mutually exclusive binding shape for this property.
     /// </summary>
     SettingsPropertyKind Kind { get; }
@@ -212,17 +221,17 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
             .OfType<SettingsPropertyDescriptor>()
             .ToList();
 
-        return new SettingsObjectDescriptor(
+        return new ReflectionSettingsObjectDescriptor(
             type,
             properties,
             GetUnknownMemberHandling(type),
-            HasSerializedSubtreeAttribute(type),
-            CreateInstanceFactory(type));
+            HasSerializedSubtreeAttribute(type));
     }
 
     private SettingsPropertyDescriptor? CreatePropertyDescriptor(Type ownerType, PropertyInfo property)
     {
         var propertyType = property.PropertyType;
+        var access = GetPropertyAccess(property);
         var jsonName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
         var unknownMemberHandling = GetUnknownMemberHandling(property, propertyType);
         var isArray = propertyType.IsArray;
@@ -253,13 +262,13 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
             {
                 childDescriptor = GetDescriptor(propertyType);
             }
-            else if (!property.CanWrite)
+            else if (access is { CanWrite: false, CanInitialize: false })
             {
                 return null;
             }
         }
 
-        if (!property.CanWrite &&
+        if (access is { CanWrite: false, CanInitialize: false } &&
             childDescriptor is null &&
             kind is not (SettingsPropertyKind.List or SettingsPropertyKind.Dictionary))
         {
@@ -269,6 +278,8 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
         return new SettingsPropertyDescriptor(
             ownerType,
             property,
+            access.CanWrite,
+            access.CanInitialize,
             jsonName,
             kind,
             elementType,
@@ -334,8 +345,7 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
             return true;
         }
 
-        var readOnlyListType = candidates.FirstOrDefault(i =>
-            i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReadOnlyList<>));
+        var readOnlyListType = candidates.FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IReadOnlyList<>));
         if (readOnlyListType is not null)
         {
             elementType = readOnlyListType.GetGenericArguments()[0];
@@ -381,42 +391,41 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
     private static bool HasSerializedSubtreeAttribute(MemberInfo member) =>
         member.GetCustomAttribute<SettingsSerializedSubtreeAttribute>() is not null;
 
-    private static Func<IServiceProvider, object?>? CreateInstanceFactory(Type type)
+    private static PropertyAccess GetPropertyAccess(PropertyInfo property)
     {
-        type = Nullable.GetUnderlyingType(type) ?? type;
-        var constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
-        if (!constructors.Any(static constructor =>
-                constructor.GetParameters() is var parameters &&
-                (parameters.Length == 0 ||
-                    parameters.Length == 1 && parameters[0].ParameterType == typeof(IServiceProvider))))
+        if (property.SetMethod is not { IsStatic: false })
         {
-            return null;
+            return default;
         }
 
-        return serviceProvider => ActivatorUtilities.CreateInstance(serviceProvider, type);
+        return IsInitOnly(property) ?
+            new PropertyAccess(CanWrite: false, CanInitialize: true) :
+            new PropertyAccess(CanWrite: property.CanWrite, CanInitialize: false);
     }
+
+    private static bool IsInitOnly(PropertyInfo property) =>
+        property.SetMethod?.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(IsExternalInit)) is true;
+
+    private readonly record struct PropertyAccess(bool CanWrite, bool CanInitialize);
 }
 
 /// <summary>
 /// Descriptor for a settings object type.
 /// </summary>
-public sealed class SettingsObjectDescriptor : ISettingsDescriptor
+public class SettingsObjectDescriptor : ISettingsDescriptor
 {
     private readonly Dictionary<string, ISettingsPropertyDescriptor> _propertiesByName;
-    private readonly Func<IServiceProvider, object?>? _instanceFactory;
 
     internal SettingsObjectDescriptor(
         Type type,
         IReadOnlyList<ISettingsPropertyDescriptor> properties,
         SettingsUnknownMemberHandling unknownMemberHandling,
-        bool isSerializedSubtree,
-        Func<IServiceProvider, object?>? instanceFactory)
+        bool isSerializedSubtree)
     {
         Type = type;
         Properties = properties;
         UnknownMemberHandling = unknownMemberHandling;
         IsSerializedSubtree = isSerializedSubtree;
-        _instanceFactory = instanceFactory;
         _propertiesByName = new Dictionary<string, ISettingsPropertyDescriptor>(StringComparer.Ordinal);
 
         foreach (var property in properties)
@@ -439,9 +448,35 @@ public sealed class SettingsObjectDescriptor : ISettingsDescriptor
     public bool IsSerializedSubtree { get; }
 
     /// <inheritdoc />
-    public bool TryCreateInstance(IServiceProvider serviceProvider, out object? instance)
+    public virtual bool TryCreateInstance(IReadOnlyDictionary<string, object?>? initialValues, out object? instance)
     {
-        if (_instanceFactory is null)
+        instance = null;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public ISettingsPropertyDescriptor? FindProperty(string clrOrJsonName) => _propertiesByName.GetValueOrDefault(clrOrJsonName);
+}
+
+internal sealed class ReflectionSettingsObjectDescriptor : SettingsObjectDescriptor
+{
+    private readonly Type _instanceType;
+    private readonly bool _canCreate;
+
+    internal ReflectionSettingsObjectDescriptor(
+        Type type,
+        IReadOnlyList<ISettingsPropertyDescriptor> properties,
+        SettingsUnknownMemberHandling unknownMemberHandling,
+        bool isSerializedSubtree)
+        : base(type, properties, unknownMemberHandling, isSerializedSubtree)
+    {
+        _instanceType = Nullable.GetUnderlyingType(type) ?? type;
+        _canCreate = _instanceType.GetConstructor(Type.EmptyTypes) is not null;
+    }
+
+    public override bool TryCreateInstance(IReadOnlyDictionary<string, object?>? initialValues, out object? instance)
+    {
+        if (!_canCreate)
         {
             instance = null;
             return false;
@@ -449,8 +484,23 @@ public sealed class SettingsObjectDescriptor : ISettingsDescriptor
 
         try
         {
-            instance = _instanceFactory(serviceProvider);
-            return instance is not null;
+            instance = Activator.CreateInstance(_instanceType);
+            if (instance is null)
+            {
+                return false;
+            }
+
+            foreach (var property in Properties)
+            {
+                if (!property.CanInitialize || initialValues?.TryGetValue(property.JsonName, out var initialValue) is not true)
+                {
+                    continue;
+                }
+
+                property.SetValue(instance, initialValue);
+            }
+
+            return true;
         }
         catch
         {
@@ -458,10 +508,6 @@ public sealed class SettingsObjectDescriptor : ISettingsDescriptor
             return false;
         }
     }
-
-    /// <inheritdoc />
-    public ISettingsPropertyDescriptor? FindProperty(string clrOrJsonName) =>
-        _propertiesByName.GetValueOrDefault(clrOrJsonName);
 }
 
 /// <summary>
@@ -474,7 +520,7 @@ public sealed class SettingsObjectDescriptor : ISettingsDescriptor
 /// <see cref="SettingsPropertyDescriptor"/> so the binder can stay oblivious to
 /// where the descriptor came from.
 /// </remarks>
-internal sealed class DelegateSettingsPropertyDescriptor : ISettingsPropertyDescriptor
+public sealed class DelegateSettingsPropertyDescriptor : ISettingsPropertyDescriptor
 {
     private readonly Func<object, object?> _getter;
     private readonly Action<object, object?>? _setter;
@@ -485,6 +531,7 @@ internal sealed class DelegateSettingsPropertyDescriptor : ISettingsPropertyDesc
         string jsonName,
         Type propertyType,
         bool canWrite,
+        bool canInitialize,
         SettingsPropertyKind kind,
         Type? elementType,
         Type? dictionaryKeyType,
@@ -500,6 +547,7 @@ internal sealed class DelegateSettingsPropertyDescriptor : ISettingsPropertyDesc
         JsonName = jsonName;
         PropertyType = propertyType;
         CanWrite = canWrite;
+        CanInitialize = canInitialize;
         Kind = kind;
         ElementType = elementType;
         DictionaryKeyType = dictionaryKeyType;
@@ -541,6 +589,9 @@ internal sealed class DelegateSettingsPropertyDescriptor : ISettingsPropertyDesc
     public bool CanWrite { get; }
 
     /// <inheritdoc />
+    public bool CanInitialize { get; }
+
+    /// <inheritdoc />
     public SettingsPropertyKind Kind { get; }
 
     /// <inheritdoc />
@@ -574,6 +625,8 @@ public sealed class SettingsPropertyDescriptor : ISettingsPropertyDescriptor
     internal SettingsPropertyDescriptor(
         Type ownerType,
         PropertyInfo property,
+        bool canWrite,
+        bool canInitialize,
         string jsonName,
         SettingsPropertyKind kind,
         Type? elementType,
@@ -585,6 +638,8 @@ public sealed class SettingsPropertyDescriptor : ISettingsPropertyDescriptor
     {
         OwnerType = ownerType;
         _property = property;
+        CanWrite = canWrite;
+        CanInitialize = canInitialize;
         JsonName = jsonName;
         Kind = kind;
         ElementType = elementType;
@@ -622,7 +677,10 @@ public sealed class SettingsPropertyDescriptor : ISettingsPropertyDescriptor
     public Func<string, object?>? DictionaryKeyReader { get; }
 
     /// <inheritdoc />
-    public bool CanWrite => _property is { CanWrite: true, SetMethod.IsStatic: false };
+    public bool CanWrite { get; }
+
+    /// <inheritdoc />
+    public bool CanInitialize { get; }
 
     /// <inheritdoc />
     public SettingsPropertyKind Kind { get; }

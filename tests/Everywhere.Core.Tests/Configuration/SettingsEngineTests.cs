@@ -108,7 +108,7 @@ public sealed class SettingsEngineTests
     }
 
     [Test]
-    public void GeneratedDescriptor_UsesSinglePropertyKindAndConstructorFactory()
+    public void GeneratedDescriptor_UsesSinglePropertyKindAndDoesNotCreateDiCategory()
     {
         var provider = SettingsDescriptorProviderFactory.Create();
         var descriptor = provider.GetDescriptor(typeof(Settings));
@@ -129,11 +129,152 @@ public sealed class SettingsEngineTests
             return;
         }
 
-        using var serviceProvider = new ServiceCollection().BuildServiceProvider();
-
-        Assert.That(childDescriptor.TryCreateInstance(serviceProvider, out var instance), Is.True);
-        Assert.That(instance, Is.TypeOf<CommonSettings>());
+        Assert.That(childDescriptor.TryCreateInstance(null, out _), Is.False);
         Assert.That(typeof(ISettingsPropertyDescriptor).GetProperty("CollectionBinding"), Is.Null);
+    }
+
+    [Test]
+    public void GeneratedDescriptor_TreatsApiKeyIdAsCreationInitializer()
+    {
+        var provider = SettingsDescriptorProviderFactory.Create();
+        var descriptor = provider.GetDescriptor(typeof(ApiKey));
+
+        var id = descriptor.FindProperty(nameof(ApiKey.Id));
+        var name = descriptor.FindProperty(nameof(ApiKey.Name));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(id, Is.Not.Null);
+            Assert.That(id?.CanInitialize, Is.True);
+            Assert.That(id?.CanWrite, Is.False);
+            Assert.That(name, Is.Not.Null);
+            Assert.That(name?.CanInitialize, Is.False);
+            Assert.That(name?.CanWrite, Is.True);
+        });
+    }
+
+    [Test]
+    public void Patch_CreatesApiKeyWithInitOnlyIdFromJson()
+    {
+        var apiKeyId = Guid.Parse("018fe8f2-3d4a-7c1b-9a2f-2d994c37a001");
+        var root = Require(JsonNode.Parse(
+            $$"""
+            {
+              "Model": {
+                "ApiKeys": [
+                  {
+                    "Id": "{{apiKeyId:D}}",
+                    "Name": "primary"
+                  }
+                ]
+              }
+            }
+            """)).AsObject();
+        using var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var settings = new Settings(serviceProvider);
+        var binder = new SettingsPatchBinder();
+
+        binder.Patch(root, settings);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(settings.Model.ApiKeys, Has.Count.EqualTo(1));
+            Assert.That(settings.Model.ApiKeys[0].Id, Is.EqualTo(apiKeyId));
+            Assert.That(settings.Model.ApiKeys[0].Name, Is.EqualTo("primary"));
+            Assert.That(binder.Diagnostics, Is.Empty);
+        });
+    }
+
+    [Test]
+    public void Patch_MissingApiKeyIdKeepsApiKeyDefaultId()
+    {
+        var root = Require(JsonNode.Parse(
+            """
+            {
+              "Model": {
+                "ApiKeys": [
+                  {
+                    "Name": "generated"
+                  }
+                ]
+              }
+            }
+            """)).AsObject();
+        using var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var settings = new Settings(serviceProvider);
+        var binder = new SettingsPatchBinder();
+
+        binder.Patch(root, settings);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(settings.Model.ApiKeys, Has.Count.EqualTo(1));
+            Assert.That(settings.Model.ApiKeys[0].Id, Is.Not.EqualTo(Guid.Empty));
+            Assert.That(settings.Model.ApiKeys[0].Name, Is.EqualTo("generated"));
+            Assert.That(binder.Diagnostics, Is.Empty);
+        });
+    }
+
+    [Test]
+    public void Patch_InvalidApiKeyIdReportsPropertyDiagnosticAndKeepsDefaultId()
+    {
+        var root = Require(JsonNode.Parse(
+            """
+            {
+              "Model": {
+                "ApiKeys": [
+                  {
+                    "Id": "not-a-guid",
+                    "Name": "fallback"
+                  }
+                ]
+              }
+            }
+            """)).AsObject();
+        using var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var settings = new Settings(serviceProvider);
+        var binder = new SettingsPatchBinder();
+
+        binder.Patch(root, settings);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(settings.Model.ApiKeys, Has.Count.EqualTo(1));
+            Assert.That(settings.Model.ApiKeys[0].Id, Is.Not.EqualTo(Guid.Empty));
+            Assert.That(settings.Model.ApiKeys[0].Name, Is.EqualTo("fallback"));
+            Assert.That(
+                binder.Diagnostics.Any(d =>
+                    d.Kind == SettingsEngineDiagnosticKind.ScalarConversionFailure &&
+                    d.Path == "Model.ApiKeys.0.Id"),
+                Is.True);
+            Assert.That(binder.Diagnostics.Any(d => d.Path == "Model.ApiKeys.0"), Is.False);
+        });
+    }
+
+    [Test]
+    public void Patch_ReflectionFallbackCreatesObjectWithInitOnlyProperty()
+    {
+        var id = Guid.Parse("018fe8f2-3d4a-7c1b-9a2f-2d994c37a002");
+        using var file = TestSettingsFile(
+            $$"""
+            {
+              "CreatedInit": {
+                "Id": "{{id:D}}",
+                "Name": "reflection"
+              }
+            }
+            """);
+        using var store = JsonSettingsStorage.Load(file.Path);
+        var target = new TestRoot();
+
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.CreatedInit, Is.Not.Null);
+            Assert.That(target.CreatedInit?.Id, Is.EqualTo(id));
+            Assert.That(target.CreatedInit?.Name, Is.EqualTo("reflection"));
+        });
     }
 
     [Test]
@@ -156,7 +297,7 @@ public sealed class SettingsEngineTests
         var section = target.Section;
         var getterOnly = target.GetterOnly;
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(store.CreateSnapshot(), target);
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
 
         Assert.That(target.Section, Is.SameAs(section));
         Assert.That(target.GetterOnly, Is.SameAs(getterOnly));
@@ -187,7 +328,7 @@ public sealed class SettingsEngineTests
         target.Items.Add(removed);
         var items = target.Items;
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(store.CreateSnapshot(), target);
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
 
         Assert.That(target.Items, Is.SameAs(items));
         Assert.That(target.Items, Has.Count.EqualTo(2));
@@ -215,7 +356,7 @@ public sealed class SettingsEngineTests
         target.Items.Add(first);
         var items = target.Items;
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(store.CreateSnapshot(), target);
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
 
         Assert.That(target.Items, Is.SameAs(items));
         Assert.That(target.Items, Has.Count.EqualTo(2));
@@ -236,7 +377,7 @@ public sealed class SettingsEngineTests
         target.Numbers.Add(7);
         var numbers = target.Numbers;
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(store.CreateSnapshot(), target);
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
 
         Assert.That(target.Numbers, Is.SameAs(numbers));
         Assert.That(target.Numbers.ToArray(), Is.EqualTo(new[] { 1, 2 }));
@@ -262,7 +403,7 @@ public sealed class SettingsEngineTests
         target.ItemMap["remove"] = new TestItem { Name = "remove" };
         var itemMap = target.ItemMap;
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(store.CreateSnapshot(), target);
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
 
         Assert.That(target.ItemMap, Is.SameAs(itemMap));
         Assert.That(target.ItemMap.Keys, Is.EquivalentTo(new[] { "keep", "add" }));
@@ -281,7 +422,7 @@ public sealed class SettingsEngineTests
         target.Scores["bad"] = 5;
         target.Scores["remove"] = 9;
         var scores = target.Scores;
-        var binder = new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider());
+        var binder = new SettingsPatchBinder();
 
         binder.Patch(store.CreateSnapshot(), target);
 
@@ -302,7 +443,7 @@ public sealed class SettingsEngineTests
         target.NumberedNames[9] = "remove";
         var numberedNames = target.NumberedNames;
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(store.CreateSnapshot(), target);
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
 
         Assert.That(target.NumberedNames, Is.SameAs(numberedNames));
         Assert.That(target.NumberedNames.Keys, Is.EquivalentTo(new[] { 1, 2 }));
@@ -317,7 +458,7 @@ public sealed class SettingsEngineTests
         using var store = JsonSettingsStorage.Load(file.Path);
 
         var target = new TestRoot();
-        var binder = new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider());
+        var binder = new SettingsPatchBinder();
 
         binder.Patch(store.CreateSnapshot(), target);
 
@@ -334,7 +475,7 @@ public sealed class SettingsEngineTests
 
         var target = new TestRoot();
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(store.CreateSnapshot(), target);
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
 
         Assert.That(target.EnumNames.Keys, Is.EquivalentTo(new[] { TestDictionaryKey.First, TestDictionaryKey.Second }));
         Assert.That(target.EnumNames[TestDictionaryKey.First], Is.EqualTo("one"));
@@ -359,7 +500,7 @@ public sealed class SettingsEngineTests
         var readOnlyItems = target.ReadOnlyItems;
         var existing = target.ReadOnlyItems["existing"];
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(store.CreateSnapshot(), target);
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
 
         Assert.That(target.ReadOnlyItems, Is.SameAs(readOnlyItems));
         Assert.That(target.ReadOnlyItems["existing"], Is.SameAs(existing));
@@ -376,7 +517,7 @@ public sealed class SettingsEngineTests
         var target = new TestRoot();
         var original = target.WritableReadOnlyNumbers;
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(store.CreateSnapshot(), target);
+        new SettingsPatchBinder().Patch(store.CreateSnapshot(), target);
 
         Assert.That(target.WritableReadOnlyNumbers, Is.Not.SameAs(original));
         Assert.That(target.WritableReadOnlyNumbers.ToArray(), Is.EqualTo(new[] { 1, 2 }));
@@ -390,7 +531,7 @@ public sealed class SettingsEngineTests
 
         var target = new TestRoot();
         var original = target.GetterOnlyReadOnlyNumbers;
-        var binder = new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider());
+        var binder = new SettingsPatchBinder();
 
         binder.Patch(store.CreateSnapshot(), target);
 
@@ -416,7 +557,7 @@ public sealed class SettingsEngineTests
         var target = new TestRoot();
         var root = store.CreateSnapshot();
 
-        new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider()).Patch(root, target);
+        new SettingsPatchBinder().Patch(root, target);
 
         var strict = Require(root["Strict"]).AsObject();
         Assert.That(target.Strict.Name, Is.EqualTo("known"));
@@ -431,7 +572,7 @@ public sealed class SettingsEngineTests
 
         var target = new TestRoot();
         var original = target.Serialized;
-        var binder = new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider());
+        var binder = new SettingsPatchBinder();
 
         binder.Patch(store.CreateSnapshot(), target);
 
@@ -453,7 +594,7 @@ public sealed class SettingsEngineTests
             }
             """);
         using var store = JsonSettingsStorage.Load(file.Path);
-        var binder = new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider());
+        var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
 
         binder.WriteObservedPath(store, descriptor, "Section:Name", "new");
@@ -468,7 +609,7 @@ public sealed class SettingsEngineTests
     {
         using var file = TestSettingsFile("""{ "Renamed": { "json_name": "old" } }""");
         using var store = JsonSettingsStorage.Load(file.Path);
-        var binder = new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider());
+        var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
 
         binder.WriteObservedPath(store, descriptor, "Renamed:Name", "new");
@@ -483,7 +624,7 @@ public sealed class SettingsEngineTests
     {
         using var file = TestSettingsFile("{}");
         using var store = JsonSettingsStorage.Load(file.Path);
-        var binder = new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider());
+        var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
 
         binder.WriteObservedPath(store, descriptor, "Count", 3);
@@ -498,7 +639,7 @@ public sealed class SettingsEngineTests
     {
         using var file = TestSettingsFile("{}");
         using var store = JsonSettingsStorage.Load(file.Path);
-        var binder = new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider());
+        var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
 
         binder.WriteObservedPath(store, descriptor, "Scores:0", 9);
@@ -513,7 +654,7 @@ public sealed class SettingsEngineTests
     {
         using var file = TestSettingsFile("""{ "Items": [ { "Name": "old" } ] }""");
         using var store = JsonSettingsStorage.Load(file.Path);
-        var binder = new SettingsPatchBinder(new ServiceCollection().BuildServiceProvider());
+        var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
 
         binder.WriteObservedPath(store, descriptor, "Items:0:Name", "new");
@@ -630,6 +771,7 @@ public sealed class SettingsEngineTests
         public IReadOnlyList<int> GetterOnlyReadOnlyNumbers { get; } = new ReadOnlyCollection<int>(new List<int> { 9 });
         public int Count { get; set; }
         public SerializableColor Color { get; set; }
+        public TestInitItem? CreatedInit { get; set; }
 
         [SettingsUnknownMemberHandling(SettingsUnknownMemberHandling.Prune)]
         public TestSection Strict { get; set; } = new();
@@ -653,6 +795,12 @@ public sealed class SettingsEngineTests
 
     private sealed class TestItem
     {
+        public string? Name { get; set; }
+    }
+
+    private sealed class TestInitItem
+    {
+        public Guid Id { get; init; } = Guid.CreateVersion7();
         public string? Name { get; set; }
     }
 

@@ -14,22 +14,19 @@ namespace Everywhere.Configuration.Engine;
 /// </remarks>
 public sealed class SettingsPatchBinder
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly ISettingsDescriptorProvider _descriptorProvider;
     private readonly List<SettingsEngineDiagnostic> _diagnostics = [];
 
     /// <summary>
     /// Creates a binder with the generated descriptor provider when available.
     /// </summary>
-    /// <param name="serviceProvider"></param>
     /// <param name="descriptorProvider">
     /// Optional provider used by tests or specialized hosts. When omitted, the
     /// source-generated provider is preferred and reflection is used as a
     /// compatibility fallback.
     /// </param>
-    public SettingsPatchBinder(IServiceProvider serviceProvider, ISettingsDescriptorProvider? descriptorProvider = null)
+    public SettingsPatchBinder(ISettingsDescriptorProvider? descriptorProvider = null)
     {
-        _serviceProvider = serviceProvider;
         _descriptorProvider = descriptorProvider ?? SettingsDescriptorProviderFactory.Create();
     }
 
@@ -89,7 +86,8 @@ public sealed class SettingsPatchBinder
         ISettingsDescriptor descriptor,
         object target,
         string path,
-        SettingsUnknownMemberHandling unknownMemberHandling)
+        SettingsUnknownMemberHandling unknownMemberHandling,
+        ISet<string>? initializedJsonNames = null)
     {
         var knownNames = new HashSet<string>(StringComparer.Ordinal);
 
@@ -102,6 +100,11 @@ public sealed class SettingsPatchBinder
             }
 
             var propertyPath = CombinePath(path, property.JsonName);
+            if (initializedJsonNames?.Contains(property.JsonName) is true)
+            {
+                continue;
+            }
+
             PatchProperty(node, property, target, propertyPath);
         }
 
@@ -258,10 +261,56 @@ public sealed class SettingsPatchBinder
             return;
         }
 
-        if (TryDeserialize(node, property.PropertyType, path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out var replacement))
+        if (TryCreateListReplacement(
+                array,
+                property.PropertyType,
+                property.ElementType ?? typeof(object),
+                path,
+                out var replacement))
+        {
+            property.SetValue(target, replacement);
+            return;
+        }
+
+        if (TryDeserialize(node, property.PropertyType, path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out replacement))
         {
             property.SetValue(target, replacement);
         }
+    }
+
+    private bool TryCreateListReplacement(
+        JsonArray array,
+        Type targetType,
+        Type elementType,
+        string path,
+        out object? replacement)
+    {
+        replacement = null;
+
+        var listType = typeof(List<>).MakeGenericType(elementType);
+        if (!targetType.IsAssignableFrom(listType))
+        {
+            return false;
+        }
+
+        if (Activator.CreateInstance(listType) is not IList list)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < array.Count; i++)
+        {
+            var entryPath = CombinePath(path, i.ToString(CultureInfo.InvariantCulture));
+            if (!TryCreateValue(array[i], elementType, entryPath, out var item))
+            {
+                return false;
+            }
+
+            list.Add(item);
+        }
+
+        replacement = list;
+        return true;
     }
 
     private void PatchDictionary(JsonNode? node, ISettingsPropertyDescriptor property, object target, string path)
@@ -424,10 +473,8 @@ public sealed class SettingsPatchBinder
 
         if (node is JsonObject obj &&
             TryGetPatchDescriptor(normalizedType, out var descriptor) &&
-            descriptor.TryCreateInstance(_serviceProvider, out value) &&
-            value is not null)
+            TryCreatePatchableObject(obj, descriptor, path, out value))
         {
-            PatchObject(obj, descriptor, value, path, descriptor.UnknownMemberHandling);
             return true;
         }
 
@@ -482,7 +529,7 @@ public sealed class SettingsPatchBinder
         {
             if (property.ChildDescriptor is not { } childDescriptor ||
                 !property.CanWrite ||
-                !childDescriptor.TryCreateInstance(_serviceProvider, out value))
+                !TryCreatePatchableObject(obj, childDescriptor, path, out value))
             {
                 AddDiagnostic(
                     SettingsEngineDiagnosticKind.UnsupportedShape,
@@ -493,12 +540,99 @@ public sealed class SettingsPatchBinder
             }
 
             property.SetValue(target, value);
+            return;
         }
 
-        if (property.ChildDescriptor is { } descriptor && value is not null)
+        if (property.ChildDescriptor is { } descriptor)
         {
             PatchObject(obj, descriptor, value, path, property.UnknownMemberHandling);
         }
+    }
+
+    private bool TryCreatePatchableObject(JsonObject obj, ISettingsDescriptor descriptor, string path, out object? value)
+    {
+        var binding = BindCreationInitializer(obj, descriptor, path);
+        if (!descriptor.TryCreateInstance(binding.InitialValues, out value))
+        {
+            return false;
+        }
+
+        if (value is null)
+        {
+            return false;
+        }
+
+        PatchObject(obj, descriptor, value, path, descriptor.UnknownMemberHandling, binding.InitializedJsonNames);
+        return true;
+    }
+
+    private CreationInitializerBinding BindCreationInitializer(JsonObject obj, ISettingsDescriptor descriptor, string path)
+    {
+        Dictionary<string, object?>? values = null;
+        HashSet<string>? initializedJsonNames = null;
+
+        foreach (var property in descriptor.Properties)
+        {
+            if (!property.CanInitialize ||
+                !obj.TryGetPropertyValue(property.JsonName, out var node))
+            {
+                continue;
+            }
+
+            var propertyPath = CombinePath(path, property.JsonName);
+            if (!TryBindInitializerValue(node, property, propertyPath, out var value))
+            {
+                continue;
+            }
+
+            (values ??= new Dictionary<string, object?>(StringComparer.Ordinal))[property.JsonName] = value;
+            (initializedJsonNames ??= new HashSet<string>(StringComparer.Ordinal)).Add(property.JsonName);
+        }
+
+        return new CreationInitializerBinding(values, initializedJsonNames);
+    }
+
+    private bool TryBindInitializerValue(
+        JsonNode? node,
+        ISettingsPropertyDescriptor property,
+        string path,
+        out object? value)
+    {
+        value = null;
+
+        if (property is { Kind: SettingsPropertyKind.Object, ChildDescriptor: { } descriptor })
+        {
+            if (node is null)
+            {
+                return TryDeserialize(
+                    node,
+                    property.PropertyType,
+                    path,
+                    SettingsEngineDiagnosticKind.ScalarConversionFailure,
+                    out value);
+            }
+
+            if (node is JsonObject obj)
+            {
+                return TryCreatePatchableObject(obj, descriptor, path, out value);
+            }
+
+            AddDiagnostic(
+                SettingsEngineDiagnosticKind.ScalarConversionFailure,
+                SettingsEngineDiagnosticSeverity.Warning,
+                path,
+                DiagnosticMessage(LocaleKey.SettingsEngine_Diagnostic_ExpectedJsonObjectForObject, path));
+            return false;
+        }
+
+        return TryDeserialize(
+            node,
+            property.PropertyType,
+            path,
+            property.Kind == SettingsPropertyKind.SerializedSubtree ?
+                SettingsEngineDiagnosticKind.SerializedSubtreeFailure :
+                SettingsEngineDiagnosticKind.ScalarConversionFailure,
+            out value);
     }
 
     private void HandleUnknownMembers(
@@ -719,6 +853,11 @@ public sealed class SettingsPatchBinder
         PatchedInPlace,
         Replace
     }
+
+    private readonly record struct CreationInitializerBinding(
+        IReadOnlyDictionary<string, object?>? InitialValues,
+        ISet<string>? InitializedJsonNames
+    );
 
     private readonly record struct PathResolution(SettingsJsonPath JsonPath, Type? DeclaredType);
 }

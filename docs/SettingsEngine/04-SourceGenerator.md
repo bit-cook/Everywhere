@@ -45,14 +45,17 @@ Each descriptor should contain enough information to:
 2. resolve the JSON path from the root
 3. get the current runtime property value
 4. set a runtime property value where writable
-5. patch child properties where patching is allowed
-6. serialize a known value back to `JsonNode`
-7. read a known value from `JsonNode`
-8. identify serialized subtree boundaries
-9. apply unknown member policy
-10. apply collection binding policy
+5. initialize `init` properties while creating new runtime objects during startup binding
+6. patch child properties where patching is allowed
+7. serialize a known value back to `JsonNode`
+8. read a known value from `JsonNode`
+9. identify serialized subtree boundaries
+10. apply unknown member policy
+11. apply collection binding policy
 
 The exact generated API can evolve, but it should keep these responsibilities explicit.
+
+Init-only members follow Microsoft Binder's creation-initializer shape. They are not ordinary setter delegates, but generated descriptors may use object initializers when SettingsEngine creates a new object during startup load. SettingsEngine should not switch to System.Text.Json whole-object deserialization just to bind these members.
 
 ## 5. Runtime Combination with System.Text.Json
 

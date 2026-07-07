@@ -32,6 +32,7 @@ Current fixed decisions:
 13. `SettingsEngine` is a transient `IAsyncInitializer`, not a business-facing service.
 14. Settings migration, JSON load, runtime patching, and change observation happen in `AsyncInitializerIndex.Settings`.
 15. Initializer constructors must not read final settings values or subscribe to settings changes. They may keep references and should consume settings in `InitializeAsync`.
+16. Init-only properties follow a load-time creation initializer model: they can be populated while SettingsEngine creates new objects during startup binding, but SettingsEngine does not provide dynamic JSON-to-runtime reload after initialization.
 
 ## 3. Initialization Lifecycle
 
@@ -43,7 +44,7 @@ Startup lifecycle:
 2. DI may construct `IAsyncInitializer` instances before the settings phase.
 3. `SettingsEngine.InitializeAsync()` runs at `AsyncInitializerIndex.Settings`.
 4. SettingsEngine runs pending settings migrations against `settings.json`.
-5. SettingsEngine loads the JSON document, patches the existing `Settings` object in place, then starts observing changes for write-back.
+5. SettingsEngine loads the JSON document, patches the existing `Settings` object in place, creates missing child/list/dictionary objects through descriptor factories, then starts observing changes for write-back.
 6. Later initializers read the patched settings object.
 
 SettingsEngine itself should not be injected by product code. If feature migrations need to inspect or edit the JSON document after settings initialization, expose only a narrow internal document-editing service for migration infrastructure. This keeps `SettingsEngine` out of normal application logic while avoiding external file edits that could race the JSON store.

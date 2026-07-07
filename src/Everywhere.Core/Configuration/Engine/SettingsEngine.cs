@@ -69,7 +69,7 @@ public sealed class SettingsEngine : IAsyncInitializer
         _serviceProvider = serviceProvider;
         _loggerFactory = loggerFactory;
 
-        _binder = new SettingsPatchBinder(serviceProvider);
+        _binder = new SettingsPatchBinder();
         _rootDescriptor = _binder.GetDescriptor(typeof(Settings));
         _observer = new ObjectObserver(HandleSettingsChanges);
     }
@@ -142,7 +142,7 @@ public sealed class SettingsEngine : IAsyncInitializer
 
     private void ValidateMigratedSettings(JsonObject root)
     {
-        var binder = new SettingsPatchBinder(_serviceProvider);
+        var binder = new SettingsPatchBinder();
         binder.Patch(root, new Settings(_serviceProvider));
 
         var failures = binder.Diagnostics
