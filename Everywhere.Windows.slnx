@@ -2,7 +2,6 @@
   <Folder Name="/3rd/">
     <Project Path="3rd/EverythingNetCore/EverythingNet/EverythingNet.csproj" />
     <Project Path="3rd/shad-ui/src/ShadUI/ShadUI.csproj" />
-    <Project Path="3rd/WritableJsonConfiguration/src/WritableJsonConfiguration/WritableJsonConfiguration.csproj" />
   </Folder>
   <Folder Name="/3rd/MessagePack/">
     <Project Path="3rd/MessagePack-CSharp/src/MessagePack.Analyzers.CodeFixes/MessagePack.Analyzers.CodeFixes.csproj" />

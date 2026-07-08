@@ -19,7 +19,6 @@
     <Project Path="3rd/ClassicDiagnostics.Avalonia/src/ClassicDiagnostics.Avalonia.csproj" />
     <Project Path="3rd/EverythingNetCore/EverythingNet/EverythingNet.csproj" />
     <Project Path="3rd/shad-ui/src/ShadUI/ShadUI.csproj" />
-    <Project Path="3rd/WritableJsonConfiguration/src/WritableJsonConfiguration/WritableJsonConfiguration.csproj" />
   </Folder>
   <Folder Name="/3rd/MessagePack/">
     <Project Path="3rd/MessagePack-CSharp/src/MessagePack.Analyzers.CodeFixes/MessagePack.Analyzers.CodeFixes.csproj" />
@@ -71,7 +70,6 @@
     <File Path="src/Build.Watchdog.targets" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="3rd/WritableJsonConfiguration/src/WritableJsonConfiguration.Tests/WritableJsonConfiguration.Tests.csproj" />
     <Project Path="tests/Everywhere.Abstractions.Tests/Everywhere.Abstractions.Tests.csproj" />
     <Project Path="tests/Everywhere.Core.Tests/Everywhere.Core.Tests.csproj" />
     <Project Path="tests/Everywhere.Terminal.TestApp/Everywhere.Terminal.TestApp.csproj" />
