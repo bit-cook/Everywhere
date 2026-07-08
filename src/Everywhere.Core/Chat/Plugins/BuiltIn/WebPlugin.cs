@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Globalization;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -233,30 +234,28 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                             new ArgumentException("Invalid URL format. Only absolute http/https URLs are allowed."));
                     }
 
-                    var content = await _webBrowserHost.ExtractAsync(url, cancellationToken);
-                    // ReSharper disable once RedundantCast
-                    return (url, content, error: (string?)null);
+                    var extraction = await _webBrowserHost.ExtractPageAsync(url, cancellationToken);
+                    return (url, extraction, error: null);
                 }
                 catch (Exception ex)
                 {
                     ex = HandledFunctionInvokingException.Handle(ex);
                     _logger.LogError(ex, "Failed to extract content from URL: {Url}", url);
-                    // ReSharper disable once RedundantCast
-                    return (url, content: (string?)null, error: ex.Message);
+                    return (url, extraction: default(WebPageExtractionResult), error: (string?)ex.Message);
                 }
             }));
 
         // Dynamic proportional token budget allocation per URL
         const int totalBudget = 40000;
         const int minPerUrl = 500;
-        var desiredTokens = extractions.AsValueEnumerable().Select(e => e.content != null ? TokenHelper.EstimateTokenCount(e.content) : 0).ToList();
+        var desiredTokens = extractions.AsValueEnumerable().Select(e => TokenHelper.EstimateTokenCount(e.extraction.Markdown)).ToList();
         var allocations = TokenBudget.Allocate(desiredTokens.AsSpan(), totalBudget, minTokensPerItem: minPerUrl);
 
         // Build output with trimmed content
         var resultBuilder = new StringBuilder();
         for (var i = 0; i < extractions.Length; i++)
         {
-            var (url, content, error) = extractions[i];
+            var (url, extraction, error) = extractions[i];
 
             resultBuilder.Append("# Content from ").AppendLine(url).AppendLine();
 
@@ -264,15 +263,46 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
             {
                 resultBuilder.AppendLine("# Failed to extract:").AppendLine(error);
             }
-            else if (content != null)
+            else if (extraction is { Markdown: { } markdown })
             {
+                var confidence = extraction.Selection?.Confidence ?? (extraction.ContentLength > 0 ? 1 : 0);
+                resultBuilder
+                    .Append("Extraction: selected=")
+                    .Append(WebExtractionUtilities.FormatSource(extraction.Source))
+                    .Append(", confidence=")
+                    .Append(confidence.ToString("0.00", CultureInfo.InvariantCulture))
+                    .Append(", length=")
+                    .Append(extraction.ContentLength.ToString(CultureInfo.InvariantCulture))
+                    .AppendLine();
+
+                if (extraction.Selection is { Scores.Count: > 0 } selection)
+                {
+                    resultBuilder.Append("Candidates: ");
+                    for (var j = 0; j < selection.Scores.Count; j++)
+                    {
+                        if (j > 0) resultBuilder.Append(", ");
+
+                        var score = selection.Scores[j];
+                        resultBuilder
+                            .Append(WebExtractionUtilities.FormatSource(score.Source))
+                            .Append('=')
+                            .Append(score.Score.ToString("0.00", CultureInfo.InvariantCulture))
+                            .Append('/')
+                            .Append(score.ContentLength.ToString(CultureInfo.InvariantCulture));
+                    }
+
+                    resultBuilder.AppendLine();
+                }
+
+                resultBuilder.AppendLine();
+
                 if (allocations[i] < desiredTokens[i])
                 {
-                    TokenHelper.OmitTo(content, resultBuilder, allocations[i]);
+                    TokenHelper.OmitTo(markdown, resultBuilder, allocations[i]);
                 }
                 else
                 {
-                    resultBuilder.Append(content);
+                    resultBuilder.Append(markdown);
                 }
             }
 

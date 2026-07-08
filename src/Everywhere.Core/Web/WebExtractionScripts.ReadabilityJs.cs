@@ -1,8 +1,8 @@
 ﻿namespace Everywhere.Web;
 
-partial class WebBrowserHost
+internal partial class WebExtractionScripts
 {
-    private const string ReadabilityJs =
+    public const string ReadabilityJs =
         """
         /*
          * Copyright (c) 2010 Arc90 Inc

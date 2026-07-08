@@ -69,7 +69,7 @@
     <PackageVersion Include="Microsoft.SemanticKernel.Core" Version="$(SemanticKernelVersion)" />
     <PackageVersion Include="ModelContextProtocol" Version="1.2.0" />
     <PackageVersion Include="OllamaSharp" Version="5.4.25" />
-    <PackageVersion Include="PuppeteerSharp" Version="25.1.2" />
+    <PackageVersion Include="PuppeteerSharp" Version="25.3.1" />
   </ItemGroup>
   <ItemGroup Label="Avalonia">
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
