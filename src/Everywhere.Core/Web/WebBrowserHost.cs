@@ -367,7 +367,14 @@ public sealed class WebBrowserHost : IWebBrowserHost
                 "--disable-setuid-sandbox",
                 "--disable-extensions",
                 "--disable-popup-blocking",
-                "--blink-settings=imagesEnabled=false"
+                "--blink-settings=imagesEnabled=false",
+#if WINDOWS // This is a bug (regression?) on Windows:
+            // https://github.com/puppeteer/puppeteer/issues/13121
+            // https://issuetracker.google.com/issues/362545030
+            // https://issues.chromium.org/issues/362706121
+            // https://stackoverflow.com/questions/78996364/chrome-129-headless-shows-blank-window
+                "--window-position=-2400,-2400"
+#endif
             } :
             new[]
             {
