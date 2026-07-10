@@ -85,7 +85,7 @@ public sealed class AssistantPromptReferenceService(Settings settings, IPromptSe
                 assistant.Id,
                 assistant.Name,
                 assistant.SystemPromptId,
-                AssistantPromptResolver.CreateUnresolvedReferenceDiagnostic(assistant.SystemPromptId)))
+                CreateUnresolvedReferenceDiagnostic(assistant.SystemPromptId)))
             .ToList();
     }
 
@@ -111,4 +111,13 @@ public sealed class AssistantPromptReferenceService(Settings settings, IPromptSe
 
         return count;
     }
+
+    private static PromptDiagnostic CreateUnresolvedReferenceDiagnostic(Guid promptId) =>
+        new(
+            PromptDiagnosticCode.UnresolvedReference,
+            PromptDiagnosticSeverity.Warning,
+            new FormattedDynamicLocaleKey(
+                LocaleKey.PromptDiagnostic_UnresolvedReference,
+                new DirectLocaleKey(promptId.ToString("D"))),
+            ActionId: "select-default-prompt");
 }

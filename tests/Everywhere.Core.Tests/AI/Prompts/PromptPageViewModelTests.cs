@@ -107,6 +107,9 @@ public sealed class PromptPageViewModelTests
         public Task<PromptDefinition?> GetPromptAsync(Guid id, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 
+        public Task<PromptDefinition> ResolvePromptAsync(Guid id, CancellationToken cancellationToken = default) =>
+            Task.FromResult(prompts.FirstOrDefault(prompt => prompt.Id == id) ?? DefaultPrompt);
+
         public Task<PromptDefinition> CreatePromptAsync(PromptCreateRequest request, CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
 

@@ -969,11 +969,10 @@ My intelligence is powered by large language models, and I need your help to con
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
         <value>Specify the description of the assistant for display and differentiation purposes.</value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
-        <value>The system prompt will be sent to the model at the beginning of the conversation and will be kept up to date with each message sent.
-Placeholders can be used in the prompt, enclosed in {}, which will be replaced with the corresponding content before being sent to the model.</value>
+    <data name="AssistantPromptSelector_ComboBox_Label" xml:space="preserve">
+        <value></value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Header" xml:space="preserve">
+    <data name="CustomAssistant_PromptSelector_Header" xml:space="preserve">
         <value>System Prompt</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_Content" xml:space="preserve">
@@ -1781,22 +1780,16 @@ Scroll wheel or number keys to switch pick modes</value>
     <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>Service Provider</value>
     </data>
-    <data name="AssistantPromptSettings_Header" xml:space="preserve">
-        <value>Prompt</value>
-    </data>
-    <data name="AssistantPromptSettings_Description" xml:space="preserve">
-        <value>Select the prompt this assistant uses.</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>Add API Key</value>
     </data>
     <data name="ApiKeyComboBox_ManageApiKey" xml:space="preserve">
         <value>Manage API Keys</value>
     </data>
-    <data name="PromptComboBox_NewPrompt" xml:space="preserve">
+    <data name="AssistantPromptSelector_NewPrompt" xml:space="preserve">
         <value>New Prompt</value>
     </data>
-    <data name="PromptComboBox_ManagePrompts" xml:space="preserve">
+    <data name="AssistantPromptSelector_ManagePrompts" xml:space="preserve">
         <value>Manage Prompts</value>
     </data>
     <data name="ManageApiKeyForm_DeleteApiKeys_Dialog_Message" xml:space="preserve">
@@ -2807,28 +2800,28 @@ Release date: {2}</value>
         <value>Open documentation</value>
     </data>
     <data name="Assistant_OpenAIOptions_Header" xml:space="preserve">
-        <value>OpenAI-compatible Options</value>
+        <value>OpenAI Chat Completions Settings</value>
     </data>
     <data name="Assistant_OpenAIOptions_Description" xml:space="preserve">
-        <value>Configure Chat Completions parameters for OpenAI-compatible providers.</value>
+        <value>Configure OpenAI Chat Completions API parameters.</value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Header" xml:space="preserve">
-        <value>OpenAI Responses Options</value>
+        <value>OpenAI Responses Settings</value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Description" xml:space="preserve">
-        <value>Configure Responses API reasoning parameters.</value>
+        <value>Configure OpenAI Responses API parameters.</value>
     </data>
     <data name="Assistant_AnthropicOptions_Header" xml:space="preserve">
-        <value>Anthropic Options</value>
+        <value>Anthropic Messages Settings</value>
     </data>
     <data name="Assistant_AnthropicOptions_Description" xml:space="preserve">
-        <value>Configure Anthropic Messages API thinking and cache behavior.</value>
+        <value>Configure Anthropic Messages API parameters.</value>
     </data>
     <data name="Assistant_GoogleOptions_Header" xml:space="preserve">
-        <value>Google Gemini Options</value>
+        <value>Google Gemini Settings</value>
     </data>
     <data name="Assistant_GoogleOptions_Description" xml:space="preserve">
-        <value>Configure Gemini thinking parameters.</value>
+        <value>Configure Google Gemini API parameters.</value>
     </data>
     <data name="OpenAIOptions_IncludeReasoningContent_Header" xml:space="preserve">
         <value>Preserve reasoning_content</value>
@@ -3628,5 +3621,8 @@ Delete &quot;{1}&quot; permanently?</value>
     </data>
     <data name="CustomAssistantPage_MissingRouteAssistant_Content" xml:space="preserve">
         <value>The assistant was not found: {0}</value>
+    </data>
+    <data name="Assistant_AdvancedSettings" xml:space="preserve">
+        <value>Advanced Settings</value>
     </data>
 </root>

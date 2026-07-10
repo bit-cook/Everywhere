@@ -969,11 +969,10 @@ Mi inteligencia está impulsada por un modelo de lenguaje grande, y necesito que
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
         <value>Especifica la descripción del asistente, usada únicamente para propósitos de visualización y diferenciación.</value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
-        <value>La palabra clave del sistema se enviará al modelo al comienzo de la conversación y se mantendrá actualizada en cada mensaje enviado.
-Se pueden usar marcadores de posición en la palabra clave, que están contenidos en {}, y se reemplazarán por el contenido correspondiente antes de enviarse al modelo.</value>
+    <data name="AssistantPromptSelector_ComboBox_Label" xml:space="preserve">
+        <value></value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Header" xml:space="preserve">
+    <data name="CustomAssistant_PromptSelector_Header" xml:space="preserve">
         <value>Indicador del sistema</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_Content" xml:space="preserve">
@@ -1781,22 +1780,16 @@ Rueda de desplazamiento o teclas numéricas para cambiar modos de selección</va
     <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>Proveedor de Servicios</value>
     </data>
-    <data name="AssistantPromptSettings_Header" xml:space="preserve">
-        <value>Palabras Clave</value>
-    </data>
-    <data name="AssistantPromptSettings_Description" xml:space="preserve">
-        <value>Selecciona las palabras clave que usará este asistente.</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>Agregar clave API</value>
     </data>
     <data name="ApiKeyComboBox_ManageApiKey" xml:space="preserve">
         <value>Gestionar clave API</value>
     </data>
-    <data name="PromptComboBox_NewPrompt" xml:space="preserve">
+    <data name="AssistantPromptSelector_NewPrompt" xml:space="preserve">
         <value>Crear Palabra Clave</value>
     </data>
-    <data name="PromptComboBox_ManagePrompts" xml:space="preserve">
+    <data name="AssistantPromptSelector_ManagePrompts" xml:space="preserve">
         <value>Gestionar Palabras Clave</value>
     </data>
     <data name="ManageApiKeyForm_DeleteApiKeys_Dialog_Message" xml:space="preserve">
@@ -2807,28 +2800,28 @@ Fecha de lanzamiento: {2}</value>
         <value>Abrir documento</value>
     </data>
     <data name="Assistant_OpenAIOptions_Header" xml:space="preserve">
-        <value>Opciones Compatibles con OpenAI</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIOptions_Description" xml:space="preserve">
-        <value>Configura los parámetros de Chat Completions para proveedores compatibles con OpenAI.</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Header" xml:space="preserve">
-        <value>Opciones de Respuestas de OpenAI</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Description" xml:space="preserve">
-        <value>Configura los parámetros de inferencia de la API de Responses.</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Header" xml:space="preserve">
-        <value>Opciones de Anthropic</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Description" xml:space="preserve">
-        <value>Configura el comportamiento de pensamiento y caché de la API de Messages de Anthropic.</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Header" xml:space="preserve">
-        <value>Opciones de Google Gemini</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Description" xml:space="preserve">
-        <value>Configura los parámetros de pensamiento de Gemini.</value>
+        <value></value>
     </data>
     <data name="OpenAIOptions_IncludeReasoningContent_Header" xml:space="preserve">
         <value>Incluir reasoning_content</value>

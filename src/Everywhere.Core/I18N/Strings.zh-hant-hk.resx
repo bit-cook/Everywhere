@@ -969,11 +969,10 @@
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
         <value>指定助手的描述，僅用於顯示和區分。</value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
-        <value>系統提示詞會在對話的開頭發送給模型，每次發送消息時都會保持最新。
-提示詞中可以使用佔位符，包含在 {} 中，在發送給模型前會被替換成對應的內容。</value>
+    <data name="AssistantPromptSelector_ComboBox_Label" xml:space="preserve">
+        <value></value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Header" xml:space="preserve">
+    <data name="CustomAssistant_PromptSelector_Header" xml:space="preserve">
         <value>系統提示</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_Content" xml:space="preserve">
@@ -1781,22 +1780,16 @@
     <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>服務提供商</value>
     </data>
-    <data name="AssistantPromptSettings_Header" xml:space="preserve">
-        <value>提示詞</value>
-    </data>
-    <data name="AssistantPromptSettings_Description" xml:space="preserve">
-        <value>選擇此助手使用的提示詞。</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>添加 API 密鑰</value>
     </data>
     <data name="ApiKeyComboBox_ManageApiKey" xml:space="preserve">
         <value>管理 API 密鑰</value>
     </data>
-    <data name="PromptComboBox_NewPrompt" xml:space="preserve">
+    <data name="AssistantPromptSelector_NewPrompt" xml:space="preserve">
         <value>創建提示詞</value>
     </data>
-    <data name="PromptComboBox_ManagePrompts" xml:space="preserve">
+    <data name="AssistantPromptSelector_ManagePrompts" xml:space="preserve">
         <value>管理提示詞</value>
     </data>
     <data name="ManageApiKeyForm_DeleteApiKeys_Dialog_Message" xml:space="preserve">
@@ -2807,28 +2800,28 @@
         <value>打開文檔</value>
     </data>
     <data name="Assistant_OpenAIOptions_Header" xml:space="preserve">
-        <value>OpenAI 兼容選項</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIOptions_Description" xml:space="preserve">
-        <value>配置 OpenAI 兼容提供商的 Chat Completions 參數。</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Header" xml:space="preserve">
-        <value>OpenAI Responses 選項</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Description" xml:space="preserve">
-        <value>配置 Responses API 的推理參數。</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Header" xml:space="preserve">
-        <value>Anthropic 選項</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Description" xml:space="preserve">
-        <value>配置 Anthropic Messages API 的思考與緩存行為。</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Header" xml:space="preserve">
-        <value>Google Gemini 選項</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Description" xml:space="preserve">
-        <value>配置 Gemini 思考參數。</value>
+        <value></value>
     </data>
     <data name="OpenAIOptions_IncludeReasoningContent_Header" xml:space="preserve">
         <value>保留 reasoning_content</value>

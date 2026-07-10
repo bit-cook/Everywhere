@@ -5,8 +5,8 @@
   xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI" xmlns:v="using:Everywhere.Views"
   xmlns:vc="clr-namespace:Everywhere.ValueConverters">
   <ControlTheme
-    x:Key="{x:Type v:OfficialModelDefinitionForm}"
-    TargetType="v:OfficialModelDefinitionForm">
+    x:Key="{x:Type v:OfficialModelDefinitionSelector}"
+    TargetType="v:OfficialModelDefinitionSelector">
     <Setter Property="ClipToBounds" Value="False"/>
     <Setter Property="Template">
       <ControlTemplate>
@@ -79,7 +79,7 @@
                   </ComboBox.Styles>
 
                   <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="v:OfficialModelDefinitionForm+ItemWrapper">
+                    <DataTemplate x:DataType="v:OfficialModelDefinitionSelector+ItemWrapper">
                       <Grid
                         Margin="0,0,12,0" ColumnSpacing="4">
                         <Grid.ColumnDefinitions>

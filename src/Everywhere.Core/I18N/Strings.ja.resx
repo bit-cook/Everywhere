@@ -969,11 +969,10 @@
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
         <value>アシスタントの説明を指定します。表示と区別のためにのみ使用されます。</value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
-        <value>システムプロンプトは会話の最初にモデルに送信され、メッセージを送信するたびに最新の状態を保ちます。
-プロンプト内では、{}内に含まれるプレースホルダーを使用でき、モデルに送信する前に対応する内容に置き換えられます。</value>
+    <data name="AssistantPromptSelector_ComboBox_Label" xml:space="preserve">
+        <value></value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Header" xml:space="preserve">
+    <data name="CustomAssistant_PromptSelector_Header" xml:space="preserve">
         <value>システムプロンプト</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_Content" xml:space="preserve">
@@ -1781,22 +1780,16 @@
     <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>サービスプロバイダー</value>
     </data>
-    <data name="AssistantPromptSettings_Header" xml:space="preserve">
-        <value>プロンプト</value>
-    </data>
-    <data name="AssistantPromptSettings_Description" xml:space="preserve">
-        <value>このアシスタントが使用するプロンプトを選択します。</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>APIキーを追加</value>
     </data>
     <data name="ApiKeyComboBox_ManageApiKey" xml:space="preserve">
         <value>APIキーを管理</value>
     </data>
-    <data name="PromptComboBox_NewPrompt" xml:space="preserve">
+    <data name="AssistantPromptSelector_NewPrompt" xml:space="preserve">
         <value>プロンプトを作成</value>
     </data>
-    <data name="PromptComboBox_ManagePrompts" xml:space="preserve">
+    <data name="AssistantPromptSelector_ManagePrompts" xml:space="preserve">
         <value>プロンプトを管理</value>
     </data>
     <data name="ManageApiKeyForm_DeleteApiKeys_Dialog_Message" xml:space="preserve">
@@ -2807,28 +2800,28 @@
         <value>ドキュメントを開く</value>
     </data>
     <data name="Assistant_OpenAIOptions_Header" xml:space="preserve">
-        <value>OpenAI 互換オプション</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIOptions_Description" xml:space="preserve">
-        <value>OpenAI 互換プロバイダーのチャット完了パラメーターを設定します。</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Header" xml:space="preserve">
-        <value>OpenAI 応答オプション</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Description" xml:space="preserve">
-        <value>Responses API の推論パラメーターを設定します。</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Header" xml:space="preserve">
-        <value>Anthropic オプション</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Description" xml:space="preserve">
-        <value>Anthropic Messages API の思考とキャッシュの動作を設定します。</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Header" xml:space="preserve">
-        <value>Google Gemini オプション</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Description" xml:space="preserve">
-        <value>Gemini の思考パラメーターを設定します。</value>
+        <value></value>
     </data>
     <data name="OpenAIOptions_IncludeReasoningContent_Header" xml:space="preserve">
         <value>reasoning_content を保持</value>

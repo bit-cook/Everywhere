@@ -54,6 +54,12 @@ public class SettingsItemAttribute : Attribute
     /// If starts with "_", group header will hidden.
     /// </summary>
     public string? Group { get; set; }
+
+    /// <summary>
+    /// Gets or sets the order of this item among settings items at the same level.
+    /// Lower values are emitted first; items with the same value keep their existing order.
+    /// </summary>
+    public int Index { get; set; } = int.MinValue;
 }
 
 [AttributeUsage(AttributeTargets.Property)]

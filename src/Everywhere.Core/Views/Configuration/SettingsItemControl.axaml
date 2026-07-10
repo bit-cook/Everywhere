@@ -229,7 +229,7 @@
                           x:Name="HeaderTextBlock" VerticalAlignment="Center"
                           IsHitTestVisible="False"
                           IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                          Text="{Binding Item?.HeaderKey^, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
+                          Text="{Binding Item?.HeaderKey^, RelativeSource={RelativeSource TemplatedParent}}"
                           TextWrapping="Wrap"/>
                         <shadui:Badge
                           HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -243,7 +243,7 @@
                         x:Name="DescriptionTextBlock" Classes="Muted Caption"
                         IsHitTestVisible="False"
                         IsVisible="{Binding $self.Text, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                        Text="{Binding Item?.DescriptionKey^, FallbackValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
+                        Text="{Binding Item?.DescriptionKey^, TargetNullValue={x:Null}, RelativeSource={RelativeSource TemplatedParent}}"
                         TextWrapping="Wrap"/>
                     </StackPanel>
                   </DockPanel>

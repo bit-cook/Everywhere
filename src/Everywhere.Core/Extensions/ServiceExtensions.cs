@@ -114,7 +114,6 @@ public static class ServiceExtensions
                 })
                 .AddSingleton<IDefaultPromptProvider, DefaultPromptProvider>()
                 .AddSingleton<IPromptService, PromptService>()
-                .AddSingleton<IAssistantPromptResolver, AssistantPromptResolver>()
                 .AddSingleton<IAssistantPromptReferenceService, AssistantPromptReferenceService>()
                 .AddSingleton<IBlobStorage, BlobStorage>()
                 .AddSingleton<IChatContextStorage, ChatContextStorage>()

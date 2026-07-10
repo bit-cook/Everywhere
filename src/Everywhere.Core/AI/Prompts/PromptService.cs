@@ -8,8 +8,8 @@ namespace Everywhere.AI.Prompts;
 /// </summary>
 /// <remarks>
 /// The service intentionally keeps Prompt Manager storage independent from assistants. Assistant
-/// references and settings migration are separate phases; this service only owns prompt CRUD and the
-/// default prompt projection.
+/// references and settings migration are separate phases; this service owns prompt CRUD, exact
+/// lookup, and default-backed ID resolution.
 /// </remarks>
 public interface IPromptService
 {

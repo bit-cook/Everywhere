@@ -12,8 +12,8 @@ namespace Everywhere.AI.Configurator;
 public sealed partial class OfficialAssistantConfigurator(Assistant owner) : AssistantConfigurator
 {
     [DynamicLocaleKey(LocaleKey.Empty)]
-    public SettingsControl<OfficialModelDefinitionForm> ModelDefinitionForm =>
-        new(x => new OfficialModelDefinitionForm(x, owner), false);
+    public SettingsControl<OfficialModelDefinitionSelector> ModelDefinitionSelector =>
+        new(x => new OfficialModelDefinitionSelector(x, owner), false);
 
     public override void Backup()
     {

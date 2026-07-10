@@ -55,6 +55,7 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
             .Where(p => p is { IsStatic: false, GetMethod: not null, IsImplicitlyDeclared: false })
             .Where(p => !p.IsHiddenItem())
             .Select(p => BuildPropertyMetadata(p, p, p.Name))
+            .OrderBy(static metadata => metadata.Index)
             .ToImmutableArray();
 
         var ns = type.GetNamespace();
@@ -496,6 +497,11 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
         var headerKey = match?.Groups["headerKey"].Value.Trim() ?? string.Empty;
         var descriptionKey = match?.Groups["descriptionKey"].Success == true ? match.Groups["descriptionKey"].Value.Trim() : null;
         var settingsItemAttribute = attributeOwner.GetAttribute(KnownAttributes.SettingsItem);
+        var index = settingsItemAttribute?.GetNamedArgument("Index") switch
+        {
+            { IsNull: false, Value: int value } => value,
+            _ => int.MaxValue
+        };
         var group = settingsItemAttribute?.GetNamedArgument("Group") switch
         {
             { Kind: TypedConstantKind.Error } => settingsItemAttribute.ApplicationSyntaxReference?.GetSyntax().ToString() switch
@@ -510,7 +516,7 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
             { IsNull: false, Value: string g } => g,
             _ => null
         };
-        return new PropertyMetadata(symbol, attributeOwner, name, kind, type, headerKey, descriptionKey, group);
+        return new PropertyMetadata(symbol, attributeOwner, name, kind, type, headerKey, descriptionKey, index, group);
     }
 
     private static void ApplyTypeSpecificMetadata(IndentedStringBuilder sb, string itemName, in PropertyMetadata metadata)
@@ -1133,6 +1139,7 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
         ITypeSymbol Type,
         string HeaderKey,
         string? DescriptionKey,
+        int Index,
         string? Group
     );
 

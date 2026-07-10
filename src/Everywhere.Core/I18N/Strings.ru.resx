@@ -969,11 +969,10 @@
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
         <value>Укажите описание ассистента, используемое исключительно для отображения и различения.</value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
-        <value>Системный подсказка будет отправлена модели в начале диалога и будет обновляться с каждым отправленным сообщением.
-В подсказке можно использовать заполнители, заключенные в {}, которые будут заменены соответствующим содержимым перед отправкой модели.</value>
+    <data name="AssistantPromptSelector_ComboBox_Label" xml:space="preserve">
+        <value></value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Header" xml:space="preserve">
+    <data name="CustomAssistant_PromptSelector_Header" xml:space="preserve">
         <value>Системный запрос</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_Content" xml:space="preserve">
@@ -1781,22 +1780,16 @@
     <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>Поставщик услуг</value>
     </data>
-    <data name="AssistantPromptSettings_Header" xml:space="preserve">
-        <value>Подсказки</value>
-    </data>
-    <data name="AssistantPromptSettings_Description" xml:space="preserve">
-        <value>Выберите подсказки, используемые этим помощником.</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>Добавить API-ключ</value>
     </data>
     <data name="ApiKeyComboBox_ManageApiKey" xml:space="preserve">
         <value>Управление API ключами</value>
     </data>
-    <data name="PromptComboBox_NewPrompt" xml:space="preserve">
+    <data name="AssistantPromptSelector_NewPrompt" xml:space="preserve">
         <value>Создать подсказку</value>
     </data>
-    <data name="PromptComboBox_ManagePrompts" xml:space="preserve">
+    <data name="AssistantPromptSelector_ManagePrompts" xml:space="preserve">
         <value>Управление подсказками</value>
     </data>
     <data name="ManageApiKeyForm_DeleteApiKeys_Dialog_Message" xml:space="preserve">
@@ -2807,28 +2800,28 @@
         <value>Открыть документ</value>
     </data>
     <data name="Assistant_OpenAIOptions_Header" xml:space="preserve">
-        <value>Опции совместимости OpenAI</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIOptions_Description" xml:space="preserve">
-        <value>Настройте параметры Chat Completions для совместимого поставщика OpenAI.</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Header" xml:space="preserve">
-        <value>Опции ответов OpenAI</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Description" xml:space="preserve">
-        <value>Настройте параметры вывода API Responses.</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Header" xml:space="preserve">
-        <value>Опции Anthropic</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Description" xml:space="preserve">
-        <value>Настройте поведение размышлений и кэширования API сообщений Anthropic.</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Header" xml:space="preserve">
-        <value>Опции Google Gemini</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Description" xml:space="preserve">
-        <value>Настройте параметры размышлений Gemini.</value>
+        <value></value>
     </data>
     <data name="OpenAIOptions_IncludeReasoningContent_Header" xml:space="preserve">
         <value>Сохранить reasoning_content</value>

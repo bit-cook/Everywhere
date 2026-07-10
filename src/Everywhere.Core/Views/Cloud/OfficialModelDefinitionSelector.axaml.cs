@@ -11,7 +11,7 @@ using ShadUI;
 
 namespace Everywhere.Views;
 
-public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvider, Assistant assistant) : TemplatedControl, IExceptionHandler
+public partial class OfficialModelDefinitionSelector(IServiceProvider serviceProvider, Assistant assistant) : TemplatedControl, IExceptionHandler
 {
     public sealed class ItemWrapper(ModelDefinitionTemplate model)
     {
@@ -22,15 +22,15 @@ public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvide
         public override string ToString() => Model.ToString();
     }
 
-    public static readonly DirectProperty<OfficialModelDefinitionForm, IReadOnlyBindableList<ItemWrapper>> ItemsSourceProperty =
-        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, IReadOnlyBindableList<ItemWrapper>>(
+    public static readonly DirectProperty<OfficialModelDefinitionSelector, IReadOnlyBindableList<ItemWrapper>> ItemsSourceProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionSelector, IReadOnlyBindableList<ItemWrapper>>(
             nameof(ItemsSource),
             o => o.ItemsSource);
 
     public IReadOnlyBindableList<ItemWrapper> ItemsSource => _itemsSource;
 
-    public static readonly DirectProperty<OfficialModelDefinitionForm, ModelDefinitionTemplate?> SelectedItemProperty =
-        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, ModelDefinitionTemplate?>(
+    public static readonly DirectProperty<OfficialModelDefinitionSelector, ModelDefinitionTemplate?> SelectedItemProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionSelector, ModelDefinitionTemplate?>(
             nameof(SelectedItem),
             o => o.SelectedItem);
 
@@ -47,8 +47,8 @@ public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvide
         }
     }
 
-    public static readonly DirectProperty<OfficialModelDefinitionForm, ItemWrapper?> SelectedItemWrapperProperty =
-        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, ItemWrapper?>(
+    public static readonly DirectProperty<OfficialModelDefinitionSelector, ItemWrapper?> SelectedItemWrapperProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionSelector, ItemWrapper?>(
             nameof(SelectedItemWrapper),
             o => o.SelectedItemWrapper,
             (o, v) => o.SelectedItemWrapper = v);
@@ -59,8 +59,8 @@ public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvide
         set => SetSelectedItemWrapper(value);
     }
 
-    public static readonly DirectProperty<OfficialModelDefinitionForm, string?> SelectedModelIdProperty =
-        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, string?>(
+    public static readonly DirectProperty<OfficialModelDefinitionSelector, string?> SelectedModelIdProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionSelector, string?>(
             nameof(SelectedModelId),
             o => o.SelectedModelId,
             (o, v) => o.SelectedModelId = v);
@@ -71,8 +71,8 @@ public partial class OfficialModelDefinitionForm(IServiceProvider serviceProvide
         set => SetSelectedModelId(value);
     }
 
-    public static readonly DirectProperty<OfficialModelDefinitionForm, bool> IsSelectedModelUnavailableProperty =
-        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionForm, bool>(
+    public static readonly DirectProperty<OfficialModelDefinitionSelector, bool> IsSelectedModelUnavailableProperty =
+        AvaloniaProperty.RegisterDirect<OfficialModelDefinitionSelector, bool>(
             nameof(IsSelectedModelUnavailable),
             o => o.IsSelectedModelUnavailable);
 

@@ -16,7 +16,7 @@
 
     <Setter Property="ItemsPanel">
       <ItemsPanelTemplate>
-        <StackPanel Spacing="16"/>
+        <StackPanel Spacing="8"/>
       </ItemsPanelTemplate>
     </Setter>
 

@@ -969,11 +969,10 @@ Zekam büyük dil modeli tarafından sağlanıyor, senin yardımınla yapıland�
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
         <value>Asistanın açıklamasını belirtin; yalnızca görüntüleme ve ayırt etme amacıyla kullanılır.</value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
-        <value>Sistem istemi, sohbetin başında modele gönderilir ve her mesaj gönderildiğinde güncel tutulur.
-İstemde { } içinde yer alan yer tutucular kullanılabilir, modele gönderilmeden önce ilgili içerikle değiştirilir.</value>
+    <data name="AssistantPromptSelector_ComboBox_Label" xml:space="preserve">
+        <value></value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Header" xml:space="preserve">
+    <data name="CustomAssistant_PromptSelector_Header" xml:space="preserve">
         <value>Sistem İstemi</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_Content" xml:space="preserve">
@@ -1781,22 +1780,16 @@ Seçim modlarını değiştirmek için kaydırma tekerleğini veya sayı tuşlar
     <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>Hizmet Sağlayıcı</value>
     </data>
-    <data name="AssistantPromptSettings_Header" xml:space="preserve">
-        <value>İpucu Metinleri</value>
-    </data>
-    <data name="AssistantPromptSettings_Description" xml:space="preserve">
-        <value>Bu asistanın kullanacağı ipucu metinlerini seçin.</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>API anahtarı ekle</value>
     </data>
     <data name="ApiKeyComboBox_ManageApiKey" xml:space="preserve">
         <value>API Anahtarını Yönet</value>
     </data>
-    <data name="PromptComboBox_NewPrompt" xml:space="preserve">
+    <data name="AssistantPromptSelector_NewPrompt" xml:space="preserve">
         <value>İpucu Metni Oluştur</value>
     </data>
-    <data name="PromptComboBox_ManagePrompts" xml:space="preserve">
+    <data name="AssistantPromptSelector_ManagePrompts" xml:space="preserve">
         <value>İpucu Metinlerini Yönet</value>
     </data>
     <data name="ManageApiKeyForm_DeleteApiKeys_Dialog_Message" xml:space="preserve">
@@ -2807,28 +2800,28 @@ Yayın tarihi: {2}</value>
         <value>Belgeyi Aç</value>
     </data>
     <data name="Assistant_OpenAIOptions_Header" xml:space="preserve">
-        <value>OpenAI Uyumluluk Seçenekleri</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIOptions_Description" xml:space="preserve">
-        <value>OpenAI uyumlu sağlayıcının Chat Completions parametrelerini yapılandırın.</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Header" xml:space="preserve">
-        <value>OpenAI Yanıt Seçenekleri</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Description" xml:space="preserve">
-        <value>Yanıt API'sinin çıkarım parametrelerini yapılandırın.</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Header" xml:space="preserve">
-        <value>Anthropic Seçenekleri</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Description" xml:space="preserve">
-        <value>Anthropic Messages API'sinin düşünme ve önbellek davranışını yapılandırın.</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Header" xml:space="preserve">
-        <value>Google Gemini Seçenekleri</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Description" xml:space="preserve">
-        <value>Gemini düşünme parametrelerini yapılandırın.</value>
+        <value></value>
     </data>
     <data name="OpenAIOptions_IncludeReasoningContent_Header" xml:space="preserve">
         <value>reasoning_content'ı Koruyun</value>

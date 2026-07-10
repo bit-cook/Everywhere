@@ -38,7 +38,7 @@ public sealed partial class ChatService : IChatService
     private readonly IBlobStorage _blobStorage;
     private readonly Settings _settings;
     private readonly PersistentState _persistentState;
-    private readonly IAssistantPromptResolver _assistantPromptResolver;
+    private readonly IPromptService _promptService;
     private readonly ISkillPromptProvider _skillPromptProvider;
     private readonly IStatisticsRecorder _statisticsRecorder;
     private readonly ILogger<ChatService> _logger;
@@ -63,7 +63,7 @@ public sealed partial class ChatService : IChatService
         IBlobStorage blobStorage,
         Settings settings,
         PersistentState persistentState,
-        IAssistantPromptResolver assistantPromptResolver,
+        IPromptService promptService,
         ISkillPromptProvider skillPromptProvider,
         IStatisticsRecorder statisticsRecorder,
         ILogger<ChatService> logger)
@@ -74,7 +74,7 @@ public sealed partial class ChatService : IChatService
         _blobStorage = blobStorage;
         _settings = settings;
         _persistentState = persistentState;
-        _assistantPromptResolver = assistantPromptResolver;
+        _promptService = promptService;
         _skillPromptProvider = skillPromptProvider;
         _statisticsRecorder = statisticsRecorder;
         _logger = logger;
@@ -464,13 +464,20 @@ public sealed partial class ChatService : IChatService
                 new PromptPlaceholderContext(
                     SkillsPromptResolver: _skillPromptProvider.GetPrompt,
                     WorkingDirectoryResolver: chatContext.EnsureWorkingDirectory));
-            var promptResolution = await _assistantPromptResolver.ResolveSystemPromptAsync(
-                assistant,
-                systemPromptOverride,
-                cancellationToken);
-            activity?.SetTag("prompt.id", promptResolution.PromptId?.ToString("D") ?? "override");
-            activity?.SetTag("prompt.fallback", promptResolution.UsedFallback);
-            var systemPrompt = promptRenderer.RenderSystemPrompt(promptResolution.Template);
+
+            string? systemPromptTemplate;
+            if (systemPromptOverride is null)
+            {
+                var promptId = assistant is CustomAssistant customAssistant ? customAssistant.SystemPromptId : Guid.Empty;
+                var resolvedPrompt = await _promptService.GetPromptAsync(promptId, cancellationToken) ?? _promptService.DefaultPrompt;
+                systemPromptTemplate = resolvedPrompt.Template;
+            }
+            else
+            {
+                systemPromptTemplate = systemPromptOverride;
+            }
+
+            var systemPrompt = promptRenderer.RenderSystemPrompt(systemPromptTemplate);
 
             while (true)
             {

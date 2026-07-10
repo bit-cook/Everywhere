@@ -969,11 +969,10 @@
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
         <value>표시 및 구분 목적으로만 사용되는 어시스턴트의 설명을 지정하세요.</value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
-        <value>시스템 프롬프트는 대화 시작 시 모델에 전송되며, 매번 메시지를 보낼 때 최신 상태로 유지됩니다.
-프롬프트 내에서 {} 안에 포함된 자리 표시자를 사용할 수 있으며, 모델에 전송되기 전에 해당 내용으로 대체됩니다.</value>
+    <data name="AssistantPromptSelector_ComboBox_Label" xml:space="preserve">
+        <value></value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Header" xml:space="preserve">
+    <data name="CustomAssistant_PromptSelector_Header" xml:space="preserve">
         <value>시스템 프롬프트</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_Content" xml:space="preserve">
@@ -1781,22 +1780,16 @@
     <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>서비스 제공자</value>
     </data>
-    <data name="AssistantPromptSettings_Header" xml:space="preserve">
-        <value>프롬프트</value>
-    </data>
-    <data name="AssistantPromptSettings_Description" xml:space="preserve">
-        <value>이 도우미가 사용할 프롬프트를 선택하세요.</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>API 키 추가</value>
     </data>
     <data name="ApiKeyComboBox_ManageApiKey" xml:space="preserve">
         <value>API 키 관리</value>
     </data>
-    <data name="PromptComboBox_NewPrompt" xml:space="preserve">
+    <data name="AssistantPromptSelector_NewPrompt" xml:space="preserve">
         <value>프롬프트 생성</value>
     </data>
-    <data name="PromptComboBox_ManagePrompts" xml:space="preserve">
+    <data name="AssistantPromptSelector_ManagePrompts" xml:space="preserve">
         <value>프롬프트 관리</value>
     </data>
     <data name="ManageApiKeyForm_DeleteApiKeys_Dialog_Message" xml:space="preserve">
@@ -2807,28 +2800,28 @@
         <value>문서 열기</value>
     </data>
     <data name="Assistant_OpenAIOptions_Header" xml:space="preserve">
-        <value>OpenAI 호환 옵션</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIOptions_Description" xml:space="preserve">
-        <value>OpenAI 호환 제공자의 Chat Completions 매개변수를 구성합니다.</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Header" xml:space="preserve">
-        <value>OpenAI 응답 옵션</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Description" xml:space="preserve">
-        <value>Responses API의 추론 매개변수를 구성합니다.</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Header" xml:space="preserve">
-        <value>Anthropic 옵션</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Description" xml:space="preserve">
-        <value>Anthropic Messages API의 사고 및 캐시 동작을 구성합니다.</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Header" xml:space="preserve">
-        <value>Google Gemini 옵션</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Description" xml:space="preserve">
-        <value>Gemini 사고 매개변수를 구성합니다.</value>
+        <value></value>
     </data>
     <data name="OpenAIOptions_IncludeReasoningContent_Header" xml:space="preserve">
         <value>reasoning_content 유지</value>

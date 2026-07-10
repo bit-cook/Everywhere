@@ -15,9 +15,17 @@ namespace Everywhere.Configuration;
 /// </summary>
 public abstract class SettingsItem : AvaloniaObject, INotifyDataErrorInfo
 {
-    public IDynamicLocaleKey? HeaderKey { get; set; }
+    public IDynamicLocaleKey HeaderKey
+    {
+        get => field ??= DirectLocaleKey.Empty;
+        set;
+    }
 
-    public IDynamicLocaleKey? DescriptionKey { get; set; }
+    public IDynamicLocaleKey DescriptionKey
+    {
+        get => field ??= DirectLocaleKey.Empty;
+        set;
+    }
 
     public Classes Classes { get; } = [];
 

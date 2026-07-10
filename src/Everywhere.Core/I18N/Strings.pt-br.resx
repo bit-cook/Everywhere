@@ -969,11 +969,10 @@ Minha inteligência é alimentada por um grande modelo de linguagem, e preciso d
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
         <value>Defina a descrição do assistente, usada apenas para exibição e identificação.</value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
-        <value>O prompt do sistema é enviado ao modelo no início da conversa e mantido atualizado a cada mensagem.
-Você pode usar placeholders no prompt, delimitados por {}, que serão substituídos pelo conteúdo correspondente antes do envio ao modelo.</value>
+    <data name="AssistantPromptSelector_ComboBox_Label" xml:space="preserve">
+        <value></value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Header" xml:space="preserve">
+    <data name="CustomAssistant_PromptSelector_Header" xml:space="preserve">
         <value>Prompt do Sistema</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_Content" xml:space="preserve">
@@ -1782,22 +1781,16 @@ Use a roda do mouse ou as teclas numéricas para alternar o modo de seleção.</
     <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>Provedor de Serviços</value>
     </data>
-    <data name="AssistantPromptSettings_Header" xml:space="preserve">
-        <value>Prompt</value>
-    </data>
-    <data name="AssistantPromptSettings_Description" xml:space="preserve">
-        <value>Escolha os prompts que este assistente usará.</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>Adicionar Chave de API</value>
     </data>
     <data name="ApiKeyComboBox_ManageApiKey" xml:space="preserve">
         <value>Gerenciar Chaves de API</value>
     </data>
-    <data name="PromptComboBox_NewPrompt" xml:space="preserve">
+    <data name="AssistantPromptSelector_NewPrompt" xml:space="preserve">
         <value>Criar Prompt</value>
     </data>
-    <data name="PromptComboBox_ManagePrompts" xml:space="preserve">
+    <data name="AssistantPromptSelector_ManagePrompts" xml:space="preserve">
         <value>Gerenciar Prompts</value>
     </data>
     <data name="ManageApiKeyForm_DeleteApiKeys_Dialog_Message" xml:space="preserve">
@@ -2808,28 +2801,28 @@ Data de lançamento: {2}</value>
         <value>Abrir documento</value>
     </data>
     <data name="Assistant_OpenAIOptions_Header" xml:space="preserve">
-        <value>Opções Compatíveis com OpenAI</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIOptions_Description" xml:space="preserve">
-        <value>Configurar os parâmetros de Chat Completions do provedor compatível com OpenAI.</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Header" xml:space="preserve">
-        <value>Opções de Respostas OpenAI</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Description" xml:space="preserve">
-        <value>Configurar os parâmetros de raciocínio da API de Responses.</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Header" xml:space="preserve">
-        <value>Opções Anthropic</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Description" xml:space="preserve">
-        <value>Configurar o comportamento de raciocínio e cache da API de Mensagens Anthropic.</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Header" xml:space="preserve">
-        <value>Opções do Google Gemini</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Description" xml:space="preserve">
-        <value>Configurar os parâmetros de raciocínio do Gemini.</value>
+        <value></value>
     </data>
     <data name="OpenAIOptions_IncludeReasoningContent_Header" xml:space="preserve">
         <value>Incluir conteúdo de raciocínio</value>

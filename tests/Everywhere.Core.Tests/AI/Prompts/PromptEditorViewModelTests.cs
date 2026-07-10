@@ -242,12 +242,14 @@ public sealed class PromptEditorViewModelTests
 
     private sealed class TestPromptService(params PromptDefinition[] prompts) : IPromptService
     {
-        private readonly PromptDefinition _defaultPrompt = new DefaultPromptProvider().DefaultPrompt;
         private readonly List<PromptDefinition> _userPrompts = prompts.Where(static prompt => !prompt.IsDefault).ToList();
 
         public IReadOnlyList<PromptDefinition> UserPrompts => _userPrompts;
 
-        public PromptDefinition DefaultPrompt => prompts.FirstOrDefault(static prompt => prompt.IsDefault) ?? _defaultPrompt;
+        public PromptDefinition DefaultPrompt
+        {
+            get => prompts.FirstOrDefault(static prompt => prompt.IsDefault) ?? field;
+        } = new DefaultPromptProvider().DefaultPrompt;
 
         public Task<IReadOnlyList<PromptDefinition>> ListPromptsAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult<IReadOnlyList<PromptDefinition>>([DefaultPrompt, .. _userPrompts]);

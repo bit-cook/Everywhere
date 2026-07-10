@@ -969,11 +969,10 @@ Mon intelligence est alimentée par un grand modèle de langage, et j'ai besoin 
     <data name="CustomAssistant_Description_Description" xml:space="preserve">
         <value>Spécifiez la description de l'assistant, utilisée uniquement à des fins d'affichage et de différenciation.</value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Description" xml:space="preserve">
-        <value>Le prompt système sera envoyé au modèle au début de la conversation et sera mis à jour à chaque envoi de message.
-Le prompt peut contenir des espaces réservés, inclus dans {}, qui seront remplacés par le contenu correspondant avant d'être envoyés au modèle.</value>
+    <data name="AssistantPromptSelector_ComboBox_Label" xml:space="preserve">
+        <value></value>
     </data>
-    <data name="CustomAssistant_SystemPrompt_Header" xml:space="preserve">
+    <data name="CustomAssistant_PromptSelector_Header" xml:space="preserve">
         <value>Invite du Système</value>
     </data>
     <data name="CustomAssistantPage_DeleteCustomAssistantButton_Content" xml:space="preserve">
@@ -1781,22 +1780,16 @@ Molette de défilement ou touches numériques pour changer de mode de sélection
     <data name="Assistant_ConfiguratorSelector_Header" xml:space="preserve">
         <value>Fournisseur de services</value>
     </data>
-    <data name="AssistantPromptSettings_Header" xml:space="preserve">
-        <value>Prompts</value>
-    </data>
-    <data name="AssistantPromptSettings_Description" xml:space="preserve">
-        <value>Sélectionnez les prompts utilisés par cet assistant.</value>
-    </data>
     <data name="ApiKeyComboBox_AddApiKey" xml:space="preserve">
         <value>Ajouter une clé API</value>
     </data>
     <data name="ApiKeyComboBox_ManageApiKey" xml:space="preserve">
         <value>Gérer les clés API</value>
     </data>
-    <data name="PromptComboBox_NewPrompt" xml:space="preserve">
+    <data name="AssistantPromptSelector_NewPrompt" xml:space="preserve">
         <value>Créer un Prompt</value>
     </data>
-    <data name="PromptComboBox_ManagePrompts" xml:space="preserve">
+    <data name="AssistantPromptSelector_ManagePrompts" xml:space="preserve">
         <value>Gérer les Prompts</value>
     </data>
     <data name="ManageApiKeyForm_DeleteApiKeys_Dialog_Message" xml:space="preserve">
@@ -2807,28 +2800,28 @@ Date de publication : {2}</value>
         <value>Ouvrir le document</value>
     </data>
     <data name="Assistant_OpenAIOptions_Header" xml:space="preserve">
-        <value>Options Compatibles OpenAI</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIOptions_Description" xml:space="preserve">
-        <value>Configurer les paramètres de Chat Completions pour le fournisseur compatible OpenAI.</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Header" xml:space="preserve">
-        <value>Options de Réponses OpenAI</value>
+        <value></value>
     </data>
     <data name="Assistant_OpenAIResponsesOptions_Description" xml:space="preserve">
-        <value>Configurer les paramètres d'inférence de l'API Responses.</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Header" xml:space="preserve">
-        <value>Options Anthropic</value>
+        <value></value>
     </data>
     <data name="Assistant_AnthropicOptions_Description" xml:space="preserve">
-        <value>Configurer le comportement de réflexion et de mise en cache de l'API Messages d'Anthropic.</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Header" xml:space="preserve">
-        <value>Options Google Gemini</value>
+        <value></value>
     </data>
     <data name="Assistant_GoogleOptions_Description" xml:space="preserve">
-        <value>Configurer les paramètres de réflexion de Gemini.</value>
+        <value></value>
     </data>
     <data name="OpenAIOptions_IncludeReasoningContent_Header" xml:space="preserve">
         <value>Inclure le contenu de raisonnement</value>
