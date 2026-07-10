@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Everywhere.Configuration;
 using Lucide.Avalonia;
 
 namespace Everywhere.Common;
@@ -13,7 +12,6 @@ public enum ColoredIconType
 /// <summary>
 /// Represents an icon.
 /// </summary>
-[SettingsSerializedSubtree]
 public partial class ColoredIcon(ColoredIconType type, SerializableColor? foreground = null, SerializableColor? background = null) : ObservableObject
 {
     [ObservableProperty]

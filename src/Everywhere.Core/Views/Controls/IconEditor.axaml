@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary
   xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-  xmlns:common="clr-namespace:Everywhere.Common" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
+  xmlns:common="clr-namespace:Everywhere.Common" xmlns:shad="clr-namespace:ShadUI;assembly=ShadUI"
+  xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
   xmlns:v="using:Everywhere.Views" xmlns:vc="clr-namespace:Everywhere.ValueConverters">
   <Design.PreviewWith>
     <v:IconEditor
@@ -29,8 +30,10 @@
                 <ListBox
                   Classes="Simple"
                   ItemsSource="{TemplateBinding LucideItemsSource}"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                  SelectedItem="{Binding Icon.Kind, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}">
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                  <Interaction.Behaviors>
+                    <shad:FixSelectedItemBehavior SelectedItem="{Binding Icon.Kind, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                  </Interaction.Behaviors>
                   <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                       <shadui:VirtualizingWrapPanel
@@ -51,8 +54,10 @@
                 <ListBox
                   Classes="Simple"
                   ItemsSource="{TemplateBinding EmojiItemsSource}"
-                  ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                  SelectedItem="{Binding Icon.Text, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}">
+                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                  <Interaction.Behaviors>
+                    <shad:FixSelectedItemBehavior SelectedItem="{Binding Icon.Text, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}, FallbackValue={x:Null}}"/>
+                  </Interaction.Behaviors>
                   <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                       <shadui:VirtualizingWrapPanel
