@@ -70,6 +70,7 @@ Rules:
 4. If deserialization succeeds and the property is writable, the property is replaced.
 5. If deserialization fails, the existing runtime object is left unchanged and a warning is recorded.
 6. The boundary is suitable for polymorphic objects, immutable records, and types whose invariants are best owned by `System.Text.Json`.
+7. When the attribute is declared on a collection element or dictionary value type, each element or value is an independent serialized-subtree boundary.
 
 `ColoredIcon` should be the first validation case for this behavior.
 

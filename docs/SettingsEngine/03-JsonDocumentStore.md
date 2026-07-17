@@ -89,6 +89,8 @@ Settings object changed
 
 For a serialized subtree, the whole marked subtree is replaced.
 
+When a collection element or dictionary value type is marked as a serialized subtree, a descendant change replaces that element or value rather than the containing collection.
+
 For normal patch-managed objects, only known changed paths should be replaced.
 
 ## 7. Unknown Key Preservation

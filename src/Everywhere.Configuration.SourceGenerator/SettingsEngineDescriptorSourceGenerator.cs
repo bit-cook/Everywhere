@@ -103,9 +103,9 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
                     : null;
 
                 if (indexedType is INamedTypeSymbol namedIndexedType &&
-                    CanPatchAsObject(compilation, namedIndexedType) &&
                     property.Kind != "SerializedSubtree" &&
-                    !HasAttribute(namedIndexedType, KnownAttributes.SettingsSerializedSubtree))
+                    (HasAttribute(namedIndexedType, KnownAttributes.SettingsSerializedSubtree) ||
+                     CanPatchAsObject(compilation, namedIndexedType)))
                 {
                     Enqueue(namedIndexedType);
                 }

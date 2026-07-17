@@ -16,6 +16,88 @@ namespace Everywhere.Core.Tests.Configuration;
 public sealed class SettingsEngineTests
 {
     [Test]
+    public async Task InitializeAsync_MigratesLegacyScalarValues()
+    {
+        using var file = TestSettingsFile(
+            """
+            {
+              "Version": "0.8.0",
+              "SystemAssistant": { "TitleGeneration": { "Specializations": "title-generation" } },
+              "Plugin": {
+                "McpChatPlugins": [
+                  { "Id": "11111111-1111-1111-1111-111111111111", "Stdio": null, "Http": { "Name": "test", "Endpoint": "https://example.com", "Headers": {}, "TransportMode": 0 } },
+                  { "Id": "11111111-1111-1111-1111-111111111111", "Stdio": { "Name": "overridden", "Command": "test", "Arguments": [], "EnvironmentVariables": {} }, "Http": null },
+                  { "Id": "22222222-2222-2222-2222-222222222222", "Stdio": null, "Http": { "Name": "remote", "Endpoint": "https://example.com", "Headers": {}, "TransportMode": 0 } },
+                  { "Id": "33333333-3333-3333-3333-333333333333", "Stdio": null, "Http": null }
+                ],
+                "WebSearchEngine": { "Providers": { "Official": { "Settings": { "Depth": "UltraFast" } } } }
+              }
+            }
+            """);
+        await using var serviceProvider = new ServiceCollection().BuildServiceProvider();
+        var engine = new SettingsEngine(new Settings(serviceProvider), file.Path, serviceProvider, NullLoggerFactory.Instance);
+
+        await engine.InitializeAsync();
+
+        var root = Require(JsonNode.Parse(File.ReadAllText(file.Path))).AsObject();
+        var titleGeneration = Require(Require(root["SystemAssistant"])["TitleGeneration"]).AsObject();
+        var plugins = Require(Require(root["Plugin"])["McpChatPlugins"]).AsObject();
+        var officialSettings = Require(
+            Require(
+                Require(
+                    Require(
+                        Require(root["Plugin"])["WebSearchEngine"])["Providers"])["Official"])["Settings"]).AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(root["Version"]!.GetValue<string>(), Is.EqualTo("0.8.1-canary.20260712.01"));
+            Assert.That(titleGeneration["Specializations"]!.GetValue<string>(), Is.EqualTo("TitleGeneration"));
+            Assert.That(plugins, Has.Count.EqualTo(2));
+            Assert.That(plugins["11111111-1111-1111-1111-111111111111"]!["$type"]!.GetValue<string>(), Is.EqualTo("stdio"));
+            Assert.That(plugins["11111111-1111-1111-1111-111111111111"]!["Name"]!.GetValue<string>(), Is.EqualTo("overridden"));
+            Assert.That(plugins["22222222-2222-2222-2222-222222222222"]!["$type"]!.GetValue<string>(), Is.EqualTo("sse"));
+            Assert.That(plugins.ContainsKey("33333333-3333-3333-3333-333333333333"), Is.False);
+            Assert.That(officialSettings["Depth"]!.GetValue<string>(), Is.EqualTo("UltraFast"));
+            Assert.That(engine.Settings.SystemAssistant.TitleGeneration.Specializations,
+                Is.EqualTo(global::Everywhere.AI.ModelSpecializations.TitleGeneration));
+            Assert.That(engine.Settings.Plugin.McpChatPlugins, Has.Count.EqualTo(2));
+            Assert.That(engine.Settings.Plugin.McpChatPlugins[Guid.Parse("11111111-1111-1111-1111-111111111111")],
+                Is.TypeOf<global::Everywhere.Chat.Plugins.StdioMcpTransportConfiguration>());
+            Assert.That(engine.Settings.Plugin.McpChatPlugins[Guid.Parse("22222222-2222-2222-2222-222222222222")],
+                Is.TypeOf<global::Everywhere.Chat.Plugins.HttpMcpTransportConfiguration>());
+            Assert.That(
+                ((OfficialWebSearchEngineProvider)engine.Settings.Plugin.WebSearchEngine.Providers[WebSearchEngineProviderId.Official]).Settings.Depth,
+                Is.EqualTo(global::Everywhere.Web.OfficialConnector.SearchDepth.UltraFast));
+            Assert.That(engine.Diagnostics, Is.Empty);
+        });
+
+        var stdio = (global::Everywhere.Chat.Plugins.StdioMcpTransportConfiguration)
+            engine.Settings.Plugin.McpChatPlugins[Guid.Parse("11111111-1111-1111-1111-111111111111")];
+        var http = (global::Everywhere.Chat.Plugins.HttpMcpTransportConfiguration)
+            engine.Settings.Plugin.McpChatPlugins[Guid.Parse("22222222-2222-2222-2222-222222222222")];
+        stdio.Name = "updated";
+        stdio.Arguments.Add("second");
+        stdio.EnvironmentVariables.Add(new ObservableKeyValuePair<string, string?>("KEY", "value"));
+        http.Headers.Add(new ObservableKeyValuePair<string, string>("Authorization", "token"));
+
+        var updatedPlugins = Require(
+            Require(engine.Storage.CreateSnapshot()["Plugin"])["McpChatPlugins"]).AsObject();
+        var updatedStdio = Require(updatedPlugins["11111111-1111-1111-1111-111111111111"]).AsObject();
+        var updatedHttp = Require(updatedPlugins["22222222-2222-2222-2222-222222222222"]).AsObject();
+        Assert.Multiple(() =>
+        {
+            Assert.That(updatedStdio["$type"]!.GetValue<string>(), Is.EqualTo("stdio"));
+            Assert.That(updatedStdio["Name"]!.GetValue<string>(), Is.EqualTo("updated"));
+            Assert.That(updatedStdio["Arguments"]!.AsArray().Select(static node => node!.GetValue<string>()),
+                Is.EqualTo(new[] { "second" }));
+            Assert.That(updatedStdio["EnvironmentVariables"]!["KEY"]!.GetValue<string>(), Is.EqualTo("value"));
+            Assert.That(updatedHttp["Headers"]!["Authorization"]!.GetValue<string>(), Is.EqualTo("token"));
+            Assert.That(updatedPlugins.ContainsKey("22222222-2222-2222-2222-222222222222"), Is.True);
+            Assert.That(engine.Diagnostics, Is.Empty);
+        });
+    }
+
+    [Test]
     public async Task InitializeAsync_PatchesExistingSettingsRoot()
     {
         using var file = TestSettingsFile(
@@ -65,7 +147,7 @@ public sealed class SettingsEngineTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(root["Version"]!.GetValue<string>(), Is.EqualTo("0.8.1-canary.20260629.12"));
+            Assert.That(root["Version"]!.GetValue<string>(), Is.EqualTo("0.8.1-canary.20260712.01"));
             Assert.That(Require(main["Key"]).GetValue<string>(), Is.EqualTo("K"));
             Assert.That(Require(main["Modifiers"]).GetValue<string>(), Is.EqualTo("Control, Shift"));
             Assert.That(chatWindow.ContainsKey("Key"), Is.False);
@@ -105,6 +187,20 @@ public sealed class SettingsEngineTests
 
         Assert.That(provider.GetType().Name, Is.EqualTo("GeneratedSettingsDescriptorProvider"));
         Assert.That(descriptor.FindProperty(nameof(Settings.Common)), Is.Not.Null);
+    }
+
+    [Test]
+    public void GeneratedDescriptor_IncludesSerializedDictionaryValueType()
+    {
+        var provider = SettingsDescriptorProviderFactory.Create();
+
+        var descriptor = provider.GetDescriptor(typeof(global::Everywhere.Chat.Plugins.McpTransportConfiguration));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(descriptor.IsSerializedSubtree, Is.True);
+            Assert.That(descriptor.GetType().Name, Does.Not.Contain("Reflection"));
+        });
     }
 
     [Test]
@@ -596,8 +692,10 @@ public sealed class SettingsEngineTests
         using var store = JsonSettingsStorage.Load(file.Path);
         var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
+        var target = new TestRoot();
 
-        binder.WriteObservedPath(store, descriptor, "Section:Name", "new");
+        target.Section.Name = "new";
+        binder.WriteObservedPath(store, descriptor, target, "Section:Name", "new");
 
         var section = Require(store.CreateSnapshot()["Section"]).AsObject();
         Assert.That(Require(section["Name"]).GetValue<string>(), Is.EqualTo("new"));
@@ -611,8 +709,10 @@ public sealed class SettingsEngineTests
         using var store = JsonSettingsStorage.Load(file.Path);
         var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
+        var target = new TestRoot();
 
-        binder.WriteObservedPath(store, descriptor, "Renamed:Name", "new");
+        target.Renamed.Name = "new";
+        binder.WriteObservedPath(store, descriptor, target, "Renamed:Name", "new");
 
         var renamed = Require(store.CreateSnapshot()["Renamed"]).AsObject();
         Assert.That(Require(renamed["json_name"]).GetValue<string>(), Is.EqualTo("new"));
@@ -626,8 +726,10 @@ public sealed class SettingsEngineTests
         using var store = JsonSettingsStorage.Load(file.Path);
         var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
+        var target = new TestRoot();
 
-        binder.WriteObservedPath(store, descriptor, "Count", 3);
+        target.Count = 3;
+        binder.WriteObservedPath(store, descriptor, target, "Count", 3);
 
         var count = Require(store.CreateSnapshot()["Count"]);
         Assert.That(count.GetValueKind(), Is.EqualTo(JsonValueKind.Number));
@@ -641,8 +743,10 @@ public sealed class SettingsEngineTests
         using var store = JsonSettingsStorage.Load(file.Path);
         var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
+        var target = new TestRoot();
 
-        binder.WriteObservedPath(store, descriptor, "Scores:0", 9);
+        target.Scores["0"] = 9;
+        binder.WriteObservedPath(store, descriptor, target, "Scores:0", 9);
 
         var scores = Require(store.CreateSnapshot()["Scores"]).AsObject();
         Assert.That(Require(scores["0"]).GetValueKind(), Is.EqualTo(JsonValueKind.Number));
@@ -656,8 +760,10 @@ public sealed class SettingsEngineTests
         using var store = JsonSettingsStorage.Load(file.Path);
         var binder = new SettingsPatchBinder();
         var descriptor = binder.GetDescriptor(typeof(TestRoot));
+        var target = new TestRoot();
 
-        binder.WriteObservedPath(store, descriptor, "Items:0:Name", "new");
+        target.Items.Add(new TestItem { Name = "new" });
+        binder.WriteObservedPath(store, descriptor, target, "Items:0:Name", "new");
 
         var items = Require(store.CreateSnapshot()["Items"]).AsArray();
         Assert.That(Require(Require(items[0])["Name"]).GetValue<string>(), Is.EqualTo("new"));

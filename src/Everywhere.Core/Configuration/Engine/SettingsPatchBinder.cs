@@ -57,14 +57,22 @@ public sealed class SettingsPatchBinder
     /// colon-separated CLR path. This method resolves it through descriptors into
     /// a typed JSON path so numeric dictionary keys stay object properties while
     /// collection indexes become array segments.
+    /// When the path enters a serialized-subtree property or indexed value, the
+    /// write is collapsed to that boundary and the current boundary value is
+    /// read from <paramref name="rootValue"/>.
     /// </remarks>
-    public void WriteObservedPath(JsonSettingsStorage store, ISettingsDescriptor rootDescriptor, string observedPath, object? value)
+    public void WriteObservedPath(
+        JsonSettingsStorage store,
+        ISettingsDescriptor rootDescriptor,
+        object rootValue,
+        string observedPath,
+        object? observedValue)
     {
         try
         {
-            var resolution = ResolveObservedPath(rootDescriptor, observedPath);
-            var valueType = resolution.DeclaredType ?? value?.GetType() ?? typeof(object);
-            var node = SettingsEngineJson.SerializeToNode(value, valueType);
+            var resolution = ResolveObservedPath(rootDescriptor, rootValue, observedPath, observedValue);
+            var valueType = resolution.DeclaredType ?? resolution.RuntimeValue?.GetType() ?? typeof(object);
+            var node = SettingsEngineJson.SerializeToNode(resolution.RuntimeValue, valueType);
             store.ReplaceSubtree(resolution.JsonPath, node);
         }
         catch (Exception ex)
@@ -742,12 +750,18 @@ public sealed class SettingsPatchBinder
         }
     }
 
-    private PathResolution ResolveObservedPath(ISettingsDescriptor rootDescriptor, string observedPath)
+    private PathResolution ResolveObservedPath(
+        ISettingsDescriptor rootDescriptor,
+        object rootValue,
+        string observedPath,
+        object? observedValue)
     {
         var jsonSegments = new List<SettingsJsonPathSegment>();
         var currentDescriptor = rootDescriptor;
+        object? currentValue = rootValue;
         ISettingsDescriptor? indexedValueDescriptor = null;
         Type? indexedValueType = null;
+        ISettingsPropertyDescriptor? indexedProperty = null;
 
         var declaredType = rootDescriptor.Type;
         var expectingListIndex = false;
@@ -764,8 +778,15 @@ public sealed class SettingsPatchBinder
 
                 jsonSegments.Add(SettingsJsonPathSegment.Index(index));
                 declaredType = indexedValueType ?? declaredType;
+                currentValue = currentValue is IList list && index < list.Count ? list[index] : observedValue;
                 currentDescriptor = indexedValueDescriptor ?? currentDescriptor;
                 expectingListIndex = false;
+
+                if (indexedValueDescriptor?.IsSerializedSubtree is true)
+                {
+                    return new PathResolution(new SettingsJsonPath(jsonSegments), declaredType, currentValue);
+                }
+
                 continue;
             }
 
@@ -773,8 +794,18 @@ public sealed class SettingsPatchBinder
             {
                 jsonSegments.Add(SettingsJsonPathSegment.Property(segment));
                 declaredType = indexedValueType ?? declaredType;
+                var key = indexedProperty?.DictionaryKeyReader?.Invoke(segment);
+                currentValue = key is not null && currentValue is IDictionary dictionary && dictionary.Contains(key) ?
+                    dictionary[key] :
+                    observedValue;
                 currentDescriptor = indexedValueDescriptor ?? currentDescriptor;
                 expectingDictionaryKey = false;
+
+                if (indexedValueDescriptor?.IsSerializedSubtree is true)
+                {
+                    return new PathResolution(new SettingsJsonPath(jsonSegments), declaredType, currentValue);
+                }
+
                 continue;
             }
 
@@ -782,23 +813,32 @@ public sealed class SettingsPatchBinder
             {
                 jsonSegments.Add(SettingsJsonPathSegment.Property(property.JsonName));
                 declaredType = property.PropertyType;
+                currentValue = currentValue is null ? observedValue : property.GetValue(currentValue);
+
+                if (property.Kind == SettingsPropertyKind.SerializedSubtree)
+                {
+                    return new PathResolution(new SettingsJsonPath(jsonSegments), declaredType, currentValue);
+                }
 
                 if (property.Kind is SettingsPropertyKind.Array or SettingsPropertyKind.List)
                 {
                     indexedValueType = property.ElementType;
                     indexedValueDescriptor = GetChildDescriptor(indexedValueType);
+                    indexedProperty = property;
                     expectingListIndex = true;
                 }
                 else if (property.Kind == SettingsPropertyKind.Dictionary)
                 {
                     indexedValueType = property.DictionaryValueType;
                     indexedValueDescriptor = GetChildDescriptor(indexedValueType);
+                    indexedProperty = property;
                     expectingDictionaryKey = true;
                 }
                 else
                 {
                     indexedValueType = null;
                     indexedValueDescriptor = null;
+                    indexedProperty = null;
                     currentDescriptor = property.ChildDescriptor ?? currentDescriptor;
                 }
 
@@ -808,20 +848,29 @@ public sealed class SettingsPatchBinder
             jsonSegments.Add(SettingsJsonPathSegment.Property(segment));
             declaredType = indexedValueType ?? declaredType;
             currentDescriptor = indexedValueDescriptor ?? currentDescriptor;
+            currentValue = observedValue;
         }
 
-        return new PathResolution(new SettingsJsonPath(jsonSegments), declaredType);
+        return new PathResolution(new SettingsJsonPath(jsonSegments), declaredType, currentValue);
     }
 
     private ISettingsDescriptor? GetChildDescriptor(Type? type)
     {
         if (type is null) return null;
         type = Nullable.GetUnderlyingType(type) ?? type;
-        if (ReflectionSettingsDescriptorProvider.IsScalarType(type)) return null;
-        if (type.IsAbstract || type.IsInterface) return null;
+        if (ReflectionSettingsDescriptorProvider.IsScalarType(type) &&
+            !type.IsDefined(typeof(SettingsSerializedSubtreeAttribute), inherit: true))
+        {
+            return null;
+        }
+
         if (ReflectionSettingsDescriptorProvider.TryGetListElementType(type, out _)) return null;
         if (ReflectionSettingsDescriptorProvider.TryGetDictionaryTypes(type, out _, out _)) return null;
-        return _descriptorProvider.GetDescriptor(type);
+
+        var descriptor = _descriptorProvider.GetDescriptor(type);
+        if (descriptor.IsSerializedSubtree) return descriptor;
+        if (type.IsAbstract || type.IsInterface) return null;
+        return descriptor;
     }
 
     private void AddDiagnostic(
@@ -859,5 +908,5 @@ public sealed class SettingsPatchBinder
         ISet<string>? InitializedJsonNames
     );
 
-    private readonly record struct PathResolution(SettingsJsonPath JsonPath, Type? DeclaredType);
+    private readonly record struct PathResolution(SettingsJsonPath JsonPath, Type? DeclaredType, object? RuntimeValue);
 }

@@ -87,7 +87,7 @@ public sealed class SettingsEngine : IAsyncInitializer
 
     private void HandleSettingsChanges(in ObjectObserverChangedEventArgs e)
     {
-        _binder.WriteObservedPath(Storage, _rootDescriptor, e.Path, e.Value);
+        _binder.WriteObservedPath(Storage, _rootDescriptor, Settings, e.Path, e.Value);
     }
 
     private void RunMigrations()
@@ -96,12 +96,7 @@ public sealed class SettingsEngine : IAsyncInitializer
         {
             using var migrationProvider = BuildMigrationProvider();
             var migrations = migrationProvider.GetServices<SettingsMigration>();
-
-            var migrator = new SettingsMigrator(
-                _filePath,
-                migrations,
-                _loggerFactory.CreateLogger<SettingsMigrator>(),
-                ValidateMigratedSettings);
+            var migrator = new SettingsMigrator(_filePath, migrations, _loggerFactory.CreateLogger<SettingsMigrator>(), ValidateMigratedSettings);
             migrator.Migrate();
         }
         catch (Exception ex)
