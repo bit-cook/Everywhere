@@ -444,7 +444,7 @@
         <value>Supprimer</value>
     </data>
     <data name="AboutPage_WelcomePage" xml:space="preserve">
-        <value>Page d'accueil</value>
+        <value>Page de bienvenue</value>
     </data>
     <data name="WelcomeView_IntroStep_Message1" xml:space="preserve">
         <value>👋 Bienvenue sur Everywhere</value>

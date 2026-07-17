@@ -58,7 +58,8 @@ public class ChatPluginManager : IChatPluginManager
         _runtimeManager.StatusChanged += HandleRuntimeManagerStatusChanged;
 
         // Load MCP plugins from settings.
-        var mcpPlugins = settings.Plugin.McpChatPlugins.AsValueEnumerable().Select(m => m.ToMcpChatPlugin()).OfType<McpChatPlugin>().ToList();
+        var mcpPlugins = ((IEnumerable<KeyValuePair<Guid, McpTransportConfiguration>>)settings.Plugin.McpChatPlugins)
+            .Select(static pair => new McpChatPlugin(pair.Key, pair.Value)).ToList();
         Task.Run(InitializeMcpPlugins).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
         _mcpPluginsSource.AddRange(mcpPlugins);
 
@@ -102,13 +103,6 @@ public class ChatPluginManager : IChatPluginManager
             .ObserveOnAvaloniaDispatcher()
             .BindEx(_disposables);
         _disposables.Add(_mcpPluginsSource);
-
-        settings.Plugin.McpChatPlugins = _mcpPluginsSource
-            .Connect()
-            .AutoRefresh(m => m.TransportConfiguration)
-            .ObserveOnAvaloniaDispatcher()
-            .Transform(m => new McpChatPluginEntity(m), transformOnRefresh: true)
-            .BindEx(_disposables);
 
         _builtInPluginsObserver = new ObjectObserver((in e) => HandleChatPluginChanged(BuiltInPlugins, e)).Observe(BuiltInPlugins);
         _mcpPluginsObserver = new ObjectObserver((in e) => HandleChatPluginChanged(McpPlugins, e)).Observe(McpPlugins);
@@ -214,6 +208,7 @@ public class ChatPluginManager : IChatPluginManager
         var mcpChatPlugin = new McpChatPlugin(configuration);
         GetOrCreateClient(mcpChatPlugin);
         _mcpPluginsSource.Add(mcpChatPlugin);
+        _settings.Plugin.McpChatPlugins.Add(mcpChatPlugin.Id, configuration);
         UpdateMcpRuntimeWarning(mcpChatPlugin);
         return mcpChatPlugin;
     }
@@ -234,6 +229,7 @@ public class ChatPluginManager : IChatPluginManager
         }
 
         mcpChatPlugin.TransportConfiguration = configuration;
+        _settings.Plugin.McpChatPlugins[mcpChatPlugin.Id] = configuration;
         UpdateMcpRuntimeWarning(mcpChatPlugin);
 
         if (wasRunning)
@@ -301,6 +297,7 @@ public class ChatPluginManager : IChatPluginManager
     {
         await StopMcpClientAsync(mcpChatPlugin);
         _mcpPluginsSource.Remove(mcpChatPlugin);
+        _settings.Plugin.McpChatPlugins.Remove(mcpChatPlugin.Id);
     }
 
     public RuntimeDependency? GetMissingRuntimeDependency(McpChatPlugin mcpChatPlugin)

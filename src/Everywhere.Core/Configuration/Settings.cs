@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Everywhere.Web;
 
 namespace Everywhere.Configuration;
 
@@ -39,4 +40,5 @@ public sealed partial class Settings(IServiceProvider serviceProvider) : Setting
 
 [JsonSourceGenerationOptions(WriteIndented = true, GenerationMode = JsonSourceGenerationMode.Metadata)]
 [JsonSerializable(typeof(Settings))]
+[JsonSerializable(typeof(OfficialConnector))]
 public partial class SettingsJsonSerializerContext : JsonSerializerContext;
