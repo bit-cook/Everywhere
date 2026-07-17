@@ -58,6 +58,7 @@
               Margin="0" Padding="0"
               HorizontalContentAlignment="Left"
               shadui:ButtonAssist.CheckedBackground="{DynamicResource TransparentColor}"
+              shadui:ButtonAssist.CheckedForeground="{DynamicResource ForegroundLeadColor}"
               shadui:ButtonAssist.HoverBackground="{DynamicResource TransparentColor}"
               shadui:ButtonAssist.HoverForeground="{DynamicResource ForegroundColor}"
               BorderThickness="0" CornerRadius="0"
