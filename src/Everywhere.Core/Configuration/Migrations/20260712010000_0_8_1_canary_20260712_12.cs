@@ -9,7 +9,7 @@ namespace Everywhere.Configuration.Migrations;
 /// <summary>
 /// Normalizes legacy values and MCP plugin shapes that cannot be read by SettingsEngine.
 /// </summary>
-public sealed class _20260712010000_0_8_1_canary_20260712_01 : SettingsMigration
+public sealed class _20260712010000_0_8_1_canary_20260712_12 : SettingsMigration
 {
     private const ModelSpecializations KnownSpecializations =
         ModelSpecializations.TitleGeneration |

@@ -126,7 +126,7 @@ public sealed class SettingsEngine : IAsyncInitializer
         services.AddTransient<SettingsMigration, _20260208160256_0_7_0>();
         services.AddTransient<SettingsMigration, _20260614154350_0_8_0>();
         services.AddTransient<SettingsMigration, _20260629120000_0_8_1_canary_20260629_12>();
-        services.AddTransient<SettingsMigration, _20260712010000_0_8_1_canary_20260712_01>();
+        services.AddTransient<SettingsMigration, _20260712010000_0_8_1_canary_20260712_12>();
         if (_serviceProvider.GetService<IDbContextFactory<PromptDbContext>>() is { } promptDbFactory)
         {
             services.AddSingleton(promptDbFactory);
