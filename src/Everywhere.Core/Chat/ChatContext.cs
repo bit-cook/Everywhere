@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Reactive.Disposables;
@@ -629,11 +630,11 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     {
         public IReadOnlyBindableList<ChatPluginUserInterfaceItem> ChatPluginUserInterfaceItems { get; }
 
-        public IReadOnlyBindableList<ChatPluginTodoItem> TodoItems { get; }
+        public IChatPluginTodoItemsList TodoItems { get; }
 
         private readonly SourceList<ChatPluginUserInterfaceItem> _chatPluginUserInterfaceItemsSourceList = new();
         private readonly SourceList<ChatPluginTodoItem> _todoItemsSourceList = new();
-        private readonly CompositeDisposable _disposables = new(3);
+        private readonly CompositeDisposable _disposables = new(4);
 
         public ChatPluginUserInterfaceBroker(ChatContext owner)
         {
@@ -641,10 +642,10 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
                 .Connect()
                 .ObserveOnAvaloniaDispatcher()
                 .BindEx(_disposables);
-            TodoItems = _todoItemsSourceList
+            TodoItems = new ChatPluginTodoItemsList(_todoItemsSourceList
                 .Connect()
                 .ObserveOnAvaloniaDispatcher()
-                .BindEx(_disposables);
+                .BindEx(_disposables)).DisposeWith(_disposables);
             _chatPluginUserInterfaceItemsSourceList.CountChanged
                 .ObserveOnAvaloniaDispatcher()
                 .Subscribe(count =>
@@ -703,6 +704,78 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
             _chatPluginUserInterfaceItemsSourceList.Dispose();
             _todoItemsSourceList.Dispose();
             _disposables.Dispose();
+        }
+
+        private sealed class ChatPluginTodoItemsList : ObservableObject, IChatPluginTodoItemsList, IList, IDisposable
+        {
+            public int Count => _sourceList.Count;
+            public int CompletedCount => _sourceList.AsValueEnumerable().Count(item => item.Status == ChatPluginTodoStatus.Completed);
+            public bool IsSynchronized => false;
+            public object SyncRoot => _sourceList;
+            public bool IsFixedSize => false;
+            public bool IsReadOnly => true;
+
+            object? IList.this[int index]
+            {
+                get => _sourceList[index];
+                set => throw new InvalidOperationException();
+            }
+
+            public ChatPluginTodoItem this[int index] => _sourceList[index];
+
+            public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
+            private readonly IReadOnlyBindableList<ChatPluginTodoItem> _sourceList;
+
+            public ChatPluginTodoItemsList(IReadOnlyBindableList<ChatPluginTodoItem> sourceList)
+            {
+                _sourceList = sourceList;
+                _sourceList.CollectionChanged += HandleSourceListCollectionChanged;
+                _sourceList.PropertyChanged += HandleSourceListPropertyChanged;
+            }
+
+            private void HandleSourceListCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+            {
+                CollectionChanged?.Invoke(this, e);
+                OnPropertyChanged(nameof(CompletedCount));
+            }
+
+            private void HandleSourceListPropertyChanged(object? sender, PropertyChangedEventArgs e)
+            {
+                OnPropertyChanged(e);
+            }
+
+            public bool Contains(object? value) => ((IList)_sourceList).Contains(value);
+
+            public int IndexOf(object? value) => ((IList)_sourceList).IndexOf(value);
+
+            public void CopyTo(Array array, int index) => ((IList)_sourceList).CopyTo(array, index);
+
+            public int Add(object? value) => throw new InvalidOperationException();
+
+            public void Clear() => throw new InvalidOperationException();
+
+            public void Insert(int index, object? value) => throw new InvalidOperationException();
+
+            public void Remove(object? value) => throw new InvalidOperationException();
+
+            public void RemoveAt(int index) => throw new InvalidOperationException();
+
+            public IEnumerator<ChatPluginTodoItem> GetEnumerator()
+            {
+                return _sourceList.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable)_sourceList).GetEnumerator();
+            }
+
+            public void Dispose()
+            {
+                _sourceList.CollectionChanged -= HandleSourceListCollectionChanged;
+                _sourceList.PropertyChanged -= HandleSourceListPropertyChanged;
+            }
         }
     }
 }

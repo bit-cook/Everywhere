@@ -33,6 +33,11 @@ public sealed class ChatPluginTodoItem
     public ChatPluginTodoStatus Status { get; set; } = ChatPluginTodoStatus.NotStarted;
 }
 
+public interface IChatPluginTodoItemsList : IReadOnlyBindableList<ChatPluginTodoItem>
+{
+    int CompletedCount { get; }
+}
+
 [Serializable]
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 public sealed class ChatPluginQuestion
@@ -163,7 +168,7 @@ public interface IChatPluginUserInterfaceBroker
     /// <summary>
     /// Gets a list of todo items to be displayed in the UI. The plugin can update this list to add/remove/modify todo items, and the UI will reactively update accordingly.
     /// </summary>
-    IReadOnlyBindableList<ChatPluginTodoItem> TodoItems { get; }
+    IChatPluginTodoItemsList TodoItems { get; }
 
     /// <summary>
     /// Replaces the todo list displayed in the UI.
