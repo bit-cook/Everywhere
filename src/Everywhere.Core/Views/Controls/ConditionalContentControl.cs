@@ -122,17 +122,15 @@ public sealed class ConditionalContentControl : Decorator
             return;
         }
 
-        Control? control;
         if (rebuild)
         {
-            control = content.Build(this);
+            var control = content.Build(this);
+            control?.DataContext = dataContext; // Set DataContext before setting Child otherwise it will inherit from this control
             Child = control;
         }
         else
         {
-            control = Child;
+            Child?.DataContext = dataContext;
         }
-
-        control?.DataContext = dataContext;
     }
 }
