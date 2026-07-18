@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <MicrosoftPackageVersion>10.0.9</MicrosoftPackageVersion>
+    <MicrosoftPackageVersion>10.0.10</MicrosoftPackageVersion>
     <MEAIVersion>10.5.2</MEAIVersion>
     <EntityFrameworkVersion>10.0.9</EntityFrameworkVersion>
     <SemanticKernelVersion>1.75.0</SemanticKernelVersion>
@@ -8,7 +8,7 @@
     <SentryVersion>6.6.0</SentryVersion>
     <AvaloniaVersion>12.1.0</AvaloniaVersion>
     <AvaloniaEditVersion>12.0.0</AvaloniaEditVersion>
-    <LiveMarkdownVersion>2.2.0</LiveMarkdownVersion>
+    <LiveMarkdownVersion>2.2.1</LiveMarkdownVersion>
     <SkiaSharpVersion>3.119.4</SkiaSharpVersion>
     <XamlBehaviorsVersion>12.0.0.1</XamlBehaviorsVersion>
     <TikTokenVersion>6.0.0</TikTokenVersion>
