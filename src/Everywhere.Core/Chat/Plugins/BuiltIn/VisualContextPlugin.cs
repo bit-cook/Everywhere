@@ -6,6 +6,7 @@ using System.Security;
 using System.Text;
 using System.Text.Json.Serialization;
 using Avalonia.Input;
+using Avalonia.Media.Imaging;
 using Everywhere.AI;
 using Everywhere.Chat.Permissions;
 using Everywhere.Common;
@@ -178,7 +179,7 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
         BlobEntity blob;
         using (var stream = new MemoryStream())
         {
-            bitmap.Save(stream, 100);
+            bitmap.Save(stream, PngBitmapEncoderOptions.Default);
             blob = await _blobStorage.StorageBlobAsync(stream, "image/png", cancellationToken: cancellationToken);
             await _statisticsRecorder.RecordVisualContextAsync(
                 new StatisticsVisualContextDraft(

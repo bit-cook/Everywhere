@@ -549,7 +549,7 @@ public sealed partial class ChatWindowViewModel :
     private async Task<FileAttachment> CreateFromBitmapAsync(Bitmap bitmap, CancellationToken cancellationToken)
     {
         using var memoryStream = new MemoryStream();
-        bitmap.Save(memoryStream, 100);
+        bitmap.Save(memoryStream, PngBitmapEncoderOptions.Default);
 
         var blob = await _blobStorage.StorageBlobAsync(memoryStream, "image/png", cancellationToken: cancellationToken);
         return new FileAttachment(
