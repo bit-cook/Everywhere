@@ -102,7 +102,6 @@
     <TrimmerRootAssembly Include="Vortice.DirectX"/>
     <TrimmerRootAssembly Include="Vortice.DXGI"/>
     <TrimmerRootAssembly Include="WinRT.Runtime"/>
-    <TrimmerRootAssembly Include="WritableJsonConfiguration"/>
   </ItemGroup>
 
   <!-- Prune WPF/WinForms assemblies and localized resources natively without an external PowerShell script -->
