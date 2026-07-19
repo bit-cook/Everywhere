@@ -2557,6 +2557,12 @@ Use a roda do mouse ou teclas numéricas para alternar o modo de seleção</valu
     <data name="BuiltInChatPlugin_Essential_ManageTodoList_Reset" xml:space="preserve">
         <value>Redefiniu {0} tarefas</value>
     </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Update" xml:space="preserve">
+        <value>Atualizou {0} tarefas</value>
+    </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Clear" xml:space="preserve">
+        <value>Lista de tarefas limpa</value>
+    </data>
     <data name="BuiltInChatPlugin_ListWindows_WindowCount" xml:space="preserve">
         <value>Encontrou {0} janelas</value>
     </data>

@@ -2556,6 +2556,12 @@
     <data name="BuiltInChatPlugin_Essential_ManageTodoList_Reset" xml:space="preserve">
         <value>{0} 件のタスクを設定しました</value>
     </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Update" xml:space="preserve">
+        <value>{0} 件のタスクを更新しました</value>
+    </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Clear" xml:space="preserve">
+        <value>タスクリストをクリアしました</value>
+    </data>
     <data name="BuiltInChatPlugin_ListWindows_WindowCount" xml:space="preserve">
         <value>{0} 個のウィンドウを見つけました</value>
     </data>

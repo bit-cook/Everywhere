@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Text;
 using System.Text.Json.Serialization;
+using DynamicData;
 using Everywhere.AI;
 using Everywhere.AI.Prompts;
 using Everywhere.Chat.Permissions;
@@ -10,12 +11,13 @@ using Everywhere.Statistics;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using ZLinq;
 
 namespace Everywhere.Chat.Plugins.BuiltIn;
 
 /// <summary>
 /// Provides essential functionalities for chat interactions.
-/// e.g., run_subagent, manage_todo_list, etc.
+/// e.g., run_subagent, manage_todo, etc.
 /// </summary>
 public sealed class EssentialPlugin : BuiltInChatPlugin
 {
@@ -31,7 +33,9 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
     private enum TodoAction
     {
         Reset,
-        Read
+        Update,
+        Read,
+        Clear
     }
 
     public EssentialPlugin(Settings settings, ILogger<EssentialPlugin> logger) : base("essential")
@@ -47,7 +51,7 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
                     ChatFunctionPermissions.None));
             list.Add(
                 new BuiltInChatFunction(
-                    ManageTodoList,
+                    ManageTodo,
                     ChatFunctionPermissions.None));
             list.Add(
                 new BuiltInChatFunction(
@@ -70,7 +74,8 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         [FromKernelServices] Assistant assistant,
         [FromKernelServices] IChatPluginUserInterface userInterface,
         [FromKernelServices] ChatContext chatContext,
-        [Description("A detailed description of the task for the agent to perform, inject into system prompt")] string prompt,
+        [Description("A detailed description of the task for the agent to perform, inject into system prompt")]
+        string prompt,
         [Description("A concise title for the agent's task")] string title,
         [Description("Optional, specifies the agent's area of expertise. Allowed values: default, image-understanding.")]
         string? specialization = null,
@@ -122,21 +127,26 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
         return result ?? string.Empty;
     }
 
-    [KernelFunction("manage_todo_list")]
-    [Description(
-        "Manage a structured todo list to track progress and plan tasks. " +
-        "Use this tool to ensure task visibility and proper planning when dealing with complex or multi-step tasks.")]
+    [KernelFunction("manage_todo")]
+    [Description("Manage a temporary todo list for complex or multi-step tasks.")]
     [DynamicLocaleKey(
         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Header,
         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Description)]
-    private static string ManageTodoList(
+    private static string ManageTodo(
         [FromKernelServices] ChatContext chatContext,
         [FromKernelServices] IChatPluginDisplaySink displaySink,
+        [Description(
+            """
+            Use reset to replace the complete list, update to change existing items by ID, read to inspect the list, and clear to remove all items.
+            Prefer update for progress changes so the complete list does not need to be sent again. Update never adds or removes items.
+            """)]
         TodoAction action,
         [Description(
-            "Complete array of all todo items (required for reset, optional for read). " +
-            "ALWAYS provide complete list when resetting - partial updates not supported. " +
-            "This MUST be a JSON array instead of a stringified JSON.")]
+            """
+            Todo items for reset or update; omit for read and clear.
+            For reset, provide every item with id and title. For update, provide only existing IDs and fields to change; omitted fields stay unchanged.
+            Use a JSON array, not a string containing JSON.
+            """)]
         List<ChatPluginTodoItem>? items = null)
     {
         switch (action)
@@ -150,38 +160,155 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
             }
             case TodoAction.Reset:
             {
-                chatContext.UserInterfaceBroker.SetTodoItems(items);
+                var ids = new HashSet<int>();
+                foreach (var item in items)
+                {
+                    if (item.Title is null)
+                    {
+                        throw new HandledFunctionInvokingException(
+                            HandledFunctionInvokingExceptionType.ArgumentError,
+                            nameof(items),
+                            new ArgumentException("Every item must have a title for reset action.", nameof(items)));
+                    }
+
+                    if (!ids.Add(item.Id))
+                    {
+                        throw new HandledFunctionInvokingException(
+                            HandledFunctionInvokingExceptionType.ArgumentError,
+                            nameof(items),
+                            new ArgumentException($"Todo item ID {item.Id} is duplicated.", nameof(items)));
+                    }
+                }
+
+                chatContext.UserInterfaceBroker.TodoItems.SourceList.Reset(
+                    items.Select(static item => item.Status is not null ? item : item with
+                    {
+                        Status = ChatPluginTodoStatus.NotStarted
+                    }));
                 displaySink.AppendDynamicLocaleKey(
                     new FormattedDynamicLocaleKey(
                         LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Reset,
                         new DirectLocaleKey(items.Count)));
-                return "Todo list reset successfully";
+
+                return $"Reset: {items.Count} item{(items.Count == 1 ? string.Empty : "s")}.";
             }
-            case TodoAction.Read when chatContext.UserInterfaceBroker.TodoItems.Count <= 0:
+            case TodoAction.Update when items == null:
             {
+                throw new HandledFunctionInvokingException(
+                    HandledFunctionInvokingExceptionType.ArgumentMissing,
+                    nameof(items),
+                    new ArgumentException("items is required for update action.", nameof(items)));
+            }
+            case TodoAction.Update when items.Count == 0:
+            {
+                throw new HandledFunctionInvokingException(
+                    HandledFunctionInvokingExceptionType.ArgumentError,
+                    nameof(items),
+                    new ArgumentException("At least one item must be provided for update action.", nameof(items)));
+            }
+            case TodoAction.Update:
+            {
+                HandledFunctionInvokingException? error = null;
+                chatContext.UserInterfaceBroker.TodoItems.SourceList.Edit(list =>
+                {
+                    var ids = new HashSet<int>();
+                    foreach (var item in items)
+                    {
+                        if (!ids.Add(item.Id))
+                        {
+                            error = new HandledFunctionInvokingException(
+                                HandledFunctionInvokingExceptionType.ArgumentError,
+                                nameof(items),
+                                new ArgumentException($"Todo item ID {item.Id} is duplicated in update action.", nameof(items)));
+                            return;
+                        }
+
+                        if (list.AsValueEnumerable().All(i => i.Id != item.Id))
+                        {
+                            error = new HandledFunctionInvokingException(
+                                HandledFunctionInvokingExceptionType.ArgumentError,
+                                nameof(items),
+                                new ArgumentException($"Todo item ID {item.Id} does not exist and cannot be added by update action.", nameof(items)));
+                            return;
+                        }
+                    }
+
+                    foreach (var item in items)
+                    {
+                        for (var index = 0; index < list.Count; index++)
+                        {
+                            if (list[index].Id != item.Id) continue;
+
+                            var currentItem = list[index];
+                            list[index] = currentItem with
+                            {
+                                Title = item.Title ?? currentItem.Title,
+                                Description = item.Description ?? currentItem.Description,
+                                Status = item.Status ?? currentItem.Status
+                            };
+                            break;
+                        }
+                    }
+                });
+
+                if (error != null)
+                {
+                    throw error;
+                }
+
                 displaySink.AppendDynamicLocaleKey(
                     new FormattedDynamicLocaleKey(
-                        LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Read,
-                        new DirectLocaleKey(0)));
-                return "Todo list is empty";
+                        LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Update,
+                        new DirectLocaleKey(items.Count)));
+
+                return $"Updated: {string.Join(", ", items.Select(static item => $"#{item.Id}"))}.";
             }
             case TodoAction.Read:
             {
-                displaySink.AppendDynamicLocaleKey(
-                    new FormattedDynamicLocaleKey(
-                        LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Read,
-                        new DirectLocaleKey(chatContext.UserInterfaceBroker.TodoItems.Count)));
-
-                var sb = new StringBuilder();
-                foreach (var item in chatContext.UserInterfaceBroker.TodoItems)
+                var stringBuilder = new StringBuilder();
+                chatContext.UserInterfaceBroker.TodoItems.SourceList.Edit(list =>
                 {
-                    sb.AppendLine($"- ID: {item.Id}, Status: {item.Status}, Title: {item.Title}");
-                    if (!string.IsNullOrWhiteSpace(item.Description))
+                    displaySink.AppendDynamicLocaleKey(
+                        new FormattedDynamicLocaleKey(
+                            LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Read,
+                            new DirectLocaleKey(list.Count)));
+
+                    stringBuilder.Append("Todo (").Append(list.Count).AppendLine(")");
+
+                    foreach (var item in list)
                     {
-                        sb.AppendLine($"  Description: {item.Description}");
+                        stringBuilder
+                            .Append("- ")
+                            .Append(
+                                item.Status switch
+                                {
+                                    null or ChatPluginTodoStatus.NotStarted => "[ ]",
+                                    ChatPluginTodoStatus.InProgress => "[~]",
+                                    ChatPluginTodoStatus.Completed => "[x]",
+                                    _ => "[?]"
+                                })
+                            .Append(" #")
+                            .Append(item.Id)
+                            .Append(' ')
+                            .AppendLine((item.Title ?? string.Empty).ReplaceLineEndings(" ").Trim());
+
+                        if (!string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            foreach (var line in item.Description.Trim().ReplaceLineEndings("\n").Split('\n'))
+                            {
+                                stringBuilder.Append("  > ").AppendLine(line);
+                            }
+                        }
                     }
-                }
-                return sb.ToString();
+                });
+
+                return stringBuilder.TrimEnd().ToString();
+            }
+            case TodoAction.Clear:
+            {
+                chatContext.UserInterfaceBroker.TodoItems.SourceList.Clear();
+                displaySink.AppendDynamicLocaleKey(new DynamicLocaleKey(LocaleKey.BuiltInChatPlugin_Essential_ManageTodoList_Clear));
+                return "Cleared todo list.";
             }
             default:
             {

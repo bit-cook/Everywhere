@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
+using DynamicData;
 using Everywhere.Chat.Permissions;
 using Everywhere.Collections;
 
@@ -17,25 +18,28 @@ public enum ChatPluginTodoStatus
 
 [Serializable]
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-public sealed class ChatPluginTodoItem
+public sealed record ChatPluginTodoItem
 {
-    [Description("1-based unique identifier for the todo item.")]
-    public required int Id { get; set; }
+    [Description("ID of the todo item. Reset IDs must be unique; update IDs must already exist.")]
+    public required int Id { get; init; }
 
     [MaxLength(300)]
-    [Description("Concise action-oriented todo label displayed in UI.")]
-    public required string Title { get; set; }
+    [Description("Todo title. Required for reset; omit during update to keep the current title.")]
+    public string? Title { get; init; }
 
     [MaxLength(300)]
-    [Description("Optional detailed context, requirements, or implementation notes.")]
-    public string? Description { get; set; }
+    [Description("Todo description. Omit during update to keep it; use an empty string to clear it.")]
+    public string? Description { get; init; }
 
-    public ChatPluginTodoStatus Status { get; set; } = ChatPluginTodoStatus.NotStarted;
+    [Description("Todo status. Omit during reset for NotStarted; omit during update to keep the current status.")]
+    public ChatPluginTodoStatus? Status { get; init; }
 }
 
 public interface IChatPluginTodoItemsList : IReadOnlyBindableList<ChatPluginTodoItem>
 {
     int CompletedCount { get; }
+
+    ISourceList<ChatPluginTodoItem> SourceList { get; }
 }
 
 [Serializable]
@@ -169,12 +173,6 @@ public interface IChatPluginUserInterfaceBroker
     /// Gets a list of todo items to be displayed in the UI. The plugin can update this list to add/remove/modify todo items, and the UI will reactively update accordingly.
     /// </summary>
     IChatPluginTodoItemsList TodoItems { get; }
-
-    /// <summary>
-    /// Replaces the todo list displayed in the UI.
-    /// </summary>
-    /// <param name="items"></param>
-    void SetTodoItems(IReadOnlyList<ChatPluginTodoItem> items);
 
     /// <summary>
     /// Shows a consent request dialog to the user and returns their decision.

@@ -2556,6 +2556,12 @@ Scrollrad oder Zifferntasten zum Wechseln des Auswahlmodus</value>
     <data name="BuiltInChatPlugin_Essential_ManageTodoList_Reset" xml:space="preserve">
         <value>{0} To-Do-Elemente gesetzt</value>
     </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Update" xml:space="preserve">
+        <value>{0} To-Do-Elemente aktualisiert</value>
+    </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Clear" xml:space="preserve">
+        <value>To-do-Liste geleert</value>
+    </data>
     <data name="BuiltInChatPlugin_ListWindows_WindowCount" xml:space="preserve">
         <value>{0} Fenster gefunden</value>
     </data>

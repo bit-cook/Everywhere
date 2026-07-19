@@ -2556,6 +2556,12 @@ Rotella o tasti numerici per cambiare modalità di selezione</value>
     <data name="BuiltInChatPlugin_Essential_ManageTodoList_Reset" xml:space="preserve">
         <value>Impostati {0} elementi nella lista delle cose da fare</value>
     </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Update" xml:space="preserve">
+        <value>Aggiornati {0} elementi nella lista delle cose da fare</value>
+    </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Clear" xml:space="preserve">
+        <value>Lista delle cose da fare svuotata</value>
+    </data>
     <data name="BuiltInChatPlugin_ListWindows_WindowCount" xml:space="preserve">
         <value>Trovati {0} finestre</value>
     </data>

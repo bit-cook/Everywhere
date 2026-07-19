@@ -2556,6 +2556,12 @@
     <data name="BuiltInChatPlugin_Essential_ManageTodoList_Reset" xml:space="preserve">
         <value>Установлено {0} задач</value>
     </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Update" xml:space="preserve">
+        <value>Обновлено задач: {0}</value>
+    </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Clear" xml:space="preserve">
+        <value>Список задач очищен</value>
+    </data>
     <data name="BuiltInChatPlugin_ListWindows_WindowCount" xml:space="preserve">
         <value>Найдено {0} окон</value>
     </data>

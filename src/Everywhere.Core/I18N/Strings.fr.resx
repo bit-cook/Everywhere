@@ -2556,6 +2556,12 @@ Utilisez la molette ou les touches numériques pour changer de mode de sélectio
     <data name="BuiltInChatPlugin_Essential_ManageTodoList_Reset" xml:space="preserve">
         <value>{0} tâches à faire définies</value>
     </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Update" xml:space="preserve">
+        <value>{0} tâches à faire mises à jour</value>
+    </data>
+    <data name="BuiltInChatPlugin_Essential_ManageTodoList_Clear" xml:space="preserve">
+        <value>Liste des tâches vidée</value>
+    </data>
     <data name="BuiltInChatPlugin_ListWindows_WindowCount" xml:space="preserve">
         <value>{0} fenêtres trouvées</value>
     </data>

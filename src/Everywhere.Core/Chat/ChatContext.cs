@@ -633,8 +633,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         public IChatPluginTodoItemsList TodoItems { get; }
 
         private readonly SourceList<ChatPluginUserInterfaceItem> _chatPluginUserInterfaceItemsSourceList = new();
-        private readonly SourceList<ChatPluginTodoItem> _todoItemsSourceList = new();
-        private readonly CompositeDisposable _disposables = new(4);
+        private readonly CompositeDisposable _disposables = new(3);
 
         public ChatPluginUserInterfaceBroker(ChatContext owner)
         {
@@ -642,10 +641,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
                 .Connect()
                 .ObserveOnAvaloniaDispatcher()
                 .BindEx(_disposables);
-            TodoItems = new ChatPluginTodoItemsList(_todoItemsSourceList
-                .Connect()
-                .ObserveOnAvaloniaDispatcher()
-                .BindEx(_disposables)).DisposeWith(_disposables);
+            TodoItems = new ChatPluginTodoItemsList().DisposeWith(_disposables);
             _chatPluginUserInterfaceItemsSourceList.CountChanged
                 .ObserveOnAvaloniaDispatcher()
                 .Subscribe(count =>
@@ -654,11 +650,6 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
                     if (count > 0) owner.Metadata.States |= ChatContextMetadataStates.HasNotification;
                     else owner.Metadata.States &= ~ChatContextMetadataStates.HasNotification;
                 }).DisposeWith(_disposables);
-        }
-
-        public void SetTodoItems(IReadOnlyList<ChatPluginTodoItem> items)
-        {
-            _todoItemsSourceList.Edit(list => list.Reset(items));
         }
 
         public async Task<ConsentDecisionResult> HandleConsentRequestAsync(
@@ -702,54 +693,56 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         public void Dispose()
         {
             _chatPluginUserInterfaceItemsSourceList.Dispose();
-            _todoItemsSourceList.Dispose();
             _disposables.Dispose();
         }
 
         private sealed class ChatPluginTodoItemsList : ObservableObject, IChatPluginTodoItemsList, IList, IDisposable
         {
-            public int Count => _sourceList.Count;
-            public int CompletedCount => _sourceList.AsValueEnumerable().Count(item => item.Status == ChatPluginTodoStatus.Completed);
+            public ISourceList<ChatPluginTodoItem> SourceList { get; }
+            public int Count => _observableList.Count;
+            public int CompletedCount => _observableList.AsValueEnumerable().Count(item => item.Status == ChatPluginTodoStatus.Completed);
             public bool IsSynchronized => false;
-            public object SyncRoot => _sourceList;
+            public object SyncRoot => _observableList;
             public bool IsFixedSize => false;
             public bool IsReadOnly => true;
 
             object? IList.this[int index]
             {
-                get => _sourceList[index];
+                get => _observableList[index];
                 set => throw new InvalidOperationException();
             }
 
-            public ChatPluginTodoItem this[int index] => _sourceList[index];
+            public ChatPluginTodoItem this[int index] => _observableList[index];
 
             public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-            private readonly IReadOnlyBindableList<ChatPluginTodoItem> _sourceList;
+            private readonly IReadOnlyBindableList<ChatPluginTodoItem> _observableList;
+            private readonly IDisposable _subscription;
 
-            public ChatPluginTodoItemsList(IReadOnlyBindableList<ChatPluginTodoItem> sourceList)
+            public ChatPluginTodoItemsList()
             {
-                _sourceList = sourceList;
-                _sourceList.CollectionChanged += HandleSourceListCollectionChanged;
-                _sourceList.PropertyChanged += HandleSourceListPropertyChanged;
+                SourceList = new SourceList<ChatPluginTodoItem>();
+                _observableList = SourceList.Connect().ObserveOnAvaloniaDispatcher().BindEx(out _subscription);
+                _observableList.CollectionChanged += HandleObservableListCollectionChanged;
+                _observableList.PropertyChanged += HandleObservableListPropertyChanged;
             }
 
-            private void HandleSourceListCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+            private void HandleObservableListCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
             {
                 CollectionChanged?.Invoke(this, e);
                 OnPropertyChanged(nameof(CompletedCount));
             }
 
-            private void HandleSourceListPropertyChanged(object? sender, PropertyChangedEventArgs e)
+            private void HandleObservableListPropertyChanged(object? sender, PropertyChangedEventArgs e)
             {
                 OnPropertyChanged(e);
             }
 
-            public bool Contains(object? value) => ((IList)_sourceList).Contains(value);
+            public bool Contains(object? value) => ((IList)_observableList).Contains(value);
 
-            public int IndexOf(object? value) => ((IList)_sourceList).IndexOf(value);
+            public int IndexOf(object? value) => ((IList)_observableList).IndexOf(value);
 
-            public void CopyTo(Array array, int index) => ((IList)_sourceList).CopyTo(array, index);
+            public void CopyTo(Array array, int index) => ((IList)_observableList).CopyTo(array, index);
 
             public int Add(object? value) => throw new InvalidOperationException();
 
@@ -763,18 +756,20 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
 
             public IEnumerator<ChatPluginTodoItem> GetEnumerator()
             {
-                return _sourceList.GetEnumerator();
+                return _observableList.GetEnumerator();
             }
 
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return ((IEnumerable)_sourceList).GetEnumerator();
+                return ((IEnumerable)_observableList).GetEnumerator();
             }
 
             public void Dispose()
             {
-                _sourceList.CollectionChanged -= HandleSourceListCollectionChanged;
-                _sourceList.PropertyChanged -= HandleSourceListPropertyChanged;
+                _subscription.Dispose();
+                SourceList.Dispose();
+                _observableList.CollectionChanged -= HandleObservableListCollectionChanged;
+                _observableList.PropertyChanged -= HandleObservableListPropertyChanged;
             }
         }
     }
