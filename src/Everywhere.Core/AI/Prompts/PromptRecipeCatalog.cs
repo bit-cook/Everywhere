@@ -169,7 +169,7 @@ public static class PromptRecipeCatalog
             .AsValueEnumerable()
             .Select(id => FindOption(Scenarios, id))
             .OfType<PromptRecipeOption>()
-            .ToList();
+            .ToArray();
 
         var sections = new List<string>
         {
@@ -185,7 +185,7 @@ public static class PromptRecipeCatalog
 
         sections.Add("# Persona\n" + persona.TemplateFragment);
 
-        if (scenarios.Count > 0)
+        if (scenarios.Length > 0)
         {
             sections.Add(
                 "# Work Scenarios\n" +

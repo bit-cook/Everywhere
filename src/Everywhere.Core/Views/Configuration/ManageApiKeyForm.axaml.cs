@@ -83,9 +83,9 @@ public sealed partial class ManageApiKeyForm : TemplatedControl, IDisposable
 
     public static readonly DirectProperty<ManageApiKeyForm, bool?> IsApiKeysCheckedProperty =
         AvaloniaProperty.RegisterDirect<ManageApiKeyForm, bool?>(
-        nameof(IsApiKeysChecked),
-        o => o.IsApiKeysChecked,
-        (o, v) => o.IsApiKeysChecked = v);
+            nameof(IsApiKeysChecked),
+            o => o.IsApiKeysChecked,
+            (o, v) => o.IsApiKeysChecked = v);
 
     public bool? IsApiKeysChecked
     {
@@ -125,8 +125,8 @@ public sealed partial class ManageApiKeyForm : TemplatedControl, IDisposable
 
     public static readonly DirectProperty<ManageApiKeyForm, bool> CanDeleteApiKeysProperty =
         AvaloniaProperty.RegisterDirect<ManageApiKeyForm, bool>(
-        nameof(CanDeleteApiKeys),
-        o => o.CanDeleteApiKeys);
+            nameof(CanDeleteApiKeys),
+            o => o.CanDeleteApiKeys);
 
     public bool CanDeleteApiKeys => ItemsSource.AsValueEnumerable().Any(item => item.IsChecked);
 
@@ -193,12 +193,12 @@ public sealed partial class ManageApiKeyForm : TemplatedControl, IDisposable
             .AsValueEnumerable()
             .Where(item => item.IsChecked)
             .Select(item => item.ApiKey)
-            .ToList();
+            .ToArray();
 
-        if (keysToDelete.Count == 0) return;
+        if (keysToDelete.Length == 0) return;
 
         var result = await DialogManager.CreateDialog(
-                LocaleResolver.ManageApiKeyForm_DeleteApiKeys_Dialog_Message.Format(keysToDelete.Count),
+                LocaleResolver.ManageApiKeyForm_DeleteApiKeys_Dialog_Message.Format(keysToDelete.Length),
                 LocaleResolver.Common_Warning,
                 TopLevel.GetTopLevel(this))
             .WithPrimaryButton(LocaleResolver.Common_Yes)

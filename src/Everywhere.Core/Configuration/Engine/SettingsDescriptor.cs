@@ -219,7 +219,7 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
             .Where(ShouldIncludeProperty)
             .Select(p => CreatePropertyDescriptor(type, p))
             .OfType<SettingsPropertyDescriptor>()
-            .ToList();
+            .ToArray();
 
         return new ReflectionSettingsObjectDescriptor(
             type,

@@ -145,8 +145,7 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
         get
         {
             using var _ = _graphMutationLock.EnterScope();
-
-            return _messageNodeMap.Values.AsValueEnumerable().ToList();
+            return _messageNodeMap.Values.AsValueEnumerable().ToArray();
         }
     }
 

@@ -142,20 +142,20 @@ internal static class WebExtractionUtilities
         var analyses = candidates
             .AsValueEnumerable()
             .Select(AnalyzeCandidate)
-            .ToList();
+            .ToArray();
 
         var nonEmptyLengths = analyses
             .AsValueEnumerable()
             .Where(analysis => analysis.Candidate.ContentLength > 0)
             .Select(analysis => analysis.Candidate.ContentLength)
             .Order()
-            .ToList();
+            .ToArray();
 
-        if (nonEmptyLengths.Count == 0) return null;
+        if (nonEmptyLengths.Length == 0) return null;
 
-        var medianLength = nonEmptyLengths[nonEmptyLengths.Count / 2];
-        var scored = new List<WebExtractionCandidateScore>(analyses.Count);
-        foreach (var analysis in analyses)
+        var medianLength = nonEmptyLengths[nonEmptyLengths.Length / 2];
+        var scored = new List<WebExtractionCandidateScore>(analyses.Length);
+        foreach (var analysis in analyses.AsValueEnumerable())
         {
             var consensusScore = CalculateConsensusScore(analysis, analyses);
             var overlongBodyPenalty = CalculateOverlongBodyPenalty(analysis.Candidate, medianLength);
@@ -177,7 +177,7 @@ internal static class WebExtractionUtilities
         }
 
         WebExtractionCandidateScore? selected = null;
-        foreach (var score in scored)
+        foreach (var score in scored.AsValueEnumerable())
         {
             if (score.ContentLength == 0) continue;
 

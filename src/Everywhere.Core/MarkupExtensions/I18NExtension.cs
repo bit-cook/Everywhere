@@ -59,7 +59,7 @@ public class I18NExtension : MarkupExtension
                     BindingBase b => new BindingLocaleKey(b, target?.TargetObject as AvaloniaObject, target?.TargetProperty as AvaloniaProperty),
                     IDynamicLocaleKey key => key,
                     _ => new DynamicLocaleKey(arg)
-                }).ToList()),
+                }).ToArray()),
             _ => new DynamicLocaleKey(Key)
         };
         return Resolve ? dynamicResourceKey.ToString() ?? string.Empty : dynamicResourceKey.ToBinding();

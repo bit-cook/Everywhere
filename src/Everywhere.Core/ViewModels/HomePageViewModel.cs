@@ -378,17 +378,17 @@ public sealed partial class HomePageViewModel : ReactiveViewModelBase
             var builtInFunctions = _chatPluginManager.BuiltInPlugins
                 .SelectMany(static plugin => plugin.GetChatFunctions())
                 .Where(static function => function.IsVisible)
-                .ToList();
+                .ToArray();
 
             var skills = _skillManager.SourceGroups
                 .SelectMany(static group => group.Skills)
                 .Where(static skill => skill.IsValid)
-                .ToList();
+                .ToArray();
 
             Cards[0].CountText = assistantsCount.ToString("N0", CultureInfo.CurrentCulture);
-            Cards[1].CountText = FormatCapabilityCount(builtInFunctions.Count, builtInFunctions.Count(static x => x.IsEnabled));
+            Cards[1].CountText = FormatCapabilityCount(builtInFunctions.Length, builtInFunctions.Count(static x => x.IsEnabled));
             Cards[2].CountText = FormatCapabilityCount(mcpTotal, mcpEnabled);
-            Cards[3].CountText = FormatCapabilityCount(skills.Count, skills.Count(static x => x.IsEnabled));
+            Cards[3].CountText = FormatCapabilityCount(skills.Length, skills.Count(static x => x.IsEnabled));
         }
 
         private static string FormatCapabilityCount(int totalCount, int enabledCount) =>

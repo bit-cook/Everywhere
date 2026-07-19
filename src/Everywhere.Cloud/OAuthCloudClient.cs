@@ -275,8 +275,7 @@ public sealed partial class OAuthCloudClient :
             return;
         }
 
-        var generatedNotifications = GenerateNotifications().ToList();
-        _notificationManager.Reset(generatedNotifications);
+        _notificationManager.Reset(GenerateNotifications());
 
         IEnumerable<DynamicNotificationDescriptor> GenerateNotifications()
         {

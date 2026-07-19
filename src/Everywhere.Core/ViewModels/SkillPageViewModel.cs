@@ -217,7 +217,7 @@ public sealed partial class SkillPageViewModel : BusyViewModelBase
         });
 
         RebuildSourceFilters();
-        ApplyFilteredSkills(_skills.Items.Where(FilterSkill).ToList());
+        ApplyFilteredSkills([.. _skills.Items.Where(FilterSkill)]);
         OnPropertyChanged(nameof(HasAnySkills));
     }
 
@@ -271,11 +271,11 @@ public sealed partial class SkillPageViewModel : BusyViewModelBase
     {
         var skillsBySourceKey = skills
             .GroupBy(static item => item.SourceKey)
-            .ToDictionary(static group => group.Key, static group => group.ToList(), StringComparer.OrdinalIgnoreCase);
+            .ToDictionary(static group => group.Key, static group => group.ToArray(), StringComparer.OrdinalIgnoreCase);
         var visibleSourceGroups = SkillManager.SourceGroups
             .AsValueEnumerable()
             .Where(IsSourceGroupVisible)
-            .ToList();
+            .ToArray();
 
         foreach (var sourceKey in visibleSourceGroups.AsValueEnumerable().Select(GetSourceKey))
         {
@@ -290,7 +290,7 @@ public sealed partial class SkillPageViewModel : BusyViewModelBase
                     .AsValueEnumerable()
                     .OrderBy(static item => item.Skill.Name, StringComparer.OrdinalIgnoreCase)
                     .ThenBy(static item => item.Skill.Id, StringComparer.OrdinalIgnoreCase)
-                    .ToList() ?? []);
+                    .ToArray() ?? []);
         }
 
         _filteredSourceGroups.Clear();

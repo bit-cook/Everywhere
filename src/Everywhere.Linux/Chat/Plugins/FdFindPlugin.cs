@@ -132,14 +132,14 @@ public sealed class FdFindPlugin : BuiltInChatPlugin
                 _ => query
             };
 
-            var finalResults = query.Take(maxCount).ToList();
+            var finalResults = query.Take(maxCount).ToArray();
 
             displaySink.AppendDynamicLocaleKey(
                 new FormattedDynamicLocaleKey(
                     LocaleKey.Linux_BuiltInChatPlugin_FdFind_SearchFiles_DetailMessage,
-                    new DirectLocaleKey(finalResults.Count.ToString())));
+                    new DirectLocaleKey(finalResults.Length.ToString())));
 
-            return new FileRecords(finalResults, finalResults.Count).ToString();
+            return new FileRecords(finalResults, finalResults.Length).ToString();
         }, cancellationToken);
     }
 

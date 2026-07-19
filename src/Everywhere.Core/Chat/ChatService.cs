@@ -297,10 +297,9 @@ public sealed partial class ChatService : IChatService
             .Attachments
             .AsValueEnumerable()
             .OfType<VisualElementAttachment>()
-            .ToList();
+            .ToArray();
         RecordImageAttachmentStatistics(chatContext, userChatMessage);
-
-        if (visualElementAttachments.Count == 0) return;
+        if (visualElementAttachments.Length == 0) return;
 
         var analyzingContextMessage = new ActionChatMessage(
             LucideIconKind.TextSearch,
@@ -492,7 +491,7 @@ public sealed partial class ChatService : IChatService
                         .AsValueEnumerable()
                         .Select(n => n.Message)
                         .Where(m => m.Role.Label is "assistant" or "user" or "tool")
-                        .ToList(),
+                        .ToArray(),
                     _persistentState.MaxContextRounds,
                     assistant.InputModalities,
                     cancellationToken);
@@ -1291,15 +1290,15 @@ public sealed partial class ChatService : IChatService
             .AsValueEnumerable()
             .OfType<FileAttachment>()
             .Where(x => x.IsImage)
-            .ToList();
-        if (imageAttachments.Count == 0) return;
+            .ToArray();
+        if (imageAttachments.Length == 0) return;
 
         _statisticsRecorder.RecordVisualContextAsync(
                 new StatisticsVisualContextDraft(
                     _currentTurnEventId.Value,
                     chatContext.Metadata.Id,
                     StatisticsVisualContextSource.ImageAttachment,
-                    ImageCount: imageAttachments.Count),
+                    ImageCount: imageAttachments.Length),
                 CancellationToken.None)
             .Detach(IExceptionHandler.DangerouslyIgnoreAllException);
     }

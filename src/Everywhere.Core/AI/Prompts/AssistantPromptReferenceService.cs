@@ -67,7 +67,7 @@ public sealed class AssistantPromptReferenceService(Settings settings, IPromptSe
                 assistant.SystemPromptId,
                 assistant.Icon,
                 assistant.Description))
-            .ToList();
+            .ToArray();
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<UnresolvedAssistantPromptReference>> ListUnresolvedReferencesAsync(CancellationToken cancellationToken = default)
@@ -86,7 +86,7 @@ public sealed class AssistantPromptReferenceService(Settings settings, IPromptSe
                 assistant.Name,
                 assistant.SystemPromptId,
                 CreateUnresolvedReferenceDiagnostic(assistant.SystemPromptId)))
-            .ToList();
+            .ToArray();
     }
 
     /// <inheritdoc />

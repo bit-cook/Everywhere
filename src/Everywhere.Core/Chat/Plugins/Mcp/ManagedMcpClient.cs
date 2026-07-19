@@ -131,11 +131,11 @@ public sealed partial class ManagedMcpClient : IAsyncDisposable
             //     McpChatPlugin.UpdateBeautifulIcon(icons[0].Source);
             // }
 
-            var tools = (await ListToolsAsync(linkedCts.Token)).OrderBy(x => x.ProtocolTool.Name).ToList();
+            var tools = (await ListToolsAsync(linkedCts.Token)).OrderBy(x => x.ProtocolTool.Name).ToArray();
             McpChatPlugin.EditFunctions(list =>
             {
                 int i = 0, j = 0;
-                while (i < list.Count && j < tools.Count)
+                while (i < list.Count && j < tools.Length)
                 {
                     var compare = string.Compare(list[i].OriginalName, tools[j].ProtocolTool.Name, StringComparison.Ordinal);
                     switch (compare)
@@ -161,7 +161,7 @@ public sealed partial class ManagedMcpClient : IAsyncDisposable
                     list.RemoveAt(i);
                 }
 
-                while (j < tools.Count)
+                while (j < tools.Length)
                 {
                     list.Add(CreateFunction(tools[j]));
                     j++;
@@ -409,7 +409,7 @@ public sealed partial class ManagedMcpClient : IAsyncDisposable
                         .AsValueEnumerable()
                         .Select(x => x.Value)
                         .Where(x => !x.IsNullOrWhiteSpace())
-                        .ToList(),
+                        .ToArray(),
                     WorkingDirectory = EnsureWorkingDirectory(stdio.WorkingDirectory),
                     EnvironmentVariables = EnsureLatestPath(
                         stdio.EnvironmentVariables

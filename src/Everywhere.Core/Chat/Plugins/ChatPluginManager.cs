@@ -59,7 +59,7 @@ public class ChatPluginManager : IChatPluginManager
 
         // Load MCP plugins from settings.
         var mcpPlugins = ((IEnumerable<KeyValuePair<Guid, McpTransportConfiguration>>)settings.Plugin.McpChatPlugins)
-            .Select(static pair => new McpChatPlugin(pair.Key, pair.Value)).ToList();
+            .Select(static pair => new McpChatPlugin(pair.Key, pair.Value)).ToArray();
         Task.Run(InitializeMcpPlugins).Detach(IExceptionHandler.DangerouslyIgnoreAllException);
         _mcpPluginsSource.AddRange(mcpPlugins);
 
@@ -81,12 +81,12 @@ public class ChatPluginManager : IChatPluginManager
 
         // Remove any records in settings that do not correspond to any existing plugin.
         foreach (var key in isEnabledRecords.Keys.AsValueEnumerable()
-                     .Where(key => pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal))).ToList())
+                     .Where(key => pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal))).ToArray())
         {
             isEnabledRecords.Remove(key);
         }
         foreach (var key in isPermissionGrantedRecords.Keys.AsValueEnumerable()
-                     .Where(key => pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal))).ToList())
+                     .Where(key => pluginKeys.All(k => k != key && !key.StartsWith($"{k}.", StringComparison.Ordinal))).ToArray())
         {
             isPermissionGrantedRecords.Remove(key);
         }
@@ -521,8 +521,8 @@ public class ChatPluginManager : IChatPluginManager
                         var isFunctionAllowed = toolRulesets?.IsFunctionAllowed(plugin, function);
                         return isFunctionAllowed is true || (isFunctionAllowed is null && plugin.IsEnabled && function.IsEnabled);
                     })
-                    .ToList();
-                if (actualFunctions.Count > 0 || plugin is McpChatPlugin)
+                    .ToArray();
+                if (actualFunctions.Length > 0 || plugin is McpChatPlugin)
                 {
                     resultPlugins.Add(new ChatPluginSnapshot(plugin, pluginNameDeduplicator, functionNameDeduplicator, actualFunctions));
                 }
@@ -558,13 +558,15 @@ public class ChatPluginManager : IChatPluginManager
 
             plugin = null;
             function = null;
-            similarFunctionNames = Process.ExtractTop(
-                    functionName,
-                    pluginSnapshots.SelectMany(p => p.GetChatFunctions()).Select(f => f.KernelFunction.Name),
-                    limit: 5)
-                .Where(r => r.Score >= 60)
-                .Select(r => r.Value)
-                .ToList();
+            similarFunctionNames =
+            [
+                .. Process.ExtractTop(
+                        functionName,
+                        pluginSnapshots.SelectMany(p => p.GetChatFunctions()).Select(f => f.KernelFunction.Name),
+                        limit: 5)
+                    .Where(r => r.Score >= 60)
+                    .Select(r => r.Value),
+            ];
             return false;
         }
     }
@@ -691,11 +693,11 @@ public class ChatPluginManager : IChatPluginManager
         public override IDynamicLocaleKey DescriptionKey => _originalChatPlugin.DescriptionKey;
         public override LucideIconKind? Icon => _originalChatPlugin.Icon;
         public override string? BeautifulIcon => _originalChatPlugin.BeautifulIcon;
-        public override int FunctionCount => _actualFunctions.Count;
+        public override int FunctionCount => _actualFunctions.Length;
         public override IReadOnlyBindableList<ChatFunction> Functions => throw new NotSupportedException();
 
         private readonly ChatPlugin _originalChatPlugin;
-        private readonly List<ChatFunction> _actualFunctions;
+        private readonly ChatFunction[] _actualFunctions;
 
         public ChatPluginSnapshot(
             ChatPlugin originalChatPlugin,
@@ -708,7 +710,7 @@ public class ChatPluginManager : IChatPluginManager
             _actualFunctions = actualFunctions
                 .AsValueEnumerable()
                 .Select(EnsureUniqueFunctionName)
-                .ToList();
+                .ToArray();
 
             ChatFunction EnsureUniqueFunctionName(ChatFunction function)
             {

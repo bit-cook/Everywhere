@@ -355,7 +355,7 @@ public sealed class ObservableDictionary<TKey, TValue> :
 
         lock (SyncRoot)
         {
-            snapshot = _dictionary.ToList();
+            snapshot = [.. _dictionary];
         }
 
         foreach (var kvp in snapshot)

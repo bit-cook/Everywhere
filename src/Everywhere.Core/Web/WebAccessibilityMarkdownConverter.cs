@@ -272,9 +272,9 @@ internal static class WebAccessibilityMarkdownConverter
                 .Where(static text => !string.IsNullOrWhiteSpace(text))
                 .ToArray())
             .Where(static cells => cells.Length > 0)
-            .ToList();
+            .ToArray();
 
-        if (rows.Count == 0)
+        if (rows.Length == 0)
         {
             AppendWrappedParagraph(context.Builder, CollectInlineText(context, tableNode));
             return;
@@ -282,7 +282,7 @@ internal static class WebAccessibilityMarkdownConverter
 
         var columnCount = rows.AsValueEnumerable().Max(static row => row.Length);
         AppendTableRow(context.Builder, rows[0], columnCount);
-        AppendTableRow(context.Builder, Enumerable.Repeat("---", columnCount).ToList(), columnCount);
+        AppendTableRow(context.Builder, [.. Enumerable.Repeat("---", columnCount)], columnCount);
         foreach (var row in rows.AsValueEnumerable().Skip(1))
         {
             AppendTableRow(context.Builder, row, columnCount);

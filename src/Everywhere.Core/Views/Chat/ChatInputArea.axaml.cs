@@ -373,8 +373,8 @@ public sealed partial class ChatInputArea : TemplatedControl
 
     private void HandleAssistantSelectionPointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
-        var assistants = CustomAssistantItemsSource?.ToList();
-        if (assistants is null || assistants.Count <= 1) return;
+        var assistants = CustomAssistantItemsSource?.ToArray();
+        if (assistants is null || assistants.Length <= 1) return;
 
         var currentIndex = SelectedCustomAssistant is not null ? assistants.IndexOf(SelectedCustomAssistant) : -1;
         if (currentIndex == -1)
@@ -387,7 +387,7 @@ public sealed partial class ChatInputArea : TemplatedControl
         currentIndex = e.Delta.Y switch
         {
             > 0 => Math.Max(currentIndex - 1, 0),
-            < 0 => Math.Min(currentIndex + 1, assistants.Count - 1),
+            < 0 => Math.Min(currentIndex + 1, assistants.Length - 1),
             _ => currentIndex
         };
 

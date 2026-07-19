@@ -297,12 +297,12 @@ public sealed partial class PromptPageViewModel(
         var filteredPrompts = _prompts
             .AsValueEnumerable()
             .Where(FilterPrompt)
-            .ToList();
+            .ToArray();
         _filteredPrompts.Reset(filteredPrompts);
 
         FilteredPromptCountKey = new FormattedDynamicLocaleKey(
             LocaleKey.PromptPage_CountText,
-            new DirectLocaleKey(filteredPrompts.Count));
+            new DirectLocaleKey(filteredPrompts.Length));
         OnPropertyChanged(nameof(HasAnyPrompts));
 
         if (clearSelectionWhenHidden &&
@@ -368,7 +368,7 @@ public sealed partial class PromptPageViewModel(
             renderResult.Diagnostics
                 .AsValueEnumerable()
                 .Select(static diagnostic => new PromptDiagnosticItem(diagnostic))
-                .ToList());
+                .ToArray());
         _selectedPromptReferences.Reset(assistantPromptReferenceService.ListReferences(promptItem.Id));
     }
 

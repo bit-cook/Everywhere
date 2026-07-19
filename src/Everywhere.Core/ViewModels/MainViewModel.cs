@@ -201,7 +201,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<Ma
         if (route is string { Length: > 0 } routeString)
         {
             var segments = SplitRoute(routeString);
-            if (segments.Count == 0 || FindNavigationRouteMatch(segments) is not { } match)
+            if (segments.Length == 0 || FindNavigationRouteMatch(segments) is not { } match)
             {
                 Log.ForContext<MainViewModel>().Warning("Failed to navigate to route {Route} because no navigation item matched it", route);
                 return;
@@ -258,7 +258,7 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<Ma
         var nextSegmentIndex = segmentIndex + 1;
         NavigationRouteMatch? bestMatch = item.Route is null ?
             null :
-            new NavigationRouteMatch(item, segments.AsValueEnumerable().Skip(nextSegmentIndex).ToList());
+            new NavigationRouteMatch(item, segments.AsValueEnumerable().Skip(nextSegmentIndex).ToArray());
         foreach (var child in item.Children.AsValueEnumerable())
         {
             if (FindNavigationRouteMatch(child, segments, nextSegmentIndex) is { } childMatch)
@@ -270,12 +270,12 @@ public sealed partial class MainViewModel : ReactiveViewModelBase, IRecipient<Ma
         return bestMatch;
     }
 
-    private static List<string> SplitRoute(string route) =>
+    private static string[] SplitRoute(string route) =>
         route
             .Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .AsValueEnumerable()
             .Select(DecodeRouteSegment)
-            .ToList();
+            .ToArray();
 
     private static string DecodeRouteSegment(string segment)
     {

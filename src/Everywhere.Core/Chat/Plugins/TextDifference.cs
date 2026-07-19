@@ -252,8 +252,8 @@ public sealed partial class TextDifference : ObservableObject, IDisposable
     public void ValidateAgainst(string original)
     {
         foreach (var c in _changesSource.Items) c.Range.EnsureInside(original);
-        var ordered = _changesSource.Items.OrderBy(c => c.Range.Start).ToList();
-        for (var i = 1; i < ordered.Count; i++)
+        var ordered = _changesSource.Items.OrderBy(c => c.Range.Start).ToArray();
+        for (var i = 1; i < ordered.Length; i++)
         {
             var prev = ordered[i - 1];
             var curr = ordered[i];
@@ -266,9 +266,10 @@ public sealed partial class TextDifference : ObservableObject, IDisposable
     {
         if (validate) ValidateAgainst(original);
         var selected = _changesSource.Items
+            .AsValueEnumerable()
             .Where(c => selector?.Invoke(c) ?? c.Accepted == true)
             .OrderBy(c => c.Range.Start)
-            .ToList();
+            .ToArray();
 
         var sb = new StringBuilder();
         var cursor = 0;
@@ -577,8 +578,8 @@ public static class TextDifferenceBuilder
         var a = SplitLines(original);
         var b = SplitLines(updated);
 
-        var aLines = a.Select(l => l.Text).ToList();
-        var bLines = b.Select(l => l.Text).ToList();
+        var aLines = a.AsValueEnumerable().Select(l => l.Text).ToArray();
+        var bLines = b.AsValueEnumerable().Select(l => l.Text).ToArray();
 
         var edits = new List<MyersDifference.Edit>();
         foreach (var edit in MyersDifference.Diff(aLines, bLines).OrderBy(e => e.AStart))

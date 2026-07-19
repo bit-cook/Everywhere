@@ -73,8 +73,9 @@ public sealed partial class StdioMcpTransportConfiguration : McpTransportConfigu
     [ConfigurationKeyName("Arguments")]
     public IReadOnlyList<string>? SerializableArguments
     {
-        get => Arguments.AsValueEnumerable().Select(arg => arg.Value).ToList();
-        set {
+        get => Arguments.AsValueEnumerable().Select(arg => arg.Value).ToArray();
+        set
+        {
             if (value is null)
             {
                 Arguments.Clear();

@@ -163,7 +163,12 @@ public sealed partial class FormattedDynamicLocaleKey(object key, params IReadOn
     /// <param name="args"></param>
     public FormattedDynamicLocaleKey(object key, params ReadOnlySpan<object?> args) : this(
         key,
-        args.AsValueEnumerable().Select(a => a as IDynamicLocaleKey ?? new DirectLocaleKey(a?.ToString())).ToList()) { }
+        (IReadOnlyList<IDynamicLocaleKey?>)args
+            .AsValueEnumerable()
+            .Select(a => a as IDynamicLocaleKey ?? new DirectLocaleKey(a?.ToString()))
+            .ToArray())
+    {
+    }
 
     public override IDisposable Subscribe(IObserver<object?> observer)
     {

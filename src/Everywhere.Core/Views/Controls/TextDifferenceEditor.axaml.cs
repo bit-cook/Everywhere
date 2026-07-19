@@ -178,7 +178,7 @@ public partial class TextDifferenceEditor : TemplatedControl
         var changes = TextDifference.GetFilteredChanges(opts)
             .AsValueEnumerable()
             .OrderBy(c => c.Range.Start)
-            .ToList();
+            .ToArray();
 
         // Pre-split original text into lines with absolute starts and content (no line break)
         var originalLines = SplitOriginalIntoLines(OriginalText); // List<(start, endInclBreak, content)>

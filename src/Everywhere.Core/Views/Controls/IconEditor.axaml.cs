@@ -52,11 +52,11 @@ public sealed class IconEditor : TemplatedControl
         set => SetValue(QueryTextProperty, value);
     }
 
-    private static readonly IReadOnlyList<(LucideIconKind Kind, string Name)> CachedLucideIcons =
+    private static readonly (LucideIconKind Kind, string Name)[] CachedLucideIcons =
         Enum.GetValues<LucideIconKind>()
             .AsValueEnumerable()
             .Select(x => (Kind: x, Name: x.ToString()))
-            .ToList();
+            .ToArray();
 
     private readonly BindableList<LucideIconKind> _lucideItemsSource = [];
     private readonly BindableList<string> _emojiItemsSource = [];
@@ -337,7 +337,7 @@ public sealed class IconEditor : TemplatedControl
                 .OrderByDescending(x => x.Score)
                 .Take(limit)
                 .Select(x => x.Emoji)
-                .ToList();
+                .ToArray();
         }
 
         private static IReadOnlyList<EmojiEntry>? LoadEmojiEntries(Uri uri)

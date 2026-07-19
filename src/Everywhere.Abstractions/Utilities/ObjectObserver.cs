@@ -37,7 +37,7 @@ public class ObjectObserver(ObjectObserverChangedEventHandler handler) : IDispos
                 .Where(p => p.GetMethod?.GetParameters() is { Length: 0 }) // Ignore
                 .Where(p => p.GetCustomAttribute<JsonIgnoreAttribute>() is null)
                 .Where(p => p.GetCustomAttribute<ObjectObserverIgnoreAttribute>() is null)
-                .ToList());
+                .ToArray());
 
     private PropertyInfo? GetPropertyInfo(Type type, string propertyName) =>
         GetPropertyInfos(type).AsValueEnumerable().FirstOrDefault(p => p.Name == propertyName);

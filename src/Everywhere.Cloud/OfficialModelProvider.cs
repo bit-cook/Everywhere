@@ -95,7 +95,7 @@ public sealed partial class OfficialModelProvider : ObservableObject, IOfficialM
                 cancellationToken);
 
             var cloudModelDefinitions = payload.EnsureData();
-            var result = cloudModelDefinitions.AsValueEnumerable().Select(m => m.ToModelDefinitionTemplate()).ToList();
+            var result = cloudModelDefinitions.AsValueEnumerable().Select(m => m.ToModelDefinitionTemplate()).ToArray();
             _modelDefinitionsSource.Reset(result);
             _persistentState.OfficialModelDefinitionTemplate = result;
 
@@ -224,7 +224,7 @@ public sealed partial class OfficialModelProvider : ObservableObject, IOfficialM
                 new TokenPricing(
                     t.Pricing.Input * CreditsMultiplier,
                     t.Pricing.Output * CreditsMultiplier,
-                    t.Pricing.CachedInput * CreditsMultiplier))).ToList();
+                    t.Pricing.CachedInput * CreditsMultiplier))).ToArray();
             return new ModelPricing(tiers, ModelPricingUnit.MCreditPerMToken);
         }
     }

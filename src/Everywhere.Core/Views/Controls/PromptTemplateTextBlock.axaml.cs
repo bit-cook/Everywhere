@@ -249,7 +249,7 @@ internal sealed class PromptTemplateInlineSynchronizer(IReadOnlySet<string> know
         run.Classes.Remove("PromptPlaceholder");
         run.Classes.Remove("DefaultSystemPrompt");
         run.Classes.Remove("Unknown");
-        run.ClearValue(Run.ForegroundProperty);
+        run.ClearValue(TextElement.ForegroundProperty);
     }
 
     private IReadOnlyList<PromptTemplateInlineSegment> BuildTemplateSegments(string text)
@@ -308,7 +308,7 @@ internal sealed class PromptTemplateInlineSynchronizer(IReadOnlySet<string> know
                     segment.Kind == PromptTemplateRenderSegmentKind.UnresolvedPlaceholder ?
                         PromptTemplateInlineSegmentKind.UnknownPlaceholder :
                         PromptTemplateInlineSegmentKind.KnownPlaceholder))
-            .ToList();
+            .ToArray();
         return PromptPlaceholderPalette.AssignColorSlots(segments);
     }
 
@@ -397,7 +397,7 @@ internal static class PromptPlaceholderPalette
                 .Select(static segment => segment.PlaceholderName)
                 .OfType<string>()
                 .Distinct(StringComparer.Ordinal)
-                .ToList());
+                .ToArray());
 
         var result = new PromptTemplateInlineSynchronizer.PromptTemplateInlineSegment[segments.Count];
         for (var i = 0; i < segments.Count; i++)
@@ -412,7 +412,7 @@ internal static class PromptPlaceholderPalette
     }
 
     public static IReadOnlyDictionary<string, int> AssignColorSlots(IEnumerable<string> placeholderNames) =>
-        AssignSlots(placeholderNames.Distinct(StringComparer.Ordinal).ToList());
+        AssignSlots([.. placeholderNames.Distinct(StringComparer.Ordinal)]);
 
     private static Dictionary<string, int> AssignSlots(IReadOnlyList<string> placeholderNames)
     {

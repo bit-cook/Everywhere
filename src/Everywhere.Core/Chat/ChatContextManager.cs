@@ -149,7 +149,9 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
                 List<ChatContextMetadataChangedMessage> messages;
                 lock (that._saveBuffer)
                 {
-                    messages = that._saveBuffer.Values.ToList(); // ToList is better than ToArray (less allocation)
+                    // ToList is better than ToArray (less allocation)
+                    // ↑ seems to be wrong in dotnet 10. ToArray is better!
+                    messages = [.. that._saveBuffer.Values];
                     that._saveBuffer.Clear();
                 }
                 SaveMessagesAsync(that, messages).Detach(that._logger.ToExceptionHandler());
@@ -554,10 +556,10 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
             .Select(g => new
             {
                 GroupKey = g.Key,
-                Items = g.AsValueEnumerable().ToList()
+                Items = g.AsValueEnumerable().ToArray()
             })
             .OrderBy(g => g.GroupKey)
-            .ToList();
+            .ToArray();
 
         var newGroupsDict = newHistoryGroups.ToDictionary(g => g.GroupKey);
         var oldGroupsDict = targetList.ToDictionary(g => g.Date);
@@ -573,7 +575,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         }
 
         // 3. Add new groups and update existing ones
-        for (var i = 0; i < newHistoryGroups.Count; i++)
+        for (var i = 0; i < newHistoryGroups.Length; i++)
         {
             var newGroup = newHistoryGroups[i];
             if (oldGroupsDict.TryGetValue(newGroup.GroupKey, out var existingGroup))
@@ -594,16 +596,16 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
     /// <summary>
     /// Synchronizes a target collection of ChatContextMetadata with a new list.
     /// </summary>
-    private static void SyncMetadata(ObservableCollection<ChatContextMetadata> targetList, List<ChatContextMetadata> newList)
+    private static void SyncMetadata(ObservableCollection<ChatContextMetadata> targetList, ChatContextMetadata[] newList)
     {
         // A simple but effective sync: clear and add.
         // Since metadata items are sorted by DateModified descending, and this order is stable
         // for existing items, we can check if we just need to append.
-        if (targetList.Count > 0 && newList.Count > targetList.Count &&
+        if (targetList.Count > 0 && newList.Length > targetList.Count &&
             newList.AsValueEnumerable().Take(targetList.Count).SequenceEqual(targetList))
         {
             // This is an append operation (e.g., "Load More")
-            for (var i = targetList.Count; i < newList.Count; i++)
+            for (var i = targetList.Count; i < newList.Length; i++)
             {
                 targetList.Add(newList[i]);
             }
@@ -625,7 +627,7 @@ public partial class ChatContextManager : ObservableObject, IChatContextManager,
         }
 
         // Add new items and re-order existing ones
-        for (var i = 0; i < newList.Count; i++)
+        for (var i = 0; i < newList.Length; i++)
         {
             var newItem = newList[i];
             if (oldItemsDict.TryGetValue(newItem.Id, out var oldItem))

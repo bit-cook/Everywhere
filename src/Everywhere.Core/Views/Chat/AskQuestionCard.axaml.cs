@@ -155,7 +155,7 @@ public partial class AskQuestionCard : Card
             return;
         }
 
-        WrappedQuestions = questions.AsValueEnumerable().Select(q => new QuestionWrapper(q)).ToList();
+        WrappedQuestions = questions.AsValueEnumerable().Select(q => new QuestionWrapper(q)).ToArray();
         NavigateTo(0);
     }
 

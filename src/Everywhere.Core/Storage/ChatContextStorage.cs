@@ -391,8 +391,8 @@ public sealed class ChatContextStorage(
 
             if (node.Message is IHaveChatAttachments messageWithChatAttachments)
             {
-                var fileAttachments = messageWithChatAttachments.Attachments.AsValueEnumerable().OfType<FileAttachment>().ToList();
-                for (var i = 0; i < fileAttachments.Count; i++)
+                var fileAttachments = messageWithChatAttachments.Attachments.AsValueEnumerable().OfType<FileAttachment>().ToArray();
+                for (var i = 0; i < fileAttachments.Length; i++)
                 {
                     var attachment = fileAttachments[i];
                     var key = (node.Id, attachment.Sha256, i);

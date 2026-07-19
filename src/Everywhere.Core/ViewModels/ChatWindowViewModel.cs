@@ -443,14 +443,14 @@ public sealed partial class ChatWindowViewModel :
                                     .Concat(FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Document))
                                     .Concat(FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Script))
                                     .Select(x => '*' + x)
-                                    .ToList()
+                                    .ToArray()
                             },
                             new FilePickerFileType(LocaleResolver.ChatWindowViewModel_AddFile_FilePickerFileType_Images)
                             {
                                 Patterns = FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Image)
                                     .AsValueEnumerable()
                                     .Select(x => '*' + x)
-                                    .ToList()
+                                    .ToArray()
                             },
                             new FilePickerFileType(LocaleResolver.ChatWindowViewModel_AddFile_FilePickerFileType_Documents)
                             {
@@ -458,7 +458,7 @@ public sealed partial class ChatWindowViewModel :
                                     .AsValueEnumerable()
                                     .Concat(FileUtilities.GetFileExtensionsByCategory(FileTypeCategory.Script))
                                     .Select(x => '*' + x)
-                                    .ToList()
+                                    .ToArray()
                             },
                             new FilePickerFileType(LocaleResolver.FilePickerFileType_AllFiles)
                             {
@@ -618,7 +618,7 @@ public sealed partial class ChatWindowViewModel :
         {
             _snapshotBeforeEdit = new ChatInputAreaSnapshot(
                 textBeforeEdit,
-                list.Count == 0 ? null : list.ToList(),
+                list.Count == 0 ? null : list.ToArray(),
                 strategyCommandBeforeEdit);
 
             list.Reset(userChatMessage.Attachments.Where(a => a is not VisualElementAttachment { IsElementValid: false }));
@@ -837,7 +837,7 @@ public sealed partial class ChatWindowViewModel :
     {
         try
         {
-            var context = StrategyContext.FromAttachments(attachments.ToList());
+            var context = StrategyContext.FromAttachments([.. attachments]);
             StrategiesSnapshot = _strategyEngine.GetStrategies(context);
         }
         catch (Exception ex)

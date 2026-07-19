@@ -211,9 +211,9 @@ public sealed partial class TerminalPlugin : BuiltInChatPlugin
             }
         }
 
-        var outputs = terminalRuns.AsValueEnumerable().Select(run => run.OutputText.Trim()).ToList();
+        var outputs = terminalRuns.AsValueEnumerable().Select(run => run.OutputText.Trim()).ToArray();
         var budgets = TokenBudget.Allocate(
-            outputs.AsValueEnumerable().Select(TokenHelper.EstimateTokenCount).ToList().AsSpan(),
+            outputs.AsValueEnumerable().Select(TokenHelper.EstimateTokenCount).ToArray().AsSpan(),
             40000);
 
         var resultBuilder = new StringBuilder();

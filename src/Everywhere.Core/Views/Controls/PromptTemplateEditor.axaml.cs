@@ -123,7 +123,7 @@ public sealed class PromptTemplateEditor : TemplatedControl
                     .ParsePlaceholders(document.Text)
                     .AsValueEnumerable()
                     .Select(static placeholder => placeholder.Name)
-                    .ToList());
+                    .ToArray());
 
             foreach (var placeholder in linePlaceholders)
             {

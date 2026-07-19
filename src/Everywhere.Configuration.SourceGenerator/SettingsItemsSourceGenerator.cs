@@ -292,7 +292,7 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
 
                     converterBuilder.Append("return x.Select(k => new global::Everywhere.Configuration.SettingsSelectionItem.Item(new global::Everywhere.I18N.");
                     converterBuilder.Append(transformExpr);
-                    converterBuilder.AppendLine(", k, contentTemplate)).ToList();");
+                    converterBuilder.AppendLine(", k, contentTemplate)).ToArray();");
                 }
 
                 EmitBinding(
@@ -718,12 +718,12 @@ public sealed class SettingsItemsSourceGenerator : IIncrementalGenerator
         var candidates = ownerType.GetAllMembers()
             .OfType<IMethodSymbol>()
             .Where(m => m.Name == modifierName && IsAccessibleSettingsItemModifier(m, ownerType))
-            .ToList();
+            .ToArray();
         var validCandidates = candidates
             .Where(IsValidSettingsItemModifier)
-            .ToList();
+            .ToArray();
 
-        if (validCandidates.Count == 1)
+        if (validCandidates.Length == 1)
         {
             var method = validCandidates[0];
             var target = method.IsStatic ? method.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) : "this";

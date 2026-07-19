@@ -32,7 +32,7 @@ public class SettingsMigrator
         Action<JsonObject>? validateBeforeSave = null)
     {
         _filePath = filePath;
-        _migrations = migrations.AsValueEnumerable().OrderBy(m => m.Version).ToList();
+        _migrations = migrations.AsValueEnumerable().OrderBy(m => m.Version).ToArray();
         _logger = logger;
         _validateBeforeSave = validateBeforeSave;
 
@@ -58,12 +58,8 @@ public class SettingsMigrator
         var currentVersion = SemanticVersion.TryParse(currentVersionStr, out var version) ? version : new SemanticVersion(0);
         var originalVersion = currentVersion;
         var hasChanges = false;
-        var pendingMigrations = _migrations.AsValueEnumerable().Where(m => m.Version > originalVersion).ToList();
-
-        if (pendingMigrations.Count == 0)
-        {
-            return;
-        }
+        var pendingMigrations = _migrations.AsValueEnumerable().Where(m => m.Version > originalVersion).ToArray();
+        if (pendingMigrations.Length == 0) return;
 
         if (fileExists)
         {

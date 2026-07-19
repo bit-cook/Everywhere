@@ -138,14 +138,14 @@ public sealed class EverythingPlugin : BuiltInChatPlugin
                         .SendSearch(searchPattern, default)
                         .Take(Math.Min(maxResults, 1000))
                         .Select(CreateFileRecord)
-                        .ToList();
+                        .ToArray();
 
                     displaySink.AppendDynamicLocaleKey(
                         new FormattedDynamicLocaleKey(
                             LocaleKey.Windows_BuiltInChatPlugin_Everything_SearchFiles_DetailMessage,
                             new DirectLocaleKey(everything.Count.ToString())));
 
-                    if (records.Count == 0) return "No results found.";
+                    if (records.Length == 0) return "No results found.";
 
                     // Iterative OmitTo: consume remaining budget per record, stop when exhausted.
                     // File records are similarly-sized so proportional QoS allocation is unnecessary.
@@ -167,7 +167,7 @@ public sealed class EverythingPlugin : BuiltInChatPlugin
                         if (remaining <= 0) break;
                     }
 
-                    var omitted = records.Count - included;
+                    var omitted = records.Length - included;
                     if (omitted > 0)
                         sb.Append("... ").Append(omitted).AppendLine(" more result(s) (omitted due to token budget)");
 

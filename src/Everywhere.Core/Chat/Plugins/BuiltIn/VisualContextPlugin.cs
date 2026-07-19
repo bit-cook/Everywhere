@@ -290,7 +290,7 @@ public sealed class VisualContextPlugin : BuiltInChatPlugin
         }
 
         var actionsKey = new AggregateDynamicLocaleKey(
-            actions.AsValueEnumerable().Select(a => a.GetDescriptionKey()).OfType<IDynamicLocaleKey>().ToList(),
+            actions.AsValueEnumerable().Select(a => a.GetDescriptionKey()).OfType<IDynamicLocaleKey>().ToArray(),
             "\n");
 
         var detailBlock = new ChatPluginContainerDisplayBlock

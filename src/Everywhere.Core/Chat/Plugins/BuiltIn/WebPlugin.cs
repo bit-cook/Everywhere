@@ -172,14 +172,14 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                 Name: r.Name,
                 Url: r.Link,
                 Snippet: r.Value))
-            .ToList();
+            .ToArray();
         displaySink.AppendUrls(
             indexedResults.AsValueEnumerable().Select(r => new ChatPluginUrl(
                 r.Url,
                 new DirectLocaleKey((r.Name ?? r.Snippet).SafeSubstring(0, 64)))
             {
                 Index = r.Index
-            }).ToList());
+            }).ToArray());
 
         return JsonSerializer.Serialize(indexedResults, _jsonSerializerOptions);
     }
@@ -224,7 +224,7 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                     nameof(urls),
                     new ArgumentException($"Invalid URL format: {url}. Only absolute http/https URLs are allowed.")))
             .Distinct()
-            .ToList();
+            .ToArray();
 
         // The invocation preview contains only validated URIs. Host labels and favicon locations
         // are derived by the View, where AsyncImageLoader can reuse its normal image cache instead
@@ -238,7 +238,7 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
             validatedUrls
                 .AsValueEnumerable()
                 .Select(uri => new ChatPluginUrl(uri.AbsoluteUri, new DirectLocaleKey(uri.Host)))
-                .ToList());
+                .ToArray());
 
         var extractions = await Task.WhenAll(
             validatedUrls.Select(async uri =>
@@ -268,7 +268,7 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
         // Dynamic proportional token budget allocation per URL
         const int totalBudget = 40000;
         const int minPerUrl = 500;
-        var desiredTokens = extractions.AsValueEnumerable().Select(e => TokenHelper.EstimateTokenCount(e.extraction.Markdown)).ToList();
+        var desiredTokens = extractions.AsValueEnumerable().Select(e => TokenHelper.EstimateTokenCount(e.extraction.Markdown)).ToArray();
         var allocations = TokenBudget.Allocate(desiredTokens.AsSpan(), totalBudget, minTokensPerItem: minPerUrl);
 
         // Build output with trimmed content

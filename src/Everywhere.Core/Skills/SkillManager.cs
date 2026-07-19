@@ -95,8 +95,8 @@ public sealed class SkillManager : ObservableObject, ISkillManager, ISkillPrompt
             .Where(skill => skill is { IsEnabled: true, IsValid: true })
             .OrderBy(skill => skill.SourceRoot)
             .ThenBy(skill => skill.Id, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        if (enabledSkills.Count == 0) return string.Empty;
+            .ToArray();
+        if (enabledSkills.Length == 0) return string.Empty;
 
         var builder = new StringBuilder();
         // From vscode copilot prompt template, with modifications to fit our markdown-based skill format and instructions.

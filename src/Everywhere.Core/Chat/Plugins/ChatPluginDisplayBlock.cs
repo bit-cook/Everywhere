@@ -191,7 +191,7 @@ public readonly partial record struct ChatPluginFileReferenceLocation(
 public sealed partial class ChatPluginFileReferencesDisplayBlock(params IReadOnlyList<ChatPluginFileReference> references) : ChatPluginDisplayBlock
 {
     [Key(0)]
-    public IReadOnlyList<ChatPluginFileReference> References { get; } = references.AsValueEnumerable().Take(10).ToList();
+    public IReadOnlyList<ChatPluginFileReference> References { get; } = references.AsValueEnumerable().Take(10).ToArray();
 
     [Key(1)]
     public int TotalReferenceCount { get; set; } = references.Count;

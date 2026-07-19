@@ -541,7 +541,7 @@ public sealed partial class PromptEditorViewModel(
             renderResult.Diagnostics
                 .AsValueEnumerable()
                 .Select(static diagnostic => new PromptDiagnosticItem(diagnostic))
-                .ToList());
+                .ToArray());
     }
 
     private void StartPreviewRefreshTimer()

@@ -378,16 +378,16 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
         }
 
         var regex = CreateRegex(filePattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        var targets = root is FileInfo ? [root] : EnumerateLocalEntries((DirectoryInfo)root, regex, cancellationToken).ToList();
-        if (targets.Count == 0) return "No files or directories to delete.";
+        var targets = root is FileInfo ? [root] : EnumerateLocalEntries((DirectoryInfo)root, regex, cancellationToken).ToArray();
+        if (targets.Length == 0) return "No files or directories to delete.";
 
-        var paths = targets.AsValueEnumerable().Select(info => info.FullName).Order().ToList();
+        var paths = targets.AsValueEnumerable().Select(info => info.FullName).Order().ToArray();
         await RequestFileOperationConsentAsync(
             userInterface,
             chatContext,
             new FormattedDynamicLocaleKey(
                 LocaleKey.BuiltInChatPlugin_FileSystem_DeleteFiles_DeletionConsent_Header,
-                new DirectLocaleKey(targets.Count)),
+                new DirectLocaleKey(targets.Length)),
             null,
             paths,
             cancellationToken);
@@ -603,19 +603,19 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
                     .OrderBy(static line => line.Key.PageNumber)
                     .ThenBy(static line => line.Key.Line)
                     .Select(static line => new SearchLineGroup([.. line]))
-                    .ToList()))
-            .ToList();
+                    .ToArray()))
+            .ToArray();
 
         AllocateSearchLines(files, maxResults);
-        var shownFiles = files.AsValueEnumerable().Where(static file => file.ShownCount > 0).ToList();
-        var totalLines = files.AsValueEnumerable().Sum(static file => file.Lines.Count);
+        var shownFiles = files.AsValueEnumerable().Where(static file => file.ShownCount > 0).ToArray();
+        var totalLines = files.AsValueEnumerable().Sum(static file => file.Lines.Length);
         var shownLines = shownFiles.AsValueEnumerable().Sum(static file => file.ShownCount);
         var shownOccurrences = shownFiles.AsValueEnumerable().Sum(static file =>
             file.Lines.AsValueEnumerable().Take(file.ShownCount).Sum(static line => line.Matches.Count));
         var qualifier = shownLines < totalLines ?
             $" (showing {shownOccurrences} {Pluralize(shownOccurrences, "occurrence", "occurrences")} on " +
             $"{shownLines} {Pluralize(shownLines, "line", "lines")} in " +
-            $"{shownFiles.Count} {Pluralize(shownFiles.Count, "file", "files")})" :
+            $"{shownFiles.Length} {Pluralize(shownFiles.Length, "file", "files")})" :
             string.Empty;
         if (limitHit) qualifier += " (search limit reached)";
 
@@ -623,10 +623,10 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
         {
             $"Found {matches.Count} {Pluralize(matches.Count, "occurrence", "occurrences")} on " +
             $"{totalLines} matching {Pluralize(totalLines, "line", "lines")} in " +
-            $"{files.Count} {Pluralize(files.Count, "file", "files")} for \"{pattern}\"{qualifier}{Environment.NewLine}"
+            $"{files.Length} {Pluralize(files.Length, "file", "files")} for \"{pattern}\"{qualifier}{Environment.NewLine}"
         };
 
-        for (var fileIndex = 0; fileIndex < shownFiles.Count; fileIndex++)
+        for (var fileIndex = 0; fileIndex < shownFiles.Length; fileIndex++)
         {
             var file = shownFiles[fileIndex];
             var lines = new List<string>(file.ShownCount + 2) { string.Empty, file.Path };
@@ -642,9 +642,9 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
                 }
             }
 
-            if (file.ShownCount < file.Lines.Count)
+            if (file.ShownCount < file.Lines.Length)
             {
-                lines.Add($"... ({file.Lines.Count - file.ShownCount} more matching line(s) in this file)");
+                lines.Add($"... ({file.Lines.Length - file.ShownCount} more matching line(s) in this file)");
             }
 
             displaySink.AppendFileReferences(new ChatPluginFileReference(file.Path, locations: locations));
@@ -658,11 +658,11 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
 
     private static void AllocateSearchLines(IReadOnlyList<SearchFileGroup> files, int maxResults)
     {
-        var keptFiles = files.AsValueEnumerable().Take(maxResults).ToList();
+        var keptFiles = files.AsValueEnumerable().Take(maxResults).ToArray();
         foreach (var file in keptFiles.AsValueEnumerable()) file.ShownCount = 1;
 
-        var remaining = maxResults - keptFiles.Count;
-        var capacity = keptFiles.AsValueEnumerable().Sum(static file => file.Lines.Count - 1);
+        var remaining = maxResults - keptFiles.Length;
+        var capacity = keptFiles.AsValueEnumerable().Sum(static file => file.Lines.Length - 1);
         if (remaining <= 0 || capacity <= 0) return;
 
         var allocations = keptFiles
@@ -670,18 +670,18 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
             .Select(file =>
             {
                 // ReSharper disable once AccessToModifiedClosure
-                var exact = (double)(file.Lines.Count - 1) / capacity * remaining;
-                var added = Math.Min(file.Lines.Count - 1, (int)Math.Floor(exact));
+                var exact = (double)(file.Lines.Length - 1) / capacity * remaining;
+                var added = Math.Min(file.Lines.Length - 1, (int)Math.Floor(exact));
                 return new SearchLineAllocation(file, added, exact - Math.Floor(exact));
             })
-            .ToList();
+            .ToArray();
         foreach (var allocation in allocations.AsValueEnumerable()) allocation.File.ShownCount += allocation.Added;
 
         remaining -= allocations.AsValueEnumerable().Sum(static allocation => allocation.Added);
         foreach (var allocation in allocations.AsValueEnumerable().OrderByDescending(static allocation => allocation.Remainder))
         {
             if (remaining == 0) break;
-            if (allocation.File.ShownCount >= allocation.File.Lines.Count) continue;
+            if (allocation.File.ShownCount >= allocation.File.Lines.Length) continue;
             allocation.File.ShownCount++;
             remaining--;
         }
@@ -784,11 +784,12 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
         ChatContext chatContext,
         IDynamicLocaleKey headerKey,
         IDynamicLocaleKey? descriptionKey,
-        List<string> paths,
+        string[] paths,
         CancellationToken cancellationToken)
     {
         var workingDirectory = chatContext.EnsureWorkingDirectory();
-        if (paths.Count > 0 && paths.All(path => Path.IsPathFullyQualified(path) && PathContainment.IsInsideDirectory(path, workingDirectory)))
+        if (paths.Length > 0 &&
+            paths.AsValueEnumerable().All(path => Path.IsPathFullyQualified(path) && PathContainment.IsInsideDirectory(path, workingDirectory)))
         {
             return;
         }
@@ -800,10 +801,9 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
         }
 
         container.Add(
-            new ChatPluginFileReferencesDisplayBlock(
-                paths.AsValueEnumerable().Select(path => new ChatPluginFileReference(path)).ToList())
+            new ChatPluginFileReferencesDisplayBlock(paths.AsValueEnumerable().Select(path => new ChatPluginFileReference(path)).ToArray())
             {
-                TotalReferenceCount = paths.Count
+                TotalReferenceCount = paths.Length
             });
         var consent = await userInterface.RequestConsentAsync(
             BuildConsentId(paths),
@@ -863,10 +863,10 @@ public sealed class FileSystemPlugin : BuiltInChatPlugin
     /// <summary>
     /// Holds matching logical lines and their output allocation for one file.
     /// </summary>
-    private sealed class SearchFileGroup(string path, List<SearchLineGroup> lines)
+    private sealed class SearchFileGroup(string path, SearchLineGroup[] lines)
     {
         public string Path { get; } = path;
-        public List<SearchLineGroup> Lines { get; } = lines;
+        public SearchLineGroup[] Lines { get; } = lines;
         public int ShownCount { get; set; }
     }
 

@@ -145,9 +145,9 @@ public sealed class SettingsEngine : IAsyncInitializer
             .AsValueEnumerable()
             .Where(static diagnostic => diagnostic.Severity != SettingsEngineDiagnosticSeverity.Info)
             .Select(static diagnostic => $"{diagnostic.Kind} at '{diagnostic.Path}'")
-            .ToList();
+            .ToArray();
 
-        if (failures.Count > 0)
+        if (failures.Length > 0)
         {
             throw new InvalidDataException($"Migrated settings failed validation: {string.Join("; ", failures)}");
         }

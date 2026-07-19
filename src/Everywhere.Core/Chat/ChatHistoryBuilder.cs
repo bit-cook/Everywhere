@@ -206,7 +206,7 @@ public static class ChatHistoryBuilder
             case UserChatMessage userChatMessage:
             {
                 var items = new ChatMessageContentItemCollection();
-                foreach (var chatAttachment in userChatMessage.Attachments.AsValueEnumerable().ToList())
+                foreach (var chatAttachment in userChatMessage.Attachments.AsValueEnumerable().ToArray())
                 {
                     await PopulateKernelContentsAsync(chatAttachment, items, supportedModalities, cancellationToken);
                 }

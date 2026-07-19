@@ -125,7 +125,7 @@ public sealed class ChatPresentation : IDisposable
         // model PropertyChanged/CollectionChanged callbacks never call it directly.
         if (_isDisposed) return;
 
-        var descriptors = BuildTurnDescriptors(_context.Items.AsValueEnumerable().Where(node => node.Message is not RootChatMessage).ToList());
+        var descriptors = BuildTurnDescriptors(_context.Items.AsValueEnumerable().Where(node => node.Message is not RootChatMessage).ToArray());
         var desired = new List<IChatPresentationSegment>(descriptors.Count);
 
         var retained = new HashSet<object>(ReferenceEqualityComparer.Instance);
@@ -143,20 +143,20 @@ public sealed class ChatPresentation : IDisposable
                 _busyActivities
                     .AsValueEnumerable()
                     .Where(activity => descriptor.Nodes.AsValueEnumerable().Any(node => ReferenceEquals(node, activity.AssistantNode)))
-                    .ToList());
+                    .ToArray());
             desired.Add(turn);
         }
 
         ReconcileByReference(_segments, desired);
 
-        foreach (var removed in _turns.AsValueEnumerable().Where(pair => !retained.Contains(pair.Key)).ToList())
+        foreach (var removed in _turns.AsValueEnumerable().Where(pair => !retained.Contains(pair.Key)).ToArray())
         {
             _turns.Remove(removed.Key);
             removed.Value.Dispose();
         }
     }
 
-    private static List<TurnDescriptor> BuildTurnDescriptors(List<ChatMessageNode> nodes)
+    private static List<TurnDescriptor> BuildTurnDescriptors(ChatMessageNode[] nodes)
     {
         var result = new List<TurnDescriptor>();
         List<ChatMessageNode>? current = null;
@@ -165,7 +165,7 @@ public sealed class ChatPresentation : IDisposable
         void Flush()
         {
             if (current is not { Count: > 0 } || currentKey is null) return;
-            result.Add(new TurnDescriptor(currentKey, current.ToArray()));
+            result.Add(new TurnDescriptor(currentKey, [.. current]));
             current = null;
             currentKey = null;
         }
@@ -407,7 +407,7 @@ public sealed class ChatPresentation : IDisposable
                 // Rows are stable while their source remains on the selected branch. Once a branch
                 // replacement removes a span or function call, retaining its row in this cache would
                 // make every later streamed text update refresh a disposed, no-longer-visible source.
-                foreach (var source in _activityRows.Keys.AsValueEnumerable().Where(source => !activeActivitySources.Contains(source)).ToList())
+                foreach (var source in _activityRows.Keys.AsValueEnumerable().Where(source => !activeActivitySources.Contains(source)).ToArray())
                 {
                     _activityRows.Remove(source);
                 }
@@ -570,7 +570,7 @@ public sealed class ChatPresentation : IDisposable
             if (_isDisposed) return;
 
             var desired = _nodes.Where(node => node.Message is not AssistantChatMessage).Select(GetMessageRow).Cast<ChatPresentationRow>().ToList();
-            var assistants = _nodes.AsValueEnumerable().Where(node => node.Message is AssistantChatMessage).ToList();
+            var assistants = _nodes.AsValueEnumerable().Where(node => node.Message is AssistantChatMessage).ToArray();
             var latestNode = assistants.LastOrDefault();
             var latest = latestNode?.Message as AssistantChatMessage;
             var isRunning = latest?.IsBusy is true;
@@ -610,20 +610,17 @@ public sealed class ChatPresentation : IDisposable
             }
 
             var finalStart = FindFinalOutputStart(entries, latestNode);
-            var process = finalStart < 0 ? entries : entries.Take(finalStart).ToList();
-            var final = finalStart < 0 ? [] : entries.Skip(finalStart).ToList();
+            var process = finalStart < 0 ? entries : [.. entries.Take(finalStart)];
+            var final = finalStart < 0 ? [] : entries.Skip(finalStart).ToArray();
             AppendCompletedProcess(process, desired);
             AppendEntries(final, desired, true);
 
-            if (final.Count == 0) desired.Add(GetNoResponseRow(latestNode));
+            if (final.Length == 0) desired.Add(GetNoResponseRow(latestNode));
             desired.Add(GetFooterRow(latestNode));
             ReconcileByReference(_visibleRows, desired);
         }
 
-        private List<Entry> BuildEntries(
-            List<ChatMessageNode> assistants,
-            bool includeLatestError,
-            bool keepTrailingActivityOpen)
+        private List<Entry> BuildEntries(ChatMessageNode[] assistants, bool includeLatestError, bool keepTrailingActivityOpen)
         {
             var result = new List<Entry>();
             var pending = new List<ActivityItemPresentationRow>();
@@ -647,7 +644,7 @@ public sealed class ChatPresentation : IDisposable
                 }
             }
 
-            for (var assistantIndex = 0; assistantIndex < assistants.Count; assistantIndex++)
+            for (var assistantIndex = 0; assistantIndex < assistants.Length; assistantIndex++)
             {
                 if (assistantIndex > 0) Flush(isAwaitingContinuation: false);
                 var node = assistants[assistantIndex];
@@ -665,7 +662,7 @@ public sealed class ChatPresentation : IDisposable
                                 functionSpan.FunctionCalls.AsValueEnumerable()
                                     .OfType<FunctionCallChatMessage>()
                                     .Select(GetFunctionRow)
-                                    .ToList());
+                                    .ToArray());
                             break;
                         case AssistantChatMessageTextSpan:
                         case AssistantChatMessageImageSpan:
@@ -683,8 +680,8 @@ public sealed class ChatPresentation : IDisposable
                 // Only a process segment at the absolute end of the latest assistant invocation is
                 // kept open. Earlier Groups have already been terminated by formal output or an
                 // assistant boundary and must never inherit the whole-turn busy state.
-                Flush(keepTrailingActivityOpen && assistantIndex == assistants.Count - 1);
-                if (assistant.ErrorMessageKey is not null && (assistantIndex < assistants.Count - 1 || includeLatestError))
+                Flush(keepTrailingActivityOpen && assistantIndex == assistants.Length - 1);
+                if (assistant.ErrorMessageKey is not null && (assistantIndex < assistants.Length - 1 || includeLatestError))
                 {
                     result.Add(new ErrorEntry(GetErrorRow(node, false)));
                 }
@@ -696,14 +693,14 @@ public sealed class ChatPresentation : IDisposable
         private void AppendCompletedProcess(IReadOnlyList<Entry> entries, List<ChatPresentationRow> desired)
         {
             if (entries.Count == 0) return;
-            var items = entries.OfType<GroupEntry>().SelectMany(entry => entry.Group.Items).ToList();
+            var items = entries.OfType<GroupEntry>().SelectMany(entry => entry.Group.Items).ToArray();
             SummaryRow.UpdateStatistics(ChatActivityStatistics.Calculate(items));
 
             // Do not replace a just-completed running card with the final process summary while its
             // glow is still fading. The delayed callback rebuilds this turn after the visual morph,
             // at which point the normal direct-row or summary rule is applied.
             if (entries.OfType<GroupEntry>().Any(entry => _groupsAwaitingFinalPlacement.Contains(entry.Group)) ||
-                items.Count is > 0 and <= InlineActivityLimit)
+                items.Length is > 0 and <= InlineActivityLimit)
             {
                 AppendEntries(entries, desired, false);
                 return;
@@ -720,10 +717,7 @@ public sealed class ChatPresentation : IDisposable
             return index == entries.Count ? -1 : index;
         }
 
-        private void AppendEntries(
-            IReadOnlyList<Entry> entries,
-            List<ChatPresentationRow> desired,
-            bool isFinal)
+        private void AppendEntries(IReadOnlyList<Entry> entries, List<ChatPresentationRow> desired, bool isFinal)
         {
             foreach (var entry in entries)
             {

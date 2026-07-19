@@ -80,7 +80,7 @@ public sealed class CompositePromptPlaceholderSource(IReadOnlyList<IPromptPlaceh
     public IReadOnlyList<PromptPlaceholderDefinition> Definitions { get; } =
         sources.AsValueEnumerable()
             .SelectMany(static source => source.Definitions)
-            .ToList();
+            .ToArray();
 
     public bool IsKnown(string name, PromptPlaceholderContext context) =>
         sources.AsValueEnumerable().Any(source => source.IsKnown(name, context));
@@ -137,7 +137,7 @@ public sealed class SystemPromptPlaceholderSource : IPromptPlaceholderSource
             .Select(static descriptor => new PromptPlaceholderDefinition(
                 descriptor.Name,
                 new DynamicLocaleKey(descriptor.DescriptionKey)))
-            .ToList();
+            .ToArray();
 
     public bool IsKnown(string name, PromptPlaceholderContext context) =>
         Descriptors.ContainsKey(name);

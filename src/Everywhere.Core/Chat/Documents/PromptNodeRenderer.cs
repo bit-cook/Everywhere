@@ -98,14 +98,14 @@ internal static class PromptNodeRenderer
     {
         var includedSet = new HashSet<PromptNode>(ReferenceEqualityComparer.Instance);
         CollectIncluded(root, includedSet);
-        var allNodes = EnumerateSourceNodes(document).ToList();
+        var allNodes = EnumerateSourceNodes(document).ToArray();
         return new PromptRenderResult
         {
             Content = content,
             TokenCount = tokenCount,
-            IncludedNodes = allNodes.AsValueEnumerable().Where(includedSet.Contains).ToList(),
-            OmittedNodes = allNodes.AsValueEnumerable().Where(node => !includedSet.Contains(node)).ToList(),
-            TruncatedNodes = truncated.AsValueEnumerable().Where(includedSet.Contains).ToList()
+            IncludedNodes = allNodes.AsValueEnumerable().Where(includedSet.Contains).ToArray(),
+            OmittedNodes = allNodes.AsValueEnumerable().Where(node => !includedSet.Contains(node)).ToArray(),
+            TruncatedNodes = truncated.AsValueEnumerable().Where(includedSet.Contains).ToArray()
         };
     }
 
@@ -165,9 +165,9 @@ internal static class PromptNodeRenderer
         }
 
         if (tokenBudget <= 0) return string.Empty;
-        var endpoints = GetBreakEndpoints(chunk).Distinct().Order().ToList();
+        var endpoints = GetBreakEndpoints(chunk).Distinct().Order().ToArray();
         var low = 0;
-        var high = endpoints.Count - 1;
+        var high = endpoints.Length - 1;
         var best = 0;
         while (low <= high)
         {

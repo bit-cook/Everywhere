@@ -89,7 +89,7 @@ public sealed class _20260702120000_0_8_1_canary_20260702_12(
         {
             if (!promptIdsByNormalizedTemplate.TryGetValue(group.Key, out var promptId))
             {
-                var imports = group.ToList();
+                var imports = group.ToArray();
                 promptId = Guid.CreateVersion7();
                 dbContext.Prompts.Add(new PromptEntity
                 {
@@ -161,9 +161,9 @@ public sealed class _20260702120000_0_8_1_canary_20260702_12(
             .Where(static name => !string.IsNullOrWhiteSpace(name))
             .Distinct(StringComparer.Ordinal)
             .Take(2)
-            .ToList();
+            .ToArray();
 
-        var name = assistantNames.Count == 1
+        var name = assistantNames.Length == 1
             ? $"{assistantNames[0]} system prompt"
             : FirstMeaningfulLine(imports[0].OriginalTemplate) ?? "Migrated assistant prompt";
 

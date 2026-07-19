@@ -40,9 +40,9 @@ public static class ExceptionExtensions
                     .AsValueEnumerable()
                     .Select(IDynamicLocaleKey (i) => i.GetFriendlyMessage())
                     .Distinct()
-                    .ToList();
+                    .ToArray();
 
-                if (innerMessages.Count == 1) return innerMessages[0];
+                if (innerMessages.Length == 1) return innerMessages[0];
 
                 return new FormattedDynamicLocaleKey(
                     LocaleKey.FriendlyExceptionMessage_Aggregate,
