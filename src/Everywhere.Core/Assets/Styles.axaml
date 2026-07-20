@@ -247,6 +247,7 @@ ul, ol { padding-left: 2em; }
     </Style>
 
     <Style Selector="^ md|MarkdownTextBlock">
+      <Setter Property="FontFamily" Value="{DynamicResource CommonFontFamily}"/>
       <Setter Property="SelectionBrush" Value="#0078D7"/>
       <Setter Property="SelectionForegroundBrush" Value="#E5E5E5"/>
     </Style>
@@ -330,5 +331,9 @@ ul, ol { padding-left: 2em; }
         <TemplateBinding Property="PreviewEndpoint"/>
       </I18N>
     </Setter>
+  </Style>
+
+  <Style Selector="ContentPresenter">
+    <Setter Property="FontFamily" Value="{DynamicResource CommonFontFamily}"/>
   </Style>
 </Styles>

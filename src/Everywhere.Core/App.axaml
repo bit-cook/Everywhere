@@ -1,7 +1,7 @@
 <Application
   x:Class="Everywhere.App" xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:shadui="clr-namespace:ShadUI.Controls;assembly=ShadUI"
-  x:Name="Everywhere">
+  xmlns:v="clr-namespace:Everywhere.Views" x:Name="Everywhere">
 
   <Application.Styles>
     <shadui:ShadTheme/>
@@ -16,6 +16,7 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <LocaleManager/>
+        <v:AppearanceManager/>
         <ResourceInclude Source="avares://Everywhere.Core/Assets/Resources.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Assets/DataTemplates.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Chat/ActivityMarker.axaml"/>
@@ -44,6 +45,7 @@
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/CreateApiKeyForm.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/CustomAssistantInformationForm.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/DebugFeaturesControl.axaml"/>
+        <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/FontFamilyPicker.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/KeyboardShortcutInputBox.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/ManageApiKeyForm.axaml"/>
         <ResourceInclude Source="avares://Everywhere.Core/Views/Configuration/McpImportForm.axaml"/>

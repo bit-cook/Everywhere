@@ -33,7 +33,8 @@
             CornerRadius="{DynamicResource LgCornerRadius}">
             <avaloniaEdit:TextEditor
               x:Name="PART_TextEditor" Height="420"
-              Margin="0,2" FontFamily="Cascadia Code,Consolas,Menlo,Monospace"
+              Margin="0,2"
+              FontFamily="{DynamicResource MonospaceFontFamily}"
               ShowLineNumbers="True"
               Watermark="{x:Static views:McpImportForm.McpJsonWatermark}"/>
           </Border>

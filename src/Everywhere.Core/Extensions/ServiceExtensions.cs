@@ -54,6 +54,7 @@ public static class ServiceExtensions
 #endif
                 .AddTransient<OpenWebBrowserControl>()
                 .AddTransient<DebugFeaturesControl>()
+                .AddSingleton<FontFamilyCatalog>()
                 .AddSingleton<PersistentKeyValueStorage>()
                 .AddSingleton<IKeyValueStorage>(xx => xx.GetRequiredService<PersistentKeyValueStorage>())
                 .AddTransient<IAsyncInitializer>(xx => xx.GetRequiredService<PersistentKeyValueStorage>())
