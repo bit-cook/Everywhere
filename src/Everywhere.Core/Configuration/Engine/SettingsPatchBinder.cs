@@ -121,6 +121,12 @@ public sealed class SettingsPatchBinder
 
     private void PatchProperty(JsonNode? node, ISettingsPropertyDescriptor property, object target, string path)
     {
+        if (node is null)
+        {
+            PatchNullProperty(property, target, path);
+            return;
+        }
+
         switch (property.Kind)
         {
             case SettingsPropertyKind.SerializedSubtree:
@@ -151,9 +157,37 @@ public sealed class SettingsPatchBinder
         }
     }
 
+    private void PatchNullProperty(ISettingsPropertyDescriptor property, object target, string path)
+    {
+        var failureKind = property.Kind == SettingsPropertyKind.SerializedSubtree ?
+            SettingsEngineDiagnosticKind.SerializedSubtreeFailure :
+            SettingsEngineDiagnosticKind.ScalarConversionFailure;
+
+        if (!property.Flags.HasFlag(SettingsPropertyFlags.AllowsNull))
+        {
+            AddNullabilityDiagnostic(failureKind, path);
+            return;
+        }
+
+        if (property.Flags.HasFlag(SettingsPropertyFlags.CanWrite))
+        {
+            property.SetValue(target, null);
+            return;
+        }
+
+        if (property.GetValue(target) is not null)
+        {
+            AddDiagnostic(
+                SettingsEngineDiagnosticKind.UnsupportedShape,
+                SettingsEngineDiagnosticSeverity.Warning,
+                path,
+                DiagnosticMessage(LocaleKey.SettingsEngine_Diagnostic_PropertyCannotBeSetToNull, path));
+        }
+    }
+
     private void PatchSerializedSubtree(JsonNode? node, ISettingsPropertyDescriptor property, object target, string path)
     {
-        if (!property.CanWrite)
+        if (!property.Flags.HasFlag(SettingsPropertyFlags.CanWrite))
         {
             AddDiagnostic(
                 SettingsEngineDiagnosticKind.SerializedSubtreeFailure,
@@ -163,7 +197,7 @@ public sealed class SettingsPatchBinder
             return;
         }
 
-        if (!TryDeserialize(node, property.PropertyType, path, SettingsEngineDiagnosticKind.SerializedSubtreeFailure, out var value))
+        if (!TryDeserialize(node, GetValueContract(property), path, SettingsEngineDiagnosticKind.SerializedSubtreeFailure, out var value))
         {
             return;
         }
@@ -173,12 +207,12 @@ public sealed class SettingsPatchBinder
 
     private void PatchScalar(JsonNode? node, ISettingsPropertyDescriptor property, object target, string path)
     {
-        if (!property.CanWrite)
+        if (!property.Flags.HasFlag(SettingsPropertyFlags.CanWrite))
         {
             return;
         }
 
-        if (!TryDeserialize(node, property.PropertyType, path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out var value))
+        if (!TryDeserialize(node, GetValueContract(property), path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out var value))
         {
             return;
         }
@@ -188,12 +222,17 @@ public sealed class SettingsPatchBinder
 
     private void PatchArray(JsonNode? node, ISettingsPropertyDescriptor property, object target, string path)
     {
-        if (!property.CanWrite)
+        if (!property.Flags.HasFlag(SettingsPropertyFlags.CanWrite))
         {
             return;
         }
 
-        if (!TryDeserialize(node, property.PropertyType, path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out var value))
+        if (node is JsonArray array && !ValidateCollectionElements(array, GetElementContract(property), path))
+        {
+            return;
+        }
+
+        if (!TryDeserialize(node, GetValueContract(property), path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out var value))
         {
             return;
         }
@@ -216,7 +255,7 @@ public sealed class SettingsPatchBinder
         var currentValue = property.GetValue(target);
         if (currentValue is IList { IsFixedSize: false, IsReadOnly: false } list)
         {
-            var elementType = property.ElementType ?? typeof(object);
+            var elementContract = GetElementContract(property);
             var commonCount = Math.Min(list.Count, array.Count);
 
             // Keep the collection object stable for UI bindings and observers.
@@ -227,7 +266,7 @@ public sealed class SettingsPatchBinder
                 var entryPath = CombinePath(path, i.ToString(CultureInfo.InvariantCulture));
                 var result = PatchValue(
                     array[i],
-                    elementType,
+                    elementContract,
                     list[i],
                     entryPath,
                     SettingsEngineDiagnosticKind.ScalarConversionFailure,
@@ -243,7 +282,7 @@ public sealed class SettingsPatchBinder
             {
                 if (TryCreateValue(
                         array[i],
-                        elementType,
+                        elementContract,
                         CombinePath(path, i.ToString(CultureInfo.InvariantCulture)),
                         out var item))
                 {
@@ -259,7 +298,7 @@ public sealed class SettingsPatchBinder
             return;
         }
 
-        if (!property.CanWrite)
+        if (!property.Flags.HasFlag(SettingsPropertyFlags.CanWrite))
         {
             AddDiagnostic(
                 SettingsEngineDiagnosticKind.UnsupportedShape,
@@ -269,18 +308,28 @@ public sealed class SettingsPatchBinder
             return;
         }
 
-        if (TryCreateListReplacement(
-                array,
-                property.PropertyType,
-                property.ElementType ?? typeof(object),
-                path,
-                out var replacement))
+        var replacementType = typeof(List<>).MakeGenericType(property.ElementType ?? typeof(object));
+        if (property.PropertyType.IsAssignableFrom(replacementType))
         {
-            property.SetValue(target, replacement);
+            if (TryCreateListReplacement(
+                    array,
+                    replacementType,
+                    GetElementContract(property),
+                    path,
+                    out var listReplacement))
+            {
+                property.SetValue(target, listReplacement);
+            }
+
             return;
         }
 
-        if (TryDeserialize(node, property.PropertyType, path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out replacement))
+        if (!ValidateCollectionElements(array, GetElementContract(property), path))
+        {
+            return;
+        }
+
+        if (TryDeserialize(node, GetValueContract(property), path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out var replacement))
         {
             property.SetValue(target, replacement);
         }
@@ -288,20 +337,14 @@ public sealed class SettingsPatchBinder
 
     private bool TryCreateListReplacement(
         JsonArray array,
-        Type targetType,
-        Type elementType,
+        Type replacementType,
+        ValueContract elementContract,
         string path,
         out object? replacement)
     {
         replacement = null;
 
-        var listType = typeof(List<>).MakeGenericType(elementType);
-        if (!targetType.IsAssignableFrom(listType))
-        {
-            return false;
-        }
-
-        if (Activator.CreateInstance(listType) is not IList list)
+        if (Activator.CreateInstance(replacementType) is not IList list)
         {
             return false;
         }
@@ -309,7 +352,7 @@ public sealed class SettingsPatchBinder
         for (var i = 0; i < array.Count; i++)
         {
             var entryPath = CombinePath(path, i.ToString(CultureInfo.InvariantCulture));
-            if (!TryCreateValue(array[i], elementType, entryPath, out var item))
+            if (!TryCreateValue(array[i], elementContract, entryPath, out var item))
             {
                 return false;
             }
@@ -336,7 +379,7 @@ public sealed class SettingsPatchBinder
         var currentValue = property.GetValue(target);
         if (currentValue is IDictionary { IsFixedSize: false, IsReadOnly: false } dictionary)
         {
-            var valueType = property.DictionaryValueType ?? typeof(object);
+            var valueContract = GetElementContract(property);
             var seenKeys = new HashSet<object>();
 
             // Mutable dictionaries keep their identity. Matching object values
@@ -356,7 +399,7 @@ public sealed class SettingsPatchBinder
                 {
                     var result = PatchValue(
                         pair.Value,
-                        valueType,
+                        valueContract,
                         dictionary[key],
                         entryPath,
                         SettingsEngineDiagnosticKind.ScalarConversionFailure,
@@ -370,7 +413,7 @@ public sealed class SettingsPatchBinder
                     continue;
                 }
 
-                if (TryCreateValue(pair.Value, valueType, entryPath, out var value))
+                if (TryCreateValue(pair.Value, valueContract, entryPath, out var value))
                 {
                     dictionary[key] = value;
                 }
@@ -390,7 +433,7 @@ public sealed class SettingsPatchBinder
             return;
         }
 
-        if (!property.CanWrite)
+        if (!property.Flags.HasFlag(SettingsPropertyFlags.CanWrite))
         {
             AddDiagnostic(
                 SettingsEngineDiagnosticKind.UnsupportedShape,
@@ -400,7 +443,12 @@ public sealed class SettingsPatchBinder
             return;
         }
 
-        if (TryDeserialize(node, property.PropertyType, path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out var replacement))
+        if (!ValidateDictionaryValues(obj, GetElementContract(property), path))
+        {
+            return;
+        }
+
+        if (TryDeserialize(node, GetValueContract(property), path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out var replacement))
         {
             property.SetValue(target, replacement);
         }
@@ -430,6 +478,24 @@ public sealed class SettingsPatchBinder
             }
 
             var existingValue = dictionary[key];
+            if (pair.Value is null)
+            {
+                if (!property.Flags.HasFlag(SettingsPropertyFlags.ElementAllowsNull))
+                {
+                    AddNullabilityDiagnostic(SettingsEngineDiagnosticKind.ScalarConversionFailure, entryPath);
+                }
+                else if (existingValue is not null)
+                {
+                    AddDiagnostic(
+                        SettingsEngineDiagnosticKind.UnsupportedShape,
+                        SettingsEngineDiagnosticSeverity.Warning,
+                        entryPath,
+                        DiagnosticMessage(LocaleKey.SettingsEngine_Diagnostic_PropertyCannotBeSetToNull, entryPath));
+                }
+
+                continue;
+            }
+
             if (existingValue is null || pair.Value is not JsonObject childObj)
             {
                 continue;
@@ -446,7 +512,7 @@ public sealed class SettingsPatchBinder
 
     private ValuePatchResult PatchValue(
         JsonNode? node,
-        Type declaredType,
+        ValueContract contract,
         object? existingValue,
         string path,
         SettingsEngineDiagnosticKind failureKind,
@@ -461,23 +527,23 @@ public sealed class SettingsPatchBinder
             return ValuePatchResult.PatchedInPlace;
         }
 
-        return TryCreateValue(node, declaredType, path, failureKind, out replacement) ?
+        return TryCreateValue(node, contract, path, failureKind, out replacement) ?
             ValuePatchResult.Replace :
             ValuePatchResult.Failed;
     }
 
-    private bool TryCreateValue(JsonNode? node, Type declaredType, string path, out object? value) =>
-        TryCreateValue(node, declaredType, path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out value);
+    private bool TryCreateValue(JsonNode? node, ValueContract contract, string path, out object? value) =>
+        TryCreateValue(node, contract, path, SettingsEngineDiagnosticKind.ScalarConversionFailure, out value);
 
     private bool TryCreateValue(
         JsonNode? node,
-        Type declaredType,
+        ValueContract contract,
         string path,
         SettingsEngineDiagnosticKind failureKind,
         out object? value)
     {
         value = null;
-        var normalizedType = Nullable.GetUnderlyingType(declaredType) ?? declaredType;
+        var normalizedType = Nullable.GetUnderlyingType(contract.Type) ?? contract.Type;
 
         if (node is JsonObject obj &&
             TryGetPatchDescriptor(normalizedType, out var descriptor) &&
@@ -486,7 +552,7 @@ public sealed class SettingsPatchBinder
             return true;
         }
 
-        return TryDeserialize(node, declaredType, path, failureKind, out value);
+        return TryDeserialize(node, contract, path, failureKind, out value);
     }
 
     private bool TryPatchObjectInPlace(JsonObject obj, object target, string path)
@@ -536,7 +602,7 @@ public sealed class SettingsPatchBinder
         if (value is null)
         {
             if (property.ChildDescriptor is not { } childDescriptor ||
-                !property.CanWrite ||
+                !property.Flags.HasFlag(SettingsPropertyFlags.CanWrite) ||
                 !TryCreatePatchableObject(obj, childDescriptor, path, out value))
             {
                 AddDiagnostic(
@@ -581,20 +647,20 @@ public sealed class SettingsPatchBinder
 
         foreach (var property in descriptor.Properties)
         {
-            if (!property.CanInitialize ||
+            if (!property.Flags.HasFlag(SettingsPropertyFlags.CanInitialize) ||
                 !obj.TryGetPropertyValue(property.JsonName, out var node))
             {
                 continue;
             }
 
             var propertyPath = CombinePath(path, property.JsonName);
+            (initializedJsonNames ??= new HashSet<string>(StringComparer.Ordinal)).Add(property.JsonName);
             if (!TryBindInitializerValue(node, property, propertyPath, out var value))
             {
                 continue;
             }
 
             (values ??= new Dictionary<string, object?>(StringComparer.Ordinal))[property.JsonName] = value;
-            (initializedJsonNames ??= new HashSet<string>(StringComparer.Ordinal)).Add(property.JsonName);
         }
 
         return new CreationInitializerBinding(values, initializedJsonNames);
@@ -614,7 +680,7 @@ public sealed class SettingsPatchBinder
             {
                 return TryDeserialize(
                     node,
-                    property.PropertyType,
+                    GetValueContract(property),
                     path,
                     SettingsEngineDiagnosticKind.ScalarConversionFailure,
                     out value);
@@ -635,13 +701,67 @@ public sealed class SettingsPatchBinder
 
         return TryDeserialize(
             node,
-            property.PropertyType,
+            GetValueContract(property),
             path,
             property.Kind == SettingsPropertyKind.SerializedSubtree ?
                 SettingsEngineDiagnosticKind.SerializedSubtreeFailure :
                 SettingsEngineDiagnosticKind.ScalarConversionFailure,
             out value);
     }
+
+    private bool ValidateCollectionElements(JsonArray array, ValueContract elementContract, string path)
+    {
+        if (elementContract.AllowsNull)
+        {
+            return true;
+        }
+
+        var isValid = true;
+        for (var i = 0; i < array.Count; i++)
+        {
+            if (array[i] is not null)
+            {
+                continue;
+            }
+
+            AddNullabilityDiagnostic(
+                SettingsEngineDiagnosticKind.ScalarConversionFailure,
+                CombinePath(path, i.ToString(CultureInfo.InvariantCulture)));
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    private bool ValidateDictionaryValues(JsonObject obj, ValueContract valueContract, string path)
+    {
+        if (valueContract.AllowsNull)
+        {
+            return true;
+        }
+
+        var isValid = true;
+        foreach (var pair in obj)
+        {
+            if (pair.Value is not null)
+            {
+                continue;
+            }
+
+            AddNullabilityDiagnostic(
+                SettingsEngineDiagnosticKind.ScalarConversionFailure,
+                CombinePath(path, pair.Key));
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    private static ValueContract GetValueContract(ISettingsPropertyDescriptor property) =>
+        new(property.PropertyType, property.Flags.HasFlag(SettingsPropertyFlags.AllowsNull));
+
+    private static ValueContract GetElementContract(ISettingsPropertyDescriptor property) =>
+        new(property.ElementType ?? typeof(object), property.Flags.HasFlag(SettingsPropertyFlags.ElementAllowsNull));
 
     private void HandleUnknownMembers(
         JsonObject json,
@@ -673,7 +793,7 @@ public sealed class SettingsPatchBinder
 
     private bool TryDeserialize(
         JsonNode? node,
-        Type type,
+        ValueContract contract,
         string path,
         SettingsEngineDiagnosticKind failureKind,
         out object? value)
@@ -682,22 +802,18 @@ public sealed class SettingsPatchBinder
 
         if (node is null)
         {
-            if (IsNullable(type))
+            if (contract.AllowsNull)
             {
                 return true;
             }
 
-            AddDiagnostic(
-                failureKind,
-                SettingsEngineDiagnosticSeverity.Warning,
-                path,
-                DiagnosticMessage(LocaleKey.SettingsEngine_Diagnostic_NullForNonNullable, path));
+            AddNullabilityDiagnostic(failureKind, path);
             return false;
         }
 
         try
         {
-            value = SettingsEngineJson.Deserialize(node, type);
+            value = SettingsEngineJson.Deserialize(node, contract.Type);
             return true;
         }
         catch (Exception ex)
@@ -706,11 +822,18 @@ public sealed class SettingsPatchBinder
                 failureKind,
                 SettingsEngineDiagnosticSeverity.Warning,
                 path,
-                DiagnosticMessage(LocaleKey.SettingsEngine_Diagnostic_ReadValueFailed, path, type.Name),
+                DiagnosticMessage(LocaleKey.SettingsEngine_Diagnostic_ReadValueFailed, path, contract.Type.Name),
                 ex);
             return false;
         }
     }
+
+    private void AddNullabilityDiagnostic(SettingsEngineDiagnosticKind failureKind, string path) =>
+        AddDiagnostic(
+            failureKind,
+            SettingsEngineDiagnosticSeverity.Warning,
+            path,
+            DiagnosticMessage(LocaleKey.SettingsEngine_Diagnostic_NullForNonNullable, path));
 
     private bool TryConvertDictionaryKey(
         string keyText,
@@ -888,8 +1011,6 @@ public sealed class SettingsPatchBinder
                 key,
                 args.Select(static arg => new DirectLocaleKey(arg)).ToArray());
 
-    private static bool IsNullable(Type type) => !type.IsValueType || Nullable.GetUnderlyingType(type) is not null;
-
     private static string CombinePath(string prefix, string segment) =>
         string.IsNullOrEmpty(prefix) ? segment : $"{prefix}.{segment}";
 
@@ -902,6 +1023,8 @@ public sealed class SettingsPatchBinder
         PatchedInPlace,
         Replace
     }
+
+    private readonly record struct ValueContract(Type Type, bool AllowsNull);
 
     private readonly record struct CreationInitializerBinding(
         IReadOnlyDictionary<string, object?>? InitialValues,
