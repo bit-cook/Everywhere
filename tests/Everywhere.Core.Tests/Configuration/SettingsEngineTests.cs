@@ -8,6 +8,7 @@ using Everywhere.Common;
 using Everywhere.Configuration;
 using Everywhere.Configuration.Engine;
 using Everywhere.Extensions;
+using Everywhere.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using SettingsDescriptorProviderFactory = Everywhere.Configuration.Engine.SettingsDescriptorProviderFactory;
@@ -890,7 +891,14 @@ public sealed class SettingsEngineTests
         var target = new TestRoot();
 
         target.Section.Name = "new";
-        binder.WriteObservedPath(store, descriptor, target, "Section:Name", "new");
+        binder.WriteObservedPath(
+            store,
+            descriptor,
+            target,
+            ObservedPath(
+                DeepObserverPathSegment.Property("Section"),
+                DeepObserverPathSegment.Property("Name")),
+            "new");
 
         var section = Require(store.CreateSnapshot()["Section"]).AsObject();
         Assert.That(Require(section["Name"]).GetValue<string>(), Is.EqualTo("new"));
@@ -907,7 +915,14 @@ public sealed class SettingsEngineTests
         var target = new TestRoot();
 
         target.Renamed.Name = "new";
-        binder.WriteObservedPath(store, descriptor, target, "Renamed:Name", "new");
+        binder.WriteObservedPath(
+            store,
+            descriptor,
+            target,
+            ObservedPath(
+                DeepObserverPathSegment.Property("Renamed"),
+                DeepObserverPathSegment.Property("Name")),
+            "new");
 
         var renamed = Require(store.CreateSnapshot()["Renamed"]).AsObject();
         Assert.That(Require(renamed["json_name"]).GetValue<string>(), Is.EqualTo("new"));
@@ -924,7 +939,12 @@ public sealed class SettingsEngineTests
         var target = new TestRoot();
 
         target.Count = 3;
-        binder.WriteObservedPath(store, descriptor, target, "Count", 3);
+        binder.WriteObservedPath(
+            store,
+            descriptor,
+            target,
+            ObservedPath(DeepObserverPathSegment.Property("Count")),
+            3);
 
         var count = Require(store.CreateSnapshot()["Count"]);
         Assert.That(count.GetValueKind(), Is.EqualTo(JsonValueKind.Number));
@@ -941,11 +961,42 @@ public sealed class SettingsEngineTests
         var target = new TestRoot();
 
         target.Scores["0"] = 9;
-        binder.WriteObservedPath(store, descriptor, target, "Scores:0", 9);
+        binder.WriteObservedPath(
+            store,
+            descriptor,
+            target,
+            ObservedPath(
+                DeepObserverPathSegment.Property("Scores"),
+                DeepObserverPathSegment.DictionaryKey("0")),
+            9);
 
         var scores = Require(store.CreateSnapshot()["Scores"]).AsObject();
         Assert.That(Require(scores["0"]).GetValueKind(), Is.EqualTo(JsonValueKind.Number));
         Assert.That(Require(scores["0"]).GetValue<int>(), Is.EqualTo(9));
+    }
+
+    [Test]
+    public void WriteObservedPath_PreservesDictionaryKeyDelimiters()
+    {
+        using var file = TestSettingsFile("{}");
+        using var store = JsonSettingsStorage.Load(file.Path);
+        var binder = new SettingsPatchBinder();
+        var descriptor = binder.GetDescriptor(typeof(TestRoot));
+        var target = new TestRoot();
+
+        target.Scores["provider:key"] = 9;
+        binder.WriteObservedPath(
+            store,
+            descriptor,
+            target,
+            ObservedPath(
+                DeepObserverPathSegment.Property("Scores"),
+                DeepObserverPathSegment.DictionaryKey("provider:key")),
+            9);
+
+        var scores = Require(store.CreateSnapshot()["Scores"]).AsObject();
+        Assert.That(Require(scores["provider:key"]).GetValue<int>(), Is.EqualTo(9));
+        Assert.That(scores, Has.Count.EqualTo(1));
     }
 
     [Test]
@@ -958,7 +1009,15 @@ public sealed class SettingsEngineTests
         var target = new TestRoot();
 
         target.Items.Add(new TestItem { Name = "new" });
-        binder.WriteObservedPath(store, descriptor, target, "Items:0:Name", "new");
+        binder.WriteObservedPath(
+            store,
+            descriptor,
+            target,
+            ObservedPath(
+                DeepObserverPathSegment.Property("Items"),
+                DeepObserverPathSegment.CollectionIndex(0),
+                DeepObserverPathSegment.Property("Name")),
+            "new");
 
         var items = Require(store.CreateSnapshot()["Items"]).AsArray();
         Assert.That(Require(Require(items[0])["Name"]).GetValue<string>(), Is.EqualTo("new"));
@@ -975,7 +1034,16 @@ public sealed class SettingsEngineTests
         var source = new Settings(serviceProvider);
         source.Model.CustomAssistants.Add(new CustomAssistant { ToolEnablement = null });
 
-        writer.WriteObservedPath(store, descriptor, source, "Model:CustomAssistants:0:ToolEnablement", null);
+        writer.WriteObservedPath(
+            store,
+            descriptor,
+            source,
+            ObservedPath(
+                DeepObserverPathSegment.Property("Model"),
+                DeepObserverPathSegment.Property("CustomAssistants"),
+                DeepObserverPathSegment.CollectionIndex(0),
+                DeepObserverPathSegment.Property("ToolEnablement")),
+            null);
 
         var target = new Settings(serviceProvider);
         var reader = new SettingsPatchBinder();
@@ -1074,6 +1142,8 @@ public sealed class SettingsEngineTests
         Assert.That(store.Diagnostics.Any(d => d.Kind == SettingsEngineDiagnosticKind.WriteFailure), Is.True);
         Assert.That(Directory.GetFiles(directory.Path), Is.Empty);
     }
+
+    private static DeepObserverPath ObservedPath(params DeepObserverPathSegment[] segments) => new(segments);
 
     private static TempSettingsFile TestSettingsFile(string json) => new(json);
 

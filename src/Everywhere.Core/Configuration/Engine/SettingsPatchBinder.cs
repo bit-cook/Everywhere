@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json.Nodes;
+using Everywhere.Utilities;
 
 namespace Everywhere.Configuration.Engine;
 
@@ -53,10 +54,10 @@ public sealed class SettingsPatchBinder
     /// Writes an observed CLR object path back to the settings JSON document.
     /// </summary>
     /// <remarks>
-    /// <paramref name="observedPath"/> uses <see cref="Everywhere.Utilities.ObjectObserver"/>'s
-    /// colon-separated CLR path. This method resolves it through descriptors into
-    /// a typed JSON path so numeric dictionary keys stay object properties while
-    /// collection indexes become array segments.
+    /// <paramref name="observedPath"/> is an DeepObserver typed CLR path. This
+    /// method resolves it through descriptors into a typed JSON path so numeric
+    /// dictionary keys stay object properties while collection indexes become
+    /// array segments. Path segments are never flattened into a delimiter string.
     /// When the path enters a serialized-subtree property or indexed value, the
     /// write is collapsed to that boundary and the current boundary value is
     /// read from <paramref name="rootValue"/>.
@@ -65,7 +66,7 @@ public sealed class SettingsPatchBinder
         JsonSettingsStorage store,
         ISettingsDescriptor rootDescriptor,
         object rootValue,
-        string observedPath,
+        DeepObserverPath observedPath,
         object? observedValue)
     {
         try
@@ -77,11 +78,12 @@ public sealed class SettingsPatchBinder
         }
         catch (Exception ex)
         {
+            var observedPathText = observedPath.ToString();
             var diagnostic = new SettingsEngineDiagnostic(
                 SettingsEngineDiagnosticKind.WriteFailure,
                 SettingsEngineDiagnosticSeverity.Error,
-                observedPath,
-                DiagnosticMessage(LocaleKey.SettingsEngine_Diagnostic_WriteObservedPathFailed, observedPath),
+                observedPathText,
+                DiagnosticMessage(LocaleKey.SettingsEngine_Diagnostic_WriteObservedPathFailed, observedPathText),
                 ex);
 
             _diagnostics.Add(diagnostic);
@@ -876,7 +878,7 @@ public sealed class SettingsPatchBinder
     private PathResolution ResolveObservedPath(
         ISettingsDescriptor rootDescriptor,
         object rootValue,
-        string observedPath,
+        DeepObserverPath observedPath,
         object? observedValue)
     {
         var jsonSegments = new List<SettingsJsonPathSegment>();
@@ -890,15 +892,17 @@ public sealed class SettingsPatchBinder
         var expectingListIndex = false;
         var expectingDictionaryKey = false;
 
-        foreach (var segment in SplitObservedPath(observedPath))
+        foreach (var segment in observedPath.AsSpan())
         {
             if (expectingListIndex)
             {
-                if (!int.TryParse(segment, NumberStyles.None, CultureInfo.InvariantCulture, out var index))
+                if (segment.Kind != DeepObserverPathSegmentKind.CollectionIndex)
                 {
-                    throw new InvalidOperationException($"Observed settings path segment '{segment}' must be an array index.");
+                    throw new InvalidOperationException(
+                        $"Observed settings path segment '{segment}' must be a collection index.");
                 }
 
+                var index = segment.Index;
                 jsonSegments.Add(SettingsJsonPathSegment.Index(index));
                 declaredType = indexedValueType ?? declaredType;
                 currentValue = currentValue is IList list && index < list.Count ? list[index] : observedValue;
@@ -915,9 +919,15 @@ public sealed class SettingsPatchBinder
 
             if (expectingDictionaryKey)
             {
-                jsonSegments.Add(SettingsJsonPathSegment.Property(segment));
+                if (segment.Kind != DeepObserverPathSegmentKind.DictionaryKey || segment.Name is not { } keyText)
+                {
+                    throw new InvalidOperationException(
+                        $"Observed settings path segment '{segment}' must be a dictionary key.");
+                }
+
+                jsonSegments.Add(SettingsJsonPathSegment.Property(keyText));
                 declaredType = indexedValueType ?? declaredType;
-                var key = indexedProperty?.DictionaryKeyReader?.Invoke(segment);
+                var key = indexedProperty?.DictionaryKeyReader?.Invoke(keyText);
                 currentValue = key is not null && currentValue is IDictionary dictionary && dictionary.Contains(key) ?
                     dictionary[key] :
                     observedValue;
@@ -932,7 +942,13 @@ public sealed class SettingsPatchBinder
                 continue;
             }
 
-            if (currentDescriptor.FindProperty(segment) is { } property)
+            if (segment.Kind != DeepObserverPathSegmentKind.Property || segment.Name is not { } propertyName)
+            {
+                throw new InvalidOperationException(
+                    $"Observed settings path segment '{segment}' must be a property name.");
+            }
+
+            if (currentDescriptor.FindProperty(propertyName) is { } property)
             {
                 jsonSegments.Add(SettingsJsonPathSegment.Property(property.JsonName));
                 declaredType = property.PropertyType;
@@ -968,7 +984,7 @@ public sealed class SettingsPatchBinder
                 continue;
             }
 
-            jsonSegments.Add(SettingsJsonPathSegment.Property(segment));
+            jsonSegments.Add(SettingsJsonPathSegment.Property(propertyName));
             declaredType = indexedValueType ?? declaredType;
             currentDescriptor = indexedValueDescriptor ?? currentDescriptor;
             currentValue = observedValue;
@@ -1013,9 +1029,6 @@ public sealed class SettingsPatchBinder
 
     private static string CombinePath(string prefix, string segment) =>
         string.IsNullOrEmpty(prefix) ? segment : $"{prefix}.{segment}";
-
-    private static string[] SplitObservedPath(string observedPath) =>
-        observedPath.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private enum ValuePatchResult
     {

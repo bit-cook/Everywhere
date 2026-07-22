@@ -64,8 +64,8 @@ public readonly record struct SettingsJsonPathSegment
     /// </summary>
     /// <param name="name">The exact JSON property name.</param>
     public static SettingsJsonPathSegment Property(string name) =>
-        string.IsNullOrEmpty(name) ?
-            throw new ArgumentException("JSON property path segment cannot be null or empty.", nameof(name)) :
+        name is null ?
+            throw new ArgumentNullException(nameof(name)) :
             new SettingsJsonPathSegment(SettingsJsonPathSegmentKind.Property, name, -1);
 
     /// <summary>
