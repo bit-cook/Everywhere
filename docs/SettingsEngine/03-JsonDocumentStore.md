@@ -93,6 +93,13 @@ When a collection element or dictionary value type is marked as a serialized sub
 
 For normal patch-managed objects, only known changed paths should be replaced.
 
+Runtime change notifications use `ObjectObserverPath`, an immutable array of typed
+segments. A segment is either a CLR property, a collection index, or a dictionary
+key. The path is never flattened with `:`: a dictionary key such as `provider:key`
+remains one segment. Settings Engine resolves these CLR segments through the
+descriptor and only then creates a JSON path, where object properties and array
+indexes have different representations.
+
 ## 7. Unknown Key Preservation
 
 Unknown keys are preserved because `_jsonObj` remains the source document.

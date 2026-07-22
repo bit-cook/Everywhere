@@ -18,14 +18,14 @@ namespace Everywhere.Configuration.Engine;
 /// The JSON document remains the persistence source of truth, while the runtime
 /// object graph is patched in place so MVVM references stay stable.
 /// </remarks>
-public sealed class SettingsEngine : IAsyncInitializer
+public sealed class SettingsEngine : IAsyncInitializer, IDisposable
 {
     private readonly string _filePath;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILoggerFactory _loggerFactory;
     private readonly SettingsPatchBinder _binder;
     private readonly ISettingsDescriptor _rootDescriptor;
-    private readonly ObjectObserver _observer;
+    private readonly DeepObserver _observer;
     private JsonSettingsStorage? _storage;
 
     public AsyncInitializerIndex Index => AsyncInitializerIndex.Settings;
@@ -71,7 +71,7 @@ public sealed class SettingsEngine : IAsyncInitializer
 
         _binder = new SettingsPatchBinder();
         _rootDescriptor = _binder.GetDescriptor(typeof(Settings));
-        _observer = new ObjectObserver(HandleSettingsChanges);
+        _observer = new DeepObserver(HandleSettingsChanges);
     }
 
     public Task InitializeAsync()
@@ -85,7 +85,32 @@ public sealed class SettingsEngine : IAsyncInitializer
         return Task.CompletedTask;
     }
 
-    private void HandleSettingsChanges(in ObjectObserverChangedEventArgs e)
+    /// <summary>
+    /// Stops observing runtime settings and releases the JSON document store.
+    /// </summary>
+    public void Dispose()
+    {
+        _observer.Dispose();
+
+        if (_storage is not { } storage) return;
+
+        try
+        {
+            // Dispose can run before the debounced save loop reaches its final
+            // tick, so force the last in-memory snapshot to disk first.
+            storage.FlushAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception ex)
+        {
+            _loggerFactory.CreateLogger<SettingsEngine>().LogError(ex, "Failed to flush settings during shutdown.");
+        }
+        finally
+        {
+            storage.Dispose();
+        }
+    }
+
+    private void HandleSettingsChanges(in DeepObserverChangedEventArgs e)
     {
         _binder.WriteObservedPath(Storage, _rootDescriptor, Settings, e.Path, e.Value);
     }

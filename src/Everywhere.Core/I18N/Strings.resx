@@ -3267,6 +3267,9 @@ Release date: {2}</value>
     <data name="SettingsEngine_Diagnostic_NullForNonNullable" xml:space="preserve">
         <value>Cannot assign null to non-nullable settings value '{0}'.</value>
     </data>
+    <data name="SettingsEngine_Diagnostic_PropertyCannotBeSetToNull" xml:space="preserve">
+        <value>Settings value '{0}' accepts null but cannot be cleared because its property is not writable.</value>
+    </data>
     <data name="SettingsEngine_Diagnostic_ReadValueFailed" xml:space="preserve">
         <value>Failed to read settings value '{0}' as '{1}'.</value>
     </data>

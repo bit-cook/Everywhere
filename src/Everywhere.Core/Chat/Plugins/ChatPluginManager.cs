@@ -23,7 +23,7 @@ using ZLinq;
 
 namespace Everywhere.Chat.Plugins;
 
-public class ChatPluginManager : IChatPluginManager
+public class ChatPluginManager : IChatPluginManager, IDisposable
 {
     private const string McpRuntimeWarningKey = "mcp.runtime";
 
@@ -40,8 +40,8 @@ public class ChatPluginManager : IChatPluginManager
     private readonly CompositeDisposable _disposables = new(3);
     private readonly SourceList<BuiltInChatPlugin> _builtInPluginsSource = new();
     private readonly SourceList<McpChatPlugin> _mcpPluginsSource = new();
-    private readonly ObjectObserver _builtInPluginsObserver;
-    private readonly ObjectObserver _mcpPluginsObserver;
+    private readonly DeepObserver _builtInPluginsObserver;
+    private readonly DeepObserver _mcpPluginsObserver;
 
     public ChatPluginManager(
         IServiceProvider serviceProvider,
@@ -104,8 +104,8 @@ public class ChatPluginManager : IChatPluginManager
             .BindEx(_disposables);
         _disposables.Add(_mcpPluginsSource);
 
-        _builtInPluginsObserver = new ObjectObserver((in e) => HandleChatPluginChanged(BuiltInPlugins, e)).Observe(BuiltInPlugins);
-        _mcpPluginsObserver = new ObjectObserver((in e) => HandleChatPluginChanged(McpPlugins, e)).Observe(McpPlugins);
+        _builtInPluginsObserver = new DeepObserver((in e) => HandleChatPluginChanged(BuiltInPlugins, e)).Observe(BuiltInPlugins);
+        _mcpPluginsObserver = new DeepObserver((in e) => HandleChatPluginChanged(McpPlugins, e)).Observe(McpPlugins);
         RefreshMcpRuntimeWarnings();
 
         void InitializeMcpPlugins()
@@ -137,25 +137,27 @@ public class ChatPluginManager : IChatPluginManager
         }
 
         // Handle changes to plugins and update settings accordingly.
-        void HandleChatPluginChanged<TPlugin>(IReadOnlyList<TPlugin> plugins, in ObjectObserverChangedEventArgs e) where TPlugin : ChatPlugin
+        void HandleChatPluginChanged<TPlugin>(IReadOnlyList<TPlugin> plugins, in DeepObserverChangedEventArgs e) where TPlugin : ChatPlugin
         {
-            var parts = e.Path.Split(':');
-            if (parts.Length < 2 || !int.TryParse(parts[0], out var pluginIndex) || pluginIndex < 0 || pluginIndex >= plugins.Count)
+            var path = e.Path.AsSpan();
+            if (path.Length < 2 ||
+                path[0].Kind != DeepObserverPathSegmentKind.CollectionIndex ||
+                path[0].Index >= plugins.Count)
             {
                 return;
             }
 
-            var plugin = plugins[pluginIndex];
+            var plugin = plugins[path[0].Index];
             var value = e.Value is true;
 
             ObservableDictionary<string, bool> records;
             bool? defaultValue;
-            if (e.Path.EndsWith(nameof(ChatFunction.IsEnabled), StringComparison.Ordinal))
+            if (path[^1] is { Kind: DeepObserverPathSegmentKind.Property, Name: nameof(ChatFunction.IsEnabled) })
             {
                 records = isEnabledRecords;
-                defaultValue = parts.Length != 2 || plugin is BuiltInChatPlugin { IsDefaultEnabled: true };
+                defaultValue = path.Length != 2 || plugin is BuiltInChatPlugin { IsDefaultEnabled: true };
             }
-            else if (e.Path.EndsWith(nameof(ChatFunction.AutoApprove), StringComparison.Ordinal))
+            else if (path[^1] is { Kind: DeepObserverPathSegmentKind.Property, Name: nameof(ChatFunction.AutoApprove) })
             {
                 records = isPermissionGrantedRecords;
                 defaultValue = null;
@@ -166,7 +168,7 @@ public class ChatPluginManager : IChatPluginManager
             }
 
             string key;
-            switch (parts.Length)
+            switch (path.Length)
             {
                 case 2:
                 {
@@ -174,11 +176,11 @@ public class ChatPluginManager : IChatPluginManager
                     break;
                 }
                 case 4 when
-                    int.TryParse(parts[2], out var functionIndex) &&
-                    functionIndex >= 0 &&
-                    functionIndex < plugin.Functions.Count:
+                    path[1] is { Kind: DeepObserverPathSegmentKind.Property, Name: nameof(ChatPlugin.Functions) } &&
+                    path[2].Kind == DeepObserverPathSegmentKind.CollectionIndex &&
+                    path[2].Index < plugin.Functions.Count:
                 {
-                    var observedFunction = plugin.Functions[functionIndex];
+                    var observedFunction = plugin.Functions[path[2].Index];
                     var function = plugin.GetChatFunctions()
                         .AsValueEnumerable()
                         .FirstOrDefault(f => ReferenceEquals(f, observedFunction)) ?? observedFunction;

@@ -244,7 +244,7 @@ public sealed partial class McpChatPlugin : ChatPlugin<McpChatFunction>, ILogger
     /// <summary>
     /// Gets the log entries of this plugin.
     /// </summary>
-    [ObjectObserverIgnore]
+    [DeepObserverIgnore]
     public IReadOnlyBindableList<LogEntry> LogEntries { get; }
 
     private const int MaxLogEntries = 1000;
