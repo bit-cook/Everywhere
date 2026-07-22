@@ -31,6 +31,14 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
             SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
             SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
+    private static readonly PropertyFlags[] DefinedPropertyFlags =
+    [
+        PropertyFlags.CanWrite,
+        PropertyFlags.CanInitialize,
+        PropertyFlags.AllowsNull,
+        PropertyFlags.ElementAllowsNull
+    ];
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterSourceOutput(
@@ -105,14 +113,14 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
                 if (indexedType is INamedTypeSymbol namedIndexedType &&
                     property.Kind != "SerializedSubtree" &&
                     (HasAttribute(namedIndexedType, KnownAttributes.SettingsSerializedSubtree) ||
-                     CanPatchAsObject(compilation, namedIndexedType)))
+                        CanPatchAsObject(compilation, namedIndexedType)))
                 {
                     Enqueue(namedIndexedType);
                 }
             }
         }
 
-        return [..models];
+        return [.. models];
 
         void Enqueue(INamedTypeSymbol type)
         {
@@ -180,6 +188,22 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         }
 
         var propertyType = property.Type;
+        var flags = PropertyFlags.None;
+        if (CanWriteFromGeneratedCode(property))
+        {
+            flags |= PropertyFlags.CanWrite;
+        }
+
+        if (CanInitializeFromGeneratedCode(property))
+        {
+            flags |= PropertyFlags.CanInitialize;
+        }
+
+        if (AllowsNull(property))
+        {
+            flags |= PropertyFlags.AllowsNull;
+        }
+
         var jsonName = GetJsonName(property);
         var isSerializedSubtree =
             HasAttribute(property, KnownAttributes.SettingsSerializedSubtree) ||
@@ -205,8 +229,12 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
             elementType = dictionaryValueType;
         }
 
-        var canWrite = CanWriteFromGeneratedCode(property);
-        var canInitialize = CanInitializeFromGeneratedCode(property);
+        if (elementType is not null && AllowsNull(elementType))
+        {
+            flags |= PropertyFlags.ElementAllowsNull;
+        }
+
+        var canAssign = flags.HasFlag(PropertyFlags.CanWrite) || flags.HasFlag(PropertyFlags.CanInitialize);
         INamedTypeSymbol? childType = null;
         if (kind == "Object")
         {
@@ -215,14 +243,13 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
             {
                 childType = namedType;
             }
-            else if (!canWrite && !canInitialize)
+            else if (!canAssign)
             {
                 return null;
             }
         }
 
-        if (!canWrite &&
-            !canInitialize &&
+        if (!canAssign &&
             childType is null &&
             kind is not ("List" or "Dictionary"))
         {
@@ -234,9 +261,8 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
             property.Name,
             jsonName,
             propertyType,
-            canWrite,
-            canInitialize,
             kind,
+            flags,
             elementType,
             dictionaryKeyType,
             dictionaryValueType,
@@ -352,7 +378,7 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         sb.AppendLine("    }");
 
         if (model.ConstructorKind != ConstructorKind.None &&
-            model.Properties.Any(static property => property.CanInitialize))
+            model.Properties.Any(static property => property.Flags.HasFlag(PropertyFlags.CanInitialize)))
         {
             sb.AppendLine();
             EmitCreateInstanceMethod(sb, model);
@@ -367,7 +393,7 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         var ownerType = FormatType(property.OwnerType);
         var propertyType = FormatType(property.PropertyType);
         var propertyValueType = FormatValueType(property.PropertyType);
-        var setter = property.CanWrite ?
+        var setter = property.Flags.HasFlag(PropertyFlags.CanWrite) ?
             $"static (instance, value) => (({ownerType})instance).{property.ClrName} = CastPropertyValue<{propertyValueType}>(value)" :
             "null";
         var childDescriptor = property.ChildType is null ? "null" : $"GetDescriptor(typeof({FormatType(property.ChildType)}))";
@@ -382,13 +408,12 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         sb.Append("                    \"").Append(EscapeStringForCode(property.ClrName)).AppendLine("\",");
         sb.Append("                    \"").Append(EscapeStringForCode(property.JsonName)).AppendLine("\",");
         sb.Append("                    typeof(").Append(propertyType).AppendLine("),");
-        sb.Append("                    ").Append(ToBoolLiteral(property.CanWrite)).AppendLine(",");
-        sb.Append("                    ").Append(ToBoolLiteral(property.CanInitialize)).AppendLine(",");
         sb.Append("                    ")
             .Append(EngineGlobalPrefix)
             .Append(".SettingsPropertyKind.")
             .Append(property.Kind)
             .AppendLine(",");
+        sb.Append("                    ").Append(FormatPropertyFlags(property.Flags)).AppendLine(",");
         sb.Append("                    ").Append(FormatNullableTypeOf(property.ElementType)).AppendLine(",");
         sb.Append("                    ").Append(FormatNullableTypeOf(property.DictionaryKeyType)).AppendLine(",");
         sb.Append("                    ").Append(FormatNullableTypeOf(property.DictionaryValueType)).AppendLine(",");
@@ -454,7 +479,7 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         sb.AppendLine("            try");
         sb.AppendLine("            {");
 
-        if (model.Properties.Any(static property => property.CanInitialize))
+        if (model.Properties.Any(static property => property.Flags.HasFlag(PropertyFlags.CanInitialize)))
         {
             sb.Append("                instance = ").Append(GetCreateInstanceMethodName(model)).AppendLine("(initialValues);");
             sb.AppendLine("                return instance is not null;");
@@ -477,7 +502,7 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
     private static void EmitCreateInstanceMethod(StringBuilder sb, TypeModel model)
     {
         var properties = model.Properties
-            .Where(static property => property.CanInitialize)
+            .Where(static property => property.Flags.HasFlag(PropertyFlags.CanInitialize))
             .ToImmutableArray();
 
         sb.Append("    private static object? ")
@@ -613,6 +638,52 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
     private static bool CanInitializeFromGeneratedCode(IPropertySymbol property) =>
         property.SetMethod is { IsStatic: false, IsInitOnly: true } setMethod &&
         IsAccessibleFromGeneratedCode(setMethod.DeclaredAccessibility);
+
+    private static bool AllowsNull(IPropertySymbol property)
+    {
+        if (!CanTypeAcceptNull(property.Type))
+        {
+            return false;
+        }
+
+        if (HasAttribute(property, KnownAttributes.AllowNull))
+        {
+            return true;
+        }
+
+        if (HasAttribute(property, KnownAttributes.DisallowNull))
+        {
+            return false;
+        }
+
+        return AllowsNull(property.Type);
+    }
+
+    private static bool AllowsNull(ITypeSymbol type)
+    {
+        if (!CanTypeAcceptNull(type))
+        {
+            return false;
+        }
+
+        if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T })
+        {
+            return true;
+        }
+
+        if (type is ITypeParameterSymbol { HasNotNullConstraint: true })
+        {
+            return false;
+        }
+
+        // Oblivious reference types are treated as nullable, matching STJ's
+        // JsonPropertyInfo defaults when no non-null annotation is available.
+        return type.NullableAnnotation is not NullableAnnotation.NotAnnotated;
+    }
+
+    private static bool CanTypeAcceptNull(ITypeSymbol type) =>
+        !type.IsValueType ||
+        type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T };
 
     private static ConstructorKind GetConstructorKind(INamedTypeSymbol type)
     {
@@ -853,6 +924,27 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
     private static string FormatNullableTypeOf(ITypeSymbol? type) =>
         type is null ? "null" : $"typeof({FormatType(type)})";
 
+    private static string FormatPropertyFlags(PropertyFlags flags)
+    {
+        if (flags == PropertyFlags.None)
+        {
+            return $"{EngineGlobalPrefix}.SettingsPropertyFlags.None";
+        }
+
+        var names = ImmutableArray.CreateBuilder<string>();
+        foreach (var flag in DefinedPropertyFlags)
+        {
+            if (!flags.HasFlag(flag))
+            {
+                continue;
+            }
+
+            names.Add($"{EngineGlobalPrefix}.SettingsPropertyFlags.{flag}");
+        }
+
+        return string.Join(" | ", names);
+    }
+
     private static string GetCreateMethodName(int index, INamedTypeSymbol type)
     {
         var builder = new StringBuilder("CreateDescriptor_");
@@ -883,6 +975,16 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         Default
     }
 
+    [Flags]
+    private enum PropertyFlags
+    {
+        None = 0,
+        CanWrite = 1 << 0,
+        CanInitialize = 1 << 1,
+        AllowsNull = 1 << 2,
+        ElementAllowsNull = 1 << 3
+    }
+
     private sealed record TypeModel(
         INamedTypeSymbol Type,
         string CreateMethodName,
@@ -897,9 +999,8 @@ public sealed class SettingsEngineDescriptorSourceGenerator : IIncrementalGenera
         string ClrName,
         string JsonName,
         ITypeSymbol PropertyType,
-        bool CanWrite,
-        bool CanInitialize,
         string Kind,
+        PropertyFlags Flags,
         ITypeSymbol? ElementType,
         ITypeSymbol? DictionaryKeyType,
         ITypeSymbol? DictionaryValueType,

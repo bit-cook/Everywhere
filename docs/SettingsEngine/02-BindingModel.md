@@ -132,7 +132,19 @@ There is no keyed collection binding policy in the runtime. If dynamic reload
 or semantic merge requires identity-aware collections later, that policy should
 be introduced as a separate design.
 
-## 8. Failure Handling
+## 8. Nullability
+
+Missing JSON properties and explicit JSON `null` have different meanings:
+
+1. A missing property leaves the current runtime value unchanged.
+2. An explicit `null` clears a writable property only when its input nullability contract permits null.
+3. A `null` for a non-nullable property records a conversion diagnostic and preserves the current value.
+4. Array/list elements and dictionary values use their own nullable annotations rather than the container property's annotation.
+5. Mutable lists and dictionaries preserve an existing value when a corresponding non-nullable JSON element is null. Arrays are replaced only when every element satisfies the element contract.
+
+Generated descriptors retain nullable reference annotations that runtime `Type` cannot represent. The reflection fallback derives the equivalent property and element metadata through `NullabilityInfoContext`.
+
+## 9. Failure Handling
 
 Runtime read failure should be conservative.
 

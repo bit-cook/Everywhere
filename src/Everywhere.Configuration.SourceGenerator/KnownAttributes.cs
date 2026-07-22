@@ -17,4 +17,6 @@ internal static class KnownAttributes
     public const string JsonIgnore = "System.Text.Json.Serialization.JsonIgnoreAttribute";
     public const string JsonPropertyName = "System.Text.Json.Serialization.JsonPropertyNameAttribute";
     public const string TypeConverter = "System.ComponentModel.TypeConverterAttribute";
+    public const string AllowNull = "System.Diagnostics.CodeAnalysis.AllowNullAttribute";
+    public const string DisallowNull = "System.Diagnostics.CodeAnalysis.DisallowNullAttribute";
 }

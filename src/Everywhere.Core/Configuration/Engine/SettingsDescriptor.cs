@@ -108,6 +108,54 @@ public enum SettingsPropertyKind
 }
 
 /// <summary>
+/// Describes the independent capabilities and input constraints of a settings property.
+/// </summary>
+[Flags]
+public enum SettingsPropertyFlags
+{
+    /// <summary>
+    /// The property has no optional capabilities or constraints.
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// The property can be replaced through its setter.
+    /// </summary>
+    CanWrite = 1 << 0,
+
+    /// <summary>
+    /// The property can be assigned while a new object is being created.
+    /// </summary>
+    /// <remarks>
+    /// This mirrors Microsoft Binder's <c>SetOnInit</c> concept. Init-only
+    /// properties are not ordinary patch setters, but SettingsEngine may bind
+    /// them while creating a new runtime object during startup load.
+    /// </remarks>
+    CanInitialize = 1 << 1,
+
+    /// <summary>
+    /// The property accepts an explicit JSON <see langword="null"/> value.
+    /// </summary>
+    /// <remarks>
+    /// This is the SettingsEngine equivalent of <c>JsonPropertyInfo.IsSetNullable</c>:
+    /// it describes the property's input contract, including nullable reference
+    /// annotations and <see cref="System.Diagnostics.CodeAnalysis.AllowNullAttribute"/>
+    /// or <see cref="System.Diagnostics.CodeAnalysis.DisallowNullAttribute"/>.
+    /// </remarks>
+    AllowsNull = 1 << 2,
+
+    /// <summary>
+    /// Array/list elements or dictionary values accept JSON <see langword="null"/>.
+    /// </summary>
+    /// <remarks>
+    /// Generic element nullability is retained by the SettingsEngine source
+    /// generator because it is not represented by the runtime <see cref="Type"/>
+    /// alone and is not fully enforced by System.Text.Json.
+    /// </remarks>
+    ElementAllowsNull = 1 << 3
+}
+
+/// <summary>
 /// Describes one settings property and how it maps to JSON.
 /// </summary>
 public interface ISettingsPropertyDescriptor
@@ -126,6 +174,16 @@ public interface ISettingsPropertyDescriptor
     /// Gets the CLR property type.
     /// </summary>
     Type PropertyType { get; }
+
+    /// <summary>
+    /// Gets the mutually exclusive binding shape for this property.
+    /// </summary>
+    SettingsPropertyKind Kind { get; }
+
+    /// <summary>
+    /// Gets the property's independent capabilities and input constraints.
+    /// </summary>
+    SettingsPropertyFlags Flags { get; }
 
     /// <summary>
     /// Gets the element type for arrays, lists, or dictionary values.
@@ -152,26 +210,6 @@ public interface ISettingsPropertyDescriptor
     /// need runtime generic construction on the normal Settings path.
     /// </remarks>
     Func<string, object?>? DictionaryKeyReader { get; }
-
-    /// <summary>
-    /// Gets whether the property can be replaced through its setter.
-    /// </summary>
-    bool CanWrite { get; }
-
-    /// <summary>
-    /// Gets whether the property can be assigned during new object creation.
-    /// </summary>
-    /// <remarks>
-    /// This mirrors Microsoft Binder's <c>SetOnInit</c> concept. Init-only
-    /// properties are not ordinary patch setters, but SettingsEngine may bind
-    /// them while creating a new runtime object during startup load.
-    /// </remarks>
-    bool CanInitialize { get; }
-
-    /// <summary>
-    /// Gets the mutually exclusive binding shape for this property.
-    /// </summary>
-    SettingsPropertyKind Kind { get; }
 
     /// <summary>
     /// Gets the unknown-member policy that applies to this property's object subtree.
@@ -231,7 +269,13 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
     private SettingsPropertyDescriptor? CreatePropertyDescriptor(Type ownerType, PropertyInfo property)
     {
         var propertyType = property.PropertyType;
-        var access = GetPropertyAccess(property);
+        var flags = GetPropertyAccessFlags(property);
+        var nullability = new NullabilityInfoContext().Create(property);
+        if (AllowsNull(propertyType, nullability.WriteState))
+        {
+            flags |= SettingsPropertyFlags.AllowsNull;
+        }
+
         var jsonName = property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name;
         var unknownMemberHandling = GetUnknownMemberHandling(property, propertyType);
         var isArray = propertyType.IsArray;
@@ -255,6 +299,15 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
             elementType = dictionaryValueType;
         }
 
+        if (elementType is not null && AllowsNull(
+                elementType,
+                GetElementNullability(nullability, elementType, isArray, isDictionary)))
+        {
+            flags |= SettingsPropertyFlags.ElementAllowsNull;
+        }
+
+        var canAssign = flags.HasFlag(SettingsPropertyFlags.CanWrite) ||
+            flags.HasFlag(SettingsPropertyFlags.CanInitialize);
         ISettingsDescriptor? childDescriptor = null;
         if (kind == SettingsPropertyKind.Object)
         {
@@ -262,13 +315,13 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
             {
                 childDescriptor = GetDescriptor(propertyType);
             }
-            else if (access is { CanWrite: false, CanInitialize: false })
+            else if (!canAssign)
             {
                 return null;
             }
         }
 
-        if (access is { CanWrite: false, CanInitialize: false } &&
+        if (!canAssign &&
             childDescriptor is null &&
             kind is not (SettingsPropertyKind.List or SettingsPropertyKind.Dictionary))
         {
@@ -278,10 +331,9 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
         return new SettingsPropertyDescriptor(
             ownerType,
             property,
-            access.CanWrite,
-            access.CanInitialize,
             jsonName,
             kind,
+            flags,
             elementType,
             dictionaryKeyType,
             dictionaryValueType,
@@ -391,22 +443,56 @@ public sealed class ReflectionSettingsDescriptorProvider : ISettingsDescriptorPr
     private static bool HasSerializedSubtreeAttribute(MemberInfo member) =>
         member.GetCustomAttribute<SettingsSerializedSubtreeAttribute>() is not null;
 
-    private static PropertyAccess GetPropertyAccess(PropertyInfo property)
+    private static SettingsPropertyFlags GetPropertyAccessFlags(PropertyInfo property)
     {
         if (property.SetMethod is not { IsStatic: false })
         {
-            return default;
+            return SettingsPropertyFlags.None;
         }
 
         return IsInitOnly(property) ?
-            new PropertyAccess(CanWrite: false, CanInitialize: true) :
-            new PropertyAccess(CanWrite: property.CanWrite, CanInitialize: false);
+            SettingsPropertyFlags.CanInitialize :
+            SettingsPropertyFlags.CanWrite;
     }
 
     private static bool IsInitOnly(PropertyInfo property) =>
         property.SetMethod?.ReturnParameter.GetRequiredCustomModifiers().Contains(typeof(IsExternalInit)) is true;
 
-    private readonly record struct PropertyAccess(bool CanWrite, bool CanInitialize);
+    private static bool AllowsNull(Type type, NullabilityState nullability) =>
+        Nullable.GetUnderlyingType(type) is not null ||
+        (!type.IsValueType && nullability is not NullabilityState.NotNull);
+
+    private static NullabilityState GetElementNullability(
+        NullabilityInfo propertyNullability,
+        Type elementType,
+        bool isArray,
+        bool isDictionary)
+    {
+        if (isArray)
+        {
+            return propertyNullability.ElementType?.WriteState ?? NullabilityState.Unknown;
+        }
+
+        NullabilityInfo? match = null;
+        foreach (var argument in propertyNullability.GenericTypeArguments)
+        {
+            if (argument.Type != elementType)
+            {
+                continue;
+            }
+
+            match = argument;
+            if (!isDictionary)
+            {
+                break;
+            }
+        }
+
+        // Dictionary key and value types can be identical. Keeping the last
+        // matching generic argument selects TValue for the common <TKey, TValue>
+        // shape, while lists use their first matching element argument.
+        return match?.WriteState ?? NullabilityState.Unknown;
+    }
 }
 
 /// <summary>
@@ -492,7 +578,8 @@ internal sealed class ReflectionSettingsObjectDescriptor : SettingsObjectDescrip
 
             foreach (var property in Properties)
             {
-                if (!property.CanInitialize || initialValues?.TryGetValue(property.JsonName, out var initialValue) is not true)
+                if (!property.Flags.HasFlag(SettingsPropertyFlags.CanInitialize) ||
+                    initialValues?.TryGetValue(property.JsonName, out var initialValue) is not true)
                 {
                     continue;
                 }
@@ -530,9 +617,8 @@ public sealed class DelegateSettingsPropertyDescriptor : ISettingsPropertyDescri
         string clrName,
         string jsonName,
         Type propertyType,
-        bool canWrite,
-        bool canInitialize,
         SettingsPropertyKind kind,
+        SettingsPropertyFlags flags,
         Type? elementType,
         Type? dictionaryKeyType,
         Type? dictionaryValueType,
@@ -546,9 +632,8 @@ public sealed class DelegateSettingsPropertyDescriptor : ISettingsPropertyDescri
         ClrName = clrName;
         JsonName = jsonName;
         PropertyType = propertyType;
-        CanWrite = canWrite;
-        CanInitialize = canInitialize;
         Kind = kind;
+        Flags = flags;
         ElementType = elementType;
         DictionaryKeyType = dictionaryKeyType;
         DictionaryValueType = dictionaryValueType;
@@ -574,6 +659,12 @@ public sealed class DelegateSettingsPropertyDescriptor : ISettingsPropertyDescri
     public Type PropertyType { get; }
 
     /// <inheritdoc />
+    public SettingsPropertyKind Kind { get; }
+
+    /// <inheritdoc />
+    public SettingsPropertyFlags Flags { get; }
+
+    /// <inheritdoc />
     public Type? ElementType { get; }
 
     /// <inheritdoc />
@@ -584,15 +675,6 @@ public sealed class DelegateSettingsPropertyDescriptor : ISettingsPropertyDescri
 
     /// <inheritdoc />
     public Func<string, object?>? DictionaryKeyReader { get; }
-
-    /// <inheritdoc />
-    public bool CanWrite { get; }
-
-    /// <inheritdoc />
-    public bool CanInitialize { get; }
-
-    /// <inheritdoc />
-    public SettingsPropertyKind Kind { get; }
 
     /// <inheritdoc />
     public SettingsUnknownMemberHandling UnknownMemberHandling { get; }
@@ -625,10 +707,9 @@ public sealed class SettingsPropertyDescriptor : ISettingsPropertyDescriptor
     internal SettingsPropertyDescriptor(
         Type ownerType,
         PropertyInfo property,
-        bool canWrite,
-        bool canInitialize,
         string jsonName,
         SettingsPropertyKind kind,
+        SettingsPropertyFlags flags,
         Type? elementType,
         Type? dictionaryKeyType,
         Type? dictionaryValueType,
@@ -638,10 +719,9 @@ public sealed class SettingsPropertyDescriptor : ISettingsPropertyDescriptor
     {
         OwnerType = ownerType;
         _property = property;
-        CanWrite = canWrite;
-        CanInitialize = canInitialize;
         JsonName = jsonName;
         Kind = kind;
+        Flags = flags;
         ElementType = elementType;
         DictionaryKeyType = dictionaryKeyType;
         DictionaryValueType = dictionaryValueType;
@@ -665,6 +745,12 @@ public sealed class SettingsPropertyDescriptor : ISettingsPropertyDescriptor
     public Type PropertyType => _property.PropertyType;
 
     /// <inheritdoc />
+    public SettingsPropertyKind Kind { get; }
+
+    /// <inheritdoc />
+    public SettingsPropertyFlags Flags { get; }
+
+    /// <inheritdoc />
     public Type? ElementType { get; }
 
     /// <inheritdoc />
@@ -675,15 +761,6 @@ public sealed class SettingsPropertyDescriptor : ISettingsPropertyDescriptor
 
     /// <inheritdoc />
     public Func<string, object?>? DictionaryKeyReader { get; }
-
-    /// <inheritdoc />
-    public bool CanWrite { get; }
-
-    /// <inheritdoc />
-    public bool CanInitialize { get; }
-
-    /// <inheritdoc />
-    public SettingsPropertyKind Kind { get; }
 
     /// <inheritdoc />
     public SettingsUnknownMemberHandling UnknownMemberHandling { get; }

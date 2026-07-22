@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using Everywhere.AI;
 using Everywhere.Collections;
 using Everywhere.Common;
 using Everywhere.Configuration;
@@ -50,7 +51,7 @@ public sealed class SettingsEngineTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(root["Version"]!.GetValue<string>(), Is.EqualTo("0.8.1-canary.20260712.01"));
+            Assert.That(root["Version"]!.GetValue<string>(), Is.EqualTo("0.8.1-canary.20260721.14"));
             Assert.That(titleGeneration["Specializations"]!.GetValue<string>(), Is.EqualTo("TitleGeneration"));
             Assert.That(plugins, Has.Count.EqualTo(2));
             Assert.That(plugins["11111111-1111-1111-1111-111111111111"]!["$type"]!.GetValue<string>(), Is.EqualTo("stdio"));
@@ -147,7 +148,7 @@ public sealed class SettingsEngineTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(root["Version"]!.GetValue<string>(), Is.EqualTo("0.8.1-canary.20260712.01"));
+            Assert.That(root["Version"]!.GetValue<string>(), Is.EqualTo("0.8.1-canary.20260721.14"));
             Assert.That(Require(main["Key"]).GetValue<string>(), Is.EqualTo("K"));
             Assert.That(Require(main["Modifiers"]).GetValue<string>(), Is.EqualTo("Control, Shift"));
             Assert.That(chatWindow.ContainsKey("Key"), Is.False);
@@ -241,11 +242,11 @@ public sealed class SettingsEngineTests
         Assert.Multiple(() =>
         {
             Assert.That(id, Is.Not.Null);
-            Assert.That(id?.CanInitialize, Is.True);
-            Assert.That(id?.CanWrite, Is.False);
+            Assert.That(id?.Flags, Is.EqualTo(SettingsPropertyFlags.CanInitialize));
             Assert.That(name, Is.Not.Null);
-            Assert.That(name?.CanInitialize, Is.False);
-            Assert.That(name?.CanWrite, Is.True);
+            Assert.That(
+                name?.Flags,
+                Is.EqualTo(SettingsPropertyFlags.CanWrite | SettingsPropertyFlags.AllowsNull));
         });
     }
 
@@ -402,6 +403,32 @@ public sealed class SettingsEngineTests
     }
 
     [Test]
+    public void Patch_NullableContainerPropertiesAcceptExplicitNull()
+    {
+        using var file = TestSettingsFile(
+            """
+            {
+              "NullableSection": null,
+              "NullableItems": null,
+              "NullableItemMap": null
+            }
+            """);
+        using var store = JsonSettingsStorage.Load(file.Path);
+        var target = new TestRoot();
+        var binder = new SettingsPatchBinder();
+
+        binder.Patch(store.CreateSnapshot(), target);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.NullableSection, Is.Null);
+            Assert.That(target.NullableItems, Is.Null);
+            Assert.That(target.NullableItemMap, Is.Null);
+            Assert.That(binder.Diagnostics, Is.Empty);
+        });
+    }
+
+    [Test]
     public void Patch_ListPatchesExistingItemsByIndexAndRemovesTail()
     {
         using var file = TestSettingsFile(
@@ -477,6 +504,95 @@ public sealed class SettingsEngineTests
 
         Assert.That(target.Numbers, Is.SameAs(numbers));
         Assert.That(target.Numbers.ToArray(), Is.EqualTo(new[] { 1, 2 }));
+    }
+
+    [Test]
+    public void Patch_NonNullableCollectionElementsRejectNullAndPreserveExistingValues()
+    {
+        using var file = TestSettingsFile(
+            """
+            {
+              "Items": [null],
+              "ItemArray": [null],
+              "ItemMap": { "entry": null }
+            }
+            """);
+        using var store = JsonSettingsStorage.Load(file.Path);
+        var target = new TestRoot();
+        var item = new TestItem { Name = "list" };
+        var arrayItem = new TestItem { Name = "array" };
+        var mappedItem = new TestItem { Name = "dictionary" };
+        target.Items.Add(item);
+        target.ItemArray = [arrayItem];
+        target.ItemMap["entry"] = mappedItem;
+        var binder = new SettingsPatchBinder();
+
+        binder.Patch(store.CreateSnapshot(), target);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.Items[0], Is.SameAs(item));
+            Assert.That(target.ItemArray[0], Is.SameAs(arrayItem));
+            Assert.That(target.ItemMap["entry"], Is.SameAs(mappedItem));
+            Assert.That(binder.Diagnostics.Any(d => d.Path == "Items.0"), Is.True);
+            Assert.That(binder.Diagnostics.Any(d => d.Path == "ItemArray.0"), Is.True);
+            Assert.That(binder.Diagnostics.Any(d => d.Path == "ItemMap.entry"), Is.True);
+        });
+    }
+
+    [Test]
+    public void Patch_NullableCollectionElementsAcceptNull()
+    {
+        using var file = TestSettingsFile(
+            """
+            {
+              "NullableElements": [null],
+              "NullableDictionaryValues": { "entry": null }
+            }
+            """);
+        using var store = JsonSettingsStorage.Load(file.Path);
+        var target = new TestRoot();
+        target.NullableElements.Add(new TestItem { Name = "list" });
+        target.NullableDictionaryValues["entry"] = new TestItem { Name = "dictionary" };
+        var binder = new SettingsPatchBinder();
+
+        binder.Patch(store.CreateSnapshot(), target);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.NullableElements, Is.EqualTo(new TestItem?[] { null }));
+            Assert.That(target.NullableDictionaryValues.ContainsKey("entry"), Is.True);
+            Assert.That(target.NullableDictionaryValues["entry"], Is.Null);
+            Assert.That(binder.Diagnostics, Is.Empty);
+        });
+    }
+
+    [Test]
+    public void Patch_CreationInitializerHonorsNullableInputContract()
+    {
+        using var file = TestSettingsFile(
+            """
+            {
+              "CreatedInit": {
+                "RequiredName": null,
+                "OptionalName": null
+              }
+            }
+            """);
+        using var store = JsonSettingsStorage.Load(file.Path);
+        var target = new TestRoot();
+        var binder = new SettingsPatchBinder();
+
+        binder.Patch(store.CreateSnapshot(), target);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.CreatedInit, Is.Not.Null);
+            Assert.That(target.CreatedInit?.RequiredName, Is.EqualTo("required-default"));
+            Assert.That(target.CreatedInit?.OptionalName, Is.Null);
+            Assert.That(binder.Diagnostics.Count(d => d.Path == "CreatedInit.RequiredName"), Is.EqualTo(1));
+            Assert.That(binder.Diagnostics.Any(d => d.Path == "CreatedInit.OptionalName"), Is.False);
+        });
     }
 
     [Test]
@@ -864,9 +980,14 @@ public sealed class SettingsEngineTests
         public TestSection Section { get; set; } = new();
         public TestSection GetterOnly { get; } = new();
         public ObservableCollection<TestItem> Items { get; } = [];
+        public TestItem[] ItemArray { get; set; } = [];
+        public ObservableCollection<TestItem>? NullableItems { get; set; } = [];
+        public ObservableCollection<TestItem?> NullableElements { get; } = [];
         public ObservableCollection<int> Numbers { get; } = [];
         public Dictionary<string, int> Scores { get; } = [];
         public Dictionary<string, TestItem> ItemMap { get; } = [];
+        public Dictionary<string, TestItem>? NullableItemMap { get; set; } = [];
+        public Dictionary<string, TestItem?> NullableDictionaryValues { get; } = [];
         public Dictionary<int, string> NumberedNames { get; } = [];
         public Dictionary<TestDictionaryKey, string> EnumNames { get; } = [];
         public ObservableImmutableDictionary<string, TestItem> ReadOnlyItems { get; } = new(
@@ -877,6 +998,7 @@ public sealed class SettingsEngineTests
         public IReadOnlyList<int> GetterOnlyReadOnlyNumbers { get; } = new ReadOnlyCollection<int>(new List<int> { 9 });
         public int Count { get; set; }
         public SerializableColor Color { get; set; }
+        public TestSection? NullableSection { get; set; } = new();
         public TestInitItem? CreatedInit { get; set; }
 
         [SettingsUnknownMemberHandling(SettingsUnknownMemberHandling.Prune)]
@@ -907,6 +1029,8 @@ public sealed class SettingsEngineTests
     private sealed class TestInitItem
     {
         public Guid Id { get; init; } = Guid.CreateVersion7();
+        public string RequiredName { get; init; } = "required-default";
+        public string? OptionalName { get; init; } = "optional-default";
         public string? Name { get; set; }
     }
 

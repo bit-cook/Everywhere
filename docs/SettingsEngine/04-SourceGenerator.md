@@ -33,9 +33,7 @@ Everywhere-specific attributes should describe Settings Engine behavior only:
 
 1. serialized subtree boundary
 2. unknown member handling
-3. collection binding behavior
-4. future merge key metadata
-5. future sync metadata
+3. future sync metadata
 
 ## 4. Generated Descriptor Shape
 
@@ -51,7 +49,7 @@ Each descriptor should contain enough information to:
 8. read a known value from `JsonNode`
 9. identify serialized subtree boundaries
 10. apply unknown member policy
-11. apply collection binding policy
+11. retain property and collection-element input nullability
 
 The exact generated API can evolve, but it should keep these responsibilities explicit.
 
@@ -114,13 +112,7 @@ Generated descriptors should mark collection shape:
 
 First-stage default for mutable collections is to keep the instance and replace items to match JSON.
 
-Future metadata may add keyed collection patching:
-
-```csharp
-[SettingsMergeKey(nameof(Id))]
-```
-
-This is reserved for later semantic sync and does not need full implementation in stage one.
+Collection behavior is a fixed SettingsEngine policy rather than generated per-property metadata. Descriptors retain element nullability because nullable generic arguments are not represented by runtime `Type` alone.
 
 ## 9. Diagnostics
 
