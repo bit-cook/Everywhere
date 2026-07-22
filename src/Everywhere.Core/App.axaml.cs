@@ -177,23 +177,27 @@ public class App(IServiceProvider serviceProvider) : Application, IRecipient<App
     {
         try
         {
-            foreach (var group in serviceProvider
-                         .GetRequiredService<IEnumerable<IAsyncInitializer>>()
-                         .GroupBy(i => i.Index)
-                         .OrderBy(g => g.Key))
-            {
-                Task.WhenAll(group.Select(i => i.InitializeAsync())).WaitOnDispatcherFrame();
-            }
+            InitializeAsync().WaitOnDispatcherFrame();
         }
         catch (Exception ex)
         {
             Log.Logger.Fatal(ex, "Failed to initialize application");
-
             NativeMessageBox.Show(
                 "Initialization Error",
                 $"An error occurred during application initialization:\n{ex.Message}\n\nPlease check the logs for more details.",
                 NativeMessageBoxButtons.Ok,
                 NativeMessageBoxIcon.Error);
+        }
+
+        async Task InitializeAsync()
+        {
+            foreach (var group in serviceProvider
+                         .GetRequiredService<IEnumerable<IAsyncInitializer>>()
+                         .GroupBy(i => i.Index)
+                         .OrderBy(g => g.Key))
+            {
+                await Task.WhenAll(group.Select(i => i.InitializeAsync()));
+            }
         }
     }
 
