@@ -225,48 +225,49 @@
                 </TextBlock.Text>
               </TextBlock>
 
-              <ItemsControl ItemsSource="{Binding #Self.ViewModel.SelectedPromptReferences}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <StackPanel Spacing="8"/>
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate DataType="prompts:AssistantPromptReference">
-                    <Button
-                      Classes="Ghost" HorizontalContentAlignment="Stretch"
-                      Command="{Binding #Self.ViewModel.OpenAssistantReferenceCommand}"
-                      CommandParameter="{Binding}">
-                      <DockPanel
-                        HorizontalSpacing="8" LastChildFill="True">
-                        <v:IconPresenter
-                          DockPanel.Dock="Left" Width="40"
-                          Height="40"
-                          CornerRadius="{DynamicResource FullCornerRadius}"
-                          FontSize="{DynamicResource FontSize2Xl}"
-                          Icon="{Binding Icon}"
-                          IconSize="{DynamicResource FontSize2Xl}"
-                          LineHeight="{DynamicResource LineHeight2Xl}"/>
+              <ScrollViewer
+                Margin="0,0,-12,0" HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto">
+                <ItemsControl
+                  Margin="0,0,12,0"
+                  ItemsSource="{Binding #Self.ViewModel.SelectedPromptReferences}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="prompts:AssistantPromptReference">
+                      <Button
+                        Classes="Ghost" HorizontalContentAlignment="Stretch"
+                        Command="{Binding #Self.ViewModel.OpenAssistantReferenceCommand}"
+                        CommandParameter="{Binding}">
+                        <DockPanel
+                          HorizontalSpacing="8" LastChildFill="True">
+                          <v:IconPresenter
+                            DockPanel.Dock="Left" Width="40"
+                            Height="40"
+                            CornerRadius="{DynamicResource FullCornerRadius}"
+                            FontSize="{DynamicResource FontSize2Xl}"
+                            Icon="{Binding Icon}"
+                            IconSize="{DynamicResource FontSize2Xl}"
+                            LineHeight="{DynamicResource LineHeight2Xl}"/>
 
-                        <StackPanel VerticalAlignment="Center">
-                          <TextBlock
-                            Classes="p"
-                            Text="{Binding Name}"
-                            TextTrimming="CharacterEllipsis"
-                            ToolTip.Tip="{Binding $self.Text}"/>
+                          <StackPanel VerticalAlignment="Center">
+                            <TextBlock
+                              Classes="p"
+                              Text="{Binding Name}"
+                              TextTrimming="CharacterEllipsis"
+                              ToolTip.Tip="{Binding $self.Text}"/>
 
-                          <TextBlock
-                            Classes="Muted"
-                            IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                            Text="{Binding Description}"
-                            TextTrimming="CharacterEllipsis"
-                            ToolTip.Tip="{Binding $self.Text}"/>
-                        </StackPanel>
-                      </DockPanel>
-                    </Button>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+                            <TextBlock
+                              Classes="Muted"
+                              IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                              Text="{Binding Description}"
+                              TextTrimming="CharacterEllipsis"
+                              ToolTip.Tip="{Binding $self.Text}"/>
+                          </StackPanel>
+                        </DockPanel>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
 
               <TextBlock
                 Classes="Muted Caption" HorizontalAlignment="Center"
