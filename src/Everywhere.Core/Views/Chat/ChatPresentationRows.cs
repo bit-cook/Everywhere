@@ -97,8 +97,17 @@ public abstract partial class ActivityItemPresentationRow : ChatPresentationRow
     }
 }
 
-/// <summary>Projects one reasoning span as a compact, independently expandable activity.</summary>
+/// <summary>
+/// Projects one reasoning span as a compact, independently expandable activity.
+/// </summary>
+/// <remarks>
+/// A missing <see cref="AssistantChatMessageSpan.FinishedAt"/> value records only that the span did
+/// not persist a completion timestamp; it cannot by itself prove that work is still running after
+/// the application restarts. The owning assistant's runtime-only busy state provides that liveness
+/// boundary while the Group's continuation state independently covers gaps between model calls.
+/// </remarks>
 public sealed class ReasoningActivityItemPresentationRow(
+    AssistantChatMessage assistant,
     AssistantChatMessageReasoningSpan reasoning,
     IDynamicLocaleKey headerKey
 ) : ActivityItemPresentationRow
@@ -108,7 +117,7 @@ public sealed class ReasoningActivityItemPresentationRow(
     public override IDynamicLocaleKey HeaderKey => headerKey;
     public override DateTimeOffset CreatedAt => reasoning.CreatedAt;
     public override DateTimeOffset? FinishedAt => reasoning.FinishedAt;
-    public override bool IsRunning => reasoning.FinishedAt is null;
+    public override bool IsRunning => assistant.IsBusy && reasoning.FinishedAt is null;
     public override string? PreviewText => reasoning.ReasoningOutput;
     public AssistantChatMessageReasoningSpan ReasoningSpan => reasoning;
 }

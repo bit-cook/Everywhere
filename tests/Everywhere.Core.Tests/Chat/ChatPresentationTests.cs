@@ -379,6 +379,50 @@ public class ChatPresentationTests
     }
 
     [Test]
+    public void InterruptedReasoning_LoadedFromHistory_IsNotRunning()
+    {
+        var assistant = new AssistantChatMessage { IsBusy = false };
+        assistant.AddSpan(new AssistantChatMessageReasoningSpan("Interrupted reasoning"));
+        using var context = Context(new UserChatMessage("Interrupted", []), assistant);
+        var presentation = context.Presentation;
+
+        var reasoning = presentation.Rows.OfType<ReasoningActivityItemPresentationRow>().Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(reasoning.FinishedAt, Is.Null, "Presentation must not manufacture a persisted completion timestamp.");
+            Assert.That(reasoning.IsRunning, Is.False, "A missing timestamp does not survive as live work after restart.");
+            Assert.That(presentation.Rows.OfType<ActivityGroupPresentationRow>(), Is.Empty);
+            Assert.That(presentation.Rows.OfType<NoResponsePresentationRow>(), Has.Exactly(1).Items);
+        });
+    }
+
+    [AvaloniaTest]
+    public void UnfinishedReasoning_FollowsOwningAssistantRuntimeState()
+    {
+        var assistant = new AssistantChatMessage { IsBusy = true };
+        assistant.AddSpan(new AssistantChatMessageReasoningSpan("Active reasoning"));
+        using var context = Context(new UserChatMessage("Active", []), assistant);
+        var presentation = context.Presentation;
+
+        var group = presentation.Rows.OfType<ActivityGroupPresentationRow>().Single();
+        var reasoning = group.Items.OfType<ReasoningActivityItemPresentationRow>().Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(reasoning.IsRunning, Is.True);
+            Assert.That(group.IsRunning, Is.True);
+        });
+
+        assistant.IsBusy = false;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(reasoning.IsRunning, Is.False);
+            Assert.That(group.IsRunning, Is.False);
+            Assert.That(reasoning.FinishedAt, Is.Null, "Presentation must not manufacture a persisted completion timestamp.");
+        });
+    }
+
+    [Test]
     public void StructuredSubagentBlocks_DriveSubagentCount()
     {
         var assistant = new AssistantChatMessage { IsBusy = false, FinishedAt = DateTimeOffset.UtcNow };

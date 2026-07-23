@@ -655,7 +655,7 @@ public sealed class ChatPresentation : IDisposable
                     switch (span)
                     {
                         case AssistantChatMessageReasoningSpan reasoning:
-                            pending.Add(GetReasoningRow(reasoning));
+                            pending.Add(GetReasoningRow(assistant, reasoning));
                             break;
                         case AssistantChatMessageFunctionCallSpan functionSpan:
                             pending.AddRange(
@@ -771,9 +771,9 @@ public sealed class ChatPresentation : IDisposable
         private ActivityGroupPresentationRow GetGroupRow(object source) =>
             _groupRows.GetValueOrDefault(source) ?? (_groupRows[source] = new ActivityGroupPresentationRow());
 
-        private ActivityItemPresentationRow GetReasoningRow(AssistantChatMessageReasoningSpan reasoning) =>
+        private ActivityItemPresentationRow GetReasoningRow(AssistantChatMessage assistant, AssistantChatMessageReasoningSpan reasoning) =>
             _activityRows.GetValueOrDefault(reasoning) ??
-            (_activityRows[reasoning] = new ReasoningActivityItemPresentationRow(reasoning, ReasoningHeader));
+            (_activityRows[reasoning] = new ReasoningActivityItemPresentationRow(assistant, reasoning, ReasoningHeader));
 
         private ActivityItemPresentationRow GetFunctionRow(FunctionCallChatMessage function) =>
             _activityRows.GetValueOrDefault(function) ??
