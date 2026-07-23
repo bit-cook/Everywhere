@@ -1130,11 +1130,12 @@ public sealed partial class ChatService : IChatService
             }
 
             // The function requires permissions that are not granted.
-            return context.ChatContext.UserInterfaceBroker.HandleConsentRequestAsync(
-                headerKey,
-                displayBlock,
-                RequestConsentRememberMasks.All,
-                cancellationToken);
+            return context.WaitForUserInputAsync(
+                () => context.ChatContext.UserInterfaceBroker.HandleConsentRequestAsync(
+                    headerKey,
+                    displayBlock,
+                    RequestConsentRememberMasks.All,
+                    cancellationToken));
         }
     }
 

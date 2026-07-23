@@ -44,11 +44,11 @@ public sealed class FunctionCallContext : IChatPluginUserInterface, IDisposable
     /// </remarks>
     public ChatPluginActivityPreview? ActivityPreview
     {
-        get => _activityPreviewSlot.Preview;
-        set => _activityPreviewSlot.Preview = value;
+        get => _activityPresentationSlot.Preview;
+        set => _activityPresentationSlot.Preview = value;
     }
 
-    private readonly FunctionCallChatMessage.ActivityPreviewSlot _activityPreviewSlot;
+    private readonly FunctionCallChatMessage.ActivityPresentationSlot _activityPresentationSlot;
 
     public FunctionCallContext(
         Kernel kernel,
@@ -71,7 +71,7 @@ public sealed class FunctionCallContext : IChatPluginUserInterface, IDisposable
         InvocationId = functionCallContent.Id;
         IsPermissionGrantedRecords = isPermissionGrantedRecords;
         DisplaySink = functionCallChatMessage.DisplaySink;
-        _activityPreviewSlot = functionCallChatMessage.RegisterActivityPreview(InvocationId);
+        _activityPresentationSlot = functionCallChatMessage.RegisterActivityPresentation(InvocationId);
     }
 
     public string PermissionKey => $"{ChatPlugin.Key}.{ChatFunction.KernelFunction.Name}";
@@ -113,11 +113,11 @@ public sealed class FunctionCallContext : IChatPluginUserInterface, IDisposable
             return RequestConsentResult.Accepted;
         }
 
-        var consentDecision = await ChatContext.UserInterfaceBroker.HandleConsentRequestAsync(
+        var consentDecision = await WaitForUserInputAsync(() => ChatContext.UserInterfaceBroker.HandleConsentRequestAsync(
             headerKey,
             content,
             rememberMasks,
-            cancellationToken);
+            cancellationToken));
 
         switch (consentDecision.Decision)
         {
@@ -143,18 +143,40 @@ public sealed class FunctionCallContext : IChatPluginUserInterface, IDisposable
         }
     }
 
-    public Task<IReadOnlyList<ChatPluginQuestionAnswer>> AskQuestionAsync(
+    public async Task<IReadOnlyList<ChatPluginQuestionAnswer>> AskQuestionAsync(
         IReadOnlyList<ChatPluginQuestion> questions,
         CancellationToken cancellationToken = default)
     {
-        return ChatContext.UserInterfaceBroker.HandleAskQuestionAsync(questions, cancellationToken);
+        return await WaitForUserInputAsync(() => ChatContext.UserInterfaceBroker.HandleAskQuestionAsync(questions, cancellationToken));
     }
 
     #endregion
 
     /// <summary>
-    /// Ends the invocation-scoped preview lifetime. Removing the stable slot cannot clear or
-    /// overwrite a preview owned by another invocation in the same aggregate message.
+    /// Runs an interaction inside this invocation's transient user-input wait state.
     /// </summary>
-    public void Dispose() => FunctionCallChatMessage.UnregisterActivityPreview(InvocationId, _activityPreviewSlot);
+    /// <remarks>
+    /// The slot uses an atomic counter rather than a Boolean so overlapping interactions cannot
+    /// clear each other's state. The <see langword="finally"/> block also guarantees that
+    /// cancellation and broker exceptions restore the aggregate activity state.
+    /// </remarks>
+    public async Task<T> WaitForUserInputAsync<T>(Func<Task<T>> interaction)
+    {
+        _activityPresentationSlot.EnterUserInputWait();
+        try
+        {
+            return await interaction();
+        }
+        finally
+        {
+            _activityPresentationSlot.ExitUserInputWait();
+        }
+    }
+
+    /// <summary>
+    /// Ends the invocation-scoped presentation lifetime. Removing the stable slot cannot clear or
+    /// overwrite state owned by another invocation in the same aggregate message.
+    /// </summary>
+    public void Dispose() =>
+        FunctionCallChatMessage.UnregisterActivityPresentation(InvocationId, _activityPresentationSlot);
 }

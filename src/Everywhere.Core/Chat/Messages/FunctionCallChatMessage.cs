@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Text.Json.Serialization;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,6 +11,7 @@ using Lucide.Avalonia;
 using MessagePack;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using ZLinq;
 
 namespace Everywhere.Chat;
 
@@ -102,7 +104,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
     /// this function-call message.
     /// </summary>
     /// <remarks>
-    /// Preview slots are runtime-only and are never serialized. Each invocation writes only to its
+    /// Presentation slots are runtime-only and are never serialized. Each invocation writes only to its
     /// own slot; this aggregate getter is read by the presentation layer and therefore does not
     /// expose registration or cleanup operations to plugins.
     /// </remarks>
@@ -113,7 +115,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
         get
         {
             ActivityPreviewSnapshot? latest = null;
-            foreach (var pair in _activityPreviewSlots)
+            foreach (var pair in _activityPresentationSlots)
             {
                 var snapshot = pair.Value.Snapshot;
                 if (snapshot.Preview is null || latest is not null && snapshot.Revision <= latest.Revision) continue;
@@ -130,7 +132,9 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
 
     [IgnoreMember]
     [JsonIgnore]
-    public bool IsWaitingForUserInput => _displaySink.Any(db => db.IsWaitingForUserInput);
+    public bool IsWaitingForUserInput =>
+        _displaySink.AsValueEnumerable().Any(db => db.IsWaitingForUserInput) ||
+        _activityPresentationSlots.AsValueEnumerable().Any(pair => pair.Value.IsWaitingForUserInput);
 
     /// <summary>
     /// Attachments associated with this action message. Used to provide additional context of a tool call result.
@@ -139,7 +143,7 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
     public IEnumerable<ChatAttachment> Attachments => Results.Select(r => r.Result).OfType<ChatAttachment>();
 
     [IgnoreMember] private readonly ChatPluginDisplaySink _displaySink = new();
-    [IgnoreMember] private readonly ConcurrentDictionary<string, ActivityPreviewSlot> _activityPreviewSlots = new();
+    [IgnoreMember] private readonly ConcurrentDictionary<string, ActivityPresentationSlot> _activityPresentationSlots = new();
     [IgnoreMember] private readonly CompositeDisposable _disposables = new(3);
     [IgnoreMember] private long _activityPreviewRevision;
 
@@ -172,53 +176,58 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
     }
 
     /// <summary>
-    /// Registers the runtime preview slot owned by one concrete tool invocation.
+    /// Registers the runtime presentation slot owned by one concrete tool invocation.
     /// </summary>
     /// <remarks>
-    /// The slot itself is stable for the invocation lifetime. Updating its value never mutates the
+    /// The slot itself is stable for the invocation lifetime and carries both its latest lightweight
+    /// preview and its transient user-input wait count. Updating either value never mutates the
     /// registry, so a late writer cannot accidentally re-register a slot after its invocation has
     /// ended. The concurrent dictionary is needed only for the much rarer registration/removal
     /// operations when multiple tool invocations overlap.
     /// </remarks>
-    public ActivityPreviewSlot RegisterActivityPreview(string invocationId)
+    internal ActivityPresentationSlot RegisterActivityPresentation(string invocationId)
     {
-        ArgumentException.ThrowIfNullOrEmpty(invocationId);
-
-        var slot = new ActivityPreviewSlot(this);
-        if (!_activityPreviewSlots.TryAdd(invocationId, slot))
-            throw new InvalidOperationException($"An activity preview is already registered for invocation '{invocationId}'.");
+        var slot = new ActivityPresentationSlot(this);
+        if (!_activityPresentationSlots.TryAdd(invocationId, slot))
+            throw new InvalidOperationException($"Activity presentation state is already registered for invocation '{invocationId}'.");
 
         return slot;
     }
 
     /// <summary>
-    /// Removes an invocation's complete preview slot. Remaining invocations are left untouched and
-    /// the aggregate getter naturally falls back to the latest remaining non-null preview.
+    /// Removes an invocation's complete presentation slot. Remaining invocations are left untouched;
+    /// the aggregate getters naturally fall back to the latest remaining preview and wait state.
     /// </summary>
-    public void UnregisterActivityPreview(string invocationId, ActivityPreviewSlot slot)
+    internal void UnregisterActivityPresentation(string invocationId, ActivityPresentationSlot slot)
     {
-        if (!_activityPreviewSlots.TryGetValue(invocationId, out var registered) || !ReferenceEquals(registered, slot)) return;
-        if (_activityPreviewSlots.TryRemove(invocationId, out _)) NotifyActivityPreviewChanged();
+        if (!_activityPresentationSlots.TryGetValue(invocationId, out var registered) || !ReferenceEquals(registered, slot)) return;
+        if (!_activityPresentationSlots.TryRemove(invocationId, out _)) return;
+        NotifyActivityPreviewChanged();
+        if (slot.IsWaitingForUserInput) NotifyUserInputWaitChanged();
     }
 
     private long NextActivityPreviewRevision() => Interlocked.Increment(ref _activityPreviewRevision);
 
     private void NotifyActivityPreviewChanged() => OnPropertyChanged(nameof(ActivityPreview));
 
+    private void NotifyUserInputWaitChanged() => OnPropertyChanged(nameof(IsWaitingForUserInput));
+
     public void Dispose()
     {
-        _activityPreviewSlots.Clear();
+        _activityPresentationSlots.Clear();
         _disposables.Dispose();
     }
 
     /// <summary>
-    /// Stores the invocation-local preview as one atomically replaceable snapshot. Plugins have a
-    /// single logical writer per invocation, while the presentation reads from the UI thread; an
-    /// immutable snapshot keeps the value and its ordering revision coherent without a lock.
+    /// Stores transient presentation state for one invocation. Preview replacement and wait-count
+    /// transitions are independent atomic operations: plugins have one logical preview writer, but
+    /// one invocation may have overlapping user interactions and therefore uses a counter rather
+    /// than a Boolean flag.
     /// </summary>
-    public sealed class ActivityPreviewSlot(FunctionCallChatMessage owner)
+    internal sealed class ActivityPresentationSlot(FunctionCallChatMessage owner)
     {
         private ActivityPreviewSnapshot _snapshot = new(null, 0);
+        private int _userInputWaitCount;
 
         public ChatPluginActivityPreview? Preview
         {
@@ -231,7 +240,33 @@ public sealed partial class FunctionCallChatMessage : ChatMessage, IHaveChatAtta
             }
         }
 
-        internal ActivityPreviewSnapshot Snapshot => Volatile.Read(ref _snapshot);
+        /// <summary>
+        /// Gets whether at least one interaction owned by this invocation is waiting for the user.
+        /// </summary>
+        public bool IsWaitingForUserInput => Volatile.Read(ref _userInputWaitCount) > 0;
+
+        public ActivityPreviewSnapshot Snapshot => Volatile.Read(ref _snapshot);
+
+        /// <summary>
+        /// Starts one invocation-local user interaction. Only the zero-to-one transition changes
+        /// the aggregate property, avoiding redundant presentation refreshes for overlapping waits.
+        /// </summary>
+        public void EnterUserInputWait()
+        {
+            if (Interlocked.Increment(ref _userInputWaitCount) == 1)
+                owner.NotifyUserInputWaitChanged();
+        }
+
+        /// <summary>
+        /// Completes one invocation-local user interaction. A count is required because separate
+        /// asynchronous operations may overlap even though each operation has a single owner.
+        /// </summary>
+        public void ExitUserInputWait()
+        {
+            var count = Interlocked.Decrement(ref _userInputWaitCount);
+            Debug.Assert(count >= 0, "User-input wait scopes must be exited exactly once.");
+            if (count == 0) owner.NotifyUserInputWaitChanged();
+        }
     }
 
     internal sealed record ActivityPreviewSnapshot(ChatPluginActivityPreview? Preview, long Revision);

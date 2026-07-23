@@ -5,6 +5,7 @@
     x:Key="{x:Type v:GlowBorder}"
     TargetType="v:GlowBorder">
     <Setter Property="GlowOpacity" Value="0"/>
+    <Setter Property="AnimationRate" Value="1"/>
     <Setter Property="ClipToBounds" Value="True"/>
     <Setter Property="Template">
       <ControlTemplate TargetType="v:GlowBorder">
@@ -22,6 +23,7 @@
               ContentTemplate="{TemplateBinding ContentTemplate}"/>
           </Border>
           <v:GlowBorderOverlay
+            AnimationRate="{TemplateBinding AnimationRate}"
             CornerRadius="{TemplateBinding CornerRadius}"
             GlowColor="{TemplateBinding GlowColor}"
             GlowOpacity="{TemplateBinding GlowOpacity}"

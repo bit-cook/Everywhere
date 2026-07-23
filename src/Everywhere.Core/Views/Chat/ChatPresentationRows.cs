@@ -80,6 +80,13 @@ public abstract partial class ActivityItemPresentationRow : ChatPresentationRow
     public abstract DateTimeOffset CreatedAt { get; }
     public abstract DateTimeOffset? FinishedAt { get; }
     public abstract bool IsRunning { get; }
+
+    /// <summary>
+    /// Gets whether this activity is currently blocked on explicit user interaction. Activity
+    /// kinds without an interactive surface remain false by default.
+    /// </summary>
+    public virtual bool IsWaitingForUserInput => false;
+
     public abstract string? PreviewText { get; }
     [ObservableProperty] public partial bool IsExpanded { get; set; }
 
@@ -93,6 +100,7 @@ public abstract partial class ActivityItemPresentationRow : ChatPresentationRow
         OnPropertyChanged(nameof(HeaderKey));
         OnPropertyChanged(nameof(FinishedAt));
         OnPropertyChanged(nameof(IsRunning));
+        OnPropertyChanged(nameof(IsWaitingForUserInput));
         OnPropertyChanged(nameof(PreviewText));
     }
 }
@@ -134,6 +142,7 @@ public sealed class FunctionCallActivityItemPresentationRow(
     public override DateTimeOffset CreatedAt => functionCall.CreatedAt;
     public override DateTimeOffset? FinishedAt => functionCall.IsBusy ? null : functionCall.FinishedAt;
     public override bool IsRunning => functionCall.IsBusy;
+    public override bool IsWaitingForUserInput => functionCall.IsWaitingForUserInput;
     public override string? PreviewText => functionCall.Content;
     public IDynamicLocaleKey? ErrorMessageKey => functionCall.ErrorMessageKey;
     public int CallCount => functionCall.Calls.Count;
@@ -253,6 +262,14 @@ public sealed class ActivityGroupPresentationRow : ChatPresentationRow
     public bool IsRunning => Items.AsValueEnumerable().Any(item => item.IsRunning) || _isAwaitingContinuation;
 
     /// <summary>
+    /// Gets whether at least one active child activity is blocked on explicit user interaction.
+    /// Continuation waits do not qualify: they keep the Group alive while the model responds, but
+    /// do not ask the user to take action.
+    /// </summary>
+    public bool IsWaitingForUserInput =>
+        IsRunning && Items.AsValueEnumerable().Any(item => item.IsWaitingForUserInput);
+
+    /// <summary>
     /// Gets the local statistics snapshot for this contiguous activity segment.
     /// </summary>
     public ChatActivityStatistics Statistics => _statistics;
@@ -348,6 +365,7 @@ public sealed class ActivityGroupPresentationRow : ChatPresentationRow
         OnPropertyChanged(nameof(CreatedAt));
         OnPropertyChanged(nameof(FinishedAt));
         OnPropertyChanged(nameof(IsRunning));
+        OnPropertyChanged(nameof(IsWaitingForUserInput));
         SetProperty(ref _statistics, ChatActivityStatistics.Calculate(Items), nameof(Statistics));
     }
 

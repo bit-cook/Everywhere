@@ -422,6 +422,34 @@ public class ChatPresentationTests
         });
     }
 
+    [AvaloniaTest]
+    public void OverlappingUserInputWaits_KeepGroupWaiting_UntilTheFinalWaitCompletes()
+    {
+        var assistant = new AssistantChatMessage { IsBusy = true };
+        var function = FunctionMessage("Confirm", 1, true);
+        assistant.AddSpan(new AssistantChatMessageFunctionCallSpan(function));
+        using var context = Context(new UserChatMessage("Run", []), assistant);
+        var group = context.Presentation.Rows.OfType<ActivityGroupPresentationRow>().Single();
+        var slot = function.RegisterActivityPresentation("parallel-consent");
+
+        try
+        {
+            slot.EnterUserInputWait();
+            slot.EnterUserInputWait();
+            Assert.That(group.IsWaitingForUserInput, Is.True);
+
+            slot.ExitUserInputWait();
+            Assert.That(group.IsWaitingForUserInput, Is.True);
+
+            slot.ExitUserInputWait();
+            Assert.That(group.IsWaitingForUserInput, Is.False);
+        }
+        finally
+        {
+            function.UnregisterActivityPresentation("parallel-consent", slot);
+        }
+    }
+
     [Test]
     public void StructuredSubagentBlocks_DriveSubagentCount()
     {

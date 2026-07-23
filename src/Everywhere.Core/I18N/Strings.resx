@@ -3658,6 +3658,9 @@ Delete &quot;{1}&quot; permanently?</value>
     <data name="ChatPresentationRowPresenter_Working" xml:space="preserve">
         <value>In Progress</value>
     </data>
+    <data name="ChatPresentationRowPresenter_InputRequired" xml:space="preserve">
+        <value>Action Required</value>
+    </data>
     <data name="LiveElapsedConverters_SecondsFormat" xml:space="preserve">
         <value>{0:0.0}s</value>
     </data>

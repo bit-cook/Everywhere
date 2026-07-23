@@ -19,6 +19,9 @@ public sealed class GlowBorder : ContentControl
     public static readonly StyledProperty<double> GlowOpacityProperty =
         AvaloniaProperty.Register<GlowBorder, double>(nameof(GlowOpacity));
 
+    public static readonly StyledProperty<double> AnimationRateProperty =
+        AvaloniaProperty.Register<GlowBorder, double>(nameof(AnimationRate), 1);
+
     public Color GlowColor
     {
         get => GetValue(GlowColorProperty);
@@ -29,6 +32,16 @@ public sealed class GlowBorder : ContentControl
     {
         get => GetValue(GlowOpacityProperty);
         set => SetValue(GlowOpacityProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets the multiplier applied to shader time. A value of zero preserves the current
+    /// glow shape without requesting further animation frames.
+    /// </summary>
+    public double AnimationRate
+    {
+        get => GetValue(AnimationRateProperty);
+        set => SetValue(AnimationRateProperty, value);
     }
 }
 
@@ -56,15 +69,27 @@ public sealed class GlowBorderOverlay : Control
         set => SetValue(GlowOpacityProperty, value);
     }
 
+    /// <summary>
+    /// Gets or sets the multiplier applied to elapsed animation time. Transitions may gradually
+    /// approach zero to decelerate the highlight before it becomes a static inner glow.
+    /// </summary>
+    public double AnimationRate
+    {
+        get => GetValue(AnimationRateProperty);
+        set => SetValue(AnimationRateProperty, value);
+    }
+
     public static readonly StyledProperty<Color> GlowColorProperty = GlowBorder.GlowColorProperty.AddOwner<GlowBorderOverlay>();
     public static readonly StyledProperty<CornerRadius> CornerRadiusProperty = TemplatedControl.CornerRadiusProperty.AddOwner<GlowBorderOverlay>();
     public static readonly StyledProperty<double> GlowOpacityProperty = GlowBorder.GlowOpacityProperty.AddOwner<GlowBorderOverlay>();
+    public static readonly StyledProperty<double> AnimationRateProperty = GlowBorder.AnimationRateProperty.AddOwner<GlowBorderOverlay>();
 
     private static readonly Lazy<SKRuntimeEffect> ShaderEffect = new(CreateEffect);
 
     private TopLevel? _topLevel;
     private bool _animationStarted;
-    private TimeSpan _time;
+    private TimeSpan _animationTime;
+    private TimeSpan? _lastFrameTime;
 
     static GlowBorderOverlay()
     {
@@ -75,7 +100,8 @@ public sealed class GlowBorderOverlay : Control
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == GlowOpacityProperty || change.Property == IsVisibleProperty) StartAnimation();
+        if (change.Property == GlowOpacityProperty || change.Property == AnimationRateProperty || change.Property == IsVisibleProperty)
+            StartAnimation();
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -87,31 +113,47 @@ public sealed class GlowBorderOverlay : Control
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         _topLevel = null;
+        _animationStarted = false;
+        _lastFrameTime = null;
     }
 
     public override void Render(DrawingContext context)
     {
         if (Bounds.Width <= 0 || Bounds.Height <= 0 || GlowOpacity <= 0.001 || GlowColor.A == 0) return;
-        context.Custom(new GlowDrawOperation(new Rect(Bounds.Size), GlowColor, CornerRadius.TopLeft, GlowOpacity, _time.TotalSeconds));
+        context.Custom(
+            new GlowDrawOperation(
+                new Rect(Bounds.Size),
+                GlowColor,
+                CornerRadius.TopLeft,
+                GlowOpacity,
+                _animationTime.TotalSeconds));
     }
 
     private void StartAnimation()
     {
-        if (_animationStarted || _topLevel is null || !IsVisible || GlowOpacity <= 0.001) return;
+        if (_animationStarted || _topLevel is null || !IsVisible || GlowOpacity <= 0.001 || AnimationRate <= 0.001) return;
 
         _animationStarted = true;
+        _lastFrameTime = null;
         _topLevel.RequestAnimationFrame(OnAnimationFrame);
     }
 
     private void OnAnimationFrame(TimeSpan time)
     {
-        if (_topLevel is null || !IsVisible || GlowOpacity <= 0.001)
+        if (_topLevel is null || !IsVisible || GlowOpacity <= 0.001 || AnimationRate <= 0.001)
         {
             _animationStarted = false;
+            _lastFrameTime = null;
             return;
         }
 
-        _time = time;
+        if (_lastFrameTime is { } lastFrameTime)
+        {
+            var elapsed = time - lastFrameTime;
+            if (elapsed > TimeSpan.Zero) _animationTime += elapsed * Math.Max(AnimationRate, 0);
+        }
+
+        _lastFrameTime = time;
         InvalidateVisual();
         _topLevel.RequestAnimationFrame(OnAnimationFrame);
     }

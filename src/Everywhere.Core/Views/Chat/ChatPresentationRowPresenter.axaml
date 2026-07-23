@@ -149,12 +149,49 @@
                 <Grid
                   ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8"
                   IsHitTestVisible="False">
-                  <Panel
-                    Width="18" Height="18"
-                    VerticalAlignment="Center">
+                  <Panel VerticalAlignment="Center">
                     <shadui:Loading
-                      Width="16" Height="16"
-                      IsVisible="{Binding IsRunning}"/>
+                      x:Name="PART_RunningIndicator"
+                      Width="{DynamicResource FontSizeL}"
+                      Height="{DynamicResource FontSizeL}"
+                      Classes.WaitingForUserInput="{Binding IsWaitingForUserInput}"
+                      IsVisible="{Binding IsRunning}">
+                      <shadui:Loading.Styles>
+                        <Style Selector="shadui|Loading#PART_RunningIndicator.WaitingForUserInput">
+                          <Setter Property="Opacity" Value="0"/>
+                        </Style>
+                      </shadui:Loading.Styles>
+                      <shadui:Loading.Transitions>
+                        <Transitions>
+                          <DoubleTransition
+                            Easing="CubicEaseOut" Property="Opacity"
+                            Duration="0:0:0.2"/>
+                        </Transitions>
+                      </shadui:Loading.Transitions>
+                    </shadui:Loading>
+                    <LucideIcon
+                      x:Name="PART_WaitingIndicator"
+                      Classes.WaitingForUserInput="{Binding IsWaitingForUserInput}"
+                      Foreground="{DynamicResource WarningColor}"
+                      IsVisible="{Binding IsRunning}"
+                      Kind="TriangleAlert"
+                      Size="{DynamicResource FontSizeL}">
+                      <LucideIcon.Styles>
+                        <Style Selector="LucideIcon#PART_WaitingIndicator">
+                          <Setter Property="Opacity" Value="0"/>
+                        </Style>
+                        <Style Selector="LucideIcon#PART_WaitingIndicator.WaitingForUserInput">
+                          <Setter Property="Opacity" Value="1"/>
+                        </Style>
+                      </LucideIcon.Styles>
+                      <LucideIcon.Transitions>
+                        <Transitions>
+                          <DoubleTransition
+                            Easing="CubicEaseOut" Property="Opacity"
+                            Duration="0:0:0.2"/>
+                        </Transitions>
+                      </LucideIcon.Transitions>
+                    </LucideIcon>
                     <LucideIcon
                       Foreground="{DynamicResource SuccessColor60}"
                       IsVisible="{Binding !IsRunning}"
@@ -166,11 +203,49 @@
                     Condition="{Binding IsRunning, Mode=OneWay}">
                     <v:ConditionalContentControl.TrueContent>
                       <DataTemplate x:DataType="v:ActivityGroupPresentationRow">
-                        <TextBlock
-                          VerticalAlignment="Center"
-                          FontSize="{DynamicResource FontSizeS}"
-                          Text="{I18N {x:Static LocaleKey.ChatPresentationRowPresenter_Working}}"
-                          TextTrimming="CharacterEllipsis" TextWrapping="NoWrap"/>
+                        <Grid>
+                          <TextBlock
+                            x:Name="PART_WorkingHeader" VerticalAlignment="Center"
+                            Classes.WaitingForUserInput="{Binding IsWaitingForUserInput}"
+                            FontSize="{DynamicResource FontSizeS}"
+                            Text="{I18N {x:Static LocaleKey.ChatPresentationRowPresenter_Working}}"
+                            TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
+                            <TextBlock.Styles>
+                              <Style Selector="TextBlock#PART_WorkingHeader.WaitingForUserInput">
+                                <Setter Property="Opacity" Value="0"/>
+                              </Style>
+                            </TextBlock.Styles>
+                            <TextBlock.Transitions>
+                              <Transitions>
+                                <DoubleTransition
+                                  Easing="CubicEaseOut" Property="Opacity"
+                                  Duration="0:0:0.2"/>
+                              </Transitions>
+                            </TextBlock.Transitions>
+                          </TextBlock>
+                          <TextBlock
+                            x:Name="PART_InputRequiredHeader" VerticalAlignment="Center"
+                            Classes.WaitingForUserInput="{Binding IsWaitingForUserInput}"
+                            FontSize="{DynamicResource FontSizeS}"
+                            Text="{I18N {x:Static LocaleKey.ChatPresentationRowPresenter_InputRequired}}"
+                            TextTrimming="CharacterEllipsis" TextWrapping="NoWrap">
+                            <TextBlock.Styles>
+                              <Style Selector="TextBlock#PART_InputRequiredHeader">
+                                <Setter Property="Opacity" Value="0"/>
+                              </Style>
+                              <Style Selector="TextBlock#PART_InputRequiredHeader.WaitingForUserInput">
+                                <Setter Property="Opacity" Value="1"/>
+                              </Style>
+                            </TextBlock.Styles>
+                            <TextBlock.Transitions>
+                              <Transitions>
+                                <DoubleTransition
+                                  Easing="CubicEaseOut" Property="Opacity"
+                                  Duration="0:0:0.2"/>
+                              </Transitions>
+                            </TextBlock.Transitions>
+                          </TextBlock>
+                        </Grid>
                       </DataTemplate>
                     </v:ConditionalContentControl.TrueContent>
                     <v:ConditionalContentControl.FalseContent>
@@ -297,18 +372,35 @@
             </Expander>
 
             <v:GlowBorderOverlay
+              Classes.WaitingForUserInput="{Binding IsWaitingForUserInput}"
               CornerRadius="{DynamicResource XlCornerRadius}"
-              GlowColor="{DynamicResource PrimaryColor}"
-              GlowOpacity="{Binding IsRunning, Mode=OneWay, Converter={x:Static vc:DoubleConverters.FromBoolean}}">
+              GlowOpacity="{Binding IsRunning, Mode=OneWay, Converter={x:Static vc:DoubleConverters.FromBoolean}}"
+              IsHitTestVisible="False">
+              <v:GlowBorderOverlay.Styles>
+                <Style Selector="v|GlowBorderOverlay">
+                  <Setter Property="AnimationRate" Value="1"/>
+                  <Setter Property="GlowColor" Value="{DynamicResource PrimaryColor75}"/>
+                </Style>
+                <Style Selector="v|GlowBorderOverlay.WaitingForUserInput">
+                  <Setter Property="AnimationRate" Value="0.2"/>
+                  <Setter Property="GlowColor" Value="{DynamicResource WarningColor60}"/>
+                </Style>
+              </v:GlowBorderOverlay.Styles>
               <v:GlowBorderOverlay.Transitions>
                 <Transitions>
                   <!--
                     The projection waits 400 ms before changing the completed Group's structural shape.
-                    This independent 320 ms opacity transition therefore finishes before a small Group is lifted into direct activity rows or a large Group is collapsed.
+                    This independent 360 ms opacity transition therefore finishes before a small Group is lifted into direct activity rows or a large Group is collapsed.
                   -->
                   <DoubleTransition
                     Easing="CubicEaseOut" Property="GlowOpacity"
-                    Duration="0:0:0.32"/>
+                    Duration="0:0:0.36"/>
+                  <DoubleTransition
+                    Easing="CubicEaseOut" Property="AnimationRate"
+                    Duration="0:0:1.0"/>
+                  <ColorTransition
+                    Easing="CubicEaseOut" Property="GlowColor"
+                    Duration="0:0:0.36"/>
                 </Transitions>
               </v:GlowBorderOverlay.Transitions>
             </v:GlowBorderOverlay>
