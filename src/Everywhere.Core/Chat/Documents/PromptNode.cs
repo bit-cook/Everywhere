@@ -137,6 +137,45 @@ public sealed partial class PromptTextChunk : PromptNode
         ArgumentNullException.ThrowIfNull(text);
         Text = text;
     }
+
+    /// <summary>
+    /// Configures a text chunk to shorten at Unicode whitespace boundaries.
+    /// </summary>
+    public PromptTextChunk BreakOnWhitespace()
+    {
+        BreakMode = PromptTextBreakMode.Whitespace;
+        Separator = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures a text chunk to shorten after complete lines.
+    /// </summary>
+    public PromptTextChunk BreakOnLines()
+    {
+        BreakMode = PromptTextBreakMode.Line;
+        Separator = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Configures a text chunk to shorten after a specified separator.
+    /// </summary>
+    public PromptTextChunk BreakOn(string separator)
+    {
+        BreakMode = PromptTextBreakMode.Separator;
+        Separator = separator;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets a local token ceiling for a text chunk.
+    /// </summary>
+    public PromptTextChunk WithMaxTokens(int maxTokens)
+    {
+        MaxTokens = maxTokens;
+        return this;
+    }
 }
 
 /// <summary>
@@ -316,6 +355,59 @@ public sealed partial class PromptElement : PromptContainer
     public PromptElement Attribute(string name, object? value)
     {
         Attributes[name] = value;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds or replaces an attribute after converting its value with invariant culture.
+    /// Only adds the attribute if the value is not null.
+    /// </summary>
+    public PromptElement AttributeNotNull(string name, object? value)
+    {
+        if (value is not null) Attributes[name] = value;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds or replaces an attribute after converting its value with invariant culture.
+    /// Only adds the attribute if the value is not null and not empty string.
+    /// </summary>
+    public PromptElement AttributeNotNullOrEmpty(string name, object? value)
+    {
+        if (value is not null && value is not string { Length: 0 }) Attributes[name] = value;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a child.
+    /// </summary>
+    /// <param name="child"></param>
+    /// <returns></returns>
+    public PromptElement Child(PromptNode child)
+    {
+        Children.Add(child);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a child if the value is not null.
+    /// </summary>
+    /// <param name="child"></param>
+    /// <returns></returns>
+    public PromptElement ChildNotNull(PromptNode? child)
+    {
+        if (child is not null) Children.Add(child);
+        return this;
+    }
+
+    /// <summary>
+    /// Adds a child if the value is not null and not empty string.
+    /// </summary>
+    /// <param name="child"></param>
+    /// <returns></returns>
+    public PromptElement ChildNotNullOrEmpty(PromptNode? child)
+    {
+        if (child is not null && child is not PromptText { Text.Length: 0 }) Children.Add(child);
         return this;
     }
 }

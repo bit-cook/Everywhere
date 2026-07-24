@@ -6,7 +6,6 @@ using Everywhere.Utilities;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Serilog;
-using ZLinq;
 
 namespace Everywhere.Chat;
 

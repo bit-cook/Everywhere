@@ -58,49 +58,4 @@ public static class PromptNodeExtensions
             return new PromptTokenLimit(maxTokens, node);
         }
     }
-
-    extension(PromptTextChunk chunk)
-    {
-        /// <summary>
-        /// Configures a text chunk to shorten at Unicode whitespace boundaries.
-        /// </summary>
-        public PromptTextChunk BreakOnWhitespace()
-        {
-            chunk.BreakMode = PromptTextBreakMode.Whitespace;
-            chunk.Separator = null;
-            return chunk;
-        }
-
-        /// <summary>
-        /// Configures a text chunk to shorten after complete lines.
-        /// </summary>
-        public PromptTextChunk BreakOnLines()
-        {
-            chunk.BreakMode = PromptTextBreakMode.Line;
-            chunk.Separator = null;
-            return chunk;
-        }
-
-        /// <summary>
-        /// Configures a text chunk to shorten after a specified separator.
-        /// </summary>
-        public PromptTextChunk BreakOn(string separator)
-        {
-            ArgumentException.ThrowIfNullOrEmpty(separator);
-
-            chunk.BreakMode = PromptTextBreakMode.Separator;
-            chunk.Separator = separator;
-            return chunk;
-        }
-
-        /// <summary>
-        /// Sets a local token ceiling for a text chunk.
-        /// </summary>
-        public PromptTextChunk WithMaxTokens(int maxTokens)
-        {
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxTokens);
-            chunk.MaxTokens = maxTokens;
-            return chunk;
-        }
-    }
 }

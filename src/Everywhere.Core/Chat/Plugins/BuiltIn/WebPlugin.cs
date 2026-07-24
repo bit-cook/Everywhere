@@ -1,10 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Globalization;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Everywhere.AI;
+using Everywhere.Chat.Documents;
 using Everywhere.Chat.Permissions;
 using Everywhere.Cloud;
 using Everywhere.Common;
@@ -16,7 +14,7 @@ using Microsoft.SemanticKernel;
 
 namespace Everywhere.Chat.Plugins.BuiltIn;
 
-public sealed partial class WebPlugin : BuiltInChatPlugin
+public sealed class WebPlugin : BuiltInChatPlugin
 {
     public override IDynamicLocaleKey HeaderKey { get; } = new DynamicLocaleKey(LocaleKey.BuiltInChatPlugin_Web_Header);
     public override IDynamicLocaleKey DescriptionKey { get; } = new DynamicLocaleKey(LocaleKey.BuiltInChatPlugin_Web_Description);
@@ -29,12 +27,6 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
     private readonly IWebBrowserHost _webBrowserHost;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<WebPlugin> _logger;
-
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
-    {
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        TypeInfoResolver = WebPluginJsonSerializerContext.Default
-    };
 
     public WebPlugin(
         Settings settings,
@@ -154,7 +146,7 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
         "STRICTLY confined to internet content; DO NOT use to search local files or personal data. " +
         "Results may be inaccurate.")]
     [DynamicLocaleKey(LocaleKey.BuiltInChatPlugin_Web_WebSearch_Header, LocaleKey.BuiltInChatPlugin_Web_WebSearch_Description)]
-    private async Task<string> SearchAsync(
+    private async Task<PromptNode> SearchAsync(
         [FromKernelServices] IChatPluginDisplaySink displaySink,
         [Description("Search query")] string query,
         [Description("Number of results. Default is 10.")] int count = 10,
@@ -168,24 +160,23 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                 LocaleKey.BuiltInChatPlugin_Web_WebSearch_Searching,
                 new DirectLocaleKey(query)));
 
-        var results = await connector.SearchAsync(query, count, cancellationToken).ConfigureAwait(false);
-        var indexedResults = results
-            .AsValueEnumerable()
-            .Select((r, i) => new IndexedWebPage(
-                Index: i + 1,
-                Name: r.Name,
-                Url: r.Link,
-                Snippet: r.Value))
-            .ToArray();
-        displaySink.AppendUrls(
-            indexedResults.AsValueEnumerable().Select(r => new ChatPluginUrl(
-                r.Url,
-                new DirectLocaleKey((r.Name ?? r.Snippet).SafeSubstring(0, 64)))
-            {
-                Index = r.Index
-            }).ToArray());
+        var results = (await connector.SearchAsync(query, count, cancellationToken).ConfigureAwait(false)).AsValueEnumerable().ToArray();
 
-        return JsonSerializer.Serialize(indexedResults, _jsonSerializerOptions);
+        displaySink.AppendUrls(
+            results
+                .AsValueEnumerable()
+                .Select(r => new ChatPluginUrl(r.Link, new DirectLocaleKey((r.Name ?? r.Value).SafeSubstring(0, 64))))
+                .ToArray());
+
+        return new PromptTokenLimit(
+            40960,
+            results
+                .AsValueEnumerable()
+                .Select(r => new PromptElement("result")
+                    .AttributeNotNullOrEmpty("name", r.Name)
+                    .AttributeNotNullOrEmpty("url", r.Link)
+                    .ChildNotNullOrEmpty(r.Value))
+                .ToArray());
     }
 
     [KernelFunction("web_extract")]
@@ -269,6 +260,7 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
                 }
             }));
 
+        // TODO: implement with PromptNode
         // Dynamic proportional token budget allocation per URL
         const int totalBudget = 40000;
         const int minPerUrl = 500;
@@ -335,14 +327,4 @@ public sealed partial class WebPlugin : BuiltInChatPlugin
 
         return resultBuilder.ToString();
     }
-
-    [JsonSerializable(typeof(List<IndexedWebPage>))]
-    private partial class WebPluginJsonSerializerContext : JsonSerializerContext;
-
-    private sealed record IndexedWebPage(
-        [property: JsonPropertyName("index")] int Index,
-        [property: JsonPropertyName("name")] string? Name,
-        [property: JsonPropertyName("url")] string? Url,
-        [property: JsonPropertyName("snippet")] string Snippet
-    );
 }
