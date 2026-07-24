@@ -441,8 +441,8 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
 
     /// <summary>
     /// Adds a non-persisted activity to the current assistant turn for the lifetime of the returned
-    /// scope. Disposing the scope completes the activity while retaining its presentation row in
-    /// the current in-memory chronology.
+    /// scope. Disposing the scope either completes and retains the activity or removes it from the
+    /// current in-memory chronology, according to <paramref name="removeAfterCompletion"/>.
     /// </summary>
     /// <remarks>
     /// ChatPresentation owns DynamicData lists and Avalonia-facing row state. ChatService and
@@ -452,9 +452,13 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     /// </remarks>
     /// <param name="icon">The reliable icon describing the operation category.</param>
     /// <param name="headerKey">The localized running activity title.</param>
-    /// <returns>A scope whose disposal marks the runtime activity as completed.</returns>
-    public Task<IDisposable> SetBusyActivityAsync(LucideIconKind icon, IDynamicLocaleKey headerKey) =>
-        Dispatcher.UIThread.InvokeOnDemandAsync(() => Presentation.SetBusyActivity(icon, headerKey));
+    /// <param name="removeAfterCompletion">
+    /// Whether disposing the scope removes this transient activity instead of retaining a completed
+    /// presentation row.
+    /// </param>
+    /// <returns>A scope whose disposal ends the runtime activity.</returns>
+    public Task<IDisposable> SetBusyActivityAsync(LucideIconKind icon, IDynamicLocaleKey headerKey, bool removeAfterCompletion) =>
+        Dispatcher.UIThread.InvokeOnDemandAsync(() => Presentation.SetBusyActivity(icon, headerKey, removeAfterCompletion));
 
     public IObservable<IChangeSet<ChatMessageNode>> Connect(Func<ChatMessageNode, bool>? predicate = null) =>
         _branchNodesSourceList.Connect(predicate);

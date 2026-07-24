@@ -478,7 +478,8 @@ public class ChatPresentationTests
         var presentation = context.Presentation;
         var busyActivity = await context.SetBusyActivityAsync(
             LucideIconKind.Server,
-            new DirectLocaleKey("Starting MCP"));
+            new DirectLocaleKey("Starting MCP"),
+            removeAfterCompletion: false);
 
         var runningGroup = presentation.Rows.OfType<ActivityGroupPresentationRow>().Single();
         var item = runningGroup.Items.OfType<BusyActivityItemPresentationRow>().Single();
@@ -512,6 +513,35 @@ public class ChatPresentationTests
         await Task.Delay(500);
         Assert.That(presentation.Rows.OfType<ActivityGroupPresentationRow>(), Is.Empty);
         Assert.That(presentation.Rows.OfType<BusyActivityItemPresentationRow>(), Has.Exactly(1).Items);
+    }
+
+    [AvaloniaTest]
+    public async Task TransientBusyActivity_WhenCompleted_IsRemovedFromPresentation()
+    {
+        var assistant = new AssistantChatMessage { IsBusy = true };
+        using var context = Context(new UserChatMessage("Prepare tools", []), assistant);
+        var presentation = context.Presentation;
+        var busyActivity = await context.SetBusyActivityAsync(
+            LucideIconKind.Hammer,
+            new DirectLocaleKey("Generating tool call"),
+            removeAfterCompletion: true);
+
+        Assert.That(
+            presentation.Rows
+                .OfType<ActivityGroupPresentationRow>()
+                .Single()
+                .Items
+                .OfType<BusyActivityItemPresentationRow>(),
+            Has.Exactly(1).Items);
+
+        busyActivity.Dispose();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(presentation.Rows.OfType<ActivityGroupPresentationRow>(), Is.Empty);
+            Assert.That(presentation.Rows.OfType<BusyActivityItemPresentationRow>(), Is.Empty);
+            Assert.That(assistant.Spans, Is.Empty);
+        });
     }
 
     private static void AssertRowTypes<T1, T2, T3, T4>(IEnumerable<ChatPresentationRow> rows) =>

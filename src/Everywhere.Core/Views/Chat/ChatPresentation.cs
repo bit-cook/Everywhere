@@ -76,15 +76,17 @@ public sealed class ChatPresentation : IDisposable
     }
 
     /// <summary>
-    /// Adds a runtime-only activity to the current assistant turn. The returned scope completes the
-    /// stable activity row; it does not remove it, allowing the current in-memory presentation to
-    /// retain an accurate chronology while persisted messages remain completely unchanged.
+    /// Adds a runtime-only activity to the current assistant turn. The returned scope applies its
+    /// explicit completion policy without changing the persisted message graph.
     /// </summary>
-    public IDisposable SetBusyActivity(LucideIconKind icon, IDynamicLocaleKey headerKey)
+    public IDisposable SetBusyActivity(LucideIconKind icon, IDynamicLocaleKey headerKey, bool removeAfterCompletion)
     {
         Debug.Assert(Dispatcher.UIThread.CheckAccess());
         ArgumentNullException.ThrowIfNull(headerKey);
-        var scope = new BusyActivityScope(this, new BusyActivityItemPresentationRow(icon, headerKey, DateTimeOffset.UtcNow));
+        var scope = new BusyActivityScope(
+            this,
+            new BusyActivityItemPresentationRow(icon, headerKey, DateTimeOffset.UtcNow),
+            removeAfterCompletion);
         DispatchBusyActivityUpdate(scope);
         return scope;
     }
@@ -114,7 +116,12 @@ public sealed class ChatPresentation : IDisposable
             _busyActivities.Add(scope.Row);
         }
 
-        if (scope.FinishedAt is { } finishedAt) scope.Row.Complete(finishedAt);
+        if (scope.FinishedAt is { } finishedAt)
+        {
+            if (scope.RemoveAfterCompletion) _busyActivities.Remove(scope.Row);
+            else scope.Row.Complete(finishedAt);
+        }
+
         Repartition();
     }
 
@@ -257,11 +264,10 @@ public sealed class ChatPresentation : IDisposable
     /// timestamp crosses threads; all row attachment and SourceList work is dispatched through the
     /// owning presentation on Avalonia's UI thread.
     /// </summary>
-    private sealed class BusyActivityScope(ChatPresentation owner, BusyActivityItemPresentationRow row) : IDisposable
+    private sealed class BusyActivityScope(ChatPresentation owner, BusyActivityItemPresentationRow row, bool removeAfterCompletion) : IDisposable
     {
-        private long _finishedAtUtcTicks;
-
         public BusyActivityItemPresentationRow Row { get; } = row;
+        public bool RemoveAfterCompletion { get; } = removeAfterCompletion;
         public bool IsAttached { get; set; }
 
         public DateTimeOffset? FinishedAt
@@ -272,6 +278,8 @@ public sealed class ChatPresentation : IDisposable
                 return ticks == 0 ? null : new DateTimeOffset(ticks, TimeSpan.Zero);
             }
         }
+
+        private long _finishedAtUtcTicks;
 
         public void Dispose()
         {
@@ -328,8 +336,8 @@ public sealed class ChatPresentation : IDisposable
         /// <summary>
         /// Replaces the turn's persisted node view and runtime-only activity view by reference.
         /// Persisted membership changes require subscription rewiring; a transient activity change
-        /// only requires a cheap structural rebuild because those rows are completed explicitly by
-        /// their owning scope.
+        /// only requires a cheap structural rebuild because those rows are completed or removed
+        /// explicitly by their owning scope.
         /// </summary>
         public void UpdateSources(IReadOnlyList<ChatMessageNode> nodes, IReadOnlyList<BusyActivityItemPresentationRow> busyActivities)
         {
@@ -346,6 +354,18 @@ public sealed class ChatPresentation : IDisposable
                 // even though neither source collection changed membership.
                 RebuildVisibleRows();
                 return;
+            }
+
+            if (busyActivitiesChanged)
+            {
+                // A removable runtime activity can be the identity key of its former Group. Once
+                // that activity leaves the source list, the Group can no longer be reached by a
+                // later entry sequence and should not remain cached for the rest of the chat.
+                foreach (var removed in _busyActivities.AsValueEnumerable().Where(activity =>
+                             !busyActivities.AsValueEnumerable().Any(candidate => ReferenceEquals(candidate, activity))))
+                {
+                    _groupRows.Remove(removed);
+                }
             }
 
             _nodes = nodes;

@@ -707,7 +707,8 @@ public sealed partial class ChatService : IChatService
                 {
                     callingToolsActivity = await chatContext.SetBusyActivityAsync(
                         LucideIconKind.Hammer,
-                        new DynamicLocaleKey(LocaleKey.ChatContext_BusyMessage_CallingTools));
+                        new DynamicLocaleKey(LocaleKey.ChatContext_BusyMessage_CallingTools),
+                        removeAfterCompletion: true);
                 }
             }
         }

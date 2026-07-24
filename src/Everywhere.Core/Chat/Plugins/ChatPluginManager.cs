@@ -490,7 +490,8 @@ public class ChatPluginManager : IChatPluginManager, IDisposable
                 {
                     startingMcpActivity ??= await chatContext.SetBusyActivityAsync(
                         LucideIconKind.Server,
-                        new DynamicLocaleKey(LocaleKey.ChatContext_BusyMessage_StartingMcp));
+                        new DynamicLocaleKey(LocaleKey.ChatContext_BusyMessage_StartingMcp),
+                        removeAfterCompletion: false);
 
                     try
                     {
