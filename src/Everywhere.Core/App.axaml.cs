@@ -169,7 +169,7 @@ public class App(IServiceProvider serviceProvider) : Application, IRecipient<App
         MarkdownNode.Register<MathInlineNode>();
         MarkdownNode.Register<MathBlockNode>();
 
-        MarkdownRenderer.ConfigurePipeline += x => x.UseMermaid();
+        MarkdownRenderer.ConfigurePipeline += x => x.UseMermaid().UseExtendedMathematics();
         MarkdownNode.Register<MermaidBlockNode>();
     }
 
