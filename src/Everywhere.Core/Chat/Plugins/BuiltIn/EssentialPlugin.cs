@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Text;
 using System.Text.Json.Serialization;
-using DynamicData;
 using Everywhere.AI;
 using Everywhere.AI.Prompts;
 using Everywhere.Chat.Permissions;
@@ -11,7 +10,6 @@ using Everywhere.Statistics;
 using Lucide.Avalonia;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using ZLinq;
 
 namespace Everywhere.Chat.Plugins.BuiltIn;
 
@@ -108,6 +106,10 @@ public sealed class EssentialPlugin : BuiltInChatPlugin
             _ => DefaultPrompts.DefaultSystemPrompt
         };
 
+        // The subagent has its own ChatContext and FunctionCallContext. Do not let the parent
+        // tool's ambient invocation context leak into nested kernel-service resolution while the
+        // child generation is waiting for model output or user consent.
+        using var parentFunctionCallContextScope = chatContext.SuppressFunctionCallContext();
         await chatService.GenerateAsync(
             forkedChatContext,
             specializedAssistant,

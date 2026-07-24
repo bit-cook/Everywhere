@@ -321,6 +321,24 @@ public sealed partial class ChatContext : ObservableObject, IObservableList<Chat
     }
 
     /// <summary>
+    /// Temporarily clears the invocation context for a nested generation and restores it when the
+    /// generation completes.
+    /// </summary>
+    /// <remarks>
+    /// A subagent is generated from inside the parent tool invocation. The subagent owns a
+    /// different <see cref="ChatContext"/>, but the parent invocation still flows through the
+    /// current asynchronous execution context. Clearing this slot prevents dependency-injection
+    /// lookups made while starting the nested generation from accidentally resolving the parent
+    /// tool's user-interface context. The parent scope is restored before the outer tool resumes.
+    /// </remarks>
+    public IDisposable SuppressFunctionCallContext()
+    {
+        var previous = FunctionCallContext.Value;
+        FunctionCallContext.Value = null;
+        return Disposable.Create(() => FunctionCallContext.Value = previous);
+    }
+
+    /// <summary>
     /// Create a new branch on the specified sibling node by inserting a new message at that position.
     /// </summary>
     public void CreateBranchOn(ChatMessageNode siblingNode, ChatMessage chatMessage)
