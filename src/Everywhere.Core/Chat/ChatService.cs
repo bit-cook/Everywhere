@@ -402,20 +402,20 @@ public sealed partial class ChatService : IChatService
         if (kernelMixin.SupportsToolCall && (customAssistant?.IsToolCallEnabled ?? true))
         {
             var userMessage = chatContext.Read(list => list.AsValueEnumerable().Select(n => n.Message).OfType<UserChatMessage>().LastOrDefault());
-            var strategyToolRulesets = userMessage?.As<UserStrategyChatMessage>()?.Strategy.ToolRulesets;
-            var webSearchRulesets = new ToolRulesets(1)
+            var strategyToolRulesets = userMessage?.As<UserStrategyChatMessage>()?.Strategy.ToolPatternRulesets;
+            var webSearchRulesets = new ToolPatternRulesets(1)
             {
                 {
                     "builtin.web",
-                    new ToolFunctionRulesets { { "web_search", _persistentState.IsWebSearchEnabled } }
+                    new ToolFunctionPatternRulesets { { "web_search", _persistentState.IsWebSearchEnabled } }
                 }
             };
             var toolRulesets = new ToolRulesetsPipeline(
             [
-                customAssistant?.ToolEnablement,
+                customAssistant?.ToolEnablementRulesets,
                 webSearchRulesets,
                 strategyToolRulesets,
-                chatContext.ToolRulesets
+                chatContext.ToolPatternRulesets
             ]);
 
             var chatPluginScope = await _chatPluginManager.CreateScopeAsync(
@@ -967,7 +967,7 @@ public sealed partial class ChatService : IChatService
                             chatFunction,
                             functionCallChatMessage,
                             functionCallContent,
-                            _settings.Plugin.ToolAutoApproval);
+                            _settings.Plugin.ToolBypassApprovalRulesets);
                         using var functionCallContextScope = chatContext.EnterFunctionCallContext(functionCallContext);
 
                         // Add the function call content to the function call chat message.
@@ -1060,12 +1060,12 @@ public sealed partial class ChatService : IChatService
             {
                 case ConsentDecisionKind.AlwaysAllow:
                 {
-                    _settings.Plugin.ToolAutoApproval[permissionKey] = true;
+                    _settings.Plugin.ToolBypassApprovalRulesets[permissionKey] = true;
                     break;
                 }
                 case ConsentDecisionKind.AllowSession:
                 {
-                    context.ChatContext.ToolAutoApproval[permissionKey] = true;
+                    context.ChatContext.ToolBypassApprovalRulesets[permissionKey] = true;
                     break;
                 }
                 case ConsentDecisionKind.Deny:
@@ -1073,9 +1073,16 @@ public sealed partial class ChatService : IChatService
                     toolStatus = StatisticsToolInvocationStatus.Denied;
                     return new FunctionResultContent(content, consentDecision.FormatReason("Tool execution denied by user."));
                 }
+                case ConsentDecisionKind.Custom when
+                    context.ChatPlugin is McpChatPlugin mcpPlugin &&
+                    consentDecision.CustomOption?.Key is ToolConsentCustomOption.BypassMcpServerApproval:
+                {
+                    ToolBypassApprovalPolicy.SetPluginRule(_settings.Plugin.ToolBypassApprovalRulesets, mcpPlugin, true);
+                    break;
+                }
                 case ConsentDecisionKind.Custom:
                 {
-                    throw new InvalidOperationException("Invalid tool execution state");
+                    throw new InvalidOperationException("Unknown custom tool-consent option.");
                 }
             }
 
@@ -1106,7 +1113,7 @@ public sealed partial class ChatService : IChatService
         Task<ConsentDecision> ProcessConsentAsync(string permissionKey)
         {
             // Check if the permission is already granted in the current chat context
-            if (!_settings.Plugin.ToolAutoApproval.TryGetValue(permissionKey, out var isPermissionGranted))
+            if (!_settings.Plugin.ToolBypassApprovalRulesets.TryGetValue(permissionKey, out var isPermissionGranted))
             {
                 isPermissionGranted = context.IsPermissionGranted;
             }
@@ -1117,11 +1124,19 @@ public sealed partial class ChatService : IChatService
             }
 
             FormattedDynamicLocaleKey headerKey;
-            if (context.ChatPlugin is McpChatPlugin)
+            IReadOnlyList<RequestConsentCustomOption>? customOptions = null;
+            if (context.ChatPlugin.IsMcp)
             {
-                headerKey = new FormattedDynamicLocaleKey(
-                    LocaleKey.ChatPluginConsentRequest_MCP_Header,
-                    context.ChatFunction.HeaderKey);
+                headerKey = new FormattedDynamicLocaleKey(LocaleKey.ChatPluginConsentRequest_MCP_Header, context.ChatFunction.HeaderKey);
+                customOptions =
+                [
+                    new RequestConsentCustomOption(
+                        ToolConsentCustomOption.BypassMcpServerApproval,
+                        new FormattedDynamicLocaleKey(
+                            LocaleKey.ChatPluginConsentRequest_MCP_BypassServerApproval_Header,
+                            context.ChatPlugin.HeaderKey),
+                        null)
+                ];
             }
             else
             {
@@ -1137,9 +1152,7 @@ public sealed partial class ChatService : IChatService
 
                 if (context.ChatFunction.Permissions == ChatFunctionPermissions.None)
                 {
-                    headerKey = new FormattedDynamicLocaleKey(
-                        LocaleKey.ChatPluginConsentRequest_CommonNone_Header,
-                        context.ChatFunction.HeaderKey);
+                    headerKey = new FormattedDynamicLocaleKey(LocaleKey.ChatPluginConsentRequest_CommonNone_Header, context.ChatFunction.HeaderKey);
                 }
                 else
                 {
@@ -1155,16 +1168,12 @@ public sealed partial class ChatService : IChatService
                 headerKey,
                 displayBlock,
                 RequestConsentRememberMasks.All,
-                null,
+                customOptions,
                 cancellationToken));
         }
     }
 
-    private async Task GenerateTopicAsync(
-        Assistant assistant,
-        string userMessage,
-        ChatContextMetadata metadata,
-        CancellationToken cancellationToken)
+    private async Task GenerateTopicAsync(Assistant assistant, string userMessage, ChatContextMetadata metadata, CancellationToken cancellationToken)
     {
         if (!metadata.IsGeneratingTopic.FlipIfFalse())
         {
@@ -1349,6 +1358,11 @@ public sealed partial class ChatService : IChatService
     private static KeyValuePair<string, object?> GetModelTag(string? modelId) => new("gen_ai.request.model", modelId);
 
     #endregion
+
+    private enum ToolConsentCustomOption
+    {
+        BypassMcpServerApproval
+    }
 
     private sealed class ScopedPromptRenderer(
         IPromptPlaceholderSource promptPlaceholderSource,
