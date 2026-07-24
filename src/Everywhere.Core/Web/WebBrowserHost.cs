@@ -8,7 +8,6 @@ using Everywhere.Interop;
 using Everywhere.Utilities;
 using Microsoft.Extensions.Logging;
 using PuppeteerSharp;
-using ZLinq;
 
 namespace Everywhere.Web;
 
@@ -372,10 +371,10 @@ public sealed class WebBrowserHost : IWebBrowserHost
                 "--disable-popup-blocking",
                 "--blink-settings=imagesEnabled=false",
 #if WINDOWS // This is a bug (regression?) on Windows:
-            // https://github.com/puppeteer/puppeteer/issues/13121
-            // https://issuetracker.google.com/issues/362545030
-            // https://issues.chromium.org/issues/362706121
-            // https://stackoverflow.com/questions/78996364/chrome-129-headless-shows-blank-window
+                // https://github.com/puppeteer/puppeteer/issues/13121
+                // https://issuetracker.google.com/issues/362545030
+                // https://issues.chromium.org/issues/362706121
+                // https://stackoverflow.com/questions/78996364/chrome-129-headless-shows-blank-window
                 "--window-position=-2400,-2400"
 #endif
             } :
@@ -525,91 +524,84 @@ public sealed class WebBrowserHost : IWebBrowserHost
             await using var page = await browser.NewPageAsync();
             cancellationToken.ThrowIfCancellationRequested();
 
-            try
+            var extractionState = await ConfigureExtractionPageAsync(page, cancellationToken);
+            var responseContentType = await NavigateForExtractionAsync(page, url, cancellationToken);
+            var documentContentType = await ReadDocumentContentTypeAsync(page);
+            var contentType = responseContentType ?? extractionState.MainDocumentContentType ?? documentContentType;
+            _logger.LogDebug(
+                "Web extraction content type for {Url}. Response: {ResponseContentType}, ObservedMainDocument: {ObservedContentType}, Document: {DocumentContentType}, Selected: {SelectedContentType}",
+                url,
+                responseContentType,
+                extractionState.MainDocumentContentType,
+                documentContentType,
+                contentType);
+
+            if (IsMarkdownContentType(contentType))
             {
-                var extractionState = await ConfigureExtractionPageAsync(page, cancellationToken);
-                var responseContentType = await NavigateForExtractionAsync(page, url, cancellationToken);
-                var documentContentType = await ReadDocumentContentTypeAsync(page);
-                var contentType = responseContentType ?? extractionState.MainDocumentContentType ?? documentContentType;
+                var markdown = await ReadBodyTextAsync(page);
+                if (!string.IsNullOrWhiteSpace(markdown))
+                {
+                    var result = WebPageExtractionResult.Create(
+                        WebExtractionUtilities.NormalizeMarkdown(markdown),
+                        await page.GetTitleAsync(),
+                        WebExtractionSource.MarkdownResponse);
+                    return result with { Selection = WebExtractionSelection.Single(result) };
+                }
+            }
+
+            if (IsPlainTextContentType(contentType))
+            {
+                var text = await ReadBodyTextAsync(page);
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    var result = WebPageExtractionResult.Create(
+                        WebExtractionUtilities.NormalizeMarkdown(text),
+                        await page.GetTitleAsync(),
+                        WebExtractionSource.PlainTextResponse);
+                    return result with { Selection = WebExtractionSelection.Single(result) };
+                }
+            }
+
+            var candidates = new List<WebPageExtractionResult>();
+            var pageUri = new Uri(url);
+
+            if (await TryExtractAccessibilityAsync(page, pageUri, cancellationToken) is { } accessibilityResult)
+            {
+                candidates.Add(accessibilityResult);
+            }
+
+            if (await TryExtractReadabilityAsync(page, cancellationToken) is { } readabilityResult)
+            {
+                candidates.Add(readabilityResult);
+            }
+
+            if (await TryExtractDomMainElementAsync(page, cancellationToken) is { } domMainResult)
+            {
+                candidates.Add(domMainResult);
+            }
+
+            if (await TryExtractCleanedBodyAsync(page, cancellationToken) is { } cleanedBodyResult)
+            {
+                candidates.Add(cleanedBodyResult);
+            }
+
+            LogExtractionCandidates(url, candidates);
+            if (WebExtractionUtilities.SelectBestCandidate(candidates) is { } best)
+            {
+                LogExtractionSelection(url, best.Selection);
                 _logger.LogDebug(
-                    "Web extraction content type for {Url}. Response: {ResponseContentType}, ObservedMainDocument: {ObservedContentType}, Document: {DocumentContentType}, Selected: {SelectedContentType}",
+                    "Selected web extraction candidate for {Url}. Source: {Source}, Length: {Length}, Confidence: {Confidence}",
                     url,
-                    responseContentType,
-                    extractionState.MainDocumentContentType,
-                    documentContentType,
-                    contentType);
-
-                if (IsMarkdownContentType(contentType))
-                {
-                    var markdown = await ReadBodyTextAsync(page);
-                    if (!string.IsNullOrWhiteSpace(markdown))
-                    {
-                        var result = WebPageExtractionResult.Create(
-                            WebExtractionUtilities.NormalizeMarkdown(markdown),
-                            await page.GetTitleAsync(),
-                            WebExtractionSource.MarkdownResponse);
-                        return result with { Selection = WebExtractionSelection.Single(result) };
-                    }
-                }
-
-                if (IsPlainTextContentType(contentType))
-                {
-                    var text = await ReadBodyTextAsync(page);
-                    if (!string.IsNullOrWhiteSpace(text))
-                    {
-                        var result = WebPageExtractionResult.Create(
-                            WebExtractionUtilities.NormalizeMarkdown(text),
-                            await page.GetTitleAsync(),
-                            WebExtractionSource.PlainTextResponse);
-                        return result with { Selection = WebExtractionSelection.Single(result) };
-                    }
-                }
-
-                var candidates = new List<WebPageExtractionResult>();
-                var pageUri = new Uri(url);
-
-                if (await TryExtractAccessibilityAsync(page, pageUri, cancellationToken) is { } accessibilityResult)
-                {
-                    candidates.Add(accessibilityResult);
-                }
-
-                if (await TryExtractReadabilityAsync(page, cancellationToken) is { } readabilityResult)
-                {
-                    candidates.Add(readabilityResult);
-                }
-
-                if (await TryExtractDomMainElementAsync(page, cancellationToken) is { } domMainResult)
-                {
-                    candidates.Add(domMainResult);
-                }
-
-                if (await TryExtractCleanedBodyAsync(page, cancellationToken) is { } cleanedBodyResult)
-                {
-                    candidates.Add(cleanedBodyResult);
-                }
-
-                LogExtractionCandidates(url, candidates);
-                if (WebExtractionUtilities.SelectBestCandidate(candidates) is { } best)
-                {
-                    LogExtractionSelection(url, best.Selection);
-                    _logger.LogDebug(
-                        "Selected web extraction candidate for {Url}. Source: {Source}, Length: {Length}, Confidence: {Confidence}",
-                        url,
-                        best.Source,
-                        best.ContentLength,
-                        best.Selection?.Confidence);
-                    return best;
-                }
-
-                return WebPageExtractionResult.Create(
-                    "Failed to extract. The page may be too complex or not fully loaded.",
-                    await page.GetTitleAsync(),
-                    WebExtractionSource.CleanedBody);
+                    best.Source,
+                    best.ContentLength,
+                    best.Selection?.Confidence);
+                return best;
             }
-            finally
-            {
-                await page.CloseAsync();
-            }
+
+            return WebPageExtractionResult.Create(
+                "Failed to extract. The page may be too complex or not fully loaded.",
+                await page.GetTitleAsync(),
+                WebExtractionSource.CleanedBody);
         }
         finally
         {
